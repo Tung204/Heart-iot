@@ -1,0 +1,34 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.venv/
+__pycache__/
+*.pyc
+.pio/
+managed_components/
+sdkconfig.old
+
+# Local measurements and reports containing participant data
+data/raw/
+data/private/
+data/processed/
+data/exports/
+reports/private/
+*.log
+
+# Local OS/editor state
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

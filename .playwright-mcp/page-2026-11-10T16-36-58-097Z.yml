@@ -1,0 +1,29 @@
+- generic [ref=f1e3]:
+  - link "Chuyển đến nội dung" [ref=f1e5] [cursor=pointer]:
+    - /url: "#_R_2lmcqul6b9r7dcchej9arad5_"
+  - generic [ref=f1e7]:
+    - complementary [ref=f1e8]:
+      - generic [ref=f1e14]:
+        - generic [ref=f1e15]:
+          - generic [ref=f1e16]: ChatGPT
+          - generic [ref=f1e22]:
+            - button "Tìm kiếm" [ref=f1e23] [cursor=pointer]
+            - button "Ẩn thanh bên" [expanded] [ref=f1e31] [cursor=pointer]
+        - navigation "Lịch sử trò chuyện" [ref=f1e36]:
+          - button "Trò chuyện mới" [ref=f1e40] [cursor=pointer]
+          - generic [ref=f1e53]:
+            - button "Đã lên lịch" [ref=f1e54] [cursor=pointer]
+            - button "Thư viện" [ref=f1e63] [cursor=pointer]
+            - button "Plugin" [ref=f1e71] [cursor=pointer]
+            - button "Khám phá" [ref=f1e80] [cursor=pointer]
+        - button "Mở menu hồ sơ" [disabled] [ref=f1e98]:
+          - generic [ref=f1e99]:
+            - status [ref=f1e100]: Đang tải hồ sơ
+            - generic [ref=f1e104]:
+              - generic [ref=f1e105]: Vo Tin
+              - generic [ref=f1e106]: Go
+      - generic:
+        - separator
+    - generic [ref=f1e109]:
+      - main [ref=f1e111]
+      - status [ref=f1e117]

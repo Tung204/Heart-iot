@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0",
+  "device_id": "demo-device-001",
+  "source_message_id": "demo-fall-confirmed-001",
+  "incident_id": "demo-incident-001",
+  "accepted_revision": 2,
+  "status": "accepted",
+  "received_at": "2026-11-10T09:20:20.250Z"
+}

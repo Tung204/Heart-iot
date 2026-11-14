@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "message_id": "demo-fall-confirmed-001",
+  "device_id": "demo-device-001",
+  "boot_id": "demo-boot-001",
+  "sequence": 102,
+  "measured_at": "2026-11-10T09:20:20Z",
+  "clock_status": "synced",
+  "uptime_ms": 140000,
+  "incident_id": "demo-incident-001",
+  "event_revision": 2,
+  "event_type": "fall.confirmed",
+  "evidence": {
+    "detected_at": "2026-11-10T09:20:00Z",
+    "detected_uptime_ms": 120000,
+    "algorithm_version": "heuristic-proposal-v0",
+    "wear_position": "unverified",
+    "cancel_window_ms": 20000,
+    "signal_quality": "valid"
+  },
+  "firmware_version": "0.0.0-design"
+}

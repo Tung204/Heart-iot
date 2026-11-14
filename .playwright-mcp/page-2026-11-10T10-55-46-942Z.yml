@@ -1,0 +1,2569 @@
+- generic [ref=f1e1]:
+  - link "Đến nội dung chính" [ref=f1e2] [cursor=pointer]:
+    - /url: "#noi-dung"
+  - generic [ref=f1e3]:
+    - complementary [ref=f1e4]:
+      - link "Đồ án sức khỏe IoT — đầu trang" [ref=f1e5] [cursor=pointer]:
+        - /url: "#mo-dau"
+        - generic [ref=f1e9]:
+          - text: Sức khỏe IoT
+          - generic [ref=f1e10]: HỒ SƠ THIẾT KẾ
+      - group [ref=f1e11]:
+        - navigation "Mục lục tài liệu" [ref=f1e12]:
+          - link "Bắt đầu đọc" [ref=f1e13] [cursor=pointer]:
+            - /url: "#mo-dau"
+            - text: Bắt đầu đọc
+            - generic [aria-hidden] [ref=f1e14]: ↗
+          - paragraph [ref=f1e15]: THIẾT KẾ HỆ THỐNG
+          - link "01 Tổng quan và ý tưởng" [ref=f1e16] [cursor=pointer]:
+            - /url: "#tong-quan"
+            - generic [ref=f1e17]: "01"
+            - generic [ref=f1e18]: Tổng quan và ý tưởng
+          - link "02 Yêu cầu và phạm vi" [ref=f1e19] [cursor=pointer]:
+            - /url: "#yeu-cau"
+            - generic [ref=f1e20]: "02"
+            - generic [ref=f1e21]: Yêu cầu và phạm vi
+          - link "03 Kiến trúc hệ thống" [ref=f1e22] [cursor=pointer]:
+            - /url: "#kien-truc"
+            - generic [ref=f1e23]: "03"
+            - generic [ref=f1e24]: Kiến trúc hệ thống
+          - link "04 Dữ liệu và giao tiếp" [ref=f1e25] [cursor=pointer]:
+            - /url: "#du-lieu"
+            - generic [ref=f1e26]: "04"
+            - generic [ref=f1e27]: Dữ liệu và giao tiếp
+          - link "05 Phần cứng và firmware" [ref=f1e28] [cursor=pointer]:
+            - /url: "#phan-cung"
+            - generic [ref=f1e29]: "05"
+            - generic [ref=f1e30]: Phần cứng và firmware
+          - link "06 Trải nghiệm và màn hình" [ref=f1e31] [cursor=pointer]:
+            - /url: "#giao-dien"
+            - generic [ref=f1e32]: "06"
+            - generic [ref=f1e33]: Trải nghiệm và màn hình
+          - link "07 Trợ lý AI" [ref=f1e34] [cursor=pointer]:
+            - /url: "#tro-ly-ai"
+            - generic [ref=f1e35]: "07"
+            - generic [ref=f1e36]: Trợ lý AI
+          - link "08 Kiểm thử và đánh giá" [ref=f1e37] [cursor=pointer]:
+            - /url: "#kiem-thu"
+            - generic [ref=f1e38]: "08"
+            - generic [ref=f1e39]: Kiểm thử và đánh giá
+          - link "09 Lộ trình và hồ sơ" [ref=f1e40] [cursor=pointer]:
+            - /url: "#lo-trinh"
+            - generic [ref=f1e41]: "09"
+            - generic [ref=f1e42]: Lộ trình và hồ sơ
+          - link "10 Nguồn và câu hỏi mở" [ref=f1e43] [cursor=pointer]:
+            - /url: "#nguon"
+            - generic [ref=f1e44]: "10"
+            - generic [ref=f1e45]: Nguồn và câu hỏi mở
+          - paragraph [ref=f1e46]: TÀI LIỆU BỔ SUNG
+          - link "R Review thiết kế v0.1" [ref=f1e47] [cursor=pointer]:
+            - /url: "#review"
+            - generic [ref=f1e48]: R
+            - generic [ref=f1e49]: Review thiết kế v0.1
+          - link "A Quyết định kiến trúc" [ref=f1e50] [cursor=pointer]:
+            - /url: "#quyet-dinh"
+            - generic [ref=f1e51]: A
+            - generic [ref=f1e52]: Quyết định kiến trúc
+          - link "B Cấu trúc dự án" [ref=f1e53] [cursor=pointer]:
+            - /url: "#cau-truc"
+            - generic [ref=f1e54]: B
+            - generic [ref=f1e55]: Cấu trúc dự án
+          - link "C Payload minh họa" [ref=f1e56] [cursor=pointer]:
+            - /url: "#payload"
+            - generic [ref=f1e57]: C
+            - generic [ref=f1e58]: Payload minh họa
+        - generic [ref=f1e59]: Bản đề xuất v0.1Chưa có sản phẩm triển khai.
+    - generic [ref=f1e61]:
+      - banner [ref=f1e62]:
+        - search [ref=f1e63]:
+          - generic [ref=f1e64]: Tìm trong tài liệu
+          - searchbox "Tìm trong tài liệu" [ref=f1e68]
+          - generic [aria-hidden] [ref=f1e69]: /
+        - button "In / Lưu PDF" [ref=f1e70] [cursor=pointer]: In / Lưu PDF ↗
+      - main [ref=f1e71]:
+        - region [ref=f1e72]:
+          - generic [ref=f1e73]:
+            - generic [ref=f1e74]: ĐỒ ÁN TỐT NGHIỆP
+            - generic [ref=f1e75]: THIẾT KẾ V0.1
+          - heading [level=1] [ref=f1e76]:
+            - text: Giám sát sức khỏe
+            - emphasis [ref=f1e77]: "& cảnh báo té ngã."
+          - paragraph [ref=f1e78]: Từ tín hiệu cảm biến đến người thân nhận hỗ trợ. Hồ sơ thiết kế hệ thống IoT cho người cao tuổi, kết hợp web theo dõi và trợ lý AI.
+          - generic [ref=f1e79]:
+            - link "Đọc tổng quan" [ref=f1e80] [cursor=pointer]:
+              - /url: "#tong-quan"
+              - text: Đọc tổng quan
+              - generic [aria-hidden] [ref=f1e81]: →
+            - link "Xem kiến trúc hệ thống" [ref=f1e82] [cursor=pointer]:
+              - /url: "#kien-truc"
+          - generic [ref=f1e83]:
+            - generic [ref=f1e84]:
+              - term [ref=f1e85]: PHẠM VI
+              - definition [ref=f1e86]: Prototype tại nhà
+            - generic [ref=f1e87]:
+              - term [ref=f1e88]: KẾT NỐI ĐỀ XUẤT
+              - definition [ref=f1e89]: Wi-Fi · MQTT/TLS
+            - generic [ref=f1e90]:
+              - term [ref=f1e91]: TRẠNG THÁI
+              - definition [ref=f1e92]: Đang thiết kế
+          - link "Đã review thiết kế — còn 4 điểm cần xử lý. Outbox, định danh incident, assignment và cách tổng hợp telemetry. Chưa sửa trong đặc tả." [ref=f1e93] [cursor=pointer]:
+            - /url: "#review"
+            - generic [aria-hidden] [ref=f1e94]: "!"
+            - generic [ref=f1e95]:
+              - strong [ref=f1e96]: Đã review thiết kế — còn 4 điểm cần xử lý.
+              - generic [ref=f1e97]: Outbox, định danh incident, assignment và cách tổng hợp telemetry. Chưa sửa trong đặc tả.
+            - generic [aria-hidden] [ref=f1e98]: ↗
+          - generic [ref=f1e99]:
+            - heading "Lộ trình đọc" [level=2] [ref=f1e100]
+            - list [ref=f1e101]:
+              - listitem [ref=f1e102]:
+                - generic [ref=f1e103]: "01"
+                - link "Hiểu bài toán Người dùng, phạm vi & tiêu chí" [ref=f1e104] [cursor=pointer]:
+                  - /url: "#yeu-cau"
+                  - text: Hiểu bài toán
+                  - generic [ref=f1e105]: Người dùng, phạm vi & tiêu chí
+              - listitem [ref=f1e106]:
+                - generic [ref=f1e107]: "02"
+                - link "Đi vào thiết kế Kiến trúc, dữ liệu & phần cứng" [ref=f1e108] [cursor=pointer]:
+                  - /url: "#du-lieu"
+                  - text: Đi vào thiết kế
+                  - generic [ref=f1e109]: Kiến trúc, dữ liệu & phần cứng
+              - listitem [ref=f1e110]:
+                - generic [ref=f1e111]: "03"
+                - link "Chuẩn bị kiểm chứng Kịch bản thử & hồ sơ đánh giá" [ref=f1e112] [cursor=pointer]:
+                  - /url: "#kiem-thu"
+                  - text: Chuẩn bị kiểm chứng
+                  - generic [ref=f1e113]: Kịch bản thử & hồ sơ đánh giá
+          - paragraph [ref=f1e114]: Tài liệu gốc ngày 10/11/2026. Công nghệ, linh kiện và tham số demo là đề xuất; chưa có kết quả đo hoặc xác nhận của trường. Nội dung bên dưới giữ đầy đủ các giới hạn này.
+        - region [ref=f1e115]:
+          - generic [ref=f1e116]:
+            - generic [ref=f1e117]: "01"
+            - generic [ref=f1e118]:
+              - heading "Tổng quan và ý tưởng" [level=2] [ref=f1e119]
+              - paragraph [ref=f1e120]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e121] [cursor=pointer]:
+                  - /url: ../../docs/01-tong-quan-va-y-tuong.md
+          - navigation "Trong phần Tổng quan và ý tưởng" [ref=f1e122]:
+            - link "Bài toán" [ref=f1e123] [cursor=pointer]:
+              - /url: "#tong-quan-bai-toan"
+            - link "Nguồn yêu cầu và phần phát triển thêm" [ref=f1e124] [cursor=pointer]:
+              - /url: "#tong-quan-nguon-yeu-cau-va-phan-phat-trien-them"
+            - link "So sánh hướng sản phẩm" [ref=f1e125] [cursor=pointer]:
+              - /url: "#tong-quan-so-sanh-huong-san-pham"
+            - link "Ý tưởng tạo khác biệt có thể đánh giá" [ref=f1e126] [cursor=pointer]:
+              - /url: "#tong-quan-y-tuong-tao-khac-biet-co-the-danh-gia"
+            - link "Kịch bản demo đề xuất" [ref=f1e127] [cursor=pointer]:
+              - /url: "#tong-quan-kich-ban-demo-de-xuat"
+            - link "Giới hạn đã biết" [ref=f1e128] [cursor=pointer]:
+              - /url: "#tong-quan-gioi-han-da-biet"
+          - generic [ref=f1e129]:
+            - heading "Bài toán" [level=3] [ref=f1e130]
+            - paragraph [ref=f1e131]: Người thân cần biết người cao tuổi có đang đeo thiết bị, dữ liệu có còn mới và một cảnh báo đã có ai xử lý hay chưa. Chỉ hiển thị số nhịp tim và gửi thông báo chưa giải quyết được việc mất kết nối, báo động giả hoặc không ai nhận trách nhiệm.
+            - paragraph [ref=f1e132]:
+              - strong [ref=f1e133]: "Hướng đề xuất:"
+              - text: một hệ thống theo dõi tại nhà, lấy vòng đời cảnh báo và chất lượng dữ liệu làm trung tâm. Thiết bị ghi nhận nhịp tim, vận động và dấu hiệu nghi té ngã; người dùng có thể hủy báo nhầm; người thân xem tình trạng và xác nhận đang hỗ trợ. AI giúp đọc dữ liệu đã ghi nhận.
+            - paragraph [ref=f1e134]: Đối tượng đầu tiên là một người được theo dõi và một số người thân được cấp quyền. Đây là phạm vi prototype học thuật; số người dùng thực tế và mô hình triển khai cần xác định sau.
+            - heading "Nguồn yêu cầu và phần phát triển thêm" [level=3] [ref=f1e135]
+            - paragraph [ref=f1e136]: "Đề cương gốc yêu cầu IoT, nhịp tim, bước chân/mức vận động, phát hiện té ngã, web/app có tài khoản, chia sẻ người thân, admin và trợ lý AI. Bản này bổ sung đề xuất: trạng thái dữ liệu cũ, quyền chia sẻ có thể thu hồi, xác nhận xử lý cảnh báo, chống gửi trùng, simulator và phép đo đánh giá."
+            - paragraph [ref=f1e137]: Không tự bổ sung SpO₂, huyết áp, ECG, GPS, gọi cấp cứu tự động hoặc ứng dụng native vào MVP. Nếu cần thêm, phải xem tác động đến cảm biến, nguồn, dữ liệu và thời gian.
+            - heading "So sánh hướng sản phẩm" [level=3] [ref=f1e138]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e139]:
+              - table [ref=f1e140]:
+                - rowgroup [ref=f1e141]:
+                  - row [ref=f1e142]:
+                    - columnheader "Hướng" [ref=f1e143]
+                    - columnheader "Giá trị" [ref=f1e144]
+                    - columnheader "Khó khăn cần chứng minh" [ref=f1e145]
+                    - columnheader "Đánh giá cho đồ án" [ref=f1e146]
+                - rowgroup [ref=f1e147]:
+                  - row [ref=f1e148]:
+                    - cell "Một thiết bị đeo cổ tay + Wi-Fi + web" [ref=f1e149]
+                    - cell "Ít thành phần, dễ thao tác, có thể đo PPG tại vị trí đeo" [ref=f1e150]
+                    - cell "Nhiễu vận động; cử động tay dễ tạo báo ngã giả; tiêu thụ pin Wi-Fi" [ref=f1e151]
+                    - cell "Ứng viên khảo sát, chưa chốt hình dạng" [ref=f1e152]
+                  - row [ref=f1e153]:
+                    - cell "IMU đeo thân/thắt lưng + đo nhịp tim theo phiên" [ref=f1e154]
+                    - cell "Tách bài toán chuyển động và đo quang học; dễ so sánh vị trí" [ref=f1e155]
+                    - cell "Hai thao tác/thiết bị; không được mô tả là đo nhịp tim liên tục" [ref=f1e156]
+                    - cell "Phương án dự phòng có thể kiểm chứng trên bàn" [ref=f1e157]
+                  - row [ref=f1e158]:
+                    - cell "BLE qua điện thoại hoặc thiết bị có kết nối di động" [ref=f1e159]
+                    - cell "Có khả năng theo dõi ngoài nhà" [ref=f1e160]
+                    - cell "Gateway, ứng dụng nền, vùng phủ, SIM và pin" [ref=f1e161]
+                    - cell "Mở rộng sau prototype Wi-Fi" [ref=f1e162]
+            - paragraph [ref=f1e163]:
+              - text: Đề xuất bắt đầu bằng
+              - strong [ref=f1e164]: prototype trên bàn, rồi khảo sát vị trí đeo
+              - text: . Một MAX30102 gắn trên mạch thử không chứng minh được nhịp tim ổn định khi đeo và đi lại. Thuật toán IMU được thử ở thắt lưng cũng không mặc nhiên đúng cho cổ tay.
+            - heading "Ý tưởng tạo khác biệt có thể đánh giá" [level=3] [ref=f1e165]
+            - list [ref=f1e166]:
+              - listitem [ref=f1e167]:
+                - strong [ref=f1e168]: "Cảnh báo có vòng đời:"
+                - text: nghi ngã → cửa sổ hủy → xác nhận từ thiết bị → gửi cảnh báo → người thân xác nhận → kết thúc có lý do. Có lịch sử thao tác và thông báo tới muộn.
+              - listitem [ref=f1e169]:
+                - strong [ref=f1e170]: "Dữ liệu biết chất lượng:"
+                - text: hiển thị rõ
+                - code [ref=f1e171]: valid
+                - text: ","
+                - code [ref=f1e172]: poor_signal
+                - text: ","
+                - code [ref=f1e173]: not_worn
+                - text: ", dữ liệu cũ và thiết bị offline. Không vẽ tiếp một đường đo như thể vẫn đang nhận dữ liệu."
+              - listitem [ref=f1e174]:
+                - strong [ref=f1e175]: "AI có bằng chứng:"
+                - text: mỗi tóm tắt chỉ rõ khoảng dữ liệu và phần bị thiếu; giải thích kiến thức chung phải có nguồn đã duyệt. Không để AI tự quyết định có gửi cảnh báo hay không.
+            - heading "Kịch bản demo đề xuất" [level=3] [ref=f1e176]
+            - paragraph [ref=f1e177]: Người thân được mời vào hồ sơ theo dõi và xem dữ liệu tổng hợp từ simulator. Một sự kiện nghi ngã xuất hiện; lần đầu được hủy trên thiết bị giả lập, lần sau hết cửa sổ hủy và tạo cảnh báo. Người thân nhận cảnh báo trên dashboard, xác nhận đang xử lý, rồi đóng với kết quả “báo nhầm” hoặc “đã hỗ trợ”.
+            - paragraph [ref=f1e178]: Sau đó mô phỏng mất mạng, gửi lại cùng sự kiện, thu hồi quyền chia sẻ và một ngày thiếu dữ liệu. Hệ thống phải giữ đúng số cảnh báo, chặn quyền đã thu hồi, và AI nói rõ dữ liệu thiếu. Khi thay simulator bằng phần cứng, giữ nguyên hợp đồng dữ liệu.
+            - heading "Giới hạn đã biết" [level=3] [ref=f1e179]
+            - paragraph [ref=f1e180]: Wi-Fi chỉ phục vụ vùng có mạng đã cấu hình. Cảnh báo tại chỗ có thể hoạt động khi mất mạng, nhưng báo từ xa cần đường truyền. Nhịp tim là dữ liệu cảm biến cần đối chiếu, không phải chẩn đoán. Chưa có ngân sách, thời lượng pin, độ chính xác hoặc biểu mẫu trường để cam kết.
+            - paragraph [ref=f1e181]:
+              - text: Chi tiết phạm vi ở
+              - link "yêu cầu" [ref=f1e182] [cursor=pointer]:
+                - /url: "#yeu-cau"
+              - text: ; các lựa chọn chưa chốt ở
+              - link "quyết định dự thảo" [ref=f1e183] [cursor=pointer]:
+                - /url: "#quyet-dinh"
+              - text: .
+        - region [ref=f1e184]:
+          - generic [ref=f1e185]:
+            - generic [ref=f1e186]: "02"
+            - generic [ref=f1e187]:
+              - heading "Yêu cầu và phạm vi" [level=2] [ref=f1e188]
+              - paragraph [ref=f1e189]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e190] [cursor=pointer]:
+                  - /url: ../../docs/02-yeu-cau-va-pham-vi.md
+          - navigation "Trong phần Yêu cầu và phạm vi" [ref=f1e191]:
+            - link "Vai trò và quyền" [ref=f1e192] [cursor=pointer]:
+              - /url: "#yeu-cau-vai-tro-va-quyen"
+            - link "Yêu cầu chức năng" [ref=f1e193] [cursor=pointer]:
+              - /url: "#yeu-cau-yeu-cau-chuc-nang"
+            - link "Yêu cầu chất lượng" [ref=f1e194] [cursor=pointer]:
+              - /url: "#yeu-cau-yeu-cau-chat-luong"
+            - link "Ngoài MVP" [ref=f1e195] [cursor=pointer]:
+              - /url: "#yeu-cau-ngoai-mvp"
+            - link "Truy vết" [ref=f1e196] [cursor=pointer]:
+              - /url: "#yeu-cau-truy-vet"
+          - generic [ref=f1e197]:
+            - paragraph [ref=f1e198]:
+              - strong [ref=f1e199]: "Trạng thái:"
+              - text: đặc tả sơ bộ. P0/P1 là thứ tự kỹ thuật đề xuất cho bản demo, chưa phải cam kết tiến độ. Các yêu cầu truy vết lại đề cương trong
+              - link "nguồn" [ref=f1e200] [cursor=pointer]:
+                - /url: "#nguon"
+              - text: .
+            - heading "Vai trò và quyền" [level=3] [ref=f1e201]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e202]:
+              - table [ref=f1e203]:
+                - rowgroup [ref=f1e204]:
+                  - row [ref=f1e205]:
+                    - columnheader "Vai trò" [ref=f1e206]
+                    - columnheader "Được làm" [ref=f1e207]
+                    - columnheader "Điều kiện/giới hạn" [ref=f1e208]
+                - rowgroup [ref=f1e209]:
+                  - row [ref=f1e210]:
+                    - cell "Người được theo dõi/chủ hồ sơ" [ref=f1e211]
+                    - cell "Xem dữ liệu của mình; quản lý chia sẻ; thao tác hủy/SOS trên thiết bị" [ref=f1e212]
+                    - cell "Cần cơ chế hỗ trợ thiết lập phù hợp khả năng sử dụng" [ref=f1e213]
+                  - row [ref=f1e214]:
+                    - cell "Người thân" [ref=f1e215]
+                    - cell "Xem hồ sơ được chia sẻ; nhận cảnh báo; xác nhận đang hỗ trợ nếu được cấp quyền" [ref=f1e216]
+                    - cell "Quyền theo từng hồ sơ và khoảng lịch sử; có thể thu hồi" [ref=f1e217]
+                  - row [ref=f1e218]:
+                    - cell "Quản trị viên" [ref=f1e219]
+                    - cell "Quản lý tài khoản, thiết bị, cấu hình vận hành và audit" [ref=f1e220]
+                    - cell "Không mặc định được đọc dữ liệu sức khỏe hoặc chat AI" [ref=f1e221]
+                  - row [ref=f1e222]:
+                    - cell "Thiết bị" [ref=f1e223]
+                    - cell "Gửi dữ liệu/sự kiện của chính nó; nhận ACK/cấu hình cho chính nó" [ref=f1e224]
+                    - cell [ref=f1e225]:
+                      - text: Định danh riêng; không gửi
+                      - code [ref=f1e226]: subject_id
+                      - text: để tự chọn bệnh nhân
+            - paragraph [ref=f1e227]: Một tài khoản có thể vừa có hồ sơ riêng, vừa là người thân của hồ sơ khác. Quan hệ cấp quyền quyết định quyền truy cập; không chỉ dựa trên tên role toàn hệ thống. Mô hình người đại diện khi người cao tuổi không có tài khoản là vấn đề cần xác nhận, không tự cho người thân quyền sở hữu.
+            - heading "Yêu cầu chức năng" [level=3] [ref=f1e228]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e229]:
+              - table [ref=f1e230]:
+                - rowgroup [ref=f1e231]:
+                  - row [ref=f1e232]:
+                    - columnheader "ID" [ref=f1e233]
+                    - columnheader "Năng lực" [ref=f1e234]
+                    - columnheader "Phạm vi đề xuất" [ref=f1e235]
+                    - columnheader "Tiêu chí chấp nhận ở bản demo" [ref=f1e236]
+                - rowgroup [ref=f1e237]:
+                  - row [ref=f1e238]:
+                    - cell "FR-01" [ref=f1e239]
+                    - cell "Trang giới thiệu, đăng ký/đăng nhập/đăng xuất" [ref=f1e240]
+                    - cell "P0" [ref=f1e241]
+                    - cell "Có luồng vào hệ thống và thông báo lỗi; API xác minh phiên phía server" [ref=f1e242]
+                  - row [ref=f1e243]:
+                    - cell "FR-02" [ref=f1e244]
+                    - cell "Hồ sơ và chia sẻ người thân" [ref=f1e245]
+                    - cell "P0" [ref=f1e246]
+                    - cell "Mời, chấp nhận, giới hạn quyền, thu hồi; yêu cầu tiếp theo và luồng realtime mất quyền ngay khi bị thu hồi" [ref=f1e247]
+                  - row [ref=f1e248]:
+                    - cell "FR-03" [ref=f1e249]
+                    - cell "Gắn, thu hồi và chuyển thiết bị" [ref=f1e250]
+                    - cell "P0" [ref=f1e251]
+                    - cell "Chứng minh quyền ghép thiết bị; không chuyển dữ liệu cũ sang hồ sơ mới khi đổi chủ" [ref=f1e252]
+                  - row [ref=f1e253]:
+                    - cell "FR-04" [ref=f1e254]
+                    - cell "Nhịp tim, bước chân, chất lượng tín hiệu" [ref=f1e255]
+                    - cell "P0" [ref=f1e256]
+                    - cell "Xem giá trị, đơn vị, thời điểm; thiếu/sai tín hiệu không thành số 0; reset thiết bị không làm bước chân âm" [ref=f1e257]
+                  - row [ref=f1e258]:
+                    - cell "FR-05" [ref=f1e259]
+                    - cell "Biểu đồ và thống kê" [ref=f1e260]
+                    - cell "P0" [ref=f1e261]
+                    - cell "Lọc ngày/khoảng thời gian; hiển thị đoạn thiếu dữ liệu, không tính trung bình từ mẫu không hợp lệ" [ref=f1e262]
+                  - row [ref=f1e263]:
+                    - cell "FR-06" [ref=f1e264]
+                    - cell "Nghi té ngã và hủy báo nhầm" [ref=f1e265]
+                    - cell "P0" [ref=f1e266]
+                    - cell "Có cửa sổ hủy tại thiết bị và trạng thái cuối theo từng incident; gửi trùng không tạo cảnh báo mới" [ref=f1e267]
+                  - row [ref=f1e268]:
+                    - cell "FR-07" [ref=f1e269]
+                    - cell "Hộp cảnh báo và xác nhận hỗ trợ" [ref=f1e270]
+                    - cell "P0" [ref=f1e271]
+                    - cell "Người có quyền nhận sự kiện, xác nhận và đóng có lý do; hai người xác nhận đồng thời không gây mất lịch sử" [ref=f1e272]
+                  - row [ref=f1e273]:
+                    - cell "FR-08" [ref=f1e274]
+                    - cell "Thiết bị offline, dữ liệu cũ, pin" [ref=f1e275]
+                    - cell "P0" [ref=f1e276]
+                    - cell "Phân biệt không có dữ liệu với giá trị bình thường; pin chưa đo phải hiển thị chưa biết" [ref=f1e277]
+                  - row [ref=f1e278]:
+                    - cell "FR-09" [ref=f1e279]
+                    - cell "SOS chủ động và liên hệ hỗ trợ" [ref=f1e280]
+                    - cell "P0 đề xuất thêm" [ref=f1e281]
+                    - cell "SOS bỏ qua cửa sổ nghi ngã; có xác nhận chống bấm nhầm; liên hệ thủ công từ giao diện" [ref=f1e282]
+                  - row [ref=f1e283]:
+                    - cell "FR-10" [ref=f1e284]
+                    - cell "AI tóm tắt ngày/giải thích dữ liệu" [ref=f1e285]
+                    - cell "P0 giới hạn" [ref=f1e286]
+                    - cell "Dựa trên dữ liệu được phép, dẫn khoảng dữ liệu; thiếu dữ liệu thì nói rõ; tắt AI không ảnh hưởng cảnh báo" [ref=f1e287]
+                  - row [ref=f1e288]:
+                    - cell "FR-11" [ref=f1e289]
+                    - cell "Admin tối thiểu" [ref=f1e290]
+                    - cell "P0" [ref=f1e291]
+                    - cell "Xem tình trạng tài khoản/thiết bị và audit đã lọc; không xem sức khỏe qua role admin đơn thuần" [ref=f1e292]
+                  - row [ref=f1e293]:
+                    - cell "FR-12" [ref=f1e294]
+                    - cell "Thông báo khi đóng trình duyệt" [ref=f1e295]
+                    - cell "P1" [ref=f1e296]
+                    - cell "Chỉ đánh dấu hỗ trợ sau khi kiểm Web Push trên nền tảng mục tiêu; có trạng thái gửi thất bại/không rõ đã đọc" [ref=f1e297]
+                  - row [ref=f1e298]:
+                    - cell "FR-13" [ref=f1e299]
+                    - cell "Ngưỡng chỉ số cấu hình được" [ref=f1e300]
+                    - cell "P1" [ref=f1e301]
+                    - cell "Có nguồn/phiên bản cấu hình và cơ chế chống lặp; không cài ngưỡng y khoa tùy ý" [ref=f1e302]
+                  - row [ref=f1e303]:
+                    - cell "FR-14" [ref=f1e304]
+                    - cell "Xuất, lưu trữ, xóa dữ liệu" [ref=f1e305]
+                    - cell "P0 thiết kế, triển khai trước dữ liệu thật" [ref=f1e306]
+                    - cell "Quyền người yêu cầu được kiểm tra; phạm vi xóa gồm bản sao, AI, cache và chính sách backup" [ref=f1e307]
+            - paragraph [ref=f1e308]: P0 ban đầu dùng dữ liệu tổng hợp và người nhận demo. Giao diện phải nói rõ cảnh báo trong ứng dụng chỉ được quan sát khi đang kết nối; không hứa báo thức nền hoặc cuộc gọi tự động.
+            - heading "Yêu cầu chất lượng" [level=3] [ref=f1e309]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e310]:
+              - table [ref=f1e311]:
+                - rowgroup [ref=f1e312]:
+                  - row [ref=f1e313]:
+                    - columnheader "ID" [ref=f1e314]
+                    - columnheader "Yêu cầu" [ref=f1e315]
+                    - columnheader "Cách kiểm dự kiến" [ref=f1e316]
+                - rowgroup [ref=f1e317]:
+                  - row [ref=f1e318]:
+                    - cell "NFR-01" [ref=f1e319]
+                    - cell "Kiểm quyền theo hồ sơ cho REST, realtime, export và AI" [ref=f1e320]
+                    - cell "Tài khoản không được chia sẻ phải bị từ chối ở cả bốn đường dữ liệu" [ref=f1e321]
+                  - row [ref=f1e322]:
+                    - cell "NFR-02" [ref=f1e323]
+                    - cell "Xử lý trùng và lỗi mạng" [ref=f1e324]
+                    - cell "Gửi lặp, đảo thứ tự, khởi động lại, mất mạng; đối chiếu số bản ghi/cảnh báo" [ref=f1e325]
+                  - row [ref=f1e326]:
+                    - cell "NFR-03" [ref=f1e327]
+                    - cell "Thời gian có thể giải thích" [ref=f1e328]
+                    - cell "Giữ thời gian thiết bị, server, trạng thái đồng hồ và độ mới; phân biệt thời gian phát hiện với thời gian gửi" [ref=f1e329]
+                  - row [ref=f1e330]:
+                    - cell "NFR-04" [ref=f1e331]
+                    - cell "Dễ thao tác" [ref=f1e332]
+                    - cell "Cỡ chữ rõ, nút chính ít, không chỉ dùng màu; thử các tác vụ cốt lõi với người phù hợp sau khi có đồng ý" [ref=f1e333]
+                  - row [ref=f1e334]:
+                    - cell "NFR-05" [ref=f1e335]
+                    - cell "Bảo vệ dữ liệu" [ref=f1e336]
+                    - cell "TLS, secret ngoài Git, log tối thiểu, giới hạn truy cập và kiểm thu hồi quyền" [ref=f1e337]
+                  - row [ref=f1e338]:
+                    - cell "NFR-06" [ref=f1e339]
+                    - cell "Khôi phục và theo dõi lỗi" [ref=f1e340]
+                    - cell "Có quy trình backup/restore, retry hữu hạn, trạng thái hàng gửi, bộ đếm mất mẫu; kiểm ở giai đoạn triển khai" [ref=f1e341]
+                  - row [ref=f1e342]:
+                    - cell "NFR-07" [ref=f1e343]
+                    - cell "Độ trễ hiển thị" [ref=f1e344]
+                    - 'cell "Đích demo đề xuất: p95 ≤ 5 giây từ server nhận sự kiện confirmed đến cập nhật dashboard đang online; đo riêng cửa sổ hủy và truyền từ thiết bị" [ref=f1e345]'
+            - heading "Ngoài MVP" [level=3] [ref=f1e346]
+            - paragraph [ref=f1e347]: Ứng dụng native, gọi cấp cứu tự động, tự chẩn đoán/kê thuốc, theo dõi ngoài nhà bằng SIM/GPS, nhiều loại bệnh, huấn luyện mô hình ngã lớn, quản lý bệnh viện và tích hợp hồ sơ y tế. Đây là các hướng nghiên cứu mở rộng, không phải phần đã loại khỏi tên đề tài hay đã cam kết xây sau.
+            - heading "Truy vết" [level=3] [ref=f1e348]
+            - paragraph [ref=f1e349]:
+              - text: Mỗi tính năng triển khai cần ghi ID yêu cầu vào PR/tài liệu thay đổi và liên kết bằng chứng. Bản
+              - link "kiểm thử" [ref=f1e350] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: chứa ánh xạ yêu cầu → kịch bản; không đánh dấu đạt khi mới viết đặc tả.
+        - region [ref=f1e351]:
+          - generic [ref=f1e352]:
+            - generic [ref=f1e353]: "03"
+            - generic [ref=f1e354]:
+              - heading "Kiến trúc hệ thống" [level=2] [ref=f1e355]
+              - paragraph [ref=f1e356]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e357] [cursor=pointer]:
+                  - /url: ../../docs/03-kien-truc-he-thong.md
+          - generic [ref=f1e358]:
+            - text: Đặc tả này có điểm cần làm rõ sau review.
+            - link "Đọc các phát hiện và hướng sửa" [ref=f1e359] [cursor=pointer]:
+              - /url: "#review"
+            - text: trước khi triển khai.
+          - navigation "Trong phần Kiến trúc hệ thống" [ref=f1e360]:
+            - link "Các thành phần" [ref=f1e361] [cursor=pointer]:
+              - /url: "#kien-truc-cac-thanh-phan"
+            - link "Công nghệ ứng viên" [ref=f1e362] [cursor=pointer]:
+              - /url: "#kien-truc-cong-nghe-ung-vien"
+            - link "Luồng cảnh báo té ngã" [ref=f1e363] [cursor=pointer]:
+              - /url: "#kien-truc-luong-canh-bao-te-nga"
+            - link "Tính bền vững và gửi thông báo" [ref=f1e364] [cursor=pointer]:
+              - /url: "#kien-truc-tinh-ben-vung-va-gui-thong-bao"
+            - link "Mạng, đồng hồ và dữ liệu cũ" [ref=f1e365] [cursor=pointer]:
+              - /url: "#kien-truc-mang-dong-ho-va-du-lieu-cu"
+            - link "Ranh giới quyền và vận hành" [ref=f1e366] [cursor=pointer]:
+              - /url: "#kien-truc-ranh-gioi-quyen-va-van-hanh"
+          - generic [ref=f1e367]:
+            - paragraph [ref=f1e368]:
+              - strong [ref=f1e369]: "Đề xuất v0.1:"
+              - text: web responsive + backend modular monolith + PostgreSQL + MQTT broker + firmware ESP32. Chưa khóa framework, phiên bản, cloud hay nhà cung cấp AI.
+            - heading "Các thành phần" [level=3] [ref=f1e370]
+            - figure "Kiến trúc — thành phần và hướng giao tiếp" [ref=f1e371]:
+              - list [ref=f1e373]:
+                - listitem [ref=f1e374]:
+                  - generic [ref=f1e375]: PPG / IMU / nút bấm
+                  - generic [ref=f1e376]:
+                    - generic [aria-hidden] [ref=f1e377]: →
+                    - generic [ref=f1e378]: tới
+                  - generic [ref=f1e379]: "Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"
+                - listitem [ref=f1e380]:
+                  - generic [ref=f1e381]: "Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"
+                  - generic [ref=f1e382]:
+                    - text: MQTT qua TLS
+                    - generic [aria-hidden] [ref=f1e383]: →
+                    - generic [ref=f1e384]: tới
+                  - generic [ref=f1e385]: MQTT broker
+                - listitem [ref=f1e386]:
+                  - generic [ref=f1e387]: MQTT broker
+                  - generic [ref=f1e388]:
+                    - generic [aria-hidden] [ref=f1e389]: →
+                    - generic [ref=f1e390]: tới
+                  - generic [ref=f1e391]: Tiếp nhận, xác thực, chống trùng
+                - listitem [ref=f1e392]:
+                  - generic [ref=f1e393]: Tiếp nhận, xác thực, chống trùng
+                  - generic [ref=f1e394]:
+                    - generic [aria-hidden] [ref=f1e395]: →
+                    - generic [ref=f1e396]: tới
+                  - generic [ref=f1e397]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                - listitem [ref=f1e398]:
+                  - generic [ref=f1e399]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                  - generic [ref=f1e400]:
+                    - generic [aria-hidden] [ref=f1e401]: →
+                    - generic [ref=f1e402]: tới
+                  - generic [ref=f1e403]: PostgreSQL
+                - listitem [ref=f1e404]:
+                  - generic [ref=f1e405]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                  - generic [ref=f1e406]:
+                    - generic [aria-hidden] [ref=f1e407]: →
+                    - generic [ref=f1e408]: tới
+                  - generic [ref=f1e409]: Outbox và tác vụ gửi thông báo
+                - listitem [ref=f1e410]:
+                  - generic [ref=f1e411]: Outbox và tác vụ gửi thông báo
+                  - generic [ref=f1e412]:
+                    - text: Sự kiện trong ứng dụng
+                    - generic [aria-hidden] [ref=f1e413]: →
+                    - generic [ref=f1e414]: tới
+                  - generic [ref=f1e415]: Web responsive
+                - listitem [ref=f1e416]:
+                  - generic [ref=f1e417]: Web responsive
+                  - generic [ref=f1e418]:
+                    - text: HTTPS / API
+                    - generic [aria-hidden] [ref=f1e419]: →
+                    - generic [ref=f1e420]: tới
+                  - generic [ref=f1e421]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                - listitem [ref=f1e422]:
+                  - generic [ref=f1e423]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                  - generic [ref=f1e424]:
+                    - text: ACK sau lưu bền vững
+                    - generic [aria-hidden] [ref=f1e425]: →
+                    - generic [ref=f1e426]: tới
+                  - generic [ref=f1e427]: MQTT broker
+                - listitem [ref=f1e428]:
+                  - generic [ref=f1e429]: MQTT broker
+                  - generic [ref=f1e430]:
+                    - generic [aria-hidden] [ref=f1e431]: →
+                    - generic [ref=f1e432]: tới
+                  - generic [ref=f1e433]: "Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"
+                - listitem [ref=f1e434]:
+                  - generic [ref=f1e435]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+                  - generic [ref=f1e436]:
+                    - text: Dữ liệu tối thiểu đã kiểm quyền
+                    - generic [aria-hidden] [ref=f1e437]: →
+                    - generic [ref=f1e438]: tới
+                  - generic [ref=f1e439]: Trợ lý AI tùy chọn
+                - listitem [ref=f1e440]:
+                  - generic [ref=f1e441]: Trợ lý AI tùy chọn
+                  - generic [ref=f1e442]:
+                    - generic [aria-hidden] [ref=f1e443]: →
+                    - generic [ref=f1e444]: tới
+                  - generic [ref=f1e445]: "Backend: hồ sơ, quyền, dữ liệu, cảnh báo"
+              - group [ref=f1e446]:
+                - generic "Xem mã sơ đồ Mermaid gốc" [ref=f1e447] [cursor=pointer]
+            - paragraph [ref=f1e448]: Các module ingest, cảnh báo, thông báo và AI nằm trong một backend triển khai chung ở bản đầu. Có thể chạy worker riêng cùng codebase khi cần khôi phục tác vụ; chưa có lý do để chia microservices hoặc thêm Kubernetes.
+            - heading "Công nghệ ứng viên" [level=3] [ref=f1e449]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e450]:
+              - table [ref=f1e451]:
+                - rowgroup [ref=f1e452]:
+                  - row [ref=f1e453]:
+                    - columnheader "Phần" [ref=f1e454]
+                    - columnheader "Đề xuất ban đầu" [ref=f1e455]
+                    - columnheader "Lý do và điều kiện xem lại" [ref=f1e456]
+                - rowgroup [ref=f1e457]:
+                  - row [ref=f1e458]:
+                    - cell "Web" [ref=f1e459]
+                    - cell "React + TypeScript + Vite" [ref=f1e460]
+                    - cell "Dashboard tương tác, chia sẻ kiểu dữ liệu; đổi nếu nhóm có năng lực khác hoặc trường yêu cầu" [ref=f1e461]
+                  - row [ref=f1e462]:
+                    - cell "API" [ref=f1e463]
+                    - cell "NestJS + TypeScript" [ref=f1e464]
+                    - cell "Tổ chức module theo nghiệp vụ; API, ingest và tác vụ dùng chung domain" [ref=f1e465]
+                  - row [ref=f1e466]:
+                    - cell "Lưu trữ" [ref=f1e467]
+                    - cell "PostgreSQL" [ref=f1e468]
+                    - cell "Quan hệ hồ sơ/chia sẻ, transaction và unique constraint; chưa cần database chuỗi thời gian riêng" [ref=f1e469]
+                  - row [ref=f1e470]:
+                    - cell "Thiết bị" [ref=f1e471]
+                    - cell "ESP32, ESP-IDF, ESP-MQTT" [ref=f1e472]
+                    - cell "Wi-Fi và MQTT/TLS; chọn board/version sau khảo sát thư viện cảm biến và bộ nhớ" [ref=f1e473]
+                  - row [ref=f1e474]:
+                    - cell "MQTT broker" [ref=f1e475]
+                    - cell "Mosquitto hoặc broker tương thích" [ref=f1e476]
+                    - cell "Có ACL theo thiết bị; phương án hosting và persistence cần thử" [ref=f1e477]
+                  - row [ref=f1e478]:
+                    - cell "Realtime web" [ref=f1e479]
+                    - cell "SSE hoặc WebSocket, chốt sau thử phiên đăng nhập" [ref=f1e480]
+                    - cell "Server đẩy dữ liệu/cảnh báo; client reconnect phải lấy lại trạng thái từ API" [ref=f1e481]
+                  - row [ref=f1e482]:
+                    - cell "AI" [ref=f1e483]
+                    - cell "Adapter phía server" [ref=f1e484]
+                    - cell "Đổi provider/model mà không đổi luồng cảnh báo; chưa chọn provider" [ref=f1e485]
+                  - row [ref=f1e486]:
+                    - cell "Local demo" [ref=f1e487]
+                    - cell "Compose khi đã có ứng dụng" [ref=f1e488]
+                    - cell "Dựng DB/broker/API/web nhất quán; chưa tạo cấu hình chạy khi chưa có image/code" [ref=f1e489]
+            - paragraph [ref=f1e490]:
+              - text: Tài liệu chính thức ESP-IDF được đọc ngày 10/11/2026 cho biết ESP-MQTT đã tách thành component riêng từ ESP-IDF v6.0. Vì vậy khi bắt đầu firmware phải chốt bộ ESP-IDF + ESP-MQTT tương thích; không dùng ví dụ cũ mà mặc định component vẫn tích hợp. Nguồn ở
+              - link "danh mục" [ref=f1e491] [cursor=pointer]:
+                - /url: "#nguon"
+              - text: .
+            - heading "Luồng cảnh báo té ngã" [level=3] [ref=f1e492]
+            - figure "Vòng đời incident — các chuyển trạng thái" [ref=f1e493]:
+              - list [ref=f1e495]:
+                - listitem [ref=f1e496]:
+                  - generic [ref=f1e497]: Bắt đầu
+                  - generic [ref=f1e498]:
+                    - text: thuật toán tạo incident
+                    - generic [aria-hidden] [ref=f1e499]: →
+                    - generic [ref=f1e500]: tới
+                  - generic [ref=f1e501]: Suspected
+                - listitem [ref=f1e502]:
+                  - generic [ref=f1e503]: Suspected
+                  - generic [ref=f1e504]:
+                    - text: hủy trong cửa sổ
+                    - generic [aria-hidden] [ref=f1e505]: →
+                    - generic [ref=f1e506]: tới
+                  - generic [ref=f1e507]: Cancelled
+                - listitem [ref=f1e508]:
+                  - generic [ref=f1e509]: Suspected
+                  - generic [ref=f1e510]:
+                    - text: thiết bị gửi confirmed
+                    - generic [aria-hidden] [ref=f1e511]: →
+                    - generic [ref=f1e512]: tới
+                  - generic [ref=f1e513]: Open
+                - listitem [ref=f1e514]:
+                  - generic [ref=f1e515]: Open
+                  - generic [ref=f1e516]:
+                    - text: người thân nhận trách nhiệm
+                    - generic [aria-hidden] [ref=f1e517]: →
+                    - generic [ref=f1e518]: tới
+                  - generic [ref=f1e519]: Acknowledged
+                - listitem [ref=f1e520]:
+                  - generic [ref=f1e521]: Open
+                  - generic [ref=f1e522]:
+                    - text: đóng có lý do
+                    - generic [aria-hidden] [ref=f1e523]: →
+                    - generic [ref=f1e524]: tới
+                  - generic [ref=f1e525]: Resolved
+                - listitem [ref=f1e526]:
+                  - generic [ref=f1e527]: Acknowledged
+                  - generic [ref=f1e528]:
+                    - text: ghi kết quả hỗ trợ
+                    - generic [aria-hidden] [ref=f1e529]: →
+                    - generic [ref=f1e530]: tới
+                  - generic [ref=f1e531]: Resolved
+                - listitem [ref=f1e532]:
+                  - generic [ref=f1e533]: Cancelled
+                  - generic [ref=f1e534]:
+                    - generic [aria-hidden] [ref=f1e535]: →
+                    - generic [ref=f1e536]: tới
+                  - generic [ref=f1e537]: Kết thúc
+                - listitem [ref=f1e538]:
+                  - generic [ref=f1e539]: Resolved
+                  - generic [ref=f1e540]:
+                    - generic [aria-hidden] [ref=f1e541]: →
+                    - generic [ref=f1e542]: tới
+                  - generic [ref=f1e543]: Kết thúc
+              - group [ref=f1e544]:
+                - generic "Xem mã sơ đồ Mermaid gốc" [ref=f1e545] [cursor=pointer]
+            - list [ref=f1e546]:
+              - listitem [ref=f1e547]:
+                - text: Firmware là nơi quyết định kết thúc cửa sổ hủy, dùng đồng hồ monotonic. Tham số demo đề xuất là
+                - strong [ref=f1e548]: 20 giây
+                - text: ", chưa chốt sau thử thao tác."
+              - listitem [ref=f1e549]:
+                - code [ref=f1e550]: fall.candidate
+                - text: chỉ tạo trạng thái
+                - code [ref=f1e551]: suspected
+                - text: . Backend
+                - strong [ref=f1e552]: không tự suy ra confirmed
+                - text: "vì hết thời gian nhận dữ liệu: có thể thiết bị đã hủy khi mất mạng."
+              - listitem [ref=f1e553]:
+                - code [ref=f1e554]: fall.cancelled
+                - text: trước confirmed kết thúc incident và không gửi cảnh báo khẩn tới người thân. Nếu đã confirmed, yêu cầu hủy sau đó được ghi là
+                - code [ref=f1e555]: user.cancel_requested
+                - text: ; backend đóng với lý do và thông báo cập nhật cho những người đã nhận, không xóa lịch sử.
+              - listitem [ref=f1e556]:
+                - code [ref=f1e557]: fall.confirmed
+                - text: mở cảnh báo ngay cả khi
+                - code [ref=f1e558]: candidate
+                - text: chưa tới.
+                - code [ref=f1e559]: incident_id
+                - text: ổn định,
+                - code [ref=f1e560]: event_revision
+                - text: tăng trong cùng incident; dữ liệu đến trễ không được làm lùi trạng thái cuối.
+              - listitem [ref=f1e561]: SOS là incident riêng, mở trực tiếp sau thao tác xác nhận chủ động, không đợi 20 giây của nghi ngã.
+              - listitem [ref=f1e562]:
+                - text: Người thân
+                - code [ref=f1e563]: acknowledged
+                - text: chỉ có nghĩa đã nhận trách nhiệm hỗ trợ, không đồng nghĩa người dùng đã an toàn. Chỉ
+                - code [ref=f1e564]: resolved
+                - text: có kết quả và người thực hiện mới kết thúc xử lý.
+            - heading "Tính bền vững và gửi thông báo" [level=3] [ref=f1e565]
+            - paragraph [ref=f1e566]: Tiếp nhận sự kiện và tạo bản ghi cần gửi trong cùng transaction. Worker đọc notification outbox, thử gửi với backoff và số lần tối đa cấu hình được, lưu lỗi và lần thử. Unique key ngăn cùng incident/revision/người nhận/kênh tạo nhiều tác vụ gửi.
+            - paragraph [ref=f1e567]:
+              - text: MQTT QoS 1 vẫn có thể giao trùng. ACK của broker không có nghĩa ứng dụng đã lưu. Thiết bị chỉ coi sự kiện quan trọng đã tới backend khi nhận
+              - strong [ref=f1e568]: application ACK sau commit
+              - text: ; nếu chưa có thì gửi lại cùng định danh. Bộ nhớ bền của thiết bị, dung lượng và cách phục hồi sau mất nguồn phải được hiện thực riêng và kiểm chứng. Không coi outbox mặc định của thư viện là flash queue được bảo đảm.
+            - paragraph [ref=f1e569]:
+              - text: Kết nối realtime cũng có thể đứt. Web tải snapshot/cursor từ API khi reconnect; trạng thái server là nguồn chính. Gửi thành công tới kết nối không đồng nghĩa người dùng đã đọc;
+              - code [ref=f1e570]: acknowledged
+              - text: phải là hành động rõ ràng.
+            - heading "Mạng, đồng hồ và dữ liệu cũ" [level=3] [ref=f1e571]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e572]:
+              - table [ref=f1e573]:
+                - rowgroup [ref=f1e574]:
+                  - row [ref=f1e575]:
+                    - columnheader "Tình huống" [ref=f1e576]
+                    - columnheader "Hành vi đề xuất" [ref=f1e577]
+                - rowgroup [ref=f1e578]:
+                  - row [ref=f1e579]:
+                    - cell "Mất Wi-Fi" [ref=f1e580]
+                    - cell "Thiết bị vẫn đọc cảm biến, báo tại chỗ và ghi hàng đợi hữu hạn; UI từ xa đánh dấu offline khi vượt timeout" [ref=f1e581]
+                  - row [ref=f1e582]:
+                    - cell "Mất nguồn" [ref=f1e583]
+                    - cell [ref=f1e584]:
+                      - text: Chỉ dữ liệu đã ghi bền có thể phục hồi; khi boot tạo
+                      - code [ref=f1e585]: boot_id
+                      - text: mới, công bố reset counter
+                  - row [ref=f1e586]:
+                    - cell "Chưa đồng bộ giờ" [ref=f1e587]
+                    - cell [ref=f1e588]:
+                      - text: Gửi
+                      - code [ref=f1e589]: "measured_at: null"
+                      - text: ", uptime và"
+                      - code [ref=f1e590]: "clock_status: unsynced"
+                      - text: ; không lấy giờ nhận làm giờ đo thật
+                  - row [ref=f1e591]:
+                    - cell "Sự kiện đến muộn" [ref=f1e592]
+                    - cell "Giữ thời gian gốc; UI ghi “nhận trễ”; không tự khẳng định nguy cơ đang diễn ra" [ref=f1e593]
+                  - row [ref=f1e594]:
+                    - cell "Chuyển thiết bị sang hồ sơ khác" [ref=f1e595]
+                    - cell "Dữ liệu được gán bằng lịch sử assignment tại thời điểm xảy ra; không chắc thời gian thì cách ly để kiểm tra" [ref=f1e596]
+                  - row [ref=f1e597]:
+                    - cell "Candidate không có kết quả cuối" [ref=f1e598]
+                    - cell "Hiển thị “chưa xác định do thiếu dữ liệu”; không báo bình thường và không tự xác nhận ngã" [ref=f1e599]
+            - paragraph [ref=f1e600]: "Tham số demo đề xuất: heartbeat 15 giây, offline sau 45 giây không có heartbeat, dữ liệu chỉ số bị coi là cũ sau 30 giây. Cần điều chỉnh theo chu kỳ gửi/pin. LWT là tín hiệu bổ sung, không thay việc theo dõi thời gian nhận cuối."
+            - paragraph [ref=f1e601]: Một confirmed đến trễ hơn 5 phút hoặc không xác định được giờ được lưu vào lịch sử, gắn cờ cần kiểm tra và gửi thông báo “sự kiện nhận trễ, chưa rõ tình trạng hiện tại”. Ngưỡng 5 phút là chính sách demo đề xuất, phải đánh giá lại; không âm thầm bỏ cảnh báo.
+            - heading "Ranh giới quyền và vận hành" [level=3] [ref=f1e602]
+            - paragraph [ref=f1e603]: Broker chỉ cho thiết bị publish/subscribe topic của nó; API xác minh payload khớp định danh kết nối. API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
+            - paragraph [ref=f1e604]:
+              - text: Backup, restore, secret rotation, giới hạn retention và quan sát lỗi được mô tả ở
+              - link "lộ trình/bàn giao" [ref=f1e605] [cursor=pointer]:
+                - /url: "#lo-trinh"
+              - text: ; cần bằng chứng trước khi dùng dữ liệu thật.
+        - region [ref=f1e606]:
+          - generic [ref=f1e607]:
+            - generic [ref=f1e608]: "04"
+            - generic [ref=f1e609]:
+              - heading "Dữ liệu và giao tiếp" [level=2] [ref=f1e610]
+              - paragraph [ref=f1e611]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e612] [cursor=pointer]:
+                  - /url: ../../docs/04-du-lieu-va-giao-tiep.md
+          - generic [ref=f1e613]:
+            - text: Đặc tả này có điểm cần làm rõ sau review.
+            - link "Đọc các phát hiện và hướng sửa" [ref=f1e614] [cursor=pointer]:
+              - /url: "#review"
+            - text: trước khi triển khai.
+          - navigation "Trong phần Dữ liệu và giao tiếp" [ref=f1e615]:
+            - link "Mô hình dữ liệu" [ref=f1e616] [cursor=pointer]:
+              - /url: "#du-lieu-mo-hinh-du-lieu"
+            - link "Hợp đồng telemetry" [ref=f1e617] [cursor=pointer]:
+              - /url: "#du-lieu-hop-dong-telemetry"
+            - link "Topic và giao nhận MQTT" [ref=f1e618] [cursor=pointer]:
+              - /url: "#du-lieu-topic-va-giao-nhan-mqtt"
+            - link "Incident và ACK" [ref=f1e619] [cursor=pointer]:
+              - /url: "#du-lieu-incident-va-ack"
+            - link "API dự kiến" [ref=f1e620] [cursor=pointer]:
+              - /url: "#du-lieu-api-du-kien"
+            - link "Retention và xóa" [ref=f1e621] [cursor=pointer]:
+              - /url: "#du-lieu-retention-va-xoa"
+          - generic [ref=f1e622]:
+            - paragraph [ref=f1e623]:
+              - strong [ref=f1e624]: "Trạng thái:"
+              - text: hợp đồng dự thảo v1; chưa phải OpenAPI/JSON Schema đã thực thi. Ví dụ hợp lệ về cấu trúc JSON ở
+              - link "packages/contracts" [ref=f1e625] [cursor=pointer]:
+                - /url: "#payload"
+              - text: ", chỉ dùng dữ liệu tổng hợp."
+            - heading "Mô hình dữ liệu" [level=3] [ref=f1e626]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e627]:
+              - table [ref=f1e628]:
+                - rowgroup [ref=f1e629]:
+                  - row [ref=f1e630]:
+                    - columnheader "Thực thể" [ref=f1e631]
+                    - columnheader "Trường chính dự kiến" [ref=f1e632]
+                    - columnheader "Ràng buộc quan trọng" [ref=f1e633]
+                - rowgroup [ref=f1e634]:
+                  - row [ref=f1e635]:
+                    - cell [ref=f1e636]:
+                      - code [ref=f1e637]: users
+                    - cell "id, auth identity, trạng thái" [ref=f1e638]
+                    - cell "Không dùng role toàn cục thay kiểm quyền trên hồ sơ" [ref=f1e639]
+                  - row [ref=f1e640]:
+                    - cell [ref=f1e641]:
+                      - code [ref=f1e642]: subjects
+                    - cell "id, owner_user_id, tên hiển thị, timezone" [ref=f1e643]
+                    - cell "Tách người được theo dõi khỏi tài khoản đăng nhập" [ref=f1e644]
+                  - row [ref=f1e645]:
+                    - cell [ref=f1e646]:
+                      - code [ref=f1e647]: care_links
+                    - cell "subject_id, caregiver_user_id, permissions, shared_from, accepted_at, revoked_at" [ref=f1e648]
+                    - cell "Chỉ active sau chấp nhận; giới hạn lịch sử được xem; kiểm lại trước khi gửi dữ liệu" [ref=f1e649]
+                  - row [ref=f1e650]:
+                    - cell [ref=f1e651]:
+                      - code [ref=f1e652]: devices
+                    - cell "id, credential_ref, firmware_version, last_seen_at" [ref=f1e653]
+                    - cell "Không lưu secret thô trong log hoặc hợp đồng công khai" [ref=f1e654]
+                  - row [ref=f1e655]:
+                    - cell [ref=f1e656]:
+                      - code [ref=f1e657]: device_assignments
+                    - cell "id, device_id, subject_id, started_at, ended_at" [ref=f1e658]
+                    - cell "Các khoảng không chồng nhau trên một thiết bị; không viết lại lịch sử khi đổi chủ" [ref=f1e659]
+                  - row [ref=f1e660]:
+                    - cell [ref=f1e661]:
+                      - code [ref=f1e662]: telemetry
+                    - cell "message_id, device_id, assignment_id, boot_id, sequence, measured_at, received_at, metrics, quality" [ref=f1e663]
+                    - cell "Chống trùng; assignment được server xác định và giữ nguyên" [ref=f1e664]
+                  - row [ref=f1e665]:
+                    - cell [ref=f1e666]:
+                      - code [ref=f1e667]: incidents
+                    - cell "id, assignment_id, type, state, last_revision, detected_at, resolved_at" [ref=f1e668]
+                    - cell "State transition kiểm tra trong transaction; không cho sự kiện cũ mở lại incident đã đóng" [ref=f1e669]
+                  - row [ref=f1e670]:
+                    - cell [ref=f1e671]:
+                      - code [ref=f1e672]: incident_events
+                    - cell "message_id, incident_id, event_revision, type, payload, received_at" [ref=f1e673]
+                    - cell "Lưu lịch sử bất biến; unique incident_id + event_revision" [ref=f1e674]
+                  - row [ref=f1e675]:
+                    - cell [ref=f1e676]:
+                      - code [ref=f1e677]: alert_actions
+                    - cell "incident_id, actor_id, action, reason, created_at" [ref=f1e678]
+                    - cell "Ai xác nhận/đóng và vì sao; bảo vệ tranh chấp bằng version/transaction" [ref=f1e679]
+                  - row [ref=f1e680]:
+                    - cell [ref=f1e681]:
+                      - code [ref=f1e682]: notification_outbox
+                    - cell "incident_id, revision, recipient_id, channel, status, attempts, next_attempt_at" [ref=f1e683]
+                    - cell "Unique theo incident/revision/người nhận/kênh; kiểm quyền lại lúc gửi" [ref=f1e684]
+                  - row [ref=f1e685]:
+                    - cell [ref=f1e686]:
+                      - code [ref=f1e687]: ai_summaries
+                    - cell "subject_id, period, aggregate_ref, source_ids, model_version, status" [ref=f1e688]
+                    - cell "Chỉ lưu theo chính sách được đồng ý; mất quyền thì không đọc lại qua cache" [ref=f1e689]
+                  - row [ref=f1e690]:
+                    - cell [ref=f1e691]:
+                      - code [ref=f1e692]: audit_logs
+                    - cell "actor_id, action, target_ref, outcome, created_at" [ref=f1e693]
+                    - cell "Không chứa toàn bộ payload sức khỏe, credentials hay prompt riêng tư" [ref=f1e694]
+            - figure "Quan hệ dữ liệu — một tới không hoặc nhiều bản ghi" [ref=f1e695]:
+              - list [ref=f1e697]:
+                - listitem [ref=f1e698]:
+                  - generic [ref=f1e699]: USERS
+                  - generic [ref=f1e700]:
+                    - text: 1 → 0..n · owns
+                    - generic [aria-hidden] [ref=f1e701]: →
+                    - generic [ref=f1e702]: tới
+                  - generic [ref=f1e703]: SUBJECTS
+                - listitem [ref=f1e704]:
+                  - generic [ref=f1e705]: USERS
+                  - generic [ref=f1e706]:
+                    - text: 1 → 0..n · receives
+                    - generic [aria-hidden] [ref=f1e707]: →
+                    - generic [ref=f1e708]: tới
+                  - generic [ref=f1e709]: CARE_LINKS
+                - listitem [ref=f1e710]:
+                  - generic [ref=f1e711]: SUBJECTS
+                  - generic [ref=f1e712]:
+                    - text: 1 → 0..n · grants
+                    - generic [aria-hidden] [ref=f1e713]: →
+                    - generic [ref=f1e714]: tới
+                  - generic [ref=f1e715]: CARE_LINKS
+                - listitem [ref=f1e716]:
+                  - generic [ref=f1e717]: SUBJECTS
+                  - generic [ref=f1e718]:
+                    - text: 1 → 0..n · has
+                    - generic [aria-hidden] [ref=f1e719]: →
+                    - generic [ref=f1e720]: tới
+                  - generic [ref=f1e721]: DEVICE_ASSIGNMENTS
+                - listitem [ref=f1e722]:
+                  - generic [ref=f1e723]: DEVICES
+                  - generic [ref=f1e724]:
+                    - text: 1 → 0..n · assigned
+                    - generic [aria-hidden] [ref=f1e725]: →
+                    - generic [ref=f1e726]: tới
+                  - generic [ref=f1e727]: DEVICE_ASSIGNMENTS
+                - listitem [ref=f1e728]:
+                  - generic [ref=f1e729]: DEVICE_ASSIGNMENTS
+                  - generic [ref=f1e730]:
+                    - text: 1 → 0..n · produces
+                    - generic [aria-hidden] [ref=f1e731]: →
+                    - generic [ref=f1e732]: tới
+                  - generic [ref=f1e733]: TELEMETRY
+                - listitem [ref=f1e734]:
+                  - generic [ref=f1e735]: DEVICE_ASSIGNMENTS
+                  - generic [ref=f1e736]:
+                    - text: 1 → 0..n · concerns
+                    - generic [aria-hidden] [ref=f1e737]: →
+                    - generic [ref=f1e738]: tới
+                  - generic [ref=f1e739]: INCIDENTS
+                - listitem [ref=f1e740]:
+                  - generic [ref=f1e741]: INCIDENTS
+                  - generic [ref=f1e742]:
+                    - text: 1 → 0..n · records
+                    - generic [aria-hidden] [ref=f1e743]: →
+                    - generic [ref=f1e744]: tới
+                  - generic [ref=f1e745]: INCIDENT_EVENTS
+                - listitem [ref=f1e746]:
+                  - generic [ref=f1e747]: INCIDENTS
+                  - generic [ref=f1e748]:
+                    - text: 1 → 0..n · tracks
+                    - generic [aria-hidden] [ref=f1e749]: →
+                    - generic [ref=f1e750]: tới
+                  - generic [ref=f1e751]: ALERT_ACTIONS
+                - listitem [ref=f1e752]:
+                  - generic [ref=f1e753]: INCIDENTS
+                  - generic [ref=f1e754]:
+                    - text: 1 → 0..n · schedules
+                    - generic [aria-hidden] [ref=f1e755]: →
+                    - generic [ref=f1e756]: tới
+                  - generic [ref=f1e757]: NOTIFICATION_OUTBOX
+              - group [ref=f1e758]:
+                - generic "Xem mã sơ đồ Mermaid gốc" [ref=f1e759] [cursor=pointer]
+            - paragraph [ref=f1e760]:
+              - text: "Khóa/index dự kiến: unique"
+              - code [ref=f1e761]: (device_id, message_id)
+              - text: ", unique"
+              - code [ref=f1e762]: (device_id, boot_id, sequence)
+              - text: cho envelope thiết bị; index
+              - code [ref=f1e763]: (assignment_id, measured_at)
+              - text: cho truy vấn biểu đồ và
+              - code [ref=f1e764]: (state, detected_at)
+              - text: cho cảnh báo.
+              - code [ref=f1e765]: message_id
+              - text: phải được giữ nguyên khi retry;
+              - code [ref=f1e766]: sequence
+              - text: tăng chung cho các bản tin trong một boot. Cùng key nhưng khác nội dung là xung đột, không âm thầm overwrite.
+            - heading "Hợp đồng telemetry" [level=3] [ref=f1e767]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e768]:
+              - table [ref=f1e769]:
+                - rowgroup [ref=f1e770]:
+                  - row [ref=f1e771]:
+                    - columnheader "Trường" [ref=f1e772]
+                    - columnheader "Quy tắc" [ref=f1e773]
+                - rowgroup [ref=f1e774]:
+                  - row [ref=f1e775]:
+                    - cell [ref=f1e776]:
+                      - code [ref=f1e777]: schema_version
+                    - cell [ref=f1e778]:
+                      - code [ref=f1e779]: "1.0"
+                      - text: cho bản dự thảo này; version không hỗ trợ bị từ chối/cách ly có lý do
+                  - row [ref=f1e780]:
+                    - cell [ref=f1e781]:
+                      - code [ref=f1e782]: message_id
+                      - text: ","
+                      - code [ref=f1e783]: device_id
+                      - text: ","
+                      - code [ref=f1e784]: boot_id
+                    - cell "Định danh không chứa tên/số điện thoại; ví dụ dùng ID minh họa" [ref=f1e785]
+                  - row [ref=f1e786]:
+                    - cell [ref=f1e787]:
+                      - code [ref=f1e788]: sequence
+                    - cell "Số nguyên không âm; tăng trong cùng boot, giữ khi gửi lại" [ref=f1e789]
+                  - row [ref=f1e790]:
+                    - cell [ref=f1e791]:
+                      - code [ref=f1e792]: measured_at
+                    - cell [ref=f1e793]:
+                      - text: RFC 3339 UTC hoặc
+                      - code [ref=f1e794]: "null"
+                      - text: khi chưa có đồng hồ tin cậy
+                  - row [ref=f1e795]:
+                    - cell [ref=f1e796]:
+                      - code [ref=f1e797]: clock_status
+                    - cell [ref=f1e798]:
+                      - code [ref=f1e799]: synced
+                      - text: hoặc
+                      - code [ref=f1e800]: unsynced
+                      - text: ;
+                      - code [ref=f1e801]: unsynced
+                      - text: đi với
+                      - code [ref=f1e802]: "measured_at: null"
+                  - row [ref=f1e803]:
+                    - cell [ref=f1e804]:
+                      - code [ref=f1e805]: uptime_ms
+                    - cell "Thời gian monotonic tính từ boot; không so trực tiếp giữa hai boot" [ref=f1e806]
+                  - row [ref=f1e807]:
+                    - cell [ref=f1e808]:
+                      - code [ref=f1e809]: metrics.heart_rate_bpm
+                    - cell [ref=f1e810]:
+                      - text: Số hoặc
+                      - code [ref=f1e811]: "null"
+                      - text: ; chỉ số không hợp lệ phải là
+                      - code [ref=f1e812]: "null"
+                      - text: ", không dùng 0 giả"
+                  - row [ref=f1e813]:
+                    - cell [ref=f1e814]:
+                      - code [ref=f1e815]: metrics.steps_since_boot
+                    - cell "Tổng bước của boot hiện tại, số nguyên không âm; không phải tổng ngày" [ref=f1e816]
+                  - row [ref=f1e817]:
+                    - cell [ref=f1e818]:
+                      - code [ref=f1e819]: quality.heart_rate
+                    - cell [ref=f1e820]:
+                      - code [ref=f1e821]: valid
+                      - text: ","
+                      - code [ref=f1e822]: poor_signal
+                      - text: ","
+                      - code [ref=f1e823]: not_worn
+                      - text: hoặc
+                      - code [ref=f1e824]: sensor_error
+                  - row [ref=f1e825]:
+                    - cell [ref=f1e826]:
+                      - code [ref=f1e827]: quality.motion
+                    - cell [ref=f1e828]:
+                      - code [ref=f1e829]: valid
+                      - text: hoặc
+                      - code [ref=f1e830]: sensor_error
+                      - text: ; lỗi cảm biến không tự thành ít vận động
+                  - row [ref=f1e831]:
+                    - cell [ref=f1e832]:
+                      - code [ref=f1e833]: battery_percent
+                    - cell [ref=f1e834]:
+                      - text: Số 0–100 hoặc
+                      - code [ref=f1e835]: "null"
+                      - text: khi chưa có phép đo/cấu hình chuyển đổi
+                  - row [ref=f1e836]:
+                    - cell [ref=f1e837]:
+                      - code [ref=f1e838]: firmware_version
+                    - cell "Phiên bản tạo payload; phiên bản demo không đại diện firmware đã build" [ref=f1e839]
+            - paragraph [ref=f1e840]:
+              - text: Server bổ sung
+              - code [ref=f1e841]: received_at
+              - text: ","
+              - code [ref=f1e842]: assignment_id
+              - text: và cờ dữ liệu trễ. Firmware không được tự khai người được theo dõi. Khi không đủ bằng chứng để gán dữ liệu vào lịch sử assignment, giữ bản tin ở vùng cách ly; không tự gán vào chủ hiện tại.
+            - paragraph [ref=f1e843]: Tổng bước theo ngày được tính từ delta trong từng boot và gán vào khoảng có thời gian tin cậy. Lần nhận đầu của boot sau một đoạn mất dữ liệu có thể không phân bổ chính xác theo ngày; đánh dấu chưa đủ dữ liệu thay vì cộng toàn bộ vào ngày nhận. Khi counter giảm trong cùng boot, ghi lỗi dữ liệu. Ngày hiển thị theo timezone hồ sơ; lưu timestamp UTC.
+            - heading "Topic và giao nhận MQTT" [level=3] [ref=f1e844]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e845]:
+              - table [ref=f1e846]:
+                - rowgroup [ref=f1e847]:
+                  - row [ref=f1e848]:
+                    - columnheader "Topic" [ref=f1e849]
+                    - columnheader "Hướng" [ref=f1e850]
+                    - columnheader "Payload/chính sách" [ref=f1e851]
+                - rowgroup [ref=f1e852]:
+                  - row [ref=f1e853]:
+                    - cell [ref=f1e854]:
+                      - code [ref=f1e855]: "v1/devices/{device_id}/telemetry"
+                    - cell "Thiết bị → backend" [ref=f1e856]
+                    - cell "Envelope telemetry; QoS 1 đề xuất, có thể tổng hợp mẫu để giảm băng thông" [ref=f1e857]
+                  - row [ref=f1e858]:
+                    - cell [ref=f1e859]:
+                      - code [ref=f1e860]: "v1/devices/{device_id}/events"
+                    - cell "Thiết bị → backend" [ref=f1e861]
+                    - cell [ref=f1e862]:
+                      - code [ref=f1e863]: fall.candidate
+                      - text: ","
+                      - code [ref=f1e864]: fall.cancelled
+                      - text: ","
+                      - code [ref=f1e865]: fall.confirmed
+                      - text: ","
+                      - code [ref=f1e866]: user.cancel_requested
+                      - text: ","
+                      - code [ref=f1e867]: sos.confirmed
+                      - text: ; QoS 1
+                  - row [ref=f1e868]:
+                    - cell [ref=f1e869]:
+                      - code [ref=f1e870]: "v1/devices/{device_id}/status"
+                    - cell "Thiết bị/broker → backend" [ref=f1e871]
+                    - cell "Presence/heartbeat gồm boot_id, uptime, firmware, pin nếu có; LWT chỉ là gợi ý mất kết nối" [ref=f1e872]
+                  - row [ref=f1e873]:
+                    - cell [ref=f1e874]:
+                      - code [ref=f1e875]: "v1/devices/{device_id}/acks"
+                    - cell "Backend → thiết bị" [ref=f1e876]
+                    - cell "ACK ứng dụng cho sự kiện quan trọng sau commit" [ref=f1e877]
+            - paragraph [ref=f1e878]: "Không retain telemetry hoặc sự kiện té ngã: subscriber mới không được hiểu một sự kiện cũ là mới. Có thể retain presence, nhưng phải kiểm thời gian nhận. Topic status dùng cùng envelope định danh khi do thiết bị gửi; LWT do broker gửi phải được nhận diện riêng và không đưa vào bảng dữ liệu đo."
+            - paragraph [ref=f1e879]:
+              - text: ACL buộc
+              - code [ref=f1e880]: device_id
+              - text: trong topic và payload khớp định danh đã cấp. Subscriber backend không tin một device_id chỉ vì JSON hợp lệ. Certificate/credential provisioning và rotation được chọn khi dựng broker; không dùng chung một tài khoản thiết bị cho mọi board.
+            - heading "Incident và ACK" [level=3] [ref=f1e881]
+            - paragraph [ref=f1e882]:
+              - text: Sự kiện dùng envelope như telemetry, thay
+              - code [ref=f1e883]: metrics
+              - text: bằng
+              - code [ref=f1e884]: incident_id
+              - text: ","
+              - code [ref=f1e885]: event_revision
+              - text: ","
+              - code [ref=f1e886]: event_type
+              - text: và
+              - code [ref=f1e887]: evidence
+              - text: .
+              - code [ref=f1e888]: event_revision
+              - text: bắt đầu 1 ở candidate, tăng theo từng thay đổi của incident và cần phục hồi được sau reboot nếu incident còn mở.
+              - code [ref=f1e889]: fall.confirmed
+              - text: phải mang đủ dữ liệu để xử lý khi candidate chưa đến.
+            - paragraph [ref=f1e890]:
+              - code [ref=f1e891]: evidence.algorithm_version
+              - text: ", vị trí đeo và cờ chất lượng giúp giải thích nguyên nhân; không gọi một điểm heuristic là “xác suất té ngã” nếu chưa hiệu chuẩn."
+            - paragraph [ref=f1e892]:
+              - text: ACK gồm
+              - code [ref=f1e893]: source_message_id
+              - text: ","
+              - code [ref=f1e894]: incident_id
+              - text: ","
+              - code [ref=f1e895]: accepted_revision
+              - text: ","
+              - code [ref=f1e896]: status
+              - text: ","
+              - code [ref=f1e897]: received_at
+              - text: .
+              - code [ref=f1e898]: accepted
+              - text: nghĩa server đã ghi bền;
+              - code [ref=f1e899]: duplicate
+              - text: nghĩa bản tin giống hệt đã được ghi.
+              - code [ref=f1e900]: rejected
+              - text: kèm mã lý do để không retry vô hạn. Thiết bị chỉ xóa sự kiện khỏi hàng đợi sau ACK accepted/duplicate đúng định danh; bản tin bị reject chuyển vùng lỗi hữu hạn để kiểm tra.
+            - paragraph [ref=f1e901]:
+              - text: Nếu revision mới tới trước revision cũ, server lưu lịch sử và áp dụng transition hợp lệ theo revision mới; bản cũ tới sau không làm lùi trạng thái. Hai payload khác nhau cùng revision là lỗi giao thức cần audit. Chuyển
+              - code [ref=f1e902]: cancelled
+              - text: sang
+              - code [ref=f1e903]: open
+              - text: bằng dữ liệu cũ bị cấm.
+            - heading "API dự kiến" [level=3] [ref=f1e904]
+            - paragraph [ref=f1e905]:
+              - text: Prefix
+              - code [ref=f1e906]: /api/v1
+              - text: ; đây là inventory thiết kế, chưa có endpoint chạy.
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e907]:
+              - table [ref=f1e908]:
+                - rowgroup [ref=f1e909]:
+                  - row [ref=f1e910]:
+                    - columnheader "Nhóm" [ref=f1e911]
+                    - columnheader "Endpoint minh họa" [ref=f1e912]
+                    - columnheader "Kiểm quyền/hành vi" [ref=f1e913]
+                - rowgroup [ref=f1e914]:
+                  - row [ref=f1e915]:
+                    - cell "Phiên" [ref=f1e916]
+                    - cell [ref=f1e917]:
+                      - code [ref=f1e918]: POST /auth/register
+                      - text: ","
+                      - code [ref=f1e919]: /auth/login
+                      - text: ","
+                      - code [ref=f1e920]: /auth/logout
+                      - text: ;
+                      - code [ref=f1e921]: GET /me
+                    - cell "Session cookie bảo vệ phù hợp, rate limit, CSRF với thao tác dùng cookie; chốt cơ chế khi chọn stack" [ref=f1e922]
+                  - row [ref=f1e923]:
+                    - cell "Hồ sơ" [ref=f1e924]
+                    - cell [ref=f1e925]:
+                      - code [ref=f1e926]: GET /subjects
+                      - text: ","
+                      - code [ref=f1e927]: "GET /subjects/{id}"
+                    - cell "Chỉ hồ sơ sở hữu/được chia sẻ" [ref=f1e928]
+                  - row [ref=f1e929]:
+                    - cell "Chia sẻ" [ref=f1e930]
+                    - cell [ref=f1e931]:
+                      - code [ref=f1e932]: "POST /subjects/{id}/invitations"
+                      - text: ;
+                      - code [ref=f1e933]: "POST /invitations/{token}/accept"
+                      - text: ;
+                      - code [ref=f1e934]: "DELETE /subjects/{id}/care-links/{link_id}"
+                    - cell "Chủ hồ sơ tạo/thu hồi; token dùng một lần, có hạn; không ghi token vào log" [ref=f1e935]
+                  - row [ref=f1e936]:
+                    - cell "Thiết bị" [ref=f1e937]
+                    - cell [ref=f1e938]:
+                      - code [ref=f1e939]: POST /devices/claim
+                      - text: ;
+                      - code [ref=f1e940]: "POST /devices/{id}/release"
+                    - cell "Bằng chứng ghép thiết bị dùng một lần; assignment được đóng/mở đúng thời điểm" [ref=f1e941]
+                  - row [ref=f1e942]:
+                    - cell "Chỉ số" [ref=f1e943]
+                    - cell [ref=f1e944]:
+                      - code [ref=f1e945]: "GET /subjects/{id}/measurements?from=&to=&cursor="
+                    - cell "Giới hạn khoảng, pagination và quyền lịch sử" [ref=f1e946]
+                  - row [ref=f1e947]:
+                    - cell "Tổng hợp" [ref=f1e948]
+                    - cell [ref=f1e949]:
+                      - code [ref=f1e950]: "GET /subjects/{id}/daily-summary?date="
+                    - cell "Trả coverage, khoảng thiếu và timezone bên cạnh giá trị" [ref=f1e951]
+                  - row [ref=f1e952]:
+                    - cell "Cảnh báo" [ref=f1e953]
+                    - cell [ref=f1e954]:
+                      - code [ref=f1e955]: "GET /subjects/{id}/alerts"
+                      - text: ;
+                      - code [ref=f1e956]: "POST /alerts/{id}/acknowledge"
+                      - text: ;
+                      - code [ref=f1e957]: "POST /alerts/{id}/resolve"
+                    - cell "Quyền hỗ trợ; đóng phải có reason; dùng version và idempotency key" [ref=f1e958]
+                  - row [ref=f1e959]:
+                    - cell "Realtime" [ref=f1e960]
+                    - cell [ref=f1e961]:
+                      - code [ref=f1e962]: "GET /subjects/{id}/events"
+                      - text: nếu chọn SSE
+                    - cell "Xác thực stream, thu hồi quyền, reconnect bằng cursor/snapshot" [ref=f1e963]
+                  - row [ref=f1e964]:
+                    - cell "AI" [ref=f1e965]
+                    - cell [ref=f1e966]:
+                      - code [ref=f1e967]: "POST /subjects/{id}/assistant/summary"
+                    - cell "Kiểm quyền trước tổng hợp và trước trả kết quả; giới hạn dữ liệu/chi phí" [ref=f1e968]
+                  - row [ref=f1e969]:
+                    - cell "Dữ liệu cá nhân" [ref=f1e970]
+                    - cell [ref=f1e971]:
+                      - code [ref=f1e972]: "POST /subjects/{id}/exports"
+                      - text: ;
+                      - code [ref=f1e973]: "POST /subjects/{id}/deletion-requests"
+                    - cell "Chủ hồ sơ hoặc đại diện được xác minh; export có hạn; theo dõi tiến trình xóa" [ref=f1e974]
+                  - row [ref=f1e975]:
+                    - cell "Admin" [ref=f1e976]
+                    - cell [ref=f1e977]:
+                      - code [ref=f1e978]: GET /admin/devices
+                      - text: ","
+                      - code [ref=f1e979]: GET /admin/audit
+                    - cell "Quyền quản trị; không cung cấp payload sức khỏe mặc định" [ref=f1e980]
+            - paragraph [ref=f1e981]:
+              - text: Lỗi API dùng envelope
+              - code [ref=f1e982]: "{ \"code\": \"...\", \"message\": \"...\", \"request_id\": \"...\" }"
+              - text: ; không trả stack trace hoặc thông tin hồ sơ khác. Dùng
+              - code [ref=f1e983]: "401"
+              - text: khi không có phiên,
+              - code [ref=f1e984]: "403"
+              - text: khi bị cấm theo chính sách,
+              - code [ref=f1e985]: "409"
+              - text: khi xung đột version,
+              - code [ref=f1e986]: "422"
+              - text: khi payload không phù hợp hợp đồng,
+              - code [ref=f1e987]: "429"
+              - text: khi vượt giới hạn. Với tài nguyên riêng tư cần thống nhất cách dùng
+              - code [ref=f1e988]: "404"
+              - text: để tránh dò tồn tại.
+            - heading "Retention và xóa" [level=3] [ref=f1e989]
+            - paragraph [ref=f1e990]: Trước dữ liệu thật, chốt thời hạn cho raw signal, telemetry tổng hợp, audit, AI và backup. Raw IMU/PPG chỉ thu trong phiên thử có mục đích, không truyền/lưu liên tục mặc định. Một yêu cầu xóa phải xét database, file export, cache, tóm tắt AI và vòng đời backup; không ghi “đã xóa hết” khi mới ẩn trên giao diện.
+            - paragraph [ref=f1e991]: Tài khoản người thân đã bị thu hồi không nhận notification còn trong hàng đợi và không đọc bản tóm tắt cache. Dữ liệu đã xuất ra ngoài cần được giải thích trong chính sách chia sẻ trước khi sử dụng thực tế.
+        - region [ref=f1e992]:
+          - generic [ref=f1e993]:
+            - generic [ref=f1e994]: "05"
+            - generic [ref=f1e995]:
+              - heading "Phần cứng và firmware" [level=2] [ref=f1e996]
+              - paragraph [ref=f1e997]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e998] [cursor=pointer]:
+                  - /url: ../../docs/05-phan-cung-va-firmware.md
+          - generic [ref=f1e999]:
+            - text: Đặc tả này có điểm cần làm rõ sau review.
+            - link "Đọc các phát hiện và hướng sửa" [ref=f1e1000] [cursor=pointer]:
+              - /url: "#review"
+            - text: trước khi triển khai.
+          - navigation "Trong phần Phần cứng và firmware" [ref=f1e1001]:
+            - link "Phương án khảo sát" [ref=f1e1002] [cursor=pointer]:
+              - /url: "#phan-cung-phuong-an-khao-sat"
+            - link "Trình tự khảo sát vị trí đeo" [ref=f1e1003] [cursor=pointer]:
+              - /url: "#phan-cung-trinh-tu-khao-sat-vi-tri-deo"
+            - link "Thuật toán ban đầu có thể giải thích" [ref=f1e1004] [cursor=pointer]:
+              - /url: "#phan-cung-thuat-toan-ban-dau-co-the-giai-thich"
+            - link "Ranh giới module firmware dự kiến" [ref=f1e1005] [cursor=pointer]:
+              - /url: "#phan-cung-ranh-gioi-module-firmware-du-kien"
+            - link "Lấy mẫu, pin và lưu đệm" [ref=f1e1006] [cursor=pointer]:
+              - /url: "#phan-cung-lay-mau-pin-va-luu-dem"
+            - link "BOM và hồ sơ phần cứng" [ref=f1e1007] [cursor=pointer]:
+              - /url: "#phan-cung-bom-va-ho-so-phan-cung"
+          - generic [ref=f1e1008]:
+            - paragraph [ref=f1e1009]:
+              - strong [ref=f1e1010]: "Trạng thái:"
+              - text: danh sách ứng viên và phương án thử. Chưa xác nhận đã sở hữu linh kiện, sơ đồ chân, giá mua, điện áp module hoặc độ chính xác.
+            - heading "Phương án khảo sát" [level=3] [ref=f1e1011]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1012]:
+              - table [ref=f1e1013]:
+                - rowgroup [ref=f1e1014]:
+                  - row [ref=f1e1015]:
+                    - columnheader "Khối" [ref=f1e1016]
+                    - columnheader "Ứng viên" [ref=f1e1017]
+                    - columnheader "Cần kiểm trước khi chốt" [ref=f1e1018]
+                - rowgroup [ref=f1e1019]:
+                  - row [ref=f1e1020]:
+                    - cell "Vi điều khiển" [ref=f1e1021]
+                    - cell "Một board thuộc họ ESP32" [ref=f1e1022]
+                    - cell "Mã board, nguồn, RAM/flash, chân khả dụng, thư viện cảm biến, tiêu thụ điện" [ref=f1e1023]
+                  - row [ref=f1e1024]:
+                    - cell "Nhịp tim quang học" [ref=f1e1025]
+                    - cell "Module MAX30102 hoặc cảm biến PPG tương đương" [ref=f1e1026]
+                    - cell "Datasheet đúng chip/module, tiếp xúc da, che sáng, nhiễu cử động, thuật toán suy BPM" [ref=f1e1027]
+                  - row [ref=f1e1028]:
+                    - cell "Vận động/té ngã" [ref=f1e1029]
+                    - cell "IMU 6 trục; so sánh MPU6050 và lựa chọn đang có" [ref=f1e1030]
+                    - cell "Dải đo, tần số lấy mẫu, tuổi đời/nguồn hàng, driver, nhiễu và vị trí gắn" [ref=f1e1031]
+                  - row [ref=f1e1032]:
+                    - cell "Tương tác" [ref=f1e1033]
+                    - cell "Nút SOS/hủy, LED, buzzer hoặc rung" [ref=f1e1034]
+                    - cell "Bấm nhầm, lực bấm, phân biệt trạng thái, giới hạn dòng driver" [ref=f1e1035]
+                  - row [ref=f1e1036]:
+                    - cell "Nguồn" [ref=f1e1037]
+                    - cell "Nguồn bàn/USB trước; pin sau" [ref=f1e1038]
+                    - cell "Mạch sạc/bảo vệ đúng loại pin, đường cấp nguồn, nhiệt độ, tiêu thụ đỉnh" [ref=f1e1039]
+                  - row [ref=f1e1040]:
+                    - cell "Cơ khí" [ref=f1e1041]
+                    - cell "Vỏ thử và dây đeo" [ref=f1e1042]
+                    - cell "Tiếp xúc da, khối lượng, độ chắc, dễ tháo, không lộ dây/mạch khi đeo" [ref=f1e1043]
+            - paragraph [ref=f1e1044]: Tên linh kiện chỉ là ứng viên. Không suy ra module bất kỳ tương thích 3,3 V/5 V từ tên chip; phải đọc datasheet và sơ đồ module được mua. Chưa đưa pin/charger vào thiết kế chi tiết trước khi xác định yêu cầu nguồn.
+            - heading "Trình tự khảo sát vị trí đeo" [level=3] [ref=f1e1045]
+            - list [ref=f1e1046]:
+              - listitem [ref=f1e1047]: "Trên bàn: đọc định danh cảm biến, kiểm nguồn và dữ liệu thô ổn định; ghi cấu hình và phiên bản driver."
+              - listitem [ref=f1e1048]: "PPG: thu phiên ngồi yên, so với thiết bị tham chiếu đã biết giới hạn; ghi tỷ lệ mất tín hiệu và ảnh hưởng tiếp xúc."
+              - listitem [ref=f1e1049]: "IMU: ghi hoạt động thường ngày có nhãn ở vị trí đề xuất như cổ tay/thắt lưng; không trộn vị trí mà không lưu metadata."
+              - listitem [ref=f1e1050]: So sánh tỷ lệ báo nhầm, khả năng đeo và chất lượng nhịp tim để chọn một thiết bị hay tách phép đo theo phiên.
+            - paragraph [ref=f1e1051]: Không yêu cầu người cao tuổi cố tình té ngã. Thử va chạm trước bằng mô hình/vật thay thế; dữ liệu đó chỉ chứng minh phản ứng với kịch bản cơ học, không đại diện độ nhạy trên người. Thử có người cần phương án phù hợp, đồng ý và điều kiện an toàn riêng.
+            - heading "Thuật toán ban đầu có thể giải thích" [level=3] [ref=f1e1052]
+            - paragraph [ref=f1e1053]:
+              - text: "Luồng dự kiến: kiểm chất lượng → lọc nhiễu IMU → trích độ lớn gia tốc/thay đổi tư thế → nhận diện chuỗi đặc trưng →"
+              - code [ref=f1e1054]: fall.candidate
+              - text: → cửa sổ hủy →
+              - code [ref=f1e1055]: fall.confirmed
+              - text: hoặc
+              - code [ref=f1e1056]: fall.cancelled
+              - text: .
+            - paragraph [ref=f1e1057]: Free-fall, impact và bất động có thể là đặc trưng nghiên cứu; không bắt buộc mọi cú ngã đều có đủ ba dấu hiệu. Ngồi mạnh, vỗ tay, tháo/rơi thiết bị cũng phải có trong tập hoạt động âm tính. Ngưỡng lấy từ calibration, không đặt một giá trị g rồi gọi là đã phát hiện ngã chính xác.
+            - paragraph [ref=f1e1058]: Bắt đầu bằng rule-based baseline và ghi version/tham số. Chỉ cân nhắc mô hình học máy sau khi có dữ liệu đủ nguồn, chia tập đúng và chứng minh cải thiện trên cùng phép đo. Không dùng AI ngôn ngữ để phân loại từng mẫu cảm biến trong đường cảnh báo.
+            - heading "Ranh giới module firmware dự kiến" [level=3] [ref=f1e1059]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1060]:
+              - table [ref=f1e1061]:
+                - rowgroup [ref=f1e1062]:
+                  - row [ref=f1e1063]:
+                    - columnheader "Module" [ref=f1e1064]
+                    - columnheader "Trách nhiệm" [ref=f1e1065]
+                - rowgroup [ref=f1e1066]:
+                  - row [ref=f1e1067]:
+                    - cell [ref=f1e1068]:
+                      - code [ref=f1e1069]: sensors
+                    - cell "Driver, timestamp, chất lượng, lỗi bus" [ref=f1e1070]
+                  - row [ref=f1e1071]:
+                    - cell [ref=f1e1072]:
+                      - code [ref=f1e1073]: signal_processing
+                    - cell "Lọc, suy BPM, bước chân, đặc trưng IMU" [ref=f1e1074]
+                  - row [ref=f1e1075]:
+                    - cell [ref=f1e1076]:
+                      - code [ref=f1e1077]: fall_detection
+                    - cell "State machine nghi ngã, tham số, version thuật toán" [ref=f1e1078]
+                  - row [ref=f1e1079]:
+                    - cell [ref=f1e1080]:
+                      - code [ref=f1e1081]: interaction
+                    - cell "Nút, chống dội, LED/rung/còi; hủy/SOS" [ref=f1e1082]
+                  - row [ref=f1e1083]:
+                    - cell [ref=f1e1084]:
+                      - code [ref=f1e1085]: connectivity
+                    - cell "Provisioning mạng, TLS/MQTT, backoff kết nối" [ref=f1e1086]
+                  - row [ref=f1e1087]:
+                    - cell [ref=f1e1088]:
+                      - code [ref=f1e1089]: buffer
+                    - cell "Hàng đợi hữu hạn, ưu tiên incident, phục hồi khi boot" [ref=f1e1090]
+                  - row [ref=f1e1091]:
+                    - cell [ref=f1e1092]:
+                      - code [ref=f1e1093]: telemetry
+                    - cell "Envelope, sequence, application ACK và số mẫu mất" [ref=f1e1094]
+                  - row [ref=f1e1095]:
+                    - cell [ref=f1e1096]:
+                      - code [ref=f1e1097]: config
+                    - cell "Phiên bản cấu hình, thông tin board, secret provisioned ngoài source" [ref=f1e1098]
+            - paragraph [ref=f1e1099]: Chưa tạo cây source chi tiết trước khi chọn ESP-IDF/driver. Cấu trúc trên là ranh giới trách nhiệm, không phải danh sách file đã có.
+            - heading "Lấy mẫu, pin và lưu đệm" [level=3] [ref=f1e1100]
+            - paragraph [ref=f1e1101]: Tách tốc độ lấy mẫu cảm biến khỏi chu kỳ gửi mạng. Thử các tốc độ IMU trong khả năng cảm biến, ghi lại tradeoff độ nhạy/CPU/điện; chỉ gửi tổng hợp thường kỳ và sự kiện, trừ phiên thu raw được bật rõ ràng.
+            - paragraph [ref=f1e1102]: "Hàng đợi có dung lượng/tuổi tối đa được cấu hình và đo. Khi đầy: ưu tiên giữ sự kiện quan trọng, bỏ mẫu telemetry cũ theo chính sách có bộ đếm; nếu sự kiện vẫn phải bị bỏ thì báo lỗi/trạng thái degraded khi có kết nối. Không hứa lưu vô hạn hoặc không mất dữ liệu khi tắt nguồn."
+            - paragraph [ref=f1e1103]:
+              - text: Ước lượng sơ bộ thời lượng pin bằng
+              - code [ref=f1e1104]: usable_capacity_mAh / average_current_mA
+              - text: ", sau đó đo dòng ở các chế độ và kiểm thời gian chạy thực tế. Ghi thêm hiệu suất nguồn, chu kỳ Wi-Fi, rung/còi và điều kiện đo; chưa có con số thời lượng pin."
+            - heading "BOM và hồ sơ phần cứng" [level=3] [ref=f1e1105]
+            - paragraph [ref=f1e1106]:
+              - text: "Mỗi linh kiện được chọn phải có: mã cụ thể, số lượng, đường dẫn datasheet/module, nhà cung cấp, giá tại ngày kiểm, tổng tiền, tình trạng sẵn có và lý do chọn. Hồ sơ lưu ở"
+              - link "hardware" [ref=f1e1107] [cursor=pointer]:
+                - /url: "#cau-truc-hardware"
+              - text: . Giá để chưa xác minh cho đến khi đọc được nguồn; không đặt số 0 thay cho chưa biết.
+        - region [ref=f1e1108]:
+          - generic [ref=f1e1109]:
+            - generic [ref=f1e1110]: "06"
+            - generic [ref=f1e1111]:
+              - heading "Trải nghiệm và màn hình" [level=2] [ref=f1e1112]
+              - paragraph [ref=f1e1113]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1114] [cursor=pointer]:
+                  - /url: ../../docs/06-trai-nghiem-va-man-hinh.md
+          - navigation "Trong phần Trải nghiệm và màn hình" [ref=f1e1115]:
+            - link "Sơ đồ trang" [ref=f1e1116] [cursor=pointer]:
+              - /url: "#giao-dien-so-do-trang"
+            - link "Bố cục tổng quan đề xuất" [ref=f1e1117] [cursor=pointer]:
+              - /url: "#giao-dien-bo-cuc-tong-quan-de-xuat"
+            - link "Luồng chính" [ref=f1e1118] [cursor=pointer]:
+              - /url: "#giao-dien-luong-chinh"
+            - link "Trạng thái phải thiết kế" [ref=f1e1119] [cursor=pointer]:
+              - /url: "#giao-dien-trang-thai-phai-thiet-ke"
+            - link "Dễ sử dụng và quyền riêng tư" [ref=f1e1120] [cursor=pointer]:
+              - /url: "#giao-dien-de-su-dung-va-quyen-rieng-tu"
+          - generic [ref=f1e1121]:
+            - paragraph [ref=f1e1122]:
+              - strong [ref=f1e1123]: "Đề xuất:"
+              - text: web responsive dùng được trên màn hình điện thoại và máy tính. Chưa có mockup đã duyệt, chưa triển khai PWA/native hoặc kiểm thông báo nền.
+            - heading "Sơ đồ trang" [level=3] [ref=f1e1124]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1125]:
+              - table [ref=f1e1126]:
+                - rowgroup [ref=f1e1127]:
+                  - row [ref=f1e1128]:
+                    - columnheader "Khu vực" [ref=f1e1129]
+                    - columnheader "Màn hình" [ref=f1e1130]
+                    - columnheader "Thông tin/hành động chính" [ref=f1e1131]
+                - rowgroup [ref=f1e1132]:
+                  - row [ref=f1e1133]:
+                    - cell "Công khai" [ref=f1e1134]
+                    - cell "Trang chủ, giới thiệu sản phẩm" [ref=f1e1135]
+                    - cell "Hệ thống làm gì, phạm vi prototype, đăng nhập/đăng ký" [ref=f1e1136]
+                  - row [ref=f1e1137]:
+                    - cell "Tài khoản" [ref=f1e1138]
+                    - cell "Đăng ký, đăng nhập, hồ sơ" [ref=f1e1139]
+                    - cell "Phiên đăng nhập và thông tin tối thiểu" [ref=f1e1140]
+                  - row [ref=f1e1141]:
+                    - cell "Thiết lập" [ref=f1e1142]
+                    - cell "Gắn thiết bị, kết nối, mời người thân" [ref=f1e1143]
+                    - cell "Trạng thái từng bước; không hoàn tất giả khi thiết bị chưa online" [ref=f1e1144]
+                  - row [ref=f1e1145]:
+                    - cell "Người được theo dõi" [ref=f1e1146]
+                    - cell "Tổng quan" [ref=f1e1147]
+                    - cell "Tình trạng thiết bị, nhịp tim mới nhất, vận động, cảnh báo đang mở" [ref=f1e1148]
+                  - row [ref=f1e1149]:
+                    - cell "Người thân" [ref=f1e1150]
+                    - cell "Danh sách hồ sơ được chia sẻ" [ref=f1e1151]
+                    - cell "Ai có cảnh báo, dữ liệu mới lúc nào, có quyền gì" [ref=f1e1152]
+                  - row [ref=f1e1153]:
+                    - cell "Chi tiết hồ sơ" [ref=f1e1154]
+                    - cell "Biểu đồ và lịch sử" [ref=f1e1155]
+                    - cell "Khoảng thời gian, chất lượng, đoạn thiếu, lịch sử incident" [ref=f1e1156]
+                  - row [ref=f1e1157]:
+                    - cell "Cảnh báo" [ref=f1e1158]
+                    - cell "Chi tiết sự kiện" [ref=f1e1159]
+                    - cell "Nghi ngã/xác nhận/nhận trễ; ai đang hỗ trợ; xác nhận/đóng; liên hệ thủ công" [ref=f1e1160]
+                  - row [ref=f1e1161]:
+                    - cell "AI" [ref=f1e1162]
+                    - cell "Tóm tắt và câu hỏi giới hạn" [ref=f1e1163]
+                    - cell "Khoảng dữ liệu, nguồn, dữ liệu thiếu và khả năng không trả lời" [ref=f1e1164]
+                  - row [ref=f1e1165]:
+                    - cell "Chia sẻ" [ref=f1e1166]
+                    - cell "Người thân và quyền" [ref=f1e1167]
+                    - cell "Mời, chấp nhận, khoảng lịch sử, thu hồi" [ref=f1e1168]
+                  - row [ref=f1e1169]:
+                    - cell "Admin" [ref=f1e1170]
+                    - cell "Tình trạng hệ thống" [ref=f1e1171]
+                    - cell "Thiết bị online/offline, phiên bản, lỗi ingest/gửi; audit đã lọc" [ref=f1e1172]
+            - heading "Bố cục tổng quan đề xuất" [level=3] [ref=f1e1173]
+            - code [ref=f1e1175]: "[Người đang được theo dõi] [Quản lý chia sẻ] [Cảnh báo đang mở — người phụ trách / Chưa có người xác nhận] [Thiết bị: Online / Offline] [Dữ liệu cập nhật lúc ...] [Nhịp tim: ... bpm + chất lượng] [Vận động hôm nay + độ phủ] [Biểu đồ — phân biệt rõ những khoảng không có dữ liệu] [Tóm tắt ngày — dữ liệu dùng, dữ liệu thiếu, nguồn khi cần]"
+            - paragraph [ref=f1e1176]: Ưu tiên sự kiện cần hành động và độ mới của dữ liệu trước biểu đồ trang trí. Số liệu tổng hợp từ simulator phải có nhãn “Dữ liệu mô phỏng”. Không dùng tên hoặc ảnh bệnh nhân thật trong demo.
+            - heading "Luồng chính" [level=3] [ref=f1e1177]
+            - paragraph [ref=f1e1178]:
+              - strong [ref=f1e1179]: "Thiết lập:"
+              - text: tạo tài khoản → xác lập hồ sơ → claim thiết bị bằng bằng chứng dùng một lần → nhận dữ liệu thử → mời người thân → người thân chấp nhận quyền. Người thân không mặc định truy cập toàn bộ dữ liệu trước ngày chia sẻ.
+            - paragraph [ref=f1e1180]:
+              - strong [ref=f1e1181]: "Cảnh báo:"
+              - text: thiết bị báo nghi ngã và cho hủy → confirmed → dashboard người thân hiện cảnh báo → chọn “Tôi đang hỗ trợ” → liên hệ thủ công → kết thúc với lý do. Nếu một người khác đã xác nhận, UI vẫn cho người có quyền phối hợp nhưng hiển thị rõ người nhận đầu và lịch sử; API xử lý cạnh tranh trạng thái.
+            - paragraph [ref=f1e1182]:
+              - strong [ref=f1e1183]: "Thu hồi chia sẻ:"
+              - text: chủ hồ sơ thu hồi → người thân mất quyền đọc API/AI/export và stream đang mở → thông báo chưa gửi bị hủy → giao diện người thân xóa dữ liệu nhạy cảm khỏi bộ nhớ hiển thị. Không chỉ ẩn một nút menu.
+            - heading "Trạng thái phải thiết kế" [level=3] [ref=f1e1184]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1185]:
+              - table [ref=f1e1186]:
+                - rowgroup [ref=f1e1187]:
+                  - row [ref=f1e1188]:
+                    - columnheader "Trạng thái" [ref=f1e1189]
+                    - columnheader "Cách thể hiện" [ref=f1e1190]
+                - rowgroup [ref=f1e1191]:
+                  - row [ref=f1e1192]:
+                    - cell "Chưa từng có dữ liệu" [ref=f1e1193]
+                    - cell "“Chưa nhận dữ liệu từ thiết bị”, gợi ý kiểm kết nối" [ref=f1e1194]
+                  - row [ref=f1e1195]:
+                    - cell "Tín hiệu kém/không đeo" [ref=f1e1196]
+                    - cell "Không hiển thị BPM không hợp lệ; nêu chất lượng và thời điểm đo cuối hợp lệ" [ref=f1e1197]
+                  - row [ref=f1e1198]:
+                    - cell "Mất mạng/offline" [ref=f1e1199]
+                    - cell "Nhãn offline và “lần nhận cuối”; không hiển thị màu bình thường dựa trên số cũ" [ref=f1e1200]
+                  - row [ref=f1e1201]:
+                    - cell "Pin chưa biết" [ref=f1e1202]
+                    - cell "“Chưa có thông tin pin”, không mặc định đầy" [ref=f1e1203]
+                  - row [ref=f1e1204]:
+                    - cell "Nhận cảnh báo trễ" [ref=f1e1205]
+                    - cell "Hiển thị giờ xảy ra nếu biết và giờ nhận; nêu chưa rõ tình trạng hiện tại" [ref=f1e1206]
+                  - row [ref=f1e1207]:
+                    - cell "Candidate thiếu kết quả" [ref=f1e1208]
+                    - cell "“Chưa xác định”; giữ trong lịch sử kỹ thuật, không tự chuyển thành an toàn" [ref=f1e1209]
+                  - row [ref=f1e1210]:
+                    - cell "Kênh thông báo lỗi" [ref=f1e1211]
+                    - cell "Hộp cảnh báo vẫn lưu; hiển thị chưa gửi/đang thử/đã hết lượt thử" [ref=f1e1212]
+                  - row [ref=f1e1213]:
+                    - cell "AI lỗi hoặc bị tắt" [ref=f1e1214]
+                    - cell "Chỉ số và cảnh báo vẫn dùng được; cung cấp tóm tắt theo mẫu nếu đủ dữ liệu" [ref=f1e1215]
+            - heading "Dễ sử dụng và quyền riêng tư" [level=3] [ref=f1e1216]
+            - paragraph [ref=f1e1217]: Nút hủy/SOS trên thiết bị cần thao tác dễ phân biệt. Giao diện dùng chữ rõ, nhãn có nghĩa, không dùng màu là tín hiệu duy nhất, điều hướng bàn phím và bố cục thích ứng. Cần thử nhiệm vụ thực tế để kết luận phù hợp với người cao tuổi; không coi thiết kế đẹp là bằng chứng sử dụng tốt.
+            - paragraph [ref=f1e1218]: Thông báo ở màn hình khóa chỉ chứa nội dung tối thiểu theo lựa chọn chia sẻ, không đưa toàn bộ chỉ số sức khỏe. Nếu thêm Web Push, xin quyền tại thời điểm người dùng chọn nhận thông báo và kiểm chính nền tảng mục tiêu. Chưa có bằng chứng app đóng vẫn nhận được thông báo.
+        - region [ref=f1e1219]:
+          - generic [ref=f1e1220]:
+            - generic [ref=f1e1221]: "07"
+            - generic [ref=f1e1222]:
+              - heading "Trợ lý AI" [level=2] [ref=f1e1223]
+              - paragraph [ref=f1e1224]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1225] [cursor=pointer]:
+                  - /url: ../../docs/07-tro-ly-ai.md
+          - generic [ref=f1e1226]:
+            - text: Đặc tả này có điểm cần làm rõ sau review.
+            - link "Đọc các phát hiện và hướng sửa" [ref=f1e1227] [cursor=pointer]:
+              - /url: "#review"
+            - text: trước khi triển khai.
+          - navigation "Trong phần Trợ lý AI" [ref=f1e1228]:
+            - link "Phạm vi theo mức hoàn thiện" [ref=f1e1229] [cursor=pointer]:
+              - /url: "#tro-ly-ai-pham-vi-theo-muc-hoan-thien"
+            - link "Luồng dữ liệu" [ref=f1e1230] [cursor=pointer]:
+              - /url: "#tro-ly-ai-luong-du-lieu"
+            - link "Quy tắc nội dung" [ref=f1e1231] [cursor=pointer]:
+              - /url: "#tro-ly-ai-quy-tac-noi-dung"
+            - link "Chuẩn bị nguồn" [ref=f1e1232] [cursor=pointer]:
+              - /url: "#tro-ly-ai-chuan-bi-nguon"
+            - link "Đánh giá đề xuất" [ref=f1e1233] [cursor=pointer]:
+              - /url: "#tro-ly-ai-danh-gia-de-xuat"
+          - generic [ref=f1e1234]:
+            - paragraph [ref=f1e1235]:
+              - strong [ref=f1e1236]: "Mục đích đề xuất:"
+              - text: giúp người dùng/người thân hiểu dữ liệu đã có, nhận biết dữ liệu thiếu và tra cứu kiến thức phổ thông từ nguồn được duyệt. AI không nằm trong đường quyết định phát hiện/gửi cảnh báo té ngã.
+            - heading "Phạm vi theo mức hoàn thiện" [level=3] [ref=f1e1237]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1238]:
+              - table [ref=f1e1239]:
+                - rowgroup [ref=f1e1240]:
+                  - row [ref=f1e1241]:
+                    - columnheader "Mức" [ref=f1e1242]
+                    - columnheader "Đầu vào" [ref=f1e1243]
+                    - columnheader "Đầu ra" [ref=f1e1244]
+                    - columnheader "Điều kiện" [ref=f1e1245]
+                - rowgroup [ref=f1e1246]:
+                  - row [ref=f1e1247]:
+                    - cell "Baseline không dùng LLM" [ref=f1e1248]
+                    - cell "Thống kê xác định bằng code" [ref=f1e1249]
+                    - cell "Tóm tắt theo mẫu và cảnh báo thiếu dữ liệu" [ref=f1e1250]
+                    - cell "Có thể làm ngay khi có aggregate đúng" [ref=f1e1251]
+                  - row [ref=f1e1252]:
+                    - cell "MVP AI giới hạn" [ref=f1e1253]
+                    - cell "Aggregate đã kiểm quyền, chất lượng/coverage, khoảng thời gian" [ref=f1e1254]
+                    - cell "Diễn đạt tóm tắt ngày dễ đọc; dẫn tham chiếu dữ liệu" [ref=f1e1255]
+                    - cell "Kiểm số liệu và khoảng thời gian trước trả kết quả" [ref=f1e1256]
+                  - row [ref=f1e1257]:
+                    - cell "Hỏi đáp có nguồn" [ref=f1e1258]
+                    - cell "Câu hỏi và đoạn tài liệu đã duyệt" [ref=f1e1259]
+                    - cell "Giải thích chung có nguồn; từ chối khi không đủ căn cứ" [ref=f1e1260]
+                    - cell "Có danh mục tài liệu, quyền sử dụng và bộ đánh giá" [ref=f1e1261]
+                  - row [ref=f1e1262]:
+                    - cell "Gợi ý nguyên nhân/biện pháp trong đề cương" [ref=f1e1263]
+                    - cell "Bối cảnh được phép và nguồn y tế phù hợp" [ref=f1e1264]
+                    - cell "Chỉ khả năng chung được dẫn nguồn, không kết luận bệnh" [ref=f1e1265]
+                    - cell "Chưa đủ nguồn/đánh giá nên chưa đưa vào MVP" [ref=f1e1266]
+            - paragraph [ref=f1e1267]: MVP vẫn có thành phần AI, nhưng bắt đầu bằng việc tóm tắt có thể đối chiếu. Chưa chọn nhà cung cấp, chưa có corpus y tế được duyệt và chưa có bằng chứng chất lượng trả lời.
+            - heading "Luồng dữ liệu" [level=3] [ref=f1e1268]
+            - list [ref=f1e1269]:
+              - listitem [ref=f1e1270]: Backend xác thực người yêu cầu và quyền trên hồ sơ/khoảng thời gian.
+              - listitem [ref=f1e1271]: "Code truy vấn và tính aggregate: số mẫu hợp lệ, coverage theo cấu hình thu, khoảng bị thiếu, min/max/trung bình trên mẫu hợp lệ và incident."
+              - listitem [ref=f1e1272]: Bộ lọc tạo đầu vào tối thiểu, bỏ tên, số điện thoại, credential và thông tin không phục vụ câu hỏi.
+              - listitem [ref=f1e1273]: Adapter gọi model hoặc trả tóm tắt theo mẫu khi AI tắt/lỗi. Model không tự chạy SQL, truy cập broker hoặc gửi thông báo.
+              - listitem [ref=f1e1274]: Validator kiểm cấu trúc, tham chiếu nguồn, khoảng thời gian và các số liệu được trích. Không đạt thì trả fallback hoặc yêu cầu diễn đạt lại có giới hạn.
+              - listitem [ref=f1e1275]: Kiểm lại quyền trước khi trả/lưu kết quả; thao tác thu hồi quyền trong lúc sinh không được làm rò dữ liệu.
+            - paragraph [ref=f1e1276]:
+              - text: Đầu ra dự thảo gồm
+              - code [ref=f1e1277]: summary
+              - text: ","
+              - code [ref=f1e1278]: period
+              - text: ","
+              - code [ref=f1e1279]: data_refs
+              - text: ","
+              - code [ref=f1e1280]: coverage
+              - text: ","
+              - code [ref=f1e1281]: missing_data
+              - text: ","
+              - code [ref=f1e1282]: source_refs
+              - text: ","
+              - code [ref=f1e1283]: limitations
+              - text: .
+              - code [ref=f1e1284]: data_refs
+              - text: tham chiếu aggregate thật;
+              - code [ref=f1e1285]: source_refs
+              - text: chỉ dùng các tài liệu đã tra được. Dẫn nguồn không tự chứng minh nội dung suy luận đúng.
+            - heading "Quy tắc nội dung" [level=3] [ref=f1e1286]
+            - list [ref=f1e1287]:
+              - listitem [ref=f1e1288]: Không suy luận “sức khỏe bình thường” từ việc không có sự kiện hoặc từ thời gian thiết bị offline.
+              - listitem [ref=f1e1289]: Không biến ít dữ liệu thành kết luận tăng/giảm vận động; nêu giới hạn khi so sánh hai ngày có độ phủ khác nhau.
+              - listitem [ref=f1e1290]: Không tự đề xuất thuốc, liều dùng hoặc kết luận bệnh từ BPM/cảnh báo ngã.
+              - listitem [ref=f1e1291]: Khi câu hỏi về tình huống cần hỗ trợ ngay, ưu tiên hướng dẫn liên hệ người hỗ trợ/chuyên môn phù hợp; không trì hoãn hành động để chờ AI.
+              - listitem [ref=f1e1292]: Nội dung tài liệu và lời người dùng là dữ liệu, không được ghi đè quyền truy cập hoặc chỉ dẫn hệ thống. Kiểm prompt injection trong tài liệu được truy hồi.
+              - listitem [ref=f1e1293]: Không huấn luyện lại hoặc gửi dữ liệu sức khỏe thật sang dịch vụ bên ngoài mặc định; phải xác định cơ sở đồng ý và chính sách lưu dữ liệu trước.
+            - heading "Chuẩn bị nguồn" [level=3] [ref=f1e1294]
+            - paragraph [ref=f1e1295]: Mỗi nguồn kiến thức cần URL/tài liệu gốc, tổ chức/tác giả, ngày xuất bản/cập nhật, ngày truy cập, quyền sử dụng, chủ đề, đoạn được dùng và người/cách kiểm. Đề xuất tìm ở tổ chức y tế có thẩm quyền, hướng dẫn chuyên môn và bài nghiên cứu được đánh giá; chưa xem một URL chưa đọc là nguồn đã xác minh.
+            - paragraph [ref=f1e1296]: Chưa cần vector database ở bản đầu. Bắt đầu bằng tập tài liệu nhỏ được duyệt và truy xuất có kiểm soát; chỉ thêm tìm kiếm ngữ nghĩa khi có bài toán và phép đo cần thiết.
+            - heading "Đánh giá đề xuất" [level=3] [ref=f1e1297]
+            - paragraph [ref=f1e1298]: "Chuẩn bị bộ tình huống tổng hợp với đáp án/tiêu chí trước khi chạy: ngày đủ dữ liệu, thiếu 80% thời gian, chỉ số không hợp lệ, thay đổi timezone, một incident trùng, câu hỏi ngoài phạm vi, yêu cầu dữ liệu người khác, nguồn không có câu trả lời và prompt injection."
+            - paragraph [ref=f1e1299]: Chấm riêng tính đúng số liệu, đúng người/khoảng dữ liệu, khả năng nhận biết thiếu dữ liệu, độ đúng của dẫn nguồn, mức suy diễn vượt bằng chứng, độ trễ và chi phí mỗi lượt. Không chỉ chấm “nghe hợp lý”. Một số lỗi như lộ dữ liệu hồ sơ khác hoặc bịa số đo là lỗi chặn sử dụng, dù điểm trung bình cao.
+            - paragraph [ref=f1e1300]:
+              - text: Kết quả lưu model/version, prompt/config version, tập tình huống và điều kiện; chưa có kết quả ở thời điểm soạn. Xem
+              - link "kiểm thử và đánh giá" [ref=f1e1301] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: .
+        - region [ref=f1e1302]:
+          - generic [ref=f1e1303]:
+            - generic [ref=f1e1304]: "08"
+            - generic [ref=f1e1305]:
+              - heading "Kiểm thử và đánh giá" [level=2] [ref=f1e1306]
+              - paragraph [ref=f1e1307]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1308] [cursor=pointer]:
+                  - /url: ../../docs/08-kiem-thu-va-danh-gia.md
+          - generic [ref=f1e1309]:
+            - text: Đặc tả này có điểm cần làm rõ sau review.
+            - link "Đọc các phát hiện và hướng sửa" [ref=f1e1310] [cursor=pointer]:
+              - /url: "#review"
+            - text: trước khi triển khai.
+          - navigation "Trong phần Kiểm thử và đánh giá" [ref=f1e1311]:
+            - link "Chiến lược chạy" [ref=f1e1312] [cursor=pointer]:
+              - /url: "#kiem-thu-chien-luoc-chay"
+            - link "Ma trận yêu cầu và bằng chứng" [ref=f1e1313] [cursor=pointer]:
+              - /url: "#kiem-thu-ma-tran-yeu-cau-va-bang-chung"
+            - link "Đánh giá phát hiện té ngã" [ref=f1e1314] [cursor=pointer]:
+              - /url: "#kiem-thu-danh-gia-phat-hien-te-nga"
+            - link "Đánh giá nhịp tim và bước chân" [ref=f1e1315] [cursor=pointer]:
+              - /url: "#kiem-thu-danh-gia-nhip-tim-va-buoc-chan"
+            - link "Biểu mẫu bằng chứng tối thiểu" [ref=f1e1316] [cursor=pointer]:
+              - /url: "#kiem-thu-bieu-mau-bang-chung-toi-thieu"
+          - generic [ref=f1e1317]:
+            - paragraph [ref=f1e1318]:
+              - strong [ref=f1e1319]: "Trạng thái:"
+              - text: thiết kế phép kiểm, chưa phải kết quả. Chỉ bổ sung test tự động khi đã có hành vi ứng dụng cần bảo vệ; không tạo test để khẳng định framework hoạt động đúng.
+            - heading "Chiến lược chạy" [level=3] [ref=f1e1320]
+            - list [ref=f1e1321]:
+              - listitem [ref=f1e1322]: Chạy lint và type-check liên quan khi đã có toolchain. Với thay đổi chỉ có tài liệu, kiểm Markdown/liên kết/JSON và sự nhất quán.
+              - listitem [ref=f1e1323]: "Chạy test nhỏ nhất bao phủ hành vi thay đổi: quyền truy cập, state transition, tổng hợp, chống trùng hoặc parser hợp đồng do ứng dụng sở hữu."
+              - listitem [ref=f1e1324]: Mở integration test khi chạm transaction DB, broker, thời gian, quyền realtime hoặc tác vụ gửi.
+              - listitem [ref=f1e1325]: Dùng E2E cho đường demo quan trọng; race test cho xác nhận đồng thời; load/stress chỉ khi đánh giá giới hạn cụ thể. Full suite dành cho gate phát hành hoặc bằng chứng hồi quy rộng cần thiết.
+            - paragraph [ref=f1e1326]: Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
+            - heading "Ma trận yêu cầu và bằng chứng" [level=3] [ref=f1e1327]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1328]:
+              - table [ref=f1e1329]:
+                - rowgroup [ref=f1e1330]:
+                  - row [ref=f1e1331]:
+                    - columnheader "ID phép kiểm" [ref=f1e1332]
+                    - columnheader "Yêu cầu" [ref=f1e1333]
+                    - columnheader "Kịch bản" [ref=f1e1334]
+                    - columnheader "Bằng chứng mong đợi" [ref=f1e1335]
+                - rowgroup [ref=f1e1336]:
+                  - row [ref=f1e1337]:
+                    - cell "T-01" [ref=f1e1338]
+                    - cell "FR-01, NFR-01" [ref=f1e1339]
+                    - cell "Không có phiên, phiên hết hạn, đăng xuất" [ref=f1e1340]
+                    - cell "API từ chối đúng; không đọc dữ liệu còn lại qua stream" [ref=f1e1341]
+                  - row [ref=f1e1342]:
+                    - cell "T-02" [ref=f1e1343]
+                    - cell "FR-02, NFR-01" [ref=f1e1344]
+                    - cell "Hồ sơ A/B; mời chưa chấp nhận; thu hồi lúc stream/AI đang chạy" [ref=f1e1345]
+                    - cell "Không có dữ liệu của hồ sơ không được phép; stream và kết quả đang sinh bị chặn" [ref=f1e1346]
+                  - row [ref=f1e1347]:
+                    - cell "T-03" [ref=f1e1348]
+                    - cell "FR-03" [ref=f1e1349]
+                    - cell "Chuyển thiết bị từ A sang B rồi nhận dữ liệu cũ" [ref=f1e1350]
+                    - cell "Dữ liệu không rơi vào hồ sơ B; timestamp không tin cậy bị cách ly" [ref=f1e1351]
+                  - row [ref=f1e1352]:
+                    - cell "T-04" [ref=f1e1353]
+                    - cell "FR-04, FR-05" [ref=f1e1354]
+                    - cell "BPM null, tín hiệu kém, counter bước reset, qua nửa đêm" [ref=f1e1355]
+                    - cell "Không coi null là 0; không bước âm; thời gian thiếu không bị che" [ref=f1e1356]
+                  - row [ref=f1e1357]:
+                    - cell "T-05" [ref=f1e1358]
+                    - cell "FR-06, NFR-02" [ref=f1e1359]
+                    - cell "Candidate → cancel; candidate → confirmed; confirmed đến trước candidate" [ref=f1e1360]
+                    - cell "Đúng một incident; đúng trạng thái cuối; không gửi khẩn sau cancel" [ref=f1e1361]
+                  - row [ref=f1e1362]:
+                    - cell "T-06" [ref=f1e1363]
+                    - cell "FR-06, NFR-02" [ref=f1e1364]
+                    - cell "Gửi cùng message 10 lần; cùng key khác payload; đảo revision" [ref=f1e1365]
+                    - cell "Không tạo cảnh báo trùng; payload xung đột bị phát hiện; không lùi trạng thái" [ref=f1e1366]
+                  - row [ref=f1e1367]:
+                    - cell "T-07" [ref=f1e1368]
+                    - cell "FR-07, NFR-06" [ref=f1e1369]
+                    - cell "Commit incident rồi worker tắt; gửi lại sau khởi động" [ref=f1e1370]
+                    - cell "Outbox khôi phục được; trạng thái gửi phản ánh số lần thử, không báo đã đọc" [ref=f1e1371]
+                  - row [ref=f1e1372]:
+                    - cell "T-08" [ref=f1e1373]
+                    - cell "FR-07" [ref=f1e1374]
+                    - cell "Hai người nhận xác nhận gần đồng thời" [ref=f1e1375]
+                    - cell "Trạng thái nhất quán, audit giữ tác nhân; không mất kết quả thao tác" [ref=f1e1376]
+                  - row [ref=f1e1377]:
+                    - cell "T-09" [ref=f1e1378]
+                    - cell "FR-08" [ref=f1e1379]
+                    - cell "Mất mạng, clock unsynced, buffer đầy, reboot" [ref=f1e1380]
+                    - cell "Offline đúng chính sách; dữ liệu trễ rõ ràng; thống kê mất mẫu, không hứa khôi phục phần chưa ghi bền" [ref=f1e1381]
+                  - row [ref=f1e1382]:
+                    - cell "T-10" [ref=f1e1383]
+                    - cell "FR-09" [ref=f1e1384]
+                    - cell "Bấm SOS, chống bấm nhầm, hủy sau confirmed" [ref=f1e1385]
+                    - cell "SOS không đợi cửa sổ nghi ngã; hủy sau gửi có thông báo cập nhật" [ref=f1e1386]
+                  - row [ref=f1e1387]:
+                    - cell "T-11" [ref=f1e1388]
+                    - cell "FR-10" [ref=f1e1389]
+                    - cell "Thiếu dữ liệu, bịa số, prompt injection, yêu cầu hồ sơ khác" [ref=f1e1390]
+                    - cell "AI không trả dữ liệu ngoài quyền; không bịa số; có fallback" [ref=f1e1391]
+                  - row [ref=f1e1392]:
+                    - cell "T-12" [ref=f1e1393]
+                    - cell "FR-11, FR-14" [ref=f1e1394]
+                    - cell "Admin đọc sức khỏe, export sau thu hồi, yêu cầu xóa" [ref=f1e1395]
+                    - cell "Quyền chặn đúng; xóa có phạm vi và trạng thái, không chỉ ẩn UI" [ref=f1e1396]
+                  - row [ref=f1e1397]:
+                    - cell "T-13" [ref=f1e1398]
+                    - cell "FR-12" [ref=f1e1399]
+                    - cell "Trình duyệt đóng/tắt quyền push/kênh lỗi" [ref=f1e1400]
+                    - cell "Chỉ công bố hỗ trợ ở nền tảng đã kiểm; trạng thái thất bại không bị coi đã nhận" [ref=f1e1401]
+                  - row [ref=f1e1402]:
+                    - cell "T-14" [ref=f1e1403]
+                    - cell "NFR-07" [ref=f1e1404]
+                    - cell "Đo chuỗi timestamp khi dashboard online" [ref=f1e1405]
+                    - cell "Báo p50/p95 và số mẫu; tách cửa sổ hủy, truyền mạng, xử lý, hiển thị" [ref=f1e1406]
+            - paragraph [ref=f1e1407]: T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng là mục tiêu dự kiến; chưa có test executable hoặc kết quả đạt.
+            - heading "Đánh giá phát hiện té ngã" [level=3] [ref=f1e1408]
+            - paragraph [ref=f1e1409]:
+              - text: Xác định đơn vị đánh giá là
+              - strong [ref=f1e1410]: sự kiện
+              - text: ", không đếm mỗi cửa sổ IMU như một người ngã độc lập. Lưu nhãn và ranh giới thời gian, vị trí đeo, người/phiên thử, cấu hình cảm biến và version thuật toán."
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1411]:
+              - table [ref=f1e1412]:
+                - rowgroup [ref=f1e1413]:
+                  - row [ref=f1e1414]:
+                    - columnheader "Chỉ số" [ref=f1e1415]
+                    - columnheader "Cách tính/ghi nhận" [ref=f1e1416]
+                - rowgroup [ref=f1e1417]:
+                  - row [ref=f1e1418]:
+                    - cell "Precision" [ref=f1e1419]
+                    - cell [ref=f1e1420]:
+                      - code [ref=f1e1421]: TP / (TP + FP)
+                      - text: ; không xác định khi mẫu số bằng 0
+                  - row [ref=f1e1422]:
+                    - cell "Recall" [ref=f1e1423]
+                    - cell [ref=f1e1424]:
+                      - code [ref=f1e1425]: TP / (TP + FN)
+                      - text: ; không xác định khi mẫu số bằng 0
+                  - row [ref=f1e1426]:
+                    - cell "F1" [ref=f1e1427]
+                    - cell [ref=f1e1428]:
+                      - code [ref=f1e1429]: 2 * precision * recall / (precision + recall)
+                      - text: khi xác định
+                  - row [ref=f1e1430]:
+                    - cell "Báo nhầm theo thời gian" [ref=f1e1431]
+                    - cell "Số cảnh báo giả / giờ theo dõi hợp lệ trong các hoạt động thường ngày" [ref=f1e1432]
+                  - row [ref=f1e1433]:
+                    - cell "Độ trễ" [ref=f1e1434]
+                    - cell "Từ mốc sự kiện đã gán nhãn đến candidate và confirmed; báo riêng cửa sổ hủy" [ref=f1e1435]
+                  - row [ref=f1e1436]:
+                    - cell "Mất dữ liệu" [ref=f1e1437]
+                    - cell "Thời gian hoặc mẫu thiếu / lượng kỳ vọng theo cấu hình" [ref=f1e1438]
+            - paragraph [ref=f1e1439]: Không chỉ dùng accuracy khi dữ liệu không ngã chiếm phần lớn. Nếu dùng dataset công khai, ghi giấy phép, thiết bị/vị trí thu và khác biệt với prototype. Chia train/tune/test theo người hoặc phiên, không để các cửa sổ gần nhau rơi vào cả train và test. Giữ tập test không dùng để chọn ngưỡng.
+            - paragraph [ref=f1e1440]: Tập hoạt động âm tính nên có ngồi xuống nhanh, nằm xuống, đi bộ, vung tay, tháo thiết bị và thiết bị rơi khỏi bàn. Mô phỏng bằng vật thay thế cần báo riêng; không gộp với thử trên người để tăng số liệu. Chưa có quy mô mẫu/đích accuracy được chốt.
+            - heading "Đánh giá nhịp tim và bước chân" [level=3] [ref=f1e1441]
+            - paragraph [ref=f1e1442]: "Nhịp tim: căn chỉnh thời gian với thiết bị tham chiếu, ghi nguồn/giới hạn tham chiếu, MAE trên cặp mẫu hợp lệ, phân bố sai số và tỷ lệ không có phép đo. Không loại im lặng các đoạn nhiễu để tạo kết quả đẹp; báo riêng nghỉ/vận động và điều kiện tiếp xúc."
+            - paragraph [ref=f1e1443]: "Bước chân: dùng số bước đếm thủ công/nguồn tham chiếu của từng phiên, so chênh lệch tuyệt đối/tương đối theo hoạt động và vị trí đeo. Phiên có bước tham chiếu bằng 0 không dùng phần trăm chia cho 0; báo số đếm nhầm."
+            - paragraph [ref=f1e1444]: "Pin: ghi cấu hình đo, chu kỳ gửi, RSSI/điều kiện mạng, dung lượng sử dụng và hoạt động cảnh báo. Thời lượng ước tính không thay phép đo chạy thực tế."
+            - heading "Biểu mẫu bằng chứng tối thiểu" [level=3] [ref=f1e1445]
+            - paragraph [ref=f1e1446]: "Mỗi lần thử ghi: mã lần thử, mục đích, phiên bản code/config, phần cứng/vị trí đeo, dữ liệu đầu vào và quyền dùng, bước thực hiện, kết quả kỳ vọng/thực tế, số mẫu/thời lượng, lỗi/giới hạn và đường dẫn artifact. Dùng ID ẩn danh; raw data ở vùng local đã loại khỏi Git."
+            - paragraph [ref=f1e1447]: Kết luận báo cáo phải kèm điều kiện thử. Không suy rộng từ một demo vài phút sang độ tin cậy trong gia đình hoặc khả năng chẩn đoán.
+        - region [ref=f1e1448]:
+          - generic [ref=f1e1449]:
+            - generic [ref=f1e1450]: "09"
+            - generic [ref=f1e1451]:
+              - heading "Lộ trình và hồ sơ" [level=2] [ref=f1e1452]
+              - paragraph [ref=f1e1453]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1454] [cursor=pointer]:
+                  - /url: ../../docs/09-lo-trinh-va-ho-so.md
+          - navigation "Trong phần Lộ trình và hồ sơ" [ref=f1e1455]:
+            - link "Các giai đoạn" [ref=f1e1456] [cursor=pointer]:
+              - /url: "#lo-trinh-cac-giai-doan"
+            - link "Lát cắt triển khai đầu tiên" [ref=f1e1457] [cursor=pointer]:
+              - /url: "#lo-trinh-lat-cat-trien-khai-dau-tien"
+            - link "Môi trường và vận hành dự kiến" [ref=f1e1458] [cursor=pointer]:
+              - /url: "#lo-trinh-moi-truong-va-van-hanh-du-kien"
+            - link "Hồ sơ học thuật đề xuất" [ref=f1e1459] [cursor=pointer]:
+              - /url: "#lo-trinh-ho-so-hoc-thuat-de-xuat"
+            - link "Các yếu tố dễ làm thay đổi phạm vi" [ref=f1e1460] [cursor=pointer]:
+              - /url: "#lo-trinh-cac-yeu-to-de-lam-thay-doi-pham-vi"
+          - generic [ref=f1e1461]:
+            - paragraph [ref=f1e1462]:
+              - text: Đây là
+              - strong [ref=f1e1463]: trình tự kỹ thuật đề xuất
+              - text: ", không có deadline hoặc người phụ trách được tự gán. Kế hoạch có checkbox/trạng thái duy nhất nằm trong"
+              - code [ref=f1e1464]: Kế hoạch.md
+              - text: của dự án Obsidian. Tài liệu này chỉ mô tả phụ thuộc, đầu ra và điều kiện chuyển giai đoạn.
+            - heading "Các giai đoạn" [level=3] [ref=f1e1465]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1466]:
+              - table [ref=f1e1467]:
+                - rowgroup [ref=f1e1468]:
+                  - row [ref=f1e1469]:
+                    - columnheader "Giai đoạn" [ref=f1e1470]
+                    - columnheader "Đầu ra" [ref=f1e1471]
+                    - columnheader "Điều kiện chuyển tiếp" [ref=f1e1472]
+                - rowgroup [ref=f1e1473]:
+                  - row [ref=f1e1474]:
+                    - cell "G0 — Chốt bối cảnh" [ref=f1e1475]
+                    - cell "Yêu cầu trường, thời hạn, nguồn lực, linh kiện sẵn có, phạm vi demo" [ref=f1e1476]
+                    - cell "Phân biệt yêu cầu bắt buộc và mở rộng; biết giới hạn thực tế" [ref=f1e1477]
+                  - row [ref=f1e1478]:
+                    - cell "G1 — Prototype cảm biến và hợp đồng" [ref=f1e1479]
+                    - cell "Phiên đo PPG/IMU trên bàn, khảo sát vị trí đeo, payload/schema v1, baseline" [ref=f1e1480]
+                    - cell "Có dữ liệu đọc được và chỉ rõ chất lượng; hợp đồng được đối chiếu với backend" [ref=f1e1481]
+                  - row [ref=f1e1482]:
+                    - cell "G2 — Lát cắt phần mềm" [ref=f1e1483]
+                    - cell "Simulator → ingest → DB → dashboard → cảnh báo → acknowledge/resolve" [ref=f1e1484]
+                    - cell "Demo được cancel/confirm/trùng/mất mạng và quyền A/B trên dữ liệu tổng hợp" [ref=f1e1485]
+                  - row [ref=f1e1486]:
+                    - cell "G3 — Ghép phần cứng" [ref=f1e1487]
+                    - cell "Thiết bị thật thay simulator; provisioning, reconnect, buffer, application ACK" [ref=f1e1488]
+                    - cell "Phép thử mạng/nguồn không làm lùi trạng thái hoặc gán sai hồ sơ; đo độ trễ" [ref=f1e1489]
+                  - row [ref=f1e1490]:
+                    - cell "G4 — AI giới hạn và đánh giá" [ref=f1e1491]
+                    - cell "Tóm tắt dựa trên aggregate, nguồn dùng được, bộ đánh giá" [ref=f1e1492]
+                    - cell "Kết quả kiểm số liệu/quyền/thiếu dữ liệu có bằng chứng; tắt AI không hỏng cảnh báo" [ref=f1e1493]
+                  - row [ref=f1e1494]:
+                    - cell "G5 — Hoàn thiện hồ sơ và demo" [ref=f1e1495]
+                    - cell "Báo cáo, sơ đồ, bảng kết quả thật, demo script, hướng dẫn bàn giao" [ref=f1e1496]
+                    - cell "Đối chiếu rubric trường, ghi đủ giới hạn và kiểm tái lập" [ref=f1e1497]
+            - paragraph [ref=f1e1498]: G1 và chuẩn bị G2 có thể tiến hành độc lập sau khi thống nhất hợp đồng; trạng thái thực tế vẫn cập nhật ở kế hoạch gốc. Không chờ có AI để bắt đầu kiểm phần cứng hoặc cảnh báo.
+            - heading "Lát cắt triển khai đầu tiên" [level=3] [ref=f1e1499]
+            - paragraph [ref=f1e1500]: "Phạm vi đề xuất: một hồ sơ demo, hai tài khoản người thân với quyền khác nhau, một thiết bị giả lập, telemetry tổng hợp, candidate/cancel/confirmed, hộp cảnh báo và thao tác xác nhận/đóng. Dữ liệu tổng hợp giúp kiểm backend trước khi có cảm biến ổn định."
+            - paragraph [ref=f1e1501]: "Điều kiện hoàn tất lát cắt: chạy lại cùng kịch bản cho cùng kết quả; gửi lặp không nhân cảnh báo; tài khoản không có quyền không đọc dữ liệu; mất kết nối tạo trạng thái cũ/offline; restart worker không mất bản ghi cần gửi. Sau đó mới mở rộng số màn hình và nguồn dữ liệu."
+            - heading "Môi trường và vận hành dự kiến" [level=3] [ref=f1e1502]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1503]:
+              - table [ref=f1e1504]:
+                - rowgroup [ref=f1e1505]:
+                  - row [ref=f1e1506]:
+                    - columnheader "Môi trường" [ref=f1e1507]
+                    - columnheader "Mục đích" [ref=f1e1508]
+                    - columnheader "Dữ liệu" [ref=f1e1509]
+                - rowgroup [ref=f1e1510]:
+                  - row [ref=f1e1511]:
+                    - cell "Local" [ref=f1e1512]
+                    - cell "Phát triển và kiểm hợp đồng" [ref=f1e1513]
+                    - cell "Fixture tổng hợp" [ref=f1e1514]
+                  - row [ref=f1e1515]:
+                    - cell "Demo" [ref=f1e1516]
+                    - cell "Trình diễn ổn định, tập cấu hình được ghi lại" [ref=f1e1517]
+                    - cell "Dữ liệu tổng hợp hoặc thử nghiệm đã được phép và ẩn danh" [ref=f1e1518]
+                  - row [ref=f1e1519]:
+                    - cell "Thử nghiệm có người" [ref=f1e1520]
+                    - cell "Đo khả năng sử dụng/độ tin cậy có giới hạn" [ref=f1e1521]
+                    - cell "Chỉ sau khi có quy trình đồng ý, quyền và retention" [ref=f1e1522]
+            - paragraph [ref=f1e1523]:
+              - text: Khi có code, cấu hình local sẽ được đặt trong
+              - code [ref=f1e1524]: infra
+              - text: ; secret ở môi trường thực thi, file mẫu chỉ chứa tên biến và giá trị vô hại. Chốt runtime/package manager/version trước khi thêm manifest và lockfile. Nêu rõ cổng, TLS, broker ACL, migration và rollback trong hướng dẫn triển khai thực tế.
+            - paragraph [ref=f1e1525]: "Quan sát tối thiểu: last_seen thiết bị, số bản tin nhận/từ chối/trùng, sự kiện cách ly, tuổi notification outbox, số lần gửi lỗi, độ trễ xử lý, lỗi AI. Log dùng ID tham chiếu, không dump toàn bộ dữ liệu sức khỏe hoặc secret."
+            - paragraph [ref=f1e1526]: "Trước dữ liệu thật: thử backup/restore, thu hồi quyền và credential, migration với backup, giới hạn retention/xóa, khôi phục worker và hành vi khi DB/broker lỗi. Bản backup phải được bảo vệ và có vòng đời; không đặt cạnh code để đồng bộ công khai."
+            - heading "Hồ sơ học thuật đề xuất" [level=3] [ref=f1e1527]
+            - paragraph [ref=f1e1528]: "Chưa có yêu cầu chính thức của trường. Cấu trúc tham khảo có thể gồm:"
+            - list [ref=f1e1529]:
+              - listitem [ref=f1e1530]: Bối cảnh, mục tiêu, phạm vi và phương pháp thực hiện.
+              - listitem [ref=f1e1531]: Cơ sở lý thuyết, nghiên cứu/sản phẩm liên quan và nguồn có quyền sử dụng.
+              - listitem [ref=f1e1532]: Phân tích yêu cầu, use case, phân quyền và thiết kế hệ thống.
+              - listitem [ref=f1e1533]: Thiết kế phần cứng, firmware, phần mềm và hợp đồng dữ liệu.
+              - listitem [ref=f1e1534]: Cách tích hợp AI, nguồn dữ liệu và đánh giá đầu ra.
+              - listitem [ref=f1e1535]: Thử nghiệm, số liệu thực đo, phân tích lỗi và giới hạn.
+              - listitem [ref=f1e1536]: Kết luận, khả năng phát triển và hướng dẫn vận hành/bàn giao.
+            - paragraph [ref=f1e1537]: Phụ lục có thể gồm BOM, sơ đồ mạch, API/schema, bộ kịch bản, hướng dẫn cài đặt và demo. Không tạo tài liệu Word/PDF theo một mẫu trường chưa biết; soạn Markdown kỹ thuật trước, sau đó xuất theo biểu mẫu được cung cấp.
+            - heading "Các yếu tố dễ làm thay đổi phạm vi" [level=3] [ref=f1e1538]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1539]:
+              - table [ref=f1e1540]:
+                - rowgroup [ref=f1e1541]:
+                  - row [ref=f1e1542]:
+                    - columnheader "Yếu tố" [ref=f1e1543]
+                    - columnheader "Tác động" [ref=f1e1544]
+                    - columnheader "Hướng xử lý đề xuất" [ref=f1e1545]
+                - rowgroup [ref=f1e1546]:
+                  - row [ref=f1e1547]:
+                    - cell "Không đủ thời gian hoặc linh kiện" [ref=f1e1548]
+                    - cell "Không thể chứng minh đủ phần cứng/AI" [ref=f1e1549]
+                    - cell "Giữ lát cắt cảnh báo và phép đo tối thiểu; ghi rõ mô phỏng và phần chưa kiểm" [ref=f1e1550]
+                  - row [ref=f1e1551]:
+                    - cell "PPG không ổn khi vận động" [ref=f1e1552]
+                    - cell "Sai cách mô tả theo dõi liên tục" [ref=f1e1553]
+                    - cell "Đo theo phiên hoặc đổi thiết kế đeo; giữ tỷ lệ mất tín hiệu trong đánh giá" [ref=f1e1554]
+                  - row [ref=f1e1555]:
+                    - cell "Báo ngã giả nhiều" [ref=f1e1556]
+                    - cell "Người dùng bỏ qua cảnh báo" [ref=f1e1557]
+                    - cell "Chỉnh vị trí/đặc trưng, cửa sổ hủy, đo false alarms/hour" [ref=f1e1558]
+                  - row [ref=f1e1559]:
+                    - cell "Mất Wi-Fi" [ref=f1e1560]
+                    - cell "Không báo từ xa đúng lúc" [ref=f1e1561]
+                    - cell "Cảnh báo tại chỗ, buffer hữu hạn, thông báo nhận trễ; xem xét gateway ở giai đoạn sau" [ref=f1e1562]
+                  - row [ref=f1e1563]:
+                    - cell "Không có nguồn AI đủ tin cậy" [ref=f1e1564]
+                    - cell "Hỏi đáp dễ suy diễn" [ref=f1e1565]
+                    - cell "Giới hạn AI ở tóm tắt dữ liệu và fallback theo mẫu" [ref=f1e1566]
+                  - row [ref=f1e1567]:
+                    - cell "Rubric trường khác đề xuất" [ref=f1e1568]
+                    - cell "Bộ hồ sơ/phạm vi cần thay đổi" [ref=f1e1569]
+                    - cell "Đối chiếu nguồn chính thức trước khi hoàn thiện báo cáo" [ref=f1e1570]
+            - paragraph [ref=f1e1571]:
+              - text: Việc có tài liệu không chứng minh đã triển khai, nghiệm thu hoặc sẵn sàng dùng cho người thật. Bằng chứng hoàn thành được lưu theo
+              - link "quy ước kiểm thử" [ref=f1e1572] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: .
+        - region [ref=f1e1573]:
+          - generic [ref=f1e1574]:
+            - generic [ref=f1e1575]: "10"
+            - generic [ref=f1e1576]:
+              - heading "Nguồn và câu hỏi mở" [level=2] [ref=f1e1577]
+              - paragraph [ref=f1e1578]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1579] [cursor=pointer]:
+                  - /url: ../../docs/10-nguon-va-cau-hoi-mo.md
+          - navigation "Trong phần Nguồn và câu hỏi mở" [ref=f1e1580]:
+            - link "Nguồn nội bộ đã đọc" [ref=f1e1581] [cursor=pointer]:
+              - /url: "#nguon-nguon-noi-bo-da-doc"
+            - link "Tài liệu kỹ thuật bên ngoài đã đọc" [ref=f1e1582] [cursor=pointer]:
+              - /url: "#nguon-tai-lieu-ky-thuat-ben-ngoai-da-doc"
+            - link "Thông tin còn cần xác nhận" [ref=f1e1583] [cursor=pointer]:
+              - /url: "#nguon-thong-tin-con-can-xac-nhan"
+            - link "Cách bổ sung nguồn nghiên cứu" [ref=f1e1584] [cursor=pointer]:
+              - /url: "#nguon-cach-bo-sung-nguon-nghien-cuu"
+          - generic [ref=f1e1585]:
+            - paragraph [ref=f1e1586]:
+              - text: Đối chiếu ngày
+              - strong [ref=f1e1587]: 10/11/2026
+              - text: . Tài liệu trong repository là bản thiết kế phát triển từ nguồn dưới đây; các ý tưởng bổ sung không được coi là yêu cầu đã duyệt.
+            - heading "Nguồn nội bộ đã đọc" [level=3] [ref=f1e1588]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1589]:
+              - table [ref=f1e1590]:
+                - rowgroup [ref=f1e1591]:
+                  - row [ref=f1e1592]:
+                    - columnheader "Nguồn" [ref=f1e1593]
+                    - columnheader "Nội dung dùng" [ref=f1e1594]
+                    - columnheader "Trạng thái" [ref=f1e1595]
+                - rowgroup [ref=f1e1596]:
+                  - row [ref=f1e1597]:
+                    - cell [ref=f1e1598]:
+                      - text: Obsidian
+                      - code [ref=f1e1599]: 1. PROJECT/Đồ án sức khỏe IoT/Đồ án sức khỏe IoT.md
+                    - cell "Tên chính thức và mục tiêu" [ref=f1e1600]
+                    - cell "Đã đọc" [ref=f1e1601]
+                  - row [ref=f1e1602]:
+                    - cell [ref=f1e1603]:
+                      - text: Obsidian
+                      - code [ref=f1e1604]: 1. PROJECT/Đồ án sức khỏe IoT/Đề cương.md
+                    - cell "Phạm vi web/app, IoT, AI, cảnh báo, nghiên cứu và hồ sơ" [ref=f1e1605]
+                    - cell "Đã đọc; nguồn yêu cầu ghi trong note là 07/11/2026" [ref=f1e1606]
+                  - row [ref=f1e1607]:
+                    - cell [ref=f1e1608]:
+                      - text: Obsidian
+                      - code [ref=f1e1609]: 1. PROJECT/Đồ án sức khỏe IoT/Kế hoạch.md
+                    - cell "Đầu việc và trạng thái hiện có" [ref=f1e1610]
+                    - cell "Đã đọc; giữ làm kế hoạch gốc" [ref=f1e1611]
+                  - row [ref=f1e1612]:
+                    - cell [ref=f1e1613]:
+                      - text: Obsidian
+                      - code [ref=f1e1614]: Tài liệu.md
+                      - text: ","
+                      - code [ref=f1e1615]: Ghi chú.md
+                      - text: trong cùng dự án
+                    - cell "Chỉ mục và lịch sử tổ chức yêu cầu" [ref=f1e1616]
+                    - cell "Đã đọc; chưa có nguồn học thuật/biểu mẫu trường kèm theo" [ref=f1e1617]
+                  - row [ref=f1e1618]:
+                    - cell [ref=f1e1619]:
+                      - text: Thư mục làm việc
+                      - code [ref=f1e1620]: C:/MyFolder/Hoc_Tap/project/DATN
+                    - cell "Nơi tổ chức tài liệu và source tương lai" [ref=f1e1621]
+                    - cell "Khi bắt đầu còn trống, chưa có Git repository hoặc code" [ref=f1e1622]
+            - paragraph [ref=f1e1623]: Vault được xác định từ registry dùng chung, không đoán tên thư mục OneDrive. Nguồn yêu cầu trong đề cương dẫn Hermes session/message; lượt này đọc bản đề cương, không đọc lại raw session.
+            - heading "Tài liệu kỹ thuật bên ngoài đã đọc" [level=3] [ref=f1e1624]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1625]:
+              - table [ref=f1e1626]:
+                - rowgroup [ref=f1e1627]:
+                  - row [ref=f1e1628]:
+                    - columnheader "Nguồn" [ref=f1e1629]
+                    - columnheader "Nội dung xác minh trong lượt này" [ref=f1e1630]
+                    - columnheader "Giới hạn" [ref=f1e1631]
+                - rowgroup [ref=f1e1632]:
+                  - row [ref=f1e1633]:
+                    - cell [ref=f1e1634]:
+                      - link "ESP-IDF — ESP-MQTT" [ref=f1e1635] [cursor=pointer]:
+                        - /url: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/protocols/mqtt.html
+                    - cell "ESP-MQTT hỗ trợ MQTT; đã tách component riêng từ ESP-IDF v6.0" [ref=f1e1636]
+                    - cell "Chưa chọn/built phiên bản cho board thực tế" [ref=f1e1637]
+                  - row [ref=f1e1638]:
+                    - cell [ref=f1e1639]:
+                      - link "ESP-MQTT Programming Guide" [ref=f1e1640] [cursor=pointer]:
+                        - /url: https://docs.espressif.com/projects/esp-mqtt/en/latest/
+                    - cell "Hỗ trợ TLS, auth, LWT, QoS; bản tin QoS 1/2 chưa xác nhận có thể được gửi lại; outbox có expiry" [ref=f1e1641]
+                    - cell "Không suy ra queue bền qua mất nguồn; phải thiết kế/đo riêng" [ref=f1e1642]
+                  - row [ref=f1e1643]:
+                    - cell [ref=f1e1644]:
+                      - link "NestJS — Modules" [ref=f1e1645] [cursor=pointer]:
+                        - /url: https://docs.nestjs.com/modules
+                    - cell "Tổ chức capability bằng module và quan hệ imports/exports/providers" [ref=f1e1646]
+                    - cell "Chỉ dùng để đánh giá cách tổ chức backend; chưa dựng ứng dụng" [ref=f1e1647]
+            - paragraph [ref=f1e1648]: Đã truy cập trực tiếp ba trang chính thức và đọc nội dung liên quan, HTTP 200 ngày 10/11/2026. Tra cứu Context7 gặp giới hạn quota nên không dùng kết quả chưa lấy được. Không sao chép mã thư viện trong lượt này; khi lấy code/asset/dataset cần ghi giấy phép cụ thể.
+            - paragraph [ref=f1e1649]: React/Vite, PostgreSQL, Mosquitto và các mã cảm biến hiện chỉ là ứng viên kiến trúc. Chưa khảo sát đầy đủ API/version, datasheet module, giá linh kiện hay nền tảng push. Không coi bảng công nghệ là kết quả benchmark hoặc bằng chứng tương thích.
+            - heading "Thông tin còn cần xác nhận" [level=3] [ref=f1e1650]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1651]:
+              - table [ref=f1e1652]:
+                - rowgroup [ref=f1e1653]:
+                  - row [ref=f1e1654]:
+                    - columnheader "Thông tin" [ref=f1e1655]
+                    - columnheader "Vì sao ảnh hưởng thiết kế" [ref=f1e1656]
+                    - columnheader "Giả định tạm dùng" [ref=f1e1657]
+                - rowgroup [ref=f1e1658]:
+                  - row [ref=f1e1659]:
+                    - cell "Trường, ngành, giảng viên, rubric và biểu mẫu" [ref=f1e1660]
+                    - cell "Quyết định mức nghiên cứu và hồ sơ nộp" [ref=f1e1661]
+                    - cell "Chưa giả định chương/bìa/mẫu bắt buộc" [ref=f1e1662]
+                  - row [ref=f1e1663]:
+                    - cell "Thời hạn, số người và kinh nghiệm công nghệ" [ref=f1e1664]
+                    - cell "Quyết định quy mô và stack khả thi" [ref=f1e1665]
+                    - cell "Chưa đặt lịch; ưu tiên một backend và web responsive" [ref=f1e1666]
+                  - row [ref=f1e1667]:
+                    - cell "Ngân sách và linh kiện đang có" [ref=f1e1668]
+                    - cell "Quyết định board, cảm biến, nguồn, vỏ" [ref=f1e1669]
+                    - cell "Chưa có giá, chưa đặt mua" [ref=f1e1670]
+                  - row [ref=f1e1671]:
+                    - cell "Vị trí đeo và cách đo nhịp tim" [ref=f1e1672]
+                    - cell "Ảnh hưởng chất lượng tín hiệu và ngã giả" [ref=f1e1673]
+                    - cell "Khảo sát trên bàn trước, chưa chốt cổ tay" [ref=f1e1674]
+                  - row [ref=f1e1675]:
+                    - cell "Dùng trong nhà hay ngoài nhà" [ref=f1e1676]
+                    - cell "Quyết định Wi-Fi/BLE/gateway/SIM" [ref=f1e1677]
+                    - cell "Prototype đầu ở vùng Wi-Fi" [ref=f1e1678]
+                  - row [ref=f1e1679]:
+                    - cell "Người cao tuổi có tài khoản riêng không" [ref=f1e1680]
+                    - cell "Quyết định chủ hồ sơ/người đại diện và đồng ý chia sẻ" [ref=f1e1681]
+                    - cell "Mô hình chủ hồ sơ rõ ràng; đại diện cần đặc tả thêm" [ref=f1e1682]
+                  - row [ref=f1e1683]:
+                    - cell "Kênh báo người thân" [ref=f1e1684]
+                    - cell "Ảnh hưởng app nền, chi phí và khả năng giao nhận" [ref=f1e1685]
+                    - cell "Demo trong web đang kết nối; push là mở rộng cần thử" [ref=f1e1686]
+                  - row [ref=f1e1687]:
+                    - cell "Yêu cầu cụ thể về AI" [ref=f1e1688]
+                    - cell "Quyết định model, corpus và phép đánh giá" [ref=f1e1689]
+                    - cell "Tóm tắt aggregate có kiểm chứng, không tự chẩn đoán" [ref=f1e1690]
+                  - row [ref=f1e1691]:
+                    - cell "Thu dữ liệu người thật và retention" [ref=f1e1692]
+                    - cell "Quyết định đồng ý, quyền dùng, lưu/xóa, thử nghiệm" [ref=f1e1693]
+                    - cell "Dữ liệu tổng hợp cho bản đầu" [ref=f1e1694]
+            - paragraph [ref=f1e1695]: Các câu hỏi này dùng để hoàn thiện thiết kế khi có thông tin, không chặn phần tài liệu và khung thư mục đã chuẩn bị. Ưu tiên làm rõ yêu cầu trường và thiết bị sẵn có trước khi khóa công nghệ.
+            - heading "Cách bổ sung nguồn nghiên cứu" [level=3] [ref=f1e1696]
+            - paragraph [ref=f1e1697]: Với mỗi tài liệu mới, ghi tác giả/tổ chức, tiêu đề, URL/DOI/tệp, năm, ngày đọc, giấy phép/điều kiện dùng, luận điểm sử dụng, phương pháp/dữ liệu đánh giá và giới hạn. Phân biệt nguồn y tế, thuật toán cảm biến, kỹ thuật phần mềm và yêu cầu trường. Không thêm trích dẫn chưa đọc để làm đầy phần tài liệu tham khảo.
+        - region [ref=f1e1698]:
+          - generic [ref=f1e1699]:
+            - generic [ref=f1e1700]: R
+            - generic [ref=f1e1701]:
+              - heading "Review thiết kế v0.1" [level=2] [ref=f1e1702]
+              - paragraph [ref=f1e1703]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1704] [cursor=pointer]:
+                  - /url: ../../docs/reviews/01-thiet-ke-v0.1.md
+          - navigation "Trong phần Review thiết kế v0.1" [ref=f1e1705]:
+            - 'link "R-01 — P1: Thông báo chờ gửi chưa bị vô hiệu hóa khi incident đã đóng" [ref=f1e1706] [cursor=pointer]':
+              - /url: "#review-r-01-p1-thong-bao-cho-gui-chua-bi-vo-hieu-hoa-khi-incident-da-dong"
+            - 'link "R-02 — P1: Khóa incident chưa có phạm vi định danh và kiểm quyền thiết bị rõ ràng" [ref=f1e1707] [cursor=pointer]':
+              - /url: "#review-r-02-p1-khoa-incident-chua-co-pham-vi-dinh-danh-va-kiem-quyen-thiet-bi-ro-rang"
+            - 'link "R-03 — P2: Chưa thống nhất xử lý confirmed không xác định được assignment" [ref=f1e1708] [cursor=pointer]':
+              - /url: "#review-r-03-p2-chua-thong-nhat-xu-ly-confirmed-khong-xac-dinh-duoc-assignment"
+            - 'link "R-04 — P2: Telemetry chưa đủ ngữ nghĩa để tính coverage và thống kê khi gộp mẫu" [ref=f1e1709] [cursor=pointer]':
+              - /url: "#review-r-04-p2-telemetry-chua-du-ngu-nghia-de-tinh-coverage-va-thong-ke-khi-gop-mau"
+            - link "Kiểm chứng và giới hạn" [ref=f1e1710] [cursor=pointer]:
+              - /url: "#review-kiem-chung-va-gioi-han"
+          - generic [ref=f1e1711]:
+            - paragraph [ref=f1e1712]:
+              - strong [ref=f1e1713]: "Ngày review:"
+              - text: 10/11/2026 — Codex.
+              - strong [ref=f1e1714]: "Trạng thái:"
+              - text: đã review tĩnh; các phát hiện bên dưới chưa được sửa trong đặc tả.
+            - paragraph [ref=f1e1715]: "Phạm vi: README, tài liệu thiết kế, ADR, trách nhiệm các thư mục và ba payload mẫu. Dự án chưa có ứng dụng, firmware hoặc simulator chạy được. Các phát hiện là thiếu sót/mâu thuẫn của thiết kế, không phải lỗi runtime đã tái hiện. P1 cần giải quyết trước khi triển khai luồng liên quan; P2 cần làm rõ để các thành phần thực hiện thống nhất. Mức độ này thuộc báo cáo review, không thay thứ tự P0/P1 của phạm vi sản phẩm hoặc kế hoạch gốc."
+            - 'heading "R-01 — P1: Thông báo chờ gửi chưa bị vô hiệu hóa khi incident đã đóng" [level=3] [ref=f1e1716]'
+            - paragraph [ref=f1e1717]:
+              - strong [ref=f1e1718]: "Vị trí:"
+              - link "kiến trúc" [ref=f1e1719] [cursor=pointer]:
+                - /url: "#kien-truc"
+              - text: ", dòng 56 và 63;"
+              - link "mô hình outbox" [ref=f1e1720] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: ", dòng 18."
+            - paragraph [ref=f1e1721]:
+              - text: Đặc tả yêu cầu
+              - code [ref=f1e1722]: user.cancel_requested
+              - text: đóng incident và gửi cập nhật cho người đã nhận. Worker vẫn retry tác vụ outbox; quy tắc gửi chỉ nêu chống trùng và kiểm quyền, chưa kiểm trạng thái/version hiện tại của incident hoặc hủy tác vụ cũ.
+            - paragraph [ref=f1e1723]:
+              - text: "Tình huống:"
+              - code [ref=f1e1724]: confirmed
+              - text: được commit cùng thông báo đang chờ → worker chưa gửi hoặc đang backoff → người dùng hủy và incident đóng → worker tiếp tục gửi cảnh báo mở. Nếu chưa có người nhận tại lúc hủy, nhánh “cập nhật cho những người đã nhận” không tạo thông báo đính chính cho họ. Unique key không giải quyết tác vụ hợp lệ nhưng đã lỗi thời. Reconnect tải snapshot cũng chưa bảo vệ người đang xem một stream liên tục.
+            - paragraph [ref=f1e1725]:
+              - strong [ref=f1e1726]: "Hướng sửa đề xuất:"
+              - text: đặc tả việc đánh dấu tác vụ chưa gửi là
+              - code [ref=f1e1727]: superseded
+              - text: khi đóng incident, kiểm version/trạng thái trước dispatch và quy tắc cho tác vụ đang gửi dở. Sự kiện gửi tới client cần version nghiệp vụ tăng đơn điệu; client không áp dụng trạng thái cũ. Nếu thông báo cũ đã ra ngoài thì bảo đảm người thực tế nhận được cũng nhận cập nhật kết thúc. Phân biệt version nghiệp vụ server với
+              - code [ref=f1e1728]: event_revision
+              - text: của firmware nếu cả hai đều thay đổi trạng thái.
+            - paragraph [ref=f1e1729]:
+              - strong [ref=f1e1730]: "Kiểm chứng cần bổ sung khi triển khai:"
+              - text: mở rồi hủy trước dispatch; hủy trong lúc dispatch; worker restart sau hủy. T-07 kiểm khôi phục worker và T-10 kiểm hủy sau gửi hiện chưa mô tả đủ các trường hợp này.
+            - 'heading "R-02 — P1: Khóa incident chưa có phạm vi định danh và kiểm quyền thiết bị rõ ràng" [level=3] [ref=f1e1731]'
+            - paragraph [ref=f1e1732]:
+              - strong [ref=f1e1733]: "Vị trí:"
+              - link "mô hình dữ liệu" [ref=f1e1734] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: ", dòng 15–16, 70 và 74."
+            - paragraph [ref=f1e1735]:
+              - text: Thiết bị cung cấp
+              - code [ref=f1e1736]: incident_id
+              - text: ", nhưng bảng sự kiện dùng unique"
+              - code [ref=f1e1737]: (incident_id, event_revision)
+              - text: toàn cục. Hợp đồng chưa quy định ID phải duy nhất toàn hệ thống hay chỉ trong một thiết bị; cũng chưa quy định ingest phải đối chiếu thiết bị đã xác thực với thiết bị trong assignment của incident trước mỗi cập nhật. Quyền thiết bị trong tài liệu yêu cầu đã nêu “sự kiện của chính nó”, nhưng quy tắc đó chưa được cụ thể hóa tại phép tra cứu/cập nhật incident.
+            - paragraph [ref=f1e1738]:
+              - text: Hai firmware tạo cùng ID cục bộ có thể khiến một sự kiện hợp lệ bị coi là trùng/xung đột. Nếu handler tra cứu bằng
+              - code [ref=f1e1739]: incident_id
+              - text: rồi chỉ kiểm topic với
+              - code [ref=f1e1740]: payload.device_id
+              - text: ", thiết bị B có thể gửi ID của incident A kèm revision tiếp theo và làm thay đổi sự cố của A, dù topic vẫn thuộc B. Đây là đường xử lý thiết kế chưa loại trừ, chưa phải lỗ hổng đã chứng minh trên code."
+            - paragraph [ref=f1e1741]:
+              - strong [ref=f1e1742]: "Hướng sửa đề xuất:"
+              - text: chọn namespace
+              - code [ref=f1e1743]: (authenticated_device_id, device_incident_id)
+              - text: hoặc quy tắc ID toàn cục, đồng thời bắt buộc kiểm nguồn phát của incident trong transaction. UUID riêng lẻ không thay kiểm quyền.
+              - code [ref=f1e1744]: assignment_id
+              - text: được server gắn khi tạo incident phải bất biến; sự kiện tiếp theo không được chuyển incident sang assignment mới khi thiết bị đổi chủ.
+            - paragraph [ref=f1e1745]:
+              - strong [ref=f1e1746]: "Kiểm chứng cần bổ sung khi triển khai:"
+              - text: hai thiết bị dùng cùng ID cục bộ; thiết bị B cập nhật incident của A với revision mới; thiết bị A gửi bản tin cũ sau khi đổi assignment. Kết quả phải tách incident đúng namespace hoặc từ chối rõ ràng, không thay đổi sự cố của hồ sơ khác.
+            - 'heading "R-03 — P2: Chưa thống nhất xử lý confirmed không xác định được assignment" [level=3] [ref=f1e1747]'
+            - paragraph [ref=f1e1748]:
+              - strong [ref=f1e1749]: "Vị trí:"
+              - link "chính sách thời gian/cảnh báo" [ref=f1e1750] [cursor=pointer]:
+                - /url: "#kien-truc"
+              - text: ", dòng 75–82;"
+              - link "quy tắc gán dữ liệu" [ref=f1e1751] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: ", dòng 55."
+            - paragraph [ref=f1e1752]:
+              - text: Kiến trúc hứa confirmed không rõ giờ sẽ được lưu lịch sử và gửi thông báo nhận trễ. Đồng thời, dữ liệu không đủ bằng chứng để gán vào assignment phải bị cách ly. Sau chuyển thiết bị A → B, một confirmed trong buffer có
+              - code [ref=f1e1753]: "measured_at: null"
+              - text: và boot chưa có mốc thời gian tin cậy không cho backend biết người được theo dõi nào liên quan. Không thể vừa cách ly vừa gửi thông báo sức khỏe đúng người nếu chưa có quy tắc giải quyết trường hợp này.
+            - paragraph [ref=f1e1754]:
+              - strong [ref=f1e1755]: "Hướng sửa đề xuất:"
+              - text: tách “không rõ giờ nhưng biết chắc assignment” khỏi “không rõ assignment”. Trường hợp đầu có thể gửi thông báo nhận trễ. Trường hợp sau tiếp tục cách ly, có trạng thái theo dõi, quyền xử lý, cách bổ sung bằng chứng và quy tắc tái xử lý đúng một lần; sửa lời hứa gửi thông báo cho phù hợp. Có thể nghiên cứu assignment epoch/token do server cấp, gắn với từng bản tin lúc tạo và giữ qua reboot, kèm quy trình chuyển chủ được xác nhận. Không để firmware tự khai
+              - code [ref=f1e1756]: subject_id
+              - text: hoặc mặc định chọn chủ hiện tại.
+            - paragraph [ref=f1e1757]:
+              - strong [ref=f1e1758]: "Kiểm chứng cần bổ sung khi triển khai:"
+              - text: đổi chủ khi thiết bị có sự kiện chưa gửi, reboot trước đồng bộ giờ, nhận lại confirmed/cancel nhiều lần và giải quyết cách ly. Không gửi sai người, không mất dấu sự kiện cần xử lý, không nhân đôi cảnh báo khi tái xử lý. T-03 hiện chỉ yêu cầu cách ly; chưa nêu đường đi tiếp.
+            - 'heading "R-04 — P2: Telemetry chưa đủ ngữ nghĩa để tính coverage và thống kê khi gộp mẫu" [level=3] [ref=f1e1759]'
+            - paragraph [ref=f1e1760]:
+              - strong [ref=f1e1761]: "Vị trí:"
+              - link "hợp đồng telemetry" [ref=f1e1762] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: ", dòng 45–53 và 63;"
+              - link "lấy mẫu firmware" [ref=f1e1763] [cursor=pointer]:
+                - /url: "#phan-cung"
+              - text: ", dòng 52;"
+              - link "đầu vào AI" [ref=f1e1764] [cursor=pointer]:
+                - /url: "#tro-ly-ai"
+              - text: ", dòng 19."
+            - paragraph [ref=f1e1765]:
+              - text: Payload chỉ có một
+              - code [ref=f1e1766]: heart_rate_bpm
+              - text: và một timestamp. README ví dụ gọi đây là một mẫu BPM, nhưng tài liệu giao tiếp cho phép tổng hợp mẫu để giảm băng thông và firmware dự kiến chỉ gửi tổng hợp thường kỳ. Backend lại phải tính số mẫu hợp lệ, coverage theo cấu hình thu, min/max/trung bình. Chưa xác định một giá trị gửi lên là snapshot hay trung bình của cửa sổ, coverage đếm mẫu nào và cấu hình có hiệu lực trong khoảng nào.
+            - paragraph [ref=f1e1767]: Khi hai gói tổng hợp có số mẫu hợp lệ khác nhau, lấy trung bình hai giá trị không bằng trung bình của toàn bộ mẫu hợp lệ. Min/max của các trung bình cũng không khôi phục được min/max mẫu gốc. Đếm số gói nhận được chỉ phản ánh lượng gói nhận, không chứng minh độ phủ cảm biến mà phần tóm tắt muốn công bố.
+            - paragraph [ref=f1e1768]:
+              - strong [ref=f1e1769]: "Hướng sửa đề xuất:"
+              - text: chốt một semantics v1. Nếu dùng snapshot, định nghĩa rõ nhịp tạo snapshot, coverage và thống kê chỉ trên các snapshot đó. Nếu gửi aggregate, bổ sung ranh giới cửa sổ, số mẫu hợp lệ/kỳ vọng, thống kê đủ để gộp theo định nghĩa đã chọn và cấu hình có version/thời điểm hiệu lực. Không nhất thiết gửi raw PPG/IMU. Đồng bộ payload, schema tương lai và cách diễn đạt trên dashboard/AI với lựa chọn này.
+            - paragraph [ref=f1e1770]:
+              - strong [ref=f1e1771]: "Kiểm chứng cần bổ sung khi triển khai:"
+              - text: gói có số mẫu khác nhau, đổi chu kỳ thu/gửi giữa ngày, tín hiệu kém và mất một gói. Đối chiếu mean/coverage với tập dữ liệu tổng hợp có đáp án biết trước; không chỉ đếm envelope.
+            - heading "Kiểm chứng và giới hạn" [level=3] [ref=f1e1772]
+            - paragraph [ref=f1e1773]:
+              - text: Trước khi thêm báo cáo này, đã kiểm
+              - strong [ref=f1e1774]: 24 file Markdown, 53 liên kết nội bộ và 3 JSON mẫu
+              - text: "bằng Python standard library: đọc được UTF-8, code fence cân bằng, không có link nội bộ đứt, JSON parse được. Đối chiếu device/message/incident/revision giữa sự kiện và ACK, cùng cửa sổ hủy trong ví dụ: đạt. Đây là kiểm tài liệu và tính nhất quán của ví dụ, chưa phải validate JSON Schema hoặc test ứng dụng."
+            - paragraph [ref=f1e1775]: Không chạy lint/type-check hoặc test ứng dụng vì chưa có toolchain/code. Chưa đo cảm biến, pin, độ trễ hoặc chất lượng thuật toán. Các tình huống trong findings là lập luận review và tiêu chí test đề xuất, không được ghi nhận là đã chạy.
+            - paragraph [ref=f1e1776]: Phạm vi cảnh báo chỉ trong web đang kết nối, framework/linh kiện chưa chốt và thiếu rubric/ngân sách đã được bản v0.1 công bố rõ; không coi những giới hạn đó là lỗi mới. Cấu trúc thư mục đủ để tiếp tục đặc tả; chưa có căn cứ cần thêm microservices hoặc mở rộng cây source.
+            - paragraph [ref=f1e1777]:
+              - strong [ref=f1e1778]: "Bước tiếp theo đề xuất:"
+              - text: sửa đồng bộ quy tắc ingest và vòng đời thông báo trong tài liệu 03/04, bổ sung tình huống vào tài liệu 08, rồi chốt semantics telemetry trước khi viết schema/simulator. Báo cáo này không đánh dấu các việc sửa là đã thực hiện.
+            - paragraph [ref=f1e1779]:
+              - link "Mục lục tài liệu" [ref=f1e1780] [cursor=pointer]:
+                - /url: "#mo-dau"
+              - text: .
+        - region [ref=f1e1781]:
+          - generic [ref=f1e1782]:
+            - generic [ref=f1e1783]: A
+            - generic [ref=f1e1784]:
+              - heading "Quyết định kiến trúc" [level=2] [ref=f1e1785]
+              - paragraph [ref=f1e1786]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1787] [cursor=pointer]:
+                  - /url: ../../docs/decisions/0001-dinh-huong-prototype.md
+          - navigation "Trong phần Quyết định kiến trúc" [ref=f1e1788]:
+            - link "Các lựa chọn đề xuất" [ref=f1e1789] [cursor=pointer]:
+              - /url: "#quyet-dinh-cac-lua-chon-de-xuat"
+            - link "Hệ quả" [ref=f1e1790] [cursor=pointer]:
+              - /url: "#quyet-dinh-he-qua"
+          - generic [ref=f1e1791]:
+            - list [ref=f1e1792]:
+              - listitem [ref=f1e1793]: "Ngày: 10/11/2026."
+              - listitem [ref=f1e1794]:
+                - text: "Trạng thái:"
+                - strong [ref=f1e1795]: đề xuất, chưa được chốt
+                - text: .
+              - listitem [ref=f1e1796]: "Bối cảnh: có đề cương, chưa có code, yêu cầu trường, danh sách linh kiện hoặc kết quả đo."
+            - heading "Các lựa chọn đề xuất" [level=3] [ref=f1e1797]
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e1798]:
+              - table [ref=f1e1799]:
+                - rowgroup [ref=f1e1800]:
+                  - row [ref=f1e1801]:
+                    - columnheader "Lựa chọn" [ref=f1e1802]
+                    - columnheader "Lý do" [ref=f1e1803]
+                    - columnheader "Đổi khi" [ref=f1e1804]
+                - rowgroup [ref=f1e1805]:
+                  - row [ref=f1e1806]:
+                    - cell "Web responsive trước native app" [ref=f1e1807]
+                    - cell "Một giao diện cho demo máy tính/điện thoại, giảm phần cần triển khai" [ref=f1e1808]
+                    - cell "Trường hoặc thử nghiệm yêu cầu tính năng nền/native không đáp ứng được" [ref=f1e1809]
+                  - row [ref=f1e1810]:
+                    - cell "Modular monolith" [ref=f1e1811]
+                    - cell "Nghiệp vụ còn thay đổi, quy mô chưa chứng minh cần nhiều service" [ref=f1e1812]
+                    - cell "Có ranh giới vận hành/tải rõ và bằng chứng đo" [ref=f1e1813]
+                  - row [ref=f1e1814]:
+                    - cell "MQTT/TLS cho thiết bị, HTTPS cho web" [ref=f1e1815]
+                    - cell "Hợp với sự kiện thiết bị/presence; API dễ tổ chức quyền" [ref=f1e1816]
+                    - cell "Thử nghiệm cho thấy HTTP đơn giản hơn và vẫn đáp ứng yêu cầu mạng/ACK" [ref=f1e1817]
+                  - row [ref=f1e1818]:
+                    - cell "PostgreSQL trước hệ time-series riêng" [ref=f1e1819]
+                    - cell "Cần transaction và quyền trên dữ liệu quan hệ" [ref=f1e1820]
+                    - cell "Khối lượng/retention đo thực tế vượt thiết kế hiện có" [ref=f1e1821]
+                  - row [ref=f1e1822]:
+                    - cell "Nghi ngã được xử lý tại thiết bị" [ref=f1e1823]
+                    - cell "Hủy/còi tại chỗ vẫn dùng khi mất mạng" [ref=f1e1824]
+                    - cell "Chỉ chuyển phần bổ trợ lên server nếu không làm mất khả năng cục bộ" [ref=f1e1825]
+                  - row [ref=f1e1826]:
+                    - cell "Backend chờ confirmed từ thiết bị" [ref=f1e1827]
+                    - cell "Tránh xác nhận nhầm khi cancel bị giữ trong mạng offline" [ref=f1e1828]
+                    - cell "Có giao thức khác được chứng minh xử lý được tranh chấp" [ref=f1e1829]
+                  - row [ref=f1e1830]:
+                    - cell "AI tách khỏi cảnh báo" [ref=f1e1831]
+                    - cell "Độ trễ/lỗi model không làm hỏng cảnh báo" [ref=f1e1832]
+                    - cell "Không đổi ranh giới này chỉ để thêm tính năng hội thoại" [ref=f1e1833]
+                  - row [ref=f1e1834]:
+                    - cell "Prototype trên bàn trước vỏ đeo" [ref=f1e1835]
+                    - cell "Vị trí đo và tín hiệu chưa xác minh" [ref=f1e1836]
+                    - cell "Có dữ liệu đủ để chọn hình thức đeo" [ref=f1e1837]
+            - heading "Hệ quả" [level=3] [ref=f1e1838]
+            - paragraph [ref=f1e1839]: Cần thêm broker và quản lý credential thiết bị. Phải xử lý duplicate/out-of-order, application ACK và hàng đợi riêng. Demo web online không chứng minh thông báo nền. Vị trí đeo còn mở nên chưa thiết kế PCB/vỏ cuối cùng hoặc mua linh kiện theo một BOM cố định.
+            - paragraph [ref=f1e1840]: Các thư mục đã tạo phản ánh ranh giới trách nhiệm, chưa khóa framework/package manager. Khi chốt một lựa chọn, cập nhật trạng thái, người/căn cứ xác nhận và bằng chứng; nếu đổi, giữ lý do trong ADR tiếp theo thay vì viết lại như thể chưa từng có đề xuất này.
+            - paragraph [ref=f1e1841]:
+              - text: "Tham chiếu:"
+              - link "kiến trúc" [ref=f1e1842] [cursor=pointer]:
+                - /url: "#kien-truc"
+              - text: ","
+              - link "phần cứng" [ref=f1e1843] [cursor=pointer]:
+                - /url: "#phan-cung"
+              - text: ","
+              - link "nguồn/câu hỏi" [ref=f1e1844] [cursor=pointer]:
+                - /url: "#nguon"
+              - text: .
+        - region [ref=f1e1845]:
+          - generic [ref=f1e1846]:
+            - generic [ref=f1e1847]: B
+            - generic [ref=f1e1848]:
+              - heading "Cấu trúc dự án và trách nhiệm" [level=2] [ref=f1e1849]
+              - paragraph [ref=f1e1850]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e1851] [cursor=pointer]:
+                  - /url: ../../README.md
+          - navigation "Trong phần Cấu trúc dự án và trách nhiệm" [ref=f1e1852]:
+            - link "Bắt đầu đọc" [ref=f1e1853] [cursor=pointer]:
+              - /url: "#cau-truc-bat-dau-doc"
+            - link "Khung thư mục" [ref=f1e1854] [cursor=pointer]:
+              - /url: "#cau-truc-khung-thu-muc"
+            - link "Hướng đề xuất" [ref=f1e1855] [cursor=pointer]:
+              - /url: "#cau-truc-huong-de-xuat"
+            - link "Nguồn và cách tiếp tục" [ref=f1e1856] [cursor=pointer]:
+              - /url: "#cau-truc-nguon-va-cach-tiep-tuc"
+          - generic [ref=f1e1857]:
+            - paragraph [ref=f1e1858]:
+              - strong [ref=f1e1859]: Hệ thống Giám sát sức khỏe và Cảnh báo té ngã cho Người cao tuổi ứng dụng IoT và Trợ lý (AI).
+            - paragraph [ref=f1e1860]: Hệ thống gồm thiết bị ghi nhận nhịp tim/vận động, nền tảng theo dõi cho người dùng và người thân, luồng cảnh báo té ngã có xác nhận, cùng trợ lý AI hỗ trợ đọc dữ liệu.
+            - paragraph [ref=f1e1861]:
+              - strong [ref=f1e1862]: "Trạng thái ngày 10/11/2026:"
+              - text: đã đọc đề cương gốc trong Obsidian và chuẩn bị tài liệu thiết kế v0.1 cùng khung thư mục. Chưa có mã ứng dụng, firmware chạy được, thiết bị đã kiểm chứng hoặc kết quả thử nghiệm. Các lựa chọn công nghệ và chỉ tiêu dưới đây là đề xuất để bắt đầu thảo luận.
+            - heading "Bắt đầu đọc" [level=3] [ref=f1e1863]
+            - paragraph [ref=f1e1864]:
+              - strong [ref=f1e1865]:
+                - link "Mở bộ tài liệu HTML" [ref=f1e1866] [cursor=pointer]:
+                  - /url: "#mo-dau"
+              - text: — đọc ngoại tuyến, tìm kiếm không dấu, xem sơ đồ và in/lưu PDF. Bản HTML gồm thiết kế, review, cấu trúc và payload; được sinh từ các nguồn Markdown/JSON.
+              - link "Cách cập nhật HTML" [ref=f1e1867] [cursor=pointer]:
+                - /url: ../../tools/docs/README.md
+              - text: .
+            - list [ref=f1e1868]:
+              - listitem [ref=f1e1869]:
+                - link "Tổng quan và ý tưởng" [ref=f1e1870] [cursor=pointer]:
+                  - /url: "#tong-quan"
+                - text: ": bài toán, các phương án và hướng đề xuất."
+              - listitem [ref=f1e1871]:
+                - link "Yêu cầu và phạm vi" [ref=f1e1872] [cursor=pointer]:
+                  - /url: "#yeu-cau"
+                - text: ": MVP, vai trò, tiêu chí chấp nhận."
+              - listitem [ref=f1e1873]:
+                - link "Kiến trúc hệ thống" [ref=f1e1874] [cursor=pointer]:
+                  - /url: "#kien-truc"
+                - text: ": thành phần, luồng cảnh báo và công nghệ ứng viên."
+              - listitem [ref=f1e1875]:
+                - link "Mục lục tài liệu" [ref=f1e1876] [cursor=pointer]:
+                  - /url: "#mo-dau"
+                - text: ": dữ liệu/API, phần cứng, màn hình, AI, kiểm thử và hồ sơ."
+            - heading "Khung thư mục" [level=3] [ref=f1e1877]
+            - code [ref=f1e1879]: "DATN/ ├── apps/ │ ├── web/ # Web responsive cho người dùng, người thân, admin │ └── api/ # Backend nghiệp vụ, tiếp nhận dữ liệu, cảnh báo ├── firmware/ # Chương trình trên thiết bị IoT ├── hardware/ # BOM, sơ đồ mạch, kết quả khảo sát cơ khí/nguồn ├── packages/contracts/ # Hợp đồng dữ liệu và payload minh họa ├── infra/ # Cấu hình môi trường và triển khai dự kiến ├── tools/simulator/ # Công cụ mô phỏng thiết bị dự kiến ├── tests/ # Quy ước và kịch bản kiểm thử liên thành phần ├── data/ # Quy ước dữ liệu mẫu/thử nghiệm ├── reports/ # Báo cáo, hình, tài liệu bảo vệ └── docs/ # Nguồn chính của thiết kế kỹ thuật"
+            - paragraph [ref=f1e1880]:
+              - text: Các thư mục hiện có README nêu trách nhiệm và điều kiện bắt đầu. Payload trong
+              - code [ref=f1e1881]: packages/contracts/examples/
+              - text: là dữ liệu tổng hợp để trao đổi thiết kế; chưa phải bộ dữ liệu đo. Chưa tạo package manifest, lockfile hay lệnh chạy giả khi framework/version chưa được chốt.
+            - heading "Hướng đề xuất" [level=3] [ref=f1e1882]
+            - list [ref=f1e1883]:
+              - listitem [ref=f1e1884]: Prototype tại nhà dùng Wi-Fi; web responsive là giao diện đầu tiên.
+              - listitem [ref=f1e1885]: Kiểm chứng vị trí đeo, IMU và tín hiệu nhịp tim trước khi chốt vỏ thiết bị.
+              - listitem [ref=f1e1886]: Backend dạng modular monolith, database quan hệ, giao tiếp thiết bị có định danh và chống xử lý trùng.
+              - listitem [ref=f1e1887]: Cảnh báo hoạt động độc lập với AI. AI bắt đầu từ tóm tắt dữ liệu có nguồn và có thể tắt.
+              - listitem [ref=f1e1888]: Bản demo đầu tiên dùng dữ liệu mô phỏng, thể hiện đủ mất mạng, báo nhầm và xác nhận cảnh báo.
+            - heading "Nguồn và cách tiếp tục" [level=3] [ref=f1e1889]
+            - paragraph [ref=f1e1890]:
+              - text: Đề cương gốc cùng kế hoạch có trạng thái nằm trong dự án
+              - strong [ref=f1e1891]: Đồ án sức khỏe IoT
+              - text: ở Obsidian.
+              - link "Nguồn và điều chưa xác minh" [ref=f1e1892] [cursor=pointer]:
+                - /url: "#nguon"
+              - text: ghi đường dẫn, tài liệu đã đọc và thông tin còn thiếu.
+              - code [ref=f1e1893]: docs
+              - text: là nguồn chính cho kỹ thuật; không duy trì checklist tiến độ thứ hai tại repository.
+            - paragraph [ref=f1e1894]:
+              - text: "Bước phù hợp tiếp theo là đối chiếu bản thiết kế với yêu cầu của trường và linh kiện sẵn có, sau đó xây một lát cắt demo: simulator → backend → dashboard → xác nhận cảnh báo. Xem"
+              - link "lộ trình và hồ sơ" [ref=f1e1895] [cursor=pointer]:
+                - /url: "#lo-trinh"
+              - text: .
+            - heading "apps/web — Giao diện web" [level=3] [ref=f1e1896]
+            - paragraph [ref=f1e1897]:
+              - text: Nơi triển khai giao diện người được theo dõi, người thân và admin.
+              - strong [ref=f1e1898]: Hiện chưa có mã ứng dụng hoặc lệnh chạy.
+              - text: React + TypeScript + Vite là ứng viên, chưa khóa version.
+            - paragraph [ref=f1e1899]:
+              - text: "Nguồn thiết kế:"
+              - link "yêu cầu" [ref=f1e1900] [cursor=pointer]:
+                - /url: "#yeu-cau"
+              - text: ","
+              - link "màn hình" [ref=f1e1901] [cursor=pointer]:
+                - /url: "#giao-dien"
+              - text: ","
+              - link "API" [ref=f1e1902] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: .
+            - paragraph [ref=f1e1903]:
+              - text: Sau khi chốt framework, tổ chức theo chức năng
+              - code [ref=f1e1904]: auth
+              - text: ","
+              - code [ref=f1e1905]: subjects
+              - text: ","
+              - code [ref=f1e1906]: devices
+              - text: ","
+              - code [ref=f1e1907]: measurements
+              - text: ","
+              - code [ref=f1e1908]: alerts
+              - text: ","
+              - code [ref=f1e1909]: sharing
+              - text: ","
+              - code [ref=f1e1910]: assistant
+              - text: ","
+              - code [ref=f1e1911]: admin
+              - text: ; phần dùng chung gồm API client, thành phần giao diện và định dạng thời gian/đơn vị. Không tạo các thư mục source rỗng trước khi có lát cắt triển khai.
+            - paragraph [ref=f1e1912]: Ưu tiên demo đọc dữ liệu, trạng thái cũ/offline và xác nhận cảnh báo. Không tính quyền truy cập chỉ ở giao diện; backend là nơi thực thi quyền. Trạng thái đang tải, rỗng, mất mạng, thiếu quyền và dữ liệu mô phỏng cần rõ ràng.
+            - heading "apps/api — Backend" [level=3] [ref=f1e1913]
+            - paragraph [ref=f1e1914]:
+              - text: Nơi triển khai backend modular monolith.
+              - strong [ref=f1e1915]: Hiện chưa có ứng dụng, migration hay endpoint đang chạy.
+              - text: NestJS + TypeScript là ứng viên, chưa khóa version/ORM.
+            - paragraph [ref=f1e1916]:
+              - text: "Ranh giới module dự kiến:"
+              - code [ref=f1e1917]: auth
+              - text: ","
+              - code [ref=f1e1918]: subjects
+              - text: ","
+              - code [ref=f1e1919]: care-links
+              - text: ","
+              - code [ref=f1e1920]: devices
+              - text: ","
+              - code [ref=f1e1921]: ingestion
+              - text: ","
+              - code [ref=f1e1922]: measurements
+              - text: ","
+              - code [ref=f1e1923]: incidents
+              - text: ","
+              - code [ref=f1e1924]: notifications
+              - text: ","
+              - code [ref=f1e1925]: assistant
+              - text: ","
+              - code [ref=f1e1926]: audit
+              - text: . Adapter MQTT/HTTP/AI gọi nghiệp vụ qua ranh giới rõ; logic chuyển trạng thái và kiểm quyền không nằm rải trong transport handler.
+            - paragraph [ref=f1e1927]:
+              - text: "Nguồn chính:"
+              - link "kiến trúc" [ref=f1e1928] [cursor=pointer]:
+                - /url: "#kien-truc"
+              - text: ","
+              - link "dữ liệu/API" [ref=f1e1929] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: và
+              - link "kiểm thử" [ref=f1e1930] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: .
+            - paragraph [ref=f1e1931]: "Lát cắt đầu: ingest một telemetry và một incident từ simulator, lưu bền có chống trùng, đọc bằng tài khoản đúng quyền, xác nhận/đóng incident. Viết migration/constraint cùng hành vi; kiểm transaction outbox và truy cập chéo hồ sơ trước khi mở rộng."
+            - heading "firmware — Chương trình thiết bị" [level=3] [ref=f1e1932]
+            - paragraph [ref=f1e1933]:
+              - text: Nơi đặt chương trình ESP32 sau khi chọn board, ESP-IDF, component MQTT và driver cảm biến.
+              - strong [ref=f1e1934]: Chưa có firmware build được hoặc pin mapping đã xác minh.
+            - paragraph [ref=f1e1935]:
+              - text: Đọc
+              - link "phần cứng và firmware" [ref=f1e1936] [cursor=pointer]:
+                - /url: "#phan-cung"
+              - text: ","
+              - link "hợp đồng" [ref=f1e1937] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: và
+              - link "payload mẫu" [ref=f1e1938] [cursor=pointer]:
+                - /url: "#payload"
+              - text: .
+            - paragraph [ref=f1e1939]: "Ranh giới dự kiến: cảm biến, xử lý tín hiệu, phát hiện nghi ngã, tương tác tại chỗ, kết nối, buffer, telemetry và cấu hình. Cần ghi version board/SDK/component, sample rate, đơn vị, vị trí đeo và tham số thuật toán trong từng phiên thử."
+            - paragraph [ref=f1e1940]: Provision credential ngoài source. ACK MQTT không thay ACK lưu bền từ backend. Outbox thư viện không được mặc định là hàng đợi flash sống qua mất nguồn. Chỉ tạo project SDK sau khi xác nhận bộ version tương thích.
+            - heading "hardware — Hồ sơ phần cứng" [level=3] [ref=f1e1941]
+            - paragraph [ref=f1e1942]:
+              - text: Nơi lưu BOM được xác minh, sơ đồ mạch/pin mapping, thiết kế vỏ và bằng chứng đo nguồn/tín hiệu.
+              - strong [ref=f1e1943]: Hiện chưa có BOM chốt, schematic hoặc giá linh kiện.
+            - paragraph [ref=f1e1944]:
+              - text: Các ứng viên và trình tự khảo sát nằm ở
+              - link "thiết kế phần cứng" [ref=f1e1945] [cursor=pointer]:
+                - /url: "#phan-cung"
+              - text: .
+            - paragraph [ref=f1e1946]:
+              - text: Khi có đầu ra, tổ chức theo
+              - code [ref=f1e1947]: bom
+              - text: ","
+              - code [ref=f1e1948]: schematics
+              - text: ","
+              - code [ref=f1e1949]: enclosure
+              - text: và
+              - code [ref=f1e1950]: measurements
+              - text: . BOM cần mã part/module cụ thể, số lượng, nguồn datasheet, nhà cung cấp, ngày/giá, điện áp và lý do chọn. Kết quả đo cần board/firmware/config/version và điều kiện thử.
+            - paragraph [ref=f1e1951]: Chưa có linh kiện thì ghi “chưa xác minh”; không điền giá 0 hoặc thông số định mức của một chip thành thông số cả module. Ảnh/video lớn lưu ở nơi chia sẻ phù hợp và dẫn link đã kiểm quyền; không đưa dữ liệu nhận diện người tham gia vào Git.
+            - heading "infra — Hạ tầng" [level=3] [ref=f1e1952]
+            - paragraph [ref=f1e1953]:
+              - text: Nơi đặt cấu hình chạy local/demo sau khi ứng dụng có thể build.
+              - strong [ref=f1e1954]: Chưa có Compose, image hoặc môi trường đã deploy.
+            - paragraph [ref=f1e1955]: Thành phần dự kiến gồm PostgreSQL, MQTT broker có ACL, API/worker và web. Chỉ thêm cache/queue chuyên dụng khi có nhu cầu được chứng minh; bản đầu có thể dùng notification outbox trong database.
+            - paragraph [ref=f1e1956]:
+              - text: Đọc
+              - link "kiến trúc" [ref=f1e1957] [cursor=pointer]:
+                - /url: "#kien-truc"
+              - text: và
+              - link "vận hành/bàn giao" [ref=f1e1958] [cursor=pointer]:
+                - /url: "#lo-trinh"
+              - text: . Cấu hình thực tế phải mô tả port, TLS, health check, volume, backup/restore, migration, credential rotation và cách rollback.
+            - paragraph [ref=f1e1959]:
+              - text: Secret không commit. Khi thêm
+              - code [ref=f1e1960]: .env.example
+              - text: ", chỉ ghi tên biến và giá trị demo vô hại, không sao chép"
+              - code [ref=f1e1961]: .env
+              - text: thật. Không mở broker/DB công khai để tiện demo.
+            - heading "tools/simulator — Mô phỏng" [level=3] [ref=f1e1962]
+            - paragraph [ref=f1e1963]:
+              - text: Công cụ dự kiến tạo dữ liệu tổng hợp theo hợp đồng thiết bị để làm demo và kiểm lỗi trước khi có phần cứng.
+              - strong [ref=f1e1964]: Hiện chưa có script simulator chạy được.
+            - paragraph [ref=f1e1965]: "Các kịch bản cần triển khai: nhịp tim/vận động hợp lệ, tín hiệu kém, candidate rồi cancel, candidate rồi confirmed, SOS, gửi trùng, đảo thứ tự revision, mất mạng/gửi lại, clock unsynced và đổi boot."
+            - paragraph [ref=f1e1966]: Mỗi kịch bản cần seed hoặc bộ input cố định, thời gian/ID kiểm soát được, nhãn mô phỏng rõ và khả năng chạy qua cùng đường ingest với thiết bị. Không tạo đường tắt bỏ kiểm quyền thiết bị chỉ cho demo.
+            - paragraph [ref=f1e1967]:
+              - text: Tham chiếu
+              - link "hợp đồng và ví dụ" [ref=f1e1968] [cursor=pointer]:
+                - /url: "#payload"
+              - text: ","
+              - link "kịch bản kiểm thử" [ref=f1e1969] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: . Chọn ngôn ngữ sau khi chốt backend; không cần thêm runtime riêng nếu TypeScript hiện có đáp ứng.
+            - heading "tests — Kiểm thử" [level=3] [ref=f1e1970]
+            - paragraph [ref=f1e1971]:
+              - strong [ref=f1e1972]: Chưa có ứng dụng nên chưa có test executable.
+              - text: Ma trận yêu cầu/kịch bản và cách đo nằm tại
+              - link "kiểm thử và đánh giá" [ref=f1e1973] [cursor=pointer]:
+                - /url: "#kiem-thu"
+              - text: .
+            - paragraph [ref=f1e1974]: Unit test đặt gần module sở hữu hành vi khi chọn framework. Thư mục này dành cho integration/E2E qua ranh giới thiết bị → ingest → lưu trữ → cảnh báo → người nhận, và fixture tổng hợp dùng chung khi thực sự cần.
+            - paragraph [ref=f1e1975]: Ưu tiên lint/type-check rồi test nhỏ nhất liên quan; chạy tuần tự mặc định. Test cần bảo vệ quyền, idempotency, state transition, quality/time và khôi phục sau lỗi. Không viết test chỉ để khẳng định tên file/thư mục có mặt hoặc mô phỏng lại nội bộ framework.
+            - paragraph [ref=f1e1976]: Kết quả phần cứng/AI cần thông số và bằng chứng riêng; không gọi một JSON parse thành công là test hệ thống IoT đạt.
+            - heading "data — Dữ liệu" [level=3] [ref=f1e1977]
+            - paragraph [ref=f1e1978]:
+              - text: Chỉ commit dữ liệu tổng hợp hoặc dữ liệu có quyền sử dụng đã được xác minh. Payload minh họa hiện đặt trong
+              - link "contracts/examples" [ref=f1e1979] [cursor=pointer]:
+                - /url: "#payload"
+              - text: ; không nhân bản thành một bộ dữ liệu khác ở đây.
+            - paragraph [ref=f1e1980]:
+              - text: Các vùng local
+              - code [ref=f1e1981]: raw/
+              - text: ","
+              - code [ref=f1e1982]: private/
+              - text: ","
+              - code [ref=f1e1983]: processed/
+              - text: ","
+              - code [ref=f1e1984]: exports/
+              - text: đã được loại khỏi Git. Chỉ tạo khi có nhu cầu;
+              - code [ref=f1e1985]: .gitignore
+              - text: không phải cơ chế kiểm soát truy cập hoặc bảo đảm bảo mật.
+            - paragraph [ref=f1e1986]: Dataset thử nghiệm cần manifest mô tả nguồn/giấy phép hoặc sự đồng ý, cảm biến, vị trí đeo, đơn vị, sample rate, thời gian, nhãn, cách ẩn danh, version xử lý và cách chia tập. Không đưa tên/số điện thoại/ảnh nhận diện vào fixture.
+            - paragraph [ref=f1e1987]:
+              - text: Chưa có dữ liệu đo hoặc dataset học thuật được tải trong lượt chuẩn bị này. Chính sách retention/xóa phải được chốt trước dữ liệu thật theo
+              - link "đặc tả dữ liệu" [ref=f1e1988] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: .
+            - heading "reports — Báo cáo" [level=3] [ref=f1e1989]
+            - paragraph [ref=f1e1990]:
+              - text: Nơi lưu đầu ra báo cáo, hình/sơ đồ đã kiểm và kịch bản bảo vệ.
+              - strong [ref=f1e1991]: Chưa có biểu mẫu trường, báo cáo hoàn chỉnh, slide hoặc kết quả thí nghiệm.
+            - paragraph [ref=f1e1992]:
+              - text: Cấu trúc chương và các phụ lục đề xuất nằm ở
+              - link "lộ trình/hồ sơ" [ref=f1e1993] [cursor=pointer]:
+                - /url: "#lo-trinh"
+              - text: . Thiết kế kỹ thuật tiếp tục sửa ở
+              - code [ref=f1e1994]: docs
+              - text: ", không sao chép thành nhiều bản báo cáo song song trước khi biết mẫu cần nộp."
+            - paragraph [ref=f1e1995]: Khi có mẫu trường, ghi nguồn và yêu cầu định dạng; xuất Word/PDF/slide theo đúng đầu ra được yêu cầu và kiểm trình bày. Bảng số liệu phải dẫn tới bằng chứng thực nghiệm. Ảnh/video lớn nên lưu ngoài Git, giữ liên kết có quyền xem phù hợp.
+            - paragraph [ref=f1e1996]:
+              - text: Tài liệu chứa dữ liệu cá nhân đặt ở vùng được bảo vệ;
+              - code [ref=f1e1997]: reports/private/
+              - text: bị loại khỏi Git nhưng vẫn cần quản lý quyền và retention riêng.
+        - region [ref=f1e1998]:
+          - generic [ref=f1e1999]:
+            - generic [ref=f1e2000]: C
+            - generic [ref=f1e2001]:
+              - heading "Payload JSON minh họa" [level=2] [ref=f1e2002]
+              - paragraph [ref=f1e2003]:
+                - text: Bản đề xuất ·
+                - link "Xem nguồn Markdown" [ref=f1e2004] [cursor=pointer]:
+                  - /url: ../../packages/contracts/README.md
+          - generic [ref=f1e2005]:
+            - paragraph [ref=f1e2006]:
+              - text: Thư mục giữ định nghĩa dùng chung giữa firmware, simulator, API và web.
+              - strong [ref=f1e2007]: Hiện có payload JSON tổng hợp minh họa v1; chưa có JSON Schema/OpenAPI/codegen hoặc validator thực thi.
+            - region "Bảng dữ liệu có thể cuộn ngang" [ref=f1e2008]:
+              - table [ref=f1e2009]:
+                - rowgroup [ref=f1e2010]:
+                  - row [ref=f1e2011]:
+                    - columnheader "Ví dụ" [ref=f1e2012]
+                    - columnheader "Ý nghĩa" [ref=f1e2013]
+                - rowgroup [ref=f1e2014]:
+                  - row [ref=f1e2015]:
+                    - cell [ref=f1e2016]:
+                      - link "telemetry.v1.json" [ref=f1e2017] [cursor=pointer]:
+                        - /url: "#payload-telemetry"
+                    - cell "Một mẫu BPM và tổng bước trong boot, kèm chất lượng/đồng hồ" [ref=f1e2018]
+                  - row [ref=f1e2019]:
+                    - cell [ref=f1e2020]:
+                      - link "fall-confirmed.v1.json" [ref=f1e2021] [cursor=pointer]:
+                        - /url: "#payload-confirmed"
+                    - cell "Thiết bị xác nhận sau cửa sổ hủy; đủ thông tin để xử lý nếu candidate đến sau" [ref=f1e2022]
+                  - row [ref=f1e2023]:
+                    - cell [ref=f1e2024]:
+                      - link "event-ack.v1.json" [ref=f1e2025] [cursor=pointer]:
+                        - /url: "#payload-ack"
+                    - cell "Backend xác nhận đã lưu bản tin incident" [ref=f1e2026]
+            - paragraph [ref=f1e2027]:
+              - text: Quy tắc trường, idempotency, MQTT và API nằm ở
+              - link "đặc tả dữ liệu" [ref=f1e2028] [cursor=pointer]:
+                - /url: "#du-lieu"
+              - text: . Giá trị
+              - code [ref=f1e2029]: demo-*
+              - text: ", timestamp và chỉ số đều là minh họa, không phải dữ liệu người thật hoặc kết quả thử."
+            - paragraph [ref=f1e2030]: Khi triển khai, viết JSON Schema cho envelope/payload và OpenAPI cho HTTP, chọn một nguồn sinh kiểu dữ liệu thay vì giữ nhiều bản độc lập. Thay đổi phá tương thích phải có version mới và thử firmware cũ trong phạm vi hỗ trợ. Cần chốt giới hạn kích thước, độ dài ID, kiểu số và các enum trước khi dùng validator trong ingest.
+            - heading "Telemetry — nhịp tim và bước chân" [level=3] [ref=f1e2031]
+            - paragraph [ref=f1e2032]:
+              - link "Mở telemetry.v1.json" [ref=f1e2033] [cursor=pointer]:
+                - /url: ../../packages/contracts/examples/telemetry.v1.json
+            - code [ref=f1e2035]: "{ \"schema_version\": \"1.0\", \"message_id\": \"demo-telemetry-001\", \"device_id\": \"demo-device-001\", \"boot_id\": \"demo-boot-001\", \"sequence\": 100, \"measured_at\": \"2026-11-10T09:20:00Z\", \"clock_status\": \"synced\", \"uptime_ms\": 120000, \"metrics\": { \"heart_rate_bpm\": 72, \"steps_since_boot\": 125 }, \"quality\": { \"heart_rate\": \"valid\", \"motion\": \"valid\" }, \"battery_percent\": null, \"firmware_version\": \"0.0.0-design\" }"
+            - heading "Confirmed — thiết bị xác nhận sự kiện" [level=3] [ref=f1e2036]
+            - paragraph [ref=f1e2037]:
+              - link "Mở fall-confirmed.v1.json" [ref=f1e2038] [cursor=pointer]:
+                - /url: ../../packages/contracts/examples/fall-confirmed.v1.json
+            - code [ref=f1e2040]: "{ \"schema_version\": \"1.0\", \"message_id\": \"demo-fall-confirmed-001\", \"device_id\": \"demo-device-001\", \"boot_id\": \"demo-boot-001\", \"sequence\": 102, \"measured_at\": \"2026-11-10T09:20:20Z\", \"clock_status\": \"synced\", \"uptime_ms\": 140000, \"incident_id\": \"demo-incident-001\", \"event_revision\": 2, \"event_type\": \"fall.confirmed\", \"evidence\": { \"detected_at\": \"2026-11-10T09:20:00Z\", \"detected_uptime_ms\": 120000, \"algorithm_version\": \"heuristic-proposal-v0\", \"wear_position\": \"unverified\", \"cancel_window_ms\": 20000, \"signal_quality\": \"valid\" }, \"firmware_version\": \"0.0.0-design\" }"
+            - heading "Application ACK — xác nhận đã lưu" [level=3] [ref=f1e2041]
+            - paragraph [ref=f1e2042]:
+              - link "Mở event-ack.v1.json" [ref=f1e2043] [cursor=pointer]:
+                - /url: ../../packages/contracts/examples/event-ack.v1.json
+            - code [ref=f1e2045]: "{ \"schema_version\": \"1.0\", \"device_id\": \"demo-device-001\", \"source_message_id\": \"demo-fall-confirmed-001\", \"incident_id\": \"demo-incident-001\", \"accepted_revision\": 2, \"status\": \"accepted\", \"received_at\": \"2026-11-10T09:20:20.250Z\" }"
+        - generic [ref=f1e2046]:
+          - generic [ref=f1e2047]: Đồ án sức khỏe IoT · Tài liệu thiết kế
+          - link "Về đầu tài liệu ↑" [ref=f1e2048] [cursor=pointer]:
+            - /url: "#mo-dau"
+          - paragraph [ref=f1e2049]:
+            - text: "Bản HTML được sinh từ Markdown và payload mẫu. Mở được ngoại tuyến; tìm kiếm diễn ra trên máy. Hướng dẫn cập nhật:"
+            - link "tools/docs" [ref=f1e2050] [cursor=pointer]:
+              - /url: ../../tools/docs/README.md
+            - text: .

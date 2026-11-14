@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23235b49'/%3E%3Cpath d='M3 17h6l4-9 6 17 4-8h6' fill='none' stroke='%23fff' stroke-width='2'/%3E%3C/svg%3E">
+  <meta name="description" content="Tài liệu thiết kế đồ án giám sát sức khỏe và cảnh báo té ngã ứng dụng IoT và trợ lý AI. Bản đề xuất v0.1.">
+  <title>Đồ án sức khỏe IoT — Tài liệu thiết kế</title>
+  <style>@@STYLE@@</style>
+</head>
+<body>
+  <a class="skip-link" href="#noi-dung">Đến nội dung chính</a>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="#mo-dau" aria-label="Đồ án sức khỏe IoT — đầu trang">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 17h6l4-9 6 17 4-8h6"/></svg></span>
+        <span>Sức khỏe IoT<small>HỒ SƠ THIẾT KẾ</small></span>
+      </a>
+      <details class="navigation" open>
+        <summary>Mục lục tài liệu</summary>
+        <nav aria-label="Mục lục tài liệu">
+          <a class="nav-home" href="#mo-dau">Bắt đầu đọc <span aria-hidden="true">↗</span></a>
+          <p class="nav-label">THIẾT KẾ HỆ THỐNG</p>
+          @@NAV_MAIN@@
+          <p class="nav-label">TÀI LIỆU BỔ SUNG</p>
+          @@NAV_EXTRA@@
+        </nav>
+        <div class="sidebar-note"><span class="status-dot" aria-hidden="true"></span> Bản đề xuất v0.1<br><span>Chưa có sản phẩm triển khai.</span></div>
+      </details>
+    </aside>
+    <div class="workspace">
+      <header class="toolbar">
+        <form class="search" role="search" hidden>
+          <label class="sr-only" for="search-input">Tìm trong tài liệu</label>
+          <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg>
+          <input id="search-input" type="search" placeholder="Tìm trong tài liệu…" autocomplete="off" aria-controls="search-results">
+          <kbd aria-hidden="true">/</kbd>
+          <div id="search-results" class="search-results" hidden>
+            <p id="search-status" role="status" aria-live="polite"></p>
+            <ul id="search-list"></ul>
+          </div>
+        </form>
+        <span class="toolbar-label">Tài liệu dự án · v0.1</span>
+        <button class="print-button" type="button" hidden>In / Lưu PDF <span aria-hidden="true">↗</span></button>
+      </header>
+      <main id="noi-dung" tabindex="-1">
+        <section id="mo-dau" class="hero" aria-labelledby="hero-title" data-nav="mo-dau">
+          <div class="eyebrow"><span>ĐỒ ÁN TỐT NGHIỆP</span><span class="edition">THIẾT KẾ V0.1</span></div>
+          <h1 id="hero-title">Giám sát sức khỏe<br><em>&amp; cảnh báo té ngã.</em></h1>
+          <p class="hero-intro">Từ tín hiệu cảm biến đến người thân nhận hỗ trợ. Hồ sơ thiết kế hệ thống IoT cho người cao tuổi, kết hợp web theo dõi và trợ lý AI.</p>
+          <div class="hero-actions"><a class="primary-link" href="#tong-quan">Đọc tổng quan <span aria-hidden="true">→</span></a><a class="text-link" href="#kien-truc">Xem kiến trúc hệ thống</a></div>
+          <dl class="facts"><div><dt>PHẠM VI</dt><dd>Prototype tại nhà</dd></div><div><dt>KẾT NỐI ĐỀ XUẤT</dt><dd>Wi-Fi · MQTT/TLS</dd></div><div><dt>TRẠNG THÁI</dt><dd>Đang thiết kế</dd></div></dl>
+          <a class="review-notice" href="#review"><span class="notice-symbol" aria-hidden="true">!</span><span><strong>Đã review thiết kế — còn 4 điểm cần xử lý.</strong><small>Outbox, định danh incident, assignment và cách tổng hợp telemetry. Chưa sửa trong đặc tả.</small></span><span aria-hidden="true">↗</span></a>
+          <div class="reading-guide">
+            <h2>Lộ trình đọc</h2>
+            <ol><li><span>01</span><a href="#yeu-cau">Hiểu bài toán<small>Người dùng, phạm vi &amp; tiêu chí</small></a></li><li><span>02</span><a href="#du-lieu">Đi vào thiết kế<small>Kiến trúc, dữ liệu &amp; phần cứng</small></a></li><li><span>03</span><a href="#kiem-thu">Chuẩn bị kiểm chứng<small>Kịch bản thử &amp; hồ sơ đánh giá</small></a></li></ol>
+          </div>
+          <p class="document-note">Tài liệu gốc ngày 10/11/2026. Công nghệ, linh kiện và tham số demo là đề xuất; chưa có kết quả đo hoặc xác nhận của trường. Nội dung bên dưới giữ đầy đủ các giới hạn này.</p>
+          <p class="document-note">Hướng bổ sung đang chốt: <a href="#nen-tang-ai">nền tảng AI thực thi và cấu hình động</a>, cùng <a href="#nguyen-tac-phat-trien">nguyên tắc phát triển có bằng chứng</a>. Các chương IoT v0.1 là baseline trước yêu cầu mới; chưa có đặc tả nền tảng được duyệt.</p>
+        </section>
+        @@CONTENT@@
+        <footer class="footer"><span>Đồ án sức khỏe IoT · Tài liệu thiết kế</span><a href="#mo-dau">Về đầu tài liệu ↑</a><p>Bản HTML được sinh từ Markdown và payload mẫu. Mở được ngoại tuyến; tìm kiếm diễn ra trên máy. Hướng dẫn cập nhật: <a href="../../tools/docs/README.md">tools/docs</a>.</p></footer>
+      </main>
+    </div>
+  </div>
+  <script>@@SCRIPT@@</script>
+</body>
+</html>

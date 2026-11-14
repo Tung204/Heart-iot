@@ -1,0 +1,117 @@
+# Nguyên tắc phát triển, tái sử dụng và bằng chứng
+
+Ngày ghi nhận: **10/11/2026**. Tài liệu lưu yêu cầu cách làm của người dùng và quy trình áp dụng cho dự án. Các cơ chế CI, registry tự động, sandbox và kiểm thử sản phẩm bên dưới **chưa được triển khai**; không coi một file hướng dẫn là hệ thống cưỡng chế đã hoạt động.
+
+## Tài liệu là một phần của thay đổi
+
+Trước khi thay đổi, đọc nguồn liên quan và phân biệt: yêu cầu đã xác nhận, đề xuất đang xét, giả định tạm, kết quả có bằng chứng. Thiếu thông tin ảnh hưởng hành vi thì xác minh hoặc hỏi; không tự đặt dữ liệu/luật nghiệp vụ để hoàn tất cho nhanh. Quyết định triển khai thường lệ trong phạm vi đã giao có thể tự xử lý và ghi rõ lý do, không yêu cầu người dùng duyệt lại từng bước.
+
+Mỗi thay đổi đáng kể cần trả lời được: vấn đề gì, hành vi mong muốn, phạm vi ảnh hưởng, nguồn kỹ thuật, cách kiểm và phần còn chưa biết. Không tạo một file riêng cho mỗi hàm hoặc chép nguyên log/hội thoại vào tài liệu.
+
+| Khi thay đổi | Nguồn cần cập nhật hoặc đối chiếu |
+| --- | --- |
+| Yêu cầu và hành vi | [Yêu cầu/phạm vi](02-yeu-cau-va-pham-vi.md), tài liệu module tương ứng |
+| Ranh giới hệ thống hoặc lựa chọn kỹ thuật lớn | [Kiến trúc](03-kien-truc-he-thong.md), ADR trong `docs/decisions`; ADR còn đề xuất không gắn trạng thái accepted |
+| HTTP API, dữ liệu và sự kiện | [Dữ liệu/giao tiếp](04-du-lieu-va-giao-tiep.md), `packages/contracts`; OpenAPI/schema/migration khi đã tồn tại |
+| Giao diện và cấu hình động | [Trải nghiệm](06-trai-nghiem-va-man-hinh.md), [định hướng nền tảng](11-nen-tang-ai-va-cau-hinh-dong.md), bản preview và version khi có |
+| Năng lực/quyền của AI | [AI](07-tro-ly-ai.md), capability/tool registry khi triển khai, policy và phép đánh giá |
+| Hành vi hoặc rủi ro cần kiểm | [Kiểm thử](08-kiem-thu-va-danh-gia.md), test ở lớp sở hữu hành vi và kết quả thực tế |
+| Dependency/công nghệ | Manifest và lockfile của dự án khi có; [nguồn/câu hỏi mở](10-nguon-va-cau-hoi-mo.md) cho lựa chọn quan trọng |
+| Nội dung đưa vào HTML | Nguồn Markdown/JSON → `tools/docs/build.py` → `--check`; không sửa bản generated |
+
+Một nguồn chính cho mỗi loại thông tin. Code/schema/manifest là nguồn chi tiết kỹ thuật có thể kiểm; tài liệu giải thích nghiệp vụ và lý do. Khi hai bên mâu thuẫn, đối chiếu yêu cầu và test trước khi sửa, không mặc định bên nào cũng đúng. Obsidian giữ quyết định, tiến độ và liên kết, không thành bản sao đặc tả thứ hai.
+
+## Đọc tài liệu chính thức và dùng đúng phiên bản
+
+1. Xác định ngôn ngữ, runtime/SDK, framework, package, version và công cụ build/test từ repository và môi trường thực. Editor không quyết định framework; ví dụ dùng C# trong một editor không xác định phiên bản .NET hay framework web.
+2. Đọc tài liệu chính thức/API reference đúng chức năng và phiên bản; khi nâng phiên bản đọc migration guide và release notes liên quan. Không cần đọc toàn bộ tài liệu framework cho một sửa đổi nhỏ.
+3. Kiểm API/package thực sự tồn tại và cách sử dụng; không tự sáng tác tên method rồi xem như API thư viện.
+4. Ghi nguồn, phiên bản, luận điểm dùng và giới hạn vào tài liệu quyết định phù hợp. Blog/câu trả lời AI hỗ trợ tìm hướng, không thay xác minh API.
+5. Kiểm hành vi trong môi trường dự án. “Có tiêu chuẩn”, “thư viện hỗ trợ” và “đã chạy đúng trong đồ án” là ba mức bằng chứng khác nhau.
+
+Nếu công cụ tra cứu không dùng được, truy cập nguồn chính thức khác hoặc tài liệu đúng version có sẵn. Ghi rõ phần chưa đọc được, không báo đã xác minh hoặc tự nâng dependency để né vấn đề.
+
+## Tái sử dụng trước khi viết mới
+
+Khảo sát source hiện có, manifest/lockfile, API và component nội bộ liên quan; đối chiếu chức năng chuẩn của ngôn ngữ/framework. Ưu tiên implementation đúng nghiệp vụ đã tồn tại. Nếu chưa có, đánh giá thư viện được duy trì phù hợp; tự viết phần nhỏ đặc thù khi lựa chọn đó có lý do rõ ràng.
+
+Thư viện “đã cài trên máy” chưa chắc là dependency của dự án hoặc tái lập được trên CI. Khi dùng phải khai báo ở đúng manifest/lockfile. Cân nhắc compatibility, license, bảo trì, lỗ hổng liên quan, kích thước và chi phí vận hành; không thêm dependency chỉ để tránh viết vài dòng đơn giản.
+
+Không ép các nghiệp vụ khác nhau dùng chung một abstraction vì tên hàm giống nhau. Shared Core chứa cơ chế chung có trách nhiệm rõ; luật đặc thù thuộc module sở hữu. Frontend và AI không tự viết lại nghiệp vụ đã có ở Business Service.
+
+## Tra cứu năng lực và phạm vi ảnh hưởng
+
+Đề xuất khi bắt đầu có source: mỗi capability có tên, mục đích, nơi triển khai chính thức, contract, quyền, module dùng, test/tài liệu liên quan và trạng thái `planned`/`active`/`deprecated`. Phần có thể suy ra từ source/manifest nên sinh hoặc kiểm tự động; không duy trì danh sách endpoint/package thủ công thứ hai.
+
+Hiện tại repository chỉ có công cụ sinh tài liệu, payload minh họa và README module. Chưa có runtime tool registry, API contract triển khai hoặc Business Service để đăng ký là `active`. Dùng README/mục lục hiện tại; không tạo index giả chứa các đường dẫn code chưa tồn tại.
+
+Với thay đổi xuyên module, thực hiện:
+
+1. **Discovery:** tìm định nghĩa, call sites, truy vấn, quyền, event/job, báo cáo/export, frontend, AI tools và test liên quan. Bắt đầu bằng tìm text/file, bổ sung symbol/reference/dependency search nếu cần.
+2. **Impact map:** ghi đường đi dữ liệu, module ảnh hưởng, thay đổi cần làm, nơi không cần đổi và bằng chứng cho kết luận đó. Không suy phạm vi chỉ từ trang người dùng nhắc đến.
+3. **Thực hiện:** sửa nguồn quy tắc chính và mọi điểm chịu ảnh hưởng trong phạm vi đã giao; xét migration/backward compatibility. Không tiện tay refactor phần độc lập.
+4. **Xác minh:** kiểm hành vi ở các điểm đã liệt kê, tìm implementation cũ còn sót, đối chiếu contract và cập nhật docs. Search không thấy chuỗi cũ chưa đủ chứng minh hành vi đúng.
+
+Mẫu ghi ngắn, dùng khi đã có thay đổi thực tế:
+
+| Nguồn quy tắc/đường gọi | Hành vi bị ảnh hưởng | Thay đổi hoặc lý do không đổi | Bằng chứng | Trạng thái |
+| --- | --- | --- | --- | --- |
+| Điền từ source thật | Điền từ yêu cầu đã xác minh | Không đoán module | Test/log/diff có thật | Chưa kiểm / đạt / còn lỗi |
+
+## Ví dụ soft-delete: chốt nghĩa trước khi chia sẻ code
+
+Đây là tình huống người dùng kể về dự án khác, **chưa phải chính sách xóa đã chọn cho DATN**. “Soft-delete”, “archive”, vô hiệu hóa truy cập và tháo liên kết có thể là các hành vi khác nhau. Không suy việc gắn `deleted_at` sẽ tự gỡ khóa ngoại hoặc tự thu hồi toàn bộ quyền.
+
+Khi đặc tả chính sách xóa, cần xác định: dữ liệu giữ lại, quyền đọc chi tiết/truy vấn trực tiếp, quan hệ còn giữ hay được kết thúc, tác vụ đang chạy, phục hồi, xung đột định danh và lịch sử audit. Quan hệ lịch sử phục vụ báo cáo có thể cần giữ nguyên; nếu cần tháo quan hệ hoạt động thì mô tả riêng, không xóa khóa ngoại hàng loạt từ một tên chức năng.
+
+Tình huống hồi quy phù hợp: một đối tượng bị xóa theo chính sách không còn xuất hiện hoặc được thao tác qua các đường bị cấm như danh sách, URL chi tiết, search, export, AI tool, job và cache; những đường lịch sử/quản trị được phép vẫn đúng quyền. Có kiểm restore nếu nghiệp vụ cho phép. Không chỉ test một utility hoặc hai trang rồi kết luận toàn hệ thống nhất quán.
+
+## Phát triển backend và preview frontend
+
+Áp dụng ranh giới trong [định hướng nền tảng](11-nen-tang-ai-va-cau-hinh-dong.md). Người dùng yêu cầu frontend có preview/chấp nhận; chuẩn bị đầy đủ bản xem trước, diff và kiểm liên quan trước khi xin quyết định áp dụng. Thay đổi nội dung tài liệu hiện tại không phải phát hành frontend của sản phẩm.
+
+Việc AI được giao sửa backend ở môi trường phát triển không có nghĩa AI runtime có quyền sửa chính backend đang chạy. Cơ chế branch/review/release/sandbox của sản phẩm là đề xuất cần chốt, không tự coi bài trả lời ở link chia sẻ là ủy quyền triển khai production.
+
+## Kiểm chứng đúng lớp và đúng phạm vi
+
+- Bắt đầu bằng lint/type-check hoặc syntax liên quan khi đã có toolchain, rồi test nhỏ nhất bao phủ hành vi ứng dụng sở hữu.
+- Mở rộng integration/contract khi luồng dữ liệu qua nhiều module, quyền hoặc lưu trữ bị ảnh hưởng. E2E, race, load và stress dùng khi khớp rủi ro cần điều tra.
+- Không test lại nội bộ framework, không viết test chỉ lặp lại implementation hoặc tạo test hình thức cho sửa đổi tài liệu nhỏ.
+- Chạy test tuần tự mặc định. Lỗi thì đọc bằng chứng và sửa nguyên nhân; không retry mù, bỏ/nới test để làm xanh.
+- Chỉ chạy full suite khi cần release gate hoặc bằng chứng hồi quy rộng. Chạy đạt không đồng nghĩa đã deploy hoặc được nghiệm thu.
+
+Khi có source, có thể thêm kiểm dependency boundary, contract và policy để ngăn lệch kiến trúc. Chọn kiểm tra gắn với rủi ro cụ thể; không mặc định phải cài mọi công cụ nêu trong bài tham khảo. Hiện chưa có các quality gate đó.
+
+## Điều kiện báo hoàn thành
+
+### Hồ sơ thay đổi có thể đối chiếu
+
+Bổ sung ngày **11/11/2026**. Mẫu dưới đây dùng trong tài liệu module, ADR hoặc mô tả thay đổi tương ứng; không tạo checklist tiến độ thứ hai. Điền bằng nguồn thật, ghi rõ “chưa có/chưa đo” khi thiếu. Với sửa tài liệu đơn giản, chỉ cần các mục liên quan; không tạo hồ sơ hình thức cho mỗi câu chữ.
+
+| Trường | Nội dung cần lưu |
+| --- | --- |
+| Nguồn và trạng thái yêu cầu | Người dùng/đề cương/issue có thật; đã xác nhận, giả định hay đề xuất |
+| Hành vi trước/sau | Trigger, actor/scope, đầu vào, kết quả quan sát và tình huống lỗi |
+| Contract và quy tắc | API/tool/config version; quyền, validation, concurrency, retry và side effect bị ảnh hưởng |
+| Impact map | Service, query, job/event, export, UI/AI, migration và test liên quan; lý do nơi không phải sửa |
+| Căn cứ kỹ thuật | Tài liệu chính thức và phiên bản đã đọc; built-in/shared code/dependency đã khảo sát |
+| Artifact thay đổi | File/diff, commit hoặc build/config digest khi đã có; không bịa commit ở thư mục chưa Git |
+| Preview/chấp nhận | Bản preview, version và phạm vi nếu đổi frontend; ai chấp nhận và bằng chứng thực tế; chưa duyệt thì ghi chưa duyệt |
+| Kiểm chứng | Lệnh, môi trường/version, dữ liệu, expected/actual, số tác động, artifact đã lọc; phân biệt test đề xuất với test đã chạy |
+| Giới hạn và phục hồi | Phần chưa kiểm, migration/compatibility, cách rollout hoặc compensation có điều kiện; không hứa undo mọi tác động |
+
+Truy vết theo chuỗi **yêu cầu → contract/quyết định → hành vi → phép kiểm → bằng chứng thực tế**. Ví dụ cho một yêu cầu đã có: “AI tự làm trong quyền được giao” → proposal delegation ở chương 13 → kiểm tại ranh giới đọc/gửi model/ghi/giao file → AI-02/AI-08/AI-14 → kết quả còn **chưa chạy**. Cùng mã phép kiểm không được dùng để ngụ ý đã có file test.
+
+Đối với AI, lưu model/prompt/tool/config version thực dùng, tập nhiệm vụ và số lần thử; lưu plan công khai/tool result đã lọc để giải thích tác động. Không lưu suy luận nội bộ của model làm bằng chứng, không đưa secrets hoặc raw dữ liệu sức khỏe vào log chung. Phiên bản có nguồn chưa khóa chỉ ghi là phiên bản khảo sát.
+
+### Đối chiếu review và quyết định
+
+Mỗi finding ghi tình huống, hệ quả, vị trí nguồn, thay đổi đáp ứng và cách kiểm. Tách ba trạng thái: **đã bổ sung đặc tả**, **đã triển khai**, **đã kiểm với bằng chứng**. Review tài liệu không tự chuyển hai trạng thái sau; fix đã có test cục bộ cũng chưa đồng nghĩa deploy/nghiệm thu. [Review nền tảng AI](reviews/02-nen-tang-ai-va-cau-hinh-dong.md) áp dụng cách ghi này.
+
+Quyết định kỹ thuật chỉ chuyển sang accepted khi có căn cứ và chấp thuận trong phạm vi cần chốt; giữ nguyên các phương án còn mở. Với thay đổi quy tắc dùng chung, rà cả các ví dụ/baseline để tránh mâu thuẫn: chẳng hạn version conflict theo body và thất bại `If-Match` cần phân biệt trong mọi tài liệu HTTP liên quan.
+
+### Báo cáo kết quả
+
+Kết quả phải ghi đúng: đã thay gì, vì sao, phạm vi/API/data bị ảnh hưởng, kiểm nào đã chạy với kết quả thật, phần chưa kiểm và giới hạn. Tài liệu liên quan phải cập nhật, HTML phải khớp nguồn, phần cần preview phải có bản review được. Chỉ nói một module/khả năng hoạt động khi có bằng chứng thực thi, không dựa vào việc đã viết thiết kế.
+
+Hướng dẫn bằng văn bản giúp các agent làm nhất quán; nó không bảo đảm AI không bao giờ sai. Cần kiểm chứng thực tế và cơ chế backend/CI ở những ranh giới đã xác định.
