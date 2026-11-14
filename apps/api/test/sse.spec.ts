@@ -259,5 +259,15 @@ describe('SSE realtime (FR-02, NFR-01)', () => {
 
     const forbidden = await outsider.agent.get(`/api/v1/subjects/${fx.subjectId}/events`);
     expect(forbidden.status).toBe(404);
+
+    // Có link nhưng bị cấm nhận cảnh báo → 403, không mở stream.
+    await db
+      .update(careLinks)
+      .set({ permissions: { ...PERMISSIONS, canReceiveAlerts: false } })
+      .where(eq(careLinks.subjectId, fx.subjectId));
+    const noAlertsPermission = await fx.caregiver.agent.get(
+      `/api/v1/subjects/${fx.subjectId}/events`,
+    );
+    expect(noAlertsPermission.status).toBe(403);
   });
 });

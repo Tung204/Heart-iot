@@ -38,3 +38,7 @@ Thumbs.db
 
 # Pi agent local state
 .pi/
+
+# Playwright artifacts
+apps/web/test-results/
+apps/web/playwright-report/

@@ -60,7 +60,7 @@ export class RealtimeService {
         // Kiểm lại quyền mỗi vòng: thu hồi care link ngắt stream ngay.
         let subjectIdLocked: string;
         try {
-          const access = await this.access.requireSubject(userId, subjectId);
+          const access = await this.access.requireAction(userId, subjectId, 'receive_alerts');
           subjectIdLocked = access.subject.id;
         } catch (error) {
           if (error instanceof AppError) {

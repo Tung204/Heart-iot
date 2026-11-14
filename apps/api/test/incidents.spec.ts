@@ -478,17 +478,29 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     });
 
     const localId = 'incident-t6-trung';
+    const sharedMessageId = 'msg-t6-shared';
     const a = await postEvent(
       ctx,
       fx.deviceId,
       fx.deviceKey,
-      makeEnvelope(fx, { incident_id: localId, event_type: 'fall.candidate', event_revision: 1 }),
+      makeEnvelope(fx, {
+        message_id: sharedMessageId,
+        incident_id: localId,
+        event_type: 'fall.candidate',
+        event_revision: 1,
+      }),
     );
     expect(a.body.status).toBe('accepted');
     const incidentAId = a.body.incidentId as string;
 
+    // Cùng message_id với thiết bị A: dedupe phải theo (device_id, message_id).
     const b = await postEvent(ctx, deviceB.id, deviceKeyB, {
-      ...makeEnvelope(fx, { incident_id: localId, event_type: 'fall.confirmed', event_revision: 1 }),
+      ...makeEnvelope(fx, {
+        message_id: sharedMessageId,
+        incident_id: localId,
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+      }),
       device_id: deviceB.id,
     });
     expect(b.status).toBe(202);

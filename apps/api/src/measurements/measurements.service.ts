@@ -69,8 +69,16 @@ export class MeasurementsService {
     subjectId: string,
     query: { from?: string; to?: string; limit: number; cursor?: string },
   ): Promise<MeasurementsResponse> {
+    const requestedFrom = query.from ? new Date(query.from) : null;
+    // Cửa sổ mặc định được kẹp theo mốc chia sẻ (không 403 khi caregiver vừa được accept);
+    // còn `from` chỉ định sớm hơn quyền vẫn bị từ chối trong requireHistory.
+    const { effectiveFrom } = await this.access.requireHistory(
+      userId,
+      subjectId,
+      requestedFrom ?? undefined,
+    );
     const { from, to } = resolveWindow(query.from, query.to);
-    await this.access.requireHistory(userId, subjectId, from);
+    const windowFrom = from < effectiveFrom ? effectiveFrom : from;
     const policy = await this.policy.getActive();
     const intervalSeconds = policy.value.heartbeatIntervalSeconds;
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
@@ -78,7 +86,7 @@ export class MeasurementsService {
     const syncedBase = and(
       inArray(telemetry.assignmentId, assignmentIds),
       isNotNull(telemetry.measuredAt),
-      gte(telemetry.measuredAt, from),
+      gte(telemetry.measuredAt, windowFrom),
       lte(telemetry.measuredAt, to),
     );
 
@@ -106,7 +114,7 @@ export class MeasurementsService {
         .from(telemetry)
         .where(syncedBase)
         .orderBy(asc(telemetry.measuredAt)),
-      this.countUnsyncedInWindow(assignmentIds, from, to),
+      this.countUnsyncedInWindow(assignmentIds, windowFrom, to),
     ]);
 
     const hasMore = pageRows.length > query.limit;
@@ -121,8 +129,8 @@ export class MeasurementsService {
       nextCursor: hasMore && lastItem?.measuredAt
         ? encodeMeasurementCursor(lastItem.measuredAt, lastItem.id)
         : null,
-      coverage: computeCoverage(from, to, intervalSeconds, measuredAts.length),
-      gaps: computeGaps(from, to, intervalSeconds, measuredAts, unsyncedCount),
+      coverage: computeCoverage(windowFrom, to, intervalSeconds, measuredAts.length),
+      gaps: computeGaps(windowFrom, to, intervalSeconds, measuredAts, unsyncedCount),
       excludedUnsyncedCount: unsyncedCount,
       nextCursorMeta:
         hasMore && lastItem?.measuredAt
@@ -146,6 +154,8 @@ export class MeasurementsService {
     const policy = await this.policy.getActive();
     const intervalSeconds = policy.value.heartbeatIntervalSeconds;
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
+    // Ngày đang diễn ra: coverage/gap chỉ tính tới hiện tại, không tính phần tương lai.
+    const coverageTo = to.getTime() > Date.now() ? new Date() : to;
 
     const dayRows = await this.db
       .select()
@@ -185,8 +195,8 @@ export class MeasurementsService {
       timezone: access.subject.timezone,
       heartRate: computeHeartRate(dayRows),
       steps: computeSteps(dayRows),
-      coverage: computeCoverage(from, to, intervalSeconds, measuredAts.length),
-      gaps: computeGaps(from, to, intervalSeconds, measuredAts, unsyncedCount),
+      coverage: computeCoverage(from, coverageTo, intervalSeconds, measuredAts.length),
+      gaps: computeGaps(from, coverageTo, intervalSeconds, measuredAts, unsyncedCount),
       incidents: {
         total: incidentRows.length,
         resolved: incidentRows.filter((row) => row.state === 'resolved').length,

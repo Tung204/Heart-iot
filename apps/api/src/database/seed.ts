@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { and, count, eq, sql } from 'drizzle-orm';
 import { hashPassword } from '../auth/password';
+import { computePolicyDigest } from '../policy/policy.service';
 import type { AppDb } from './database';
 import {
   careLinks,
@@ -10,6 +11,7 @@ import {
   incidents,
   maintenanceTasks,
   notificationOutbox,
+  policyConfigs,
   realtimeEvents,
   subjects,
   telemetry,
@@ -172,6 +174,7 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
     })
     .onConflictDoNothing();
 
+  await seedPolicy(db);
   const telemetryInserted = await seedTelemetry(db, now);
   const incidentsInserted = await seedIncidents(db, now);
   const tasksInserted = await seedTasks(db, now);
@@ -195,6 +198,34 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
   };
 }
 
+/**
+ * Policy demo khớp nhịp mẫu 5 phút của seed, để coverage/trạng thái thiết bị
+ * không bị báo sai (mặc định 15 giây là cho firmware thật, không phải seed).
+ */
+async function seedPolicy(db: AppDb): Promise<void> {
+  const existing = await db
+    .select({ id: policyConfigs.id })
+    .from(policyConfigs)
+    .where(and(eq(policyConfigs.key, 'device_runtime'), eq(policyConfigs.status, 'active')))
+    .limit(1);
+  if (existing.length > 0) return;
+  const value = {
+    heartbeatIntervalSeconds: 300,
+    offlineAfterSeconds: 900,
+    dataFreshAfterSeconds: 600,
+    lateEventMinutes: 5,
+    maxTelemetryPerMinute: 60,
+  };
+  await db.insert(policyConfigs).values({
+    key: 'device_runtime',
+    scope: 'global',
+    version: 1,
+    status: 'active',
+    value,
+    digest: computePolicyDigest(value),
+  });
+}
+
 async function seedTelemetry(db: AppDb, now: Date): Promise<number> {
   // Sửa dữ liệu seed cũ từng bị đánh dấu source='seed' (trước khi có quy ước source).
   await db.execute(sql`update telemetry set source = 'simulator' where source = 'seed'`);
@@ -216,7 +247,6 @@ async function seedTelemetry(db: AppDb, now: Date): Promise<number> {
   let bootIndex = 0;
   let sequence = 0;
   let index = 0;
-  let previousSteps = 0;
 
   for (let time = start; time <= now.getTime(); time += intervalMs) {
     if (gapWindows.some(([from, to]) => time >= from && time < to)) continue;
@@ -224,19 +254,18 @@ async function seedTelemetry(db: AppDb, now: Date): Promise<number> {
     if (Math.floor(elapsedHours / 24) !== bootIndex) {
       bootIndex = Math.floor(elapsedHours / 24);
       sequence = 0;
-      steps = Math.max(0, steps - 30);
-      previousSteps = 0;
+      // Boot mới: counter steps bắt đầu lại từ 0 (không giữ counter cũ).
+      steps = 0;
     }
     sequence += 1;
     const quality: 'valid' | 'poor_signal' | 'not_worn' =
       index % 37 === 0 ? 'not_worn' : index % 19 === 0 ? 'poor_signal' : 'valid';
     const baseHr = 68 + Math.round(7 * Math.sin(elapsedHours / 3));
     const heartRate = quality === 'valid' ? baseHr + (index % 5) - 2 : null;
-    const stepDelta = quality === 'not_worn' ? 0 : index % 11 === 0 ? 42 : 3;
+    // Người cao tuổi đi bộ nhẹ: ~1.000–1.500 bước/ngày, không tạo con số phi thực tế.
+    const stepDelta = quality === 'not_worn' ? 0 : index % 9 === 0 ? 12 : 2;
     steps += stepDelta;
-    const stepsSinceBoot = index % 23 === 0 && index > 0 ? 0 : steps;
-    if (stepsSinceBoot < previousSteps) previousSteps = 0;
-    previousSteps = stepsSinceBoot;
+    const stepsSinceBoot = steps;
 
     const measuredAt = new Date(time);
     const qualityValue: TelemetryQuality = { heart_rate: quality, motion: 'valid' };

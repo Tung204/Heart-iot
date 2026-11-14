@@ -94,14 +94,14 @@ Prefix `/api/v1`. Lỗi: `{ code, message, requestId, details? }`. Phân trang c
 | Hồ sơ | `GET/POST /subjects`, `GET/PATCH /subjects/:id`, `GET /subjects/:id/status` |
 | Chia sẻ | `GET/POST /subjects/:id/invitations`, `GET /invitations/:token`, `POST /invitations/:token/accept`, `GET/DELETE /subjects/:id/care-links[/:linkId]` |
 | Thiết bị | `POST /subjects/:id/devices/claim`, `GET /subjects/:id/devices`, `POST /devices/:id/release`; admin `GET/POST /admin/devices`, `POST /admin/devices/:id/rotate-key` |
-| Ingest | `POST /ingest/telemetry`, `/ingest/events` (header `x-device-id`, `x-device-key`); MQTT `v1/devices/{id}/{telemetry|events|status}` |
+| Ingest | `POST /ingest/telemetry`, `/ingest/events` (header `x-device-id`, `x-device-key`); MQTT `v1/devices/{id}/telemetry` (chỉ telemetry trong v1) |
 | Đo | `GET /subjects/:id/measurements?from&to`, `GET /subjects/:id/daily-summary?date`, `GET /subjects/:id/export.csv` |
 | Cảnh báo | `GET /subjects/:id/alerts`, `GET /alerts/:id`, `POST /alerts/:id/acknowledge`, `/resolve`; `GET /subjects/:id/events` (SSE) |
 | Thông báo | `GET /notifications`, `POST /notifications/:id/read` |
-| AI | `GET /assistant/status`, `POST /agent-runs`, `GET /agent-runs[/:id]`, `POST /agent-runs/:id/cancellation-requests`; `GET /subjects/:id/summaries`, `POST /subjects/:id/summaries` |
+| AI | `GET /subjects/:id/assistant/summary`, `POST /subjects/:id/assistant/ask` (template fallback + OpenAI-compatible tùy chọn). `agent-runs`/`summaries` theo đặc tả dài hạn **chưa triển khai** — xem mục 10. |
 | Bảo trì | `GET /maintenance-tasks`, `POST /maintenance-tasks/:id/close` |
 | Studio | `GET/POST /workspace-views`, `GET /workspace-views/:id`, `PUT /workspace-views/:id/draft`, `POST /workspace-views/:id/previews`, `POST /workspace-views/:id/publications`, `POST /workspace-views/:id/rollback`, `GET /workspace-views/:id/publications` |
-| Admin | `GET /admin/users`, `PATCH /admin/users/:id/status`, `GET /admin/audit`, `GET/PUT /admin/policies/:key`, `GET /admin/overview` |
+| Admin | `GET /admin/users`, `PATCH /admin/users/:id/status`, `GET /admin/audit`, `GET /admin/policies/:key`, `POST /admin/policies/:key/previews`, `PUT /admin/policies/:key`, `GET /admin/overview` |
 
 Chi tiết request/response nằm trong `packages/contracts` theo từng miền. OpenAPI máy sinh **chưa làm**; khi làm phải sinh từ đúng nguồn, không viết tay bản thứ hai.
 
@@ -115,11 +115,13 @@ Chi tiết request/response nằm trong `packages/contracts` theo từng miền.
 | 1 | `be-alerts` | `apps/api/src/{incidents,notifications,realtime}` + contracts | Test state machine/outbox/SSE; typecheck |
 | 1 | `fe-shell` | `apps/web` (nền tảng, landing, auth, app shell) | Build + unit test; login chạy thật |
 | 1 | `sim` | `tools/simulator` | Chạy kịch bản với API thật |
-| 2 | `be-ai` | `apps/api/src/assistant` | Run/idempotency/summary/cancel; test |
+| 2 | `be-ai` | `apps/api/src/assistant` | Summary/ask + fallback + audit; test (agent-runs để wave sau) |
 | 2 | `be-studio` | `apps/api/src/studio` | Draft/preview/publish/rollback; test |
 | 2 | `fe-features` | dashboard, hồ sơ, biểu đồ, cảnh báo, chia sẻ, thiết bị | Build + test component |
 | 2 | `seed` | `apps/api/src/database/seed*`, `data/demo` | Seed idempotent, dữ liệu tổng hợp có nhãn |
+| 3 | `be-admin` | `apps/api/src/{maintenance,admin}` | Task close; admin user/audit/policy CAS; test |
 | 3 | `fe-studio` | Studio, Task Center, admin, export | Build + test |
+| 4 | `fe-admin-ai` | Trợ lý, công việc, quản trị trên web | Build + test |
 | 3 | `be-lead` | mini-lead backend: rà tích hợp, sửa lỗi hợp đồng | Test API toàn bộ |
 | 3 | `fe-lead` | mini-lead frontend: rà tích hợp UI/API | E2E chuỗi chính |
 | 4 | `rev-*` (2–3 phiên mới) | chỉ đọc; tự chạy lại | Findings P0/P1/P2 |
@@ -155,3 +157,42 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 - README/API/UI dùng được theo hướng dẫn; demo script tái lập từ DB rỗng.
 - Docs nguồn được cập nhật; HTML build `--check` đạt.
 - Giới hạn (firmware, push, dữ liệu thật, PostgreSQL production) được nêu rõ ở README và báo cáo.
+
+## 10. Trạng thái triển khai tại 14/11/2026
+
+Đây là **trạng thái kỹ thuật do nhóm tự kiểm**, không phải nghiệm thu của giảng viên hay xác nhận sản phẩm đã hoàn chỉnh. Mọi số liệu dưới đây lấy từ lần chạy thật trong repo; bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/` và `reports/worklog/`.
+
+### Đã có mã chạy được
+
+- **API** (`apps/api`, NestJS 11 + Drizzle + PGlite/PostgreSQL): xác thực phiên, hồ sơ, lời mời/chia sẻ quyền, thiết bị claim/release/rotate, ingest HTTP + MQTT adapter, chống trùng, đo lường/tổng hợp/CSV, cảnh báo có state machine + ack/resolve compare-and-set, outbox + SSE, studio draft/preview/publish/rollback, trợ lý tóm tắt/hỏi đáp có fallback, bảo trì, admin user/audit/policy CAS.
+- **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký, khung ứng dụng, tổng quan, lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ, thiết bị, chia sẻ, thông báo, studio, trợ lý, công việc, quản trị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
+- **Simulator** (`tools/simulator`): telemetry theo profile, fall cancel/confirm/duplicate/late/sos, queue retry, không in device key; đã chạy end-to-end với API.
+- **Seed demo** idempotent: 3 tài khoản, 2 hồ sơ, thiết bị, telemetry tổng hợp 6 ngày, cảnh báo, task, outbox. Dữ liệu telemetry ghi `source='simulator'` và hiển thị `is_synthetic=true`.
+
+### Lệnh kiểm đã dùng
+
+```bash
+pnpm -r typecheck
+cd packages/contracts && pnpm build
+cd apps/api && pnpm test
+cd apps/web && pnpm test && pnpm build
+cd apps/api && pnpm seed          # dừng API trước: PGlite độc quyền theo process
+```
+
+Kết quả test/kiểm cuối cùng được ghi ở `reports/qa/` và worklog; không dùng con số trong tài liệu này thay cho việc chạy lại.
+
+### Chưa làm hoặc chưa đủ bằng chứng
+
+- **Firmware ESP32, BOM, độ chính xác phát hiện ngã, thời lượng pin** — ngoài phạm vi mã web/API lần này; không có số liệu đo thật.
+- **Web Push, email/SMS** — outbox hiện chỉ giao trong ứng dụng; chưa có transport ngoài.
+- **PostgreSQL thật, nhiều instance** — mới kiểm PGlite một tiến trình; rate limit, SSE, CAS chưa benchmark/kiểm đa kết nối thật.
+- **MQTT broker/ACL/ACK** — adapter đã có và test parser; chưa chạy broker thật, chưa xác thực khóa thiết bị trên MQTT, chưa publish ACK ngược.
+- **Đặc tả AI dài hạn** — chưa có `agent_runs/run_steps`, planner/tool registry, scheduler, approval flow, RAG; v1 chỉ có summary/ask giới hạn trên số liệu tổng hợp.
+- **OpenAPI máy sinh, code-split frontend, đo khả dụng người cao tuổi** — chưa làm; bundle web còn cảnh báo >500 kB.
+- **Chính sách ẩn `suspected`, ngưỡng sự kiện trễ, quyền admin với dữ liệu sức khỏe** — cần chốt với giảng viên; hiện là quyết định kỹ thuật có ghi trong code/handoff.
+
+### Giới hạn vận hành đã biết
+
+- PGlite mở file DB độc quyền theo process: phải dừng API trước khi chạy seed/migration từ process khác.
+- `apps/api` build ra `dist/src/main.js` (rootDir `src`); script `start` đã trỏ đúng.
+- Web dev dùng alias `@annhien/contracts` sang source TypeScript để tránh interop CJS/ESM; build dùng package exports.

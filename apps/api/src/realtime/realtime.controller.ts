@@ -20,8 +20,8 @@ export class RealtimeController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<void> {
-    // Kiểm quyền trước khi mở stream; các vòng sau kiểm lại trong service.
-    await this.access.requireSubject(user.id, subjectId);
+    // Kiểm quyền nhận cảnh báo trước khi mở stream; các vòng sau kiểm lại trong service.
+    await this.access.requireAction(user.id, subjectId, 'receive_alerts');
 
     const headerCursor = req.header('last-event-id');
     const queryCursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;

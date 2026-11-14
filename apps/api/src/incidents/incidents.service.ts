@@ -204,7 +204,12 @@ export class IncidentsService {
       const storedMessage = await tx
         .select({ incidentId: incidentEvents.incidentId, eventRevision: incidentEvents.eventRevision })
         .from(incidentEvents)
-        .where(eq(incidentEvents.messageId, envelope.message_id))
+        .where(
+          and(
+            eq(incidentEvents.deviceId, device.id),
+            eq(incidentEvents.messageId, envelope.message_id),
+          ),
+        )
         .limit(1);
       if (storedMessage.length > 0) {
         const incidentRows = await tx

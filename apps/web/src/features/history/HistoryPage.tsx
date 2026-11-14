@@ -1,0 +1,271 @@
+import { useMemo, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import type { HeartRateQuality } from '@annhien/contracts';
+import type { MeasurementGap } from '@annhien/contracts/measurements';
+import { ButtonLink } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
+import { ErrorState } from '../../components/ErrorState';
+import { MeasurementChart, type ChartPoint } from '../../components/MeasurementChart';
+import { PageLoader } from '../../components/PageLoader';
+import { StatusPill } from '../../components/StatusPill';
+import { Button } from '../../components/Button';
+import { clampRangeToHistoryDays, formatDateTime } from '../../lib/format';
+import { getApiErrorMessage } from '../../lib/api';
+import { queryKeys } from '../../lib/query';
+import { useActiveSubject } from '../subjects/selection';
+import { useSubjects } from '../subjects/useSubjects';
+import { exportCsvUrl, fetchMeasurements } from './api';
+
+type RangeKey = '24h' | '7d' | '30d';
+
+const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; hours: number }> = [
+  { key: '24h', label: '24 giờ', hours: 24 },
+  { key: '7d', label: '7 ngày', hours: 7 * 24 },
+  { key: '30d', label: '30 ngày', hours: 30 * 24 },
+];
+
+const GAP_REASON_LABELS: Record<MeasurementGap['reason'], string> = {
+  no_data: 'không có dữ liệu',
+  clock_unsynced: 'đồng hồ thiết bị chưa đồng bộ',
+  quarantined: 'dữ liệu bị cách ly chờ kiểm tra',
+};
+
+const HR_QUALITY_LABELS: Record<HeartRateQuality, string> = {
+  valid: 'hợp lệ',
+  poor_signal: 'tín hiệu kém',
+  not_worn: 'không đeo',
+  sensor_error: 'lỗi cảm biến',
+};
+
+const PAGE_SIZE = 500;
+
+/**
+ * /app/history — lịch sử đo trong khoảng 24h/7 ngày/30 ngày (giới hạn theo quyền).
+ * - Bảng dữ liệu + biểu đồ SVG có nhãn trục; bảng là phương án cho screen reader.
+ * - Đánh dấu khoảng thiếu, mẫu nhận trễ, đồng hồ chưa đồng bộ.
+ * - Không có dữ liệu → ghi rõ "Chưa có dữ liệu", không hiện số 0 giả.
+ */
+export function HistoryPage() {
+  const subjects = useSubjects();
+  const activeSubject = useActiveSubject(subjects.data);
+  const [rangeKey, setRangeKey] = useState<RangeKey>('24h');
+
+  const now = useMemo(() => Date.now(), [rangeKey]);
+  const rangeOption =
+    RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
+  const historyDays = activeSubject?.permissions.historyDays ?? 1;
+  const maxHours = historyDays * 24;
+  const clampedHours = Math.min(rangeOption.hours, Math.max(24, maxHours));
+  const { from, to } = useMemo(
+    () => clampRangeToHistoryDays(now - clampedHours * 3600 * 1000, now, historyDays),
+    [now, clampedHours, historyDays],
+  );
+
+  const measurements = useInfiniteQuery({
+    queryKey: activeSubject
+      ? queryKeys.measurements(activeSubject.id, { from, to })
+      : ['subjects', 'none', 'measurements', from, to],
+    queryFn: ({ signal, pageParam }) =>
+      activeSubject
+        ? fetchMeasurements(
+            activeSubject.id,
+            { from, to, cursor: pageParam, limit: PAGE_SIZE },
+            signal,
+          )
+        : null,
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
+    enabled: Boolean(activeSubject),
+    staleTime: 30_000,
+  });
+
+  if (!activeSubject && !subjects.isPending && !subjects.isError) {
+    return (
+      <EmptyState
+        title="Chưa có hồ sơ để xem lịch sử"
+        description="Tạo hồ sơ cho người cần theo dõi hoặc chọn hồ sơ ở đầu trang."
+        action={<ButtonLink to="/app/subjects">Tạo hồ sơ</ButtonLink>}
+      />
+    );
+  }
+
+  const pages = measurements.data?.pages ?? [];
+  const items = pages.flatMap((page) => page?.items ?? []);
+  const coverage = pages[0]?.coverage;
+  const gaps = pages[0]?.gaps ?? [];
+  const unsynced = pages[0]?.excludedUnsyncedCount ?? 0;
+
+  const chartPoints: ChartPoint[] = items
+    .filter(
+      (item): item is typeof item & { measuredAt: string; heartRateBpm: number } =>
+        item.measuredAt !== null &&
+        item.heartRateBpm !== null &&
+        item.heartRateQuality === 'valid',
+    )
+    .map((item) => ({ measuredAt: item.measuredAt, heartRateBpm: item.heartRateBpm }));
+
+  const isClamped = clampedHours < rangeOption.hours;
+
+  return (
+    <div className="stack">
+      <header>
+        <h1 className="page-title">Lịch sử đo lường</h1>
+        <p className="page-lead">
+          Dữ liệu của hồ sơ{' '}
+          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong> trong khoảng bạn
+          chọn. Quyền hiện tại cho phép xem tối đa {historyDays} ngày.
+        </p>
+      </header>
+
+      <div className="history-toolbar">
+        <div className="segmented" role="group" aria-label="Chọn khoảng thời gian">
+          {RANGE_OPTIONS.map((option) => {
+            const allowed = option.hours <= maxHours;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                className={`segmented__item${rangeKey === option.key ? ' is-active' : ''}`}
+                aria-pressed={rangeKey === option.key}
+                disabled={!allowed}
+                title={allowed ? undefined : `Quyền chỉ cho xem ${historyDays} ngày`}
+                onClick={() => setRangeKey(option.key)}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        {activeSubject ? (
+          <a
+            className="button button--secondary button--sm"
+            href={exportCsvUrl(activeSubject.id, from, to)}
+            download
+          >
+            Tải CSV
+          </a>
+        ) : null}
+      </div>
+
+      {isClamped ? (
+        <p className="field__hint">
+          Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của
+          bạn.
+        </p>
+      ) : null}
+
+      {measurements.isPending ? (
+        <PageLoader label="Đang tải dữ liệu đo…" />
+      ) : measurements.isError ? (
+        <ErrorState
+          title="Không tải được dữ liệu đo"
+          message={getApiErrorMessage(measurements.error)}
+          onRetry={() => void measurements.refetch()}
+        />
+      ) : items.length === 0 ? (
+        <EmptyState
+          title="Chưa có dữ liệu"
+          description={
+            unsynced > 0
+              ? `Trong khoảng này có ${unsynced} mẫu đồng hồ chưa đồng bộ (không đặt được lên trục thời gian) nhưng chưa có mẫu đo hợp lệ nào.`
+              : 'Chưa nhận dữ liệu từ thiết bị trong khoảng thời gian này. Kiểm tra kết nối của thiết bị và thử lại sau.'
+          }
+          action={<ButtonLink to="/app/devices">Xem trạng thái thiết bị</ButtonLink>}
+        />
+      ) : (
+        <>
+          <MeasurementChart
+            points={chartPoints}
+            gaps={gaps}
+            range={{ from: new Date(from).toISOString(), to: new Date(to).toISOString() }}
+          />
+
+          {coverage ? (
+            <p className="metric-line">
+              Độ phủ: {coverage.percent}% ({coverage.observedCount}/{coverage.expectedCount} mẫu
+              dự kiến, mỗi {coverage.expectedIntervalSeconds}s) · {gaps.length} khoảng thiếu ·
+              {unsynced > 0 ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian` : ' không có mẫu lệch đồng hồ'}
+            </p>
+          ) : null}
+
+          {gaps.length > 0 ? (
+            <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
+              <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
+              {gaps.map((gap) => (
+                <p key={`${gap.from}-${gap.to}`} role="listitem">
+                  {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
+                  {GAP_REASON_LABELS[gap.reason]}
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="table-wrap" role="region" aria-label="Bảng dữ liệu đo" tabIndex={0}>
+            <table className="data-table">
+              <caption>
+                Bảng dữ liệu đo — thay thế cho biểu đồ. {items.length} dòng đang hiển thị.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Thời điểm đo</th>
+                  <th scope="col">Nhịp tim</th>
+                  <th scope="col">Chất lượng</th>
+                  <th scope="col">Bước (từ khởi động)</th>
+                  <th scope="col">Pin</th>
+                  <th scope="col">Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={`${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}`}>
+                    <td>{item.measuredAt ? formatDateTime(item.measuredAt) : 'Không rõ giờ đo'}</td>
+                    <td>
+                      {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
+                        <strong>{item.heartRateBpm} bpm</strong>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td>
+                      {HR_QUALITY_LABELS[item.heartRateQuality]}
+                      {item.isQuarantined ? ' · bị cách ly' : ''}
+                    </td>
+                    <td>{item.stepsSinceBoot}</td>
+                    <td>
+                      {item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}
+                    </td>
+                    <td>
+                      {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}{' '}
+                      {item.measuredAt === null ? (
+                        <StatusPill tone="neutral">Đồng hồ chưa đồng bộ</StatusPill>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {measurements.hasNextPage ? (
+            <div>
+              <Button
+                variant="secondary"
+                onClick={() => void measurements.fetchNextPage()}
+                disabled={measurements.isFetchingNextPage}
+              >
+                {measurements.isFetchingNextPage ? 'Đang tải…' : 'Tải thêm dữ liệu'}
+              </Button>
+            </div>
+          ) : null}
+
+          <p className="field__hint">
+            Bản demo dùng dữ liệu mô phỏng. Số liệu trên trang không dùng để chẩn đoán hay thay
+            lời khuyên y tế.{' '}
+            <Link to="/app">Về tổng quan</Link>
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
