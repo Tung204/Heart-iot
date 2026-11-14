@@ -76,5 +76,6 @@ bằng chứng; phần đã kiểm; phần chưa kiểm. Chỉ ghi "đạt" cho 
 - Lỗi tích hợp do hợp đồng mơ hồ (để cải thiện prompt/skill).
 - Việc lead phải làm lại thay vì worker (dấu hiệu chia việc sai).
 
-Nhật ký theo ngày: [`journal-2026-11-14.md`](journal-2026-11-14.md).
+Nhật ký theo ngày: [`journal-2026-11-14.md`](journal-2026-11-14.md),
+[`journal-2026-11-15.md`](journal-2026-11-15.md).
 Bài học rút gọn cho skill điều phối: [`lessons.md`](lessons.md).
