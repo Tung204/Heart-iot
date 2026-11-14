@@ -1,0 +1,440 @@
+import request from 'supertest';
+import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { eq } from 'drizzle-orm';
+import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
+import { ApiExceptionFilter } from '../src/common/api-exception.filter';
+import { DevicesModule } from '../src/devices/devices.module';
+import { IngestModule } from '../src/ingest/ingest.module';
+import { MeasurementsModule } from '../src/measurements/measurements.module';
+import { CSV_HEADER } from '../src/measurements/measurements.service';
+import { PolicyModule } from '../src/policy/policy.module';
+import { DB } from '../src/database/database';
+import { auditLogs, careLinks, incidents, subjects, telemetry } from '../src/database/schema';
+import {
+  createAdmin,
+  createModuleTestApp,
+  registerUser,
+  TEST_ORIGIN,
+  type TestContext,
+  type TestUser,
+} from './test-app';
+
+/**
+ * FR đo lường: timeline snapshot, coverage/gap theo semantics v1, phân trang cursor,
+ * daily-summary theo timezone hồ sơ, export CSV có audit.
+ */
+
+/** Test-only: AppModule (lead sở hữu) đăng ký APP_FILTER; module test cần filter riêng. */
+@Module({
+  providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
+})
+class TestFiltersModule {}
+
+let serialCounter = 0;
+const nextSerial = () => `DEV-${String(++serialCounter).padStart(4, '0')}`;
+
+type Fixture = { subjectId: string; deviceId: string; deviceKey: string; assignmentId: string };
+
+async function createSubject(ctx: TestContext, ownerUserId: string, displayName = 'Bà An') {
+  const rows = await ctx.db
+    .insert(subjects)
+    .values({ ownerUserId, displayName, timezone: 'Asia/Ho_Chi_Minh' })
+    .returning();
+  const subject = rows[0];
+  if (!subject) throw new Error('Không tạo được subject.');
+  return subject;
+}
+
+async function createClaimedDevice(ctx: TestContext, admin: TestUser, owner: TestUser, displayName?: string): Promise<Fixture> {
+  const subject = await createSubject(ctx, owner.session.user.id, displayName);
+  const created = await admin.agent
+    .post('/api/v1/admin/devices')
+    .set('Origin', TEST_ORIGIN)
+    .send({ serial: nextSerial(), label: 'Vòng tay đo' });
+  expect(created.status).toBe(201);
+  const claimed = await owner.agent
+    .post(`/api/v1/subjects/${subject.id}/devices/claim`)
+    .set('Origin', TEST_ORIGIN)
+    .send({ claimCode: created.body.claimCode });
+  expect(claimed.status).toBe(201);
+  return {
+    subjectId: subject.id,
+    deviceId: created.body.device.id,
+    deviceKey: created.body.deviceKey,
+    assignmentId: claimed.body.assignmentId,
+  };
+}
+
+function makeEnvelope(deviceId: string, overrides: Partial<TelemetryEnvelope> = {}): TelemetryEnvelope {
+  return {
+    schema_version: '1.0',
+    message_id: crypto.randomUUID(),
+    device_id: deviceId,
+    boot_id: 'boot-meas',
+    sequence: 0,
+    measured_at: new Date().toISOString(),
+    clock_status: 'synced',
+    uptime_ms: 5_000,
+    metrics: { heart_rate_bpm: 75, steps_since_boot: 10 },
+    quality: { heart_rate: 'valid', motion: 'valid' },
+    battery_percent: 60,
+    firmware_version: '0.1.0-demo',
+    ...overrides,
+  };
+}
+
+async function send(ctx: TestContext, fixture: Fixture, envelope: TelemetryEnvelope): Promise<void> {
+  const response = await request(ctx.app.getHttpServer())
+    .post('/api/v1/ingest/telemetry')
+    .set('x-device-id', fixture.deviceId)
+    .set('x-device-key', fixture.deviceKey)
+    .send(envelope);
+  expect(response.status).toBe(202);
+  expect(response.body.status).toBe('accepted');
+}
+
+describe('Đo lường: measurements, daily-summary, export.csv', () => {
+  let ctx: TestContext;
+  let admin: TestUser;
+  let owner: TestUser;
+
+  beforeAll(async () => {
+    delete process.env.MQTT_URL;
+    ctx = await createModuleTestApp([DevicesModule, IngestModule, MeasurementsModule, PolicyModule, TestFiltersModule]);
+    admin = await createAdmin(ctx.app);
+    owner = await registerUser(ctx.app, { displayName: 'Chủ hồ sơ' });
+  });
+
+  afterAll(async () => {
+    await ctx.close();
+  });
+
+  it('timeline chỉ chứa snapshot có measured_at; coverage và phân trang cursor ổn định', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner);
+    const base = Date.now() - 3600 * 1000;
+    const times = [0, 1, 2, 3, 4].map((i) => new Date(base + i * 15_000).toISOString());
+    for (let i = 0; i < times.length; i += 1) {
+      await send(
+        ctx,
+        fixture,
+        makeEnvelope(fixture.deviceId, {
+          sequence: i,
+          measured_at: times[i],
+          metrics: { heart_rate_bpm: 70 + i, steps_since_boot: 10 * i },
+        }),
+      );
+    }
+
+    const from = new Date(base - 2_000).toISOString();
+    const to = new Date(base + 75_000).toISOString();
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.items).toHaveLength(5);
+    for (let i = 1; i < response.body.items.length; i += 1) {
+      expect(response.body.items[i].measuredAt >= response.body.items[i - 1].measuredAt).toBe(true);
+    }
+    expect(response.body.coverage).toMatchObject({
+      expectedIntervalSeconds: 15,
+      observedCount: 5,
+      expectedCount: 5,
+      percent: 100,
+    });
+    expect(response.body.gaps).toEqual([]);
+    expect(response.body.excludedUnsyncedCount).toBe(0);
+    expect(response.body.nextCursor).toBeNull();
+
+    // Phân trang limit=2 qua 3 trang, không trùng, không sót.
+    const seen: string[] = [];
+    let cursor: string | null = null;
+    let pages = 0;
+    do {
+      const query = `from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&limit=2${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+      const page = await owner.agent.get(`/api/v1/subjects/${fixture.subjectId}/measurements?${query}`);
+      expect(page.status).toBe(200);
+      for (const item of page.body.items) seen.push(item.measuredAt);
+      cursor = page.body.nextCursor;
+      pages += 1;
+    } while (cursor);
+    expect(pages).toBe(3);
+    expect(new Set(seen).size).toBe(5);
+    expect(seen).toEqual([...seen].sort());
+  });
+
+  it('khoảng thiếu dữ liệu tạo gap no_data; unsynced bị loại khỏi timeline và đếm riêng', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner);
+    const base = Date.now() - 3600 * 1000;
+    const t = (offsetSec: number) => new Date(base + offsetSec * 1000).toISOString();
+
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, { sequence: 0, measured_at: t(0) }));
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, { sequence: 1, measured_at: t(15) }));
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, { sequence: 2, measured_at: t(30) }));
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, { sequence: 3, measured_at: t(300) }));
+    // Bản ghi không có đồng hồ tin cậy (đến ngay bây giờ).
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, {
+      sequence: 4,
+      measured_at: null,
+      clock_status: 'unsynced',
+      metrics: { heart_rate_bpm: null, steps_since_boot: 999 },
+      quality: { heart_rate: 'not_worn', motion: 'valid' },
+    }));
+
+    // Cửa sổ chứa các snapshot → gap giữa t+30 và t+300.
+    const windowRes = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(t(-1))}&to=${encodeURIComponent(t(305))}`,
+    );
+    expect(windowRes.status).toBe(200);
+    expect(windowRes.body.items).toHaveLength(4);
+    expect(windowRes.body.gaps).toHaveLength(1);
+    expect(windowRes.body.gaps[0]).toMatchObject({ from: t(30), to: t(300), reason: 'no_data' });
+
+    // Cửa sổ chỉ có bản ghi unsynced (quanh "bây giờ"): không có mốc tin cậy → gap clock_unsynced.
+    const nowFrom = new Date(Date.now() - 30_000).toISOString();
+    const nowTo = new Date().toISOString();
+    const unsyncedRes = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(nowFrom)}&to=${encodeURIComponent(nowTo)}`,
+    );
+    expect(unsyncedRes.status).toBe(200);
+    expect(unsyncedRes.body.items).toHaveLength(0);
+    expect(unsyncedRes.body.excludedUnsyncedCount).toBe(1);
+    expect(unsyncedRes.body.coverage.observedCount).toBe(0);
+    expect(unsyncedRes.body.gaps).toEqual([
+      { from: nowFrom, to: nowTo, reason: 'clock_unsynced' },
+    ]);
+  });
+
+  it('quyền: hồ sơ khác 404; khoảng ngoài quyền lịch sử của caregiver 403', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner);
+
+    const stranger = await registerUser(ctx.app);
+    const crossSubject = await stranger.agent.get(`/api/v1/subjects/${fixture.subjectId}/measurements`);
+    expect(crossSubject.status).toBe(404);
+
+    const caregiver = await registerUser(ctx.app);
+    await ctx.db.insert(careLinks).values({
+      subjectId: fixture.subjectId,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: { ...{ historyDays: 1, canReceiveAlerts: false, canAcknowledge: false, canResolve: false, canViewAi: false } },
+      status: 'active',
+      sharedFrom: new Date(Date.now() - 2 * 24 * 3600 * 1000),
+    });
+
+    const tooOldFrom = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
+    const forbidden = await caregiver.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(tooOldFrom)}`,
+    );
+    expect(forbidden.status).toBe(403);
+    expect(forbidden.body.code).toBe('FORBIDDEN');
+
+    const allowed = await caregiver.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(new Date(Date.now() - 23 * 3600 * 1000).toISOString())}`,
+    );
+    expect(allowed.status).toBe(200);
+  });
+
+  it('daily-summary: HR chỉ mẫu valid, steps delta trong boot, incidents và coverage', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ tổng hợp');
+    // Ngày 2026-11-13 theo Asia/Ho_Chi_Minh = 2026-11-12T17:00Z → 2026-11-13T17:00Z.
+    const dayTimes = ['2026-11-13T03:00:00Z', '2026-11-13T03:15:00Z', '2026-11-13T03:30:00Z'];
+    const hr = [70, 80, 90];
+    const steps = [100, 140, 190];
+    for (let i = 0; i < dayTimes.length; i += 1) {
+      await send(
+        ctx,
+        fixture,
+        makeEnvelope(fixture.deviceId, {
+          sequence: i,
+          boot_id: 'boot-sum',
+          measured_at: dayTimes[i],
+          metrics: { heart_rate_bpm: hr[i]!, steps_since_boot: steps[i]! },
+        }),
+      );
+    }
+    await ctx.db.insert(incidents).values([
+      {
+        subjectId: fixture.subjectId,
+        assignmentId: fixture.assignmentId,
+        deviceId: fixture.deviceId,
+        deviceIncidentId: 'inc-1',
+        type: 'fall',
+        state: 'open',
+        lastRevision: 1,
+        detectedAt: new Date('2026-11-13T04:00:00Z'),
+      },
+      {
+        subjectId: fixture.subjectId,
+        assignmentId: fixture.assignmentId,
+        deviceId: fixture.deviceId,
+        deviceIncidentId: 'inc-2',
+        type: 'fall',
+        state: 'resolved',
+        lastRevision: 2,
+        detectedAt: new Date('2026-11-13T04:30:00Z'),
+      },
+    ]);
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.date).toBe('2026-11-13');
+    expect(response.body.timezone).toBe('Asia/Ho_Chi_Minh');
+    expect(response.body.heartRate).toEqual({ avg: 80, min: 70, max: 90, validSamples: 3, invalidSamples: 0 });
+    expect(response.body.steps).toEqual({ total: 90, completeness: 'complete', notes: [] });
+    expect(response.body.incidents).toEqual({ total: 2, resolved: 1 });
+    expect(response.body.coverage.observedCount).toBe(3);
+    expect(response.body.coverage.expectedCount).toBe(5760);
+    expect(response.body.lastSeenAt).toBe('2026-11-13T03:30:00.000Z');
+    expect(response.body.batteryPercent).toBe(60);
+    expect(response.body.source).toBe('device');
+  });
+
+  it('daily-summary: không mẫu HR hợp lệ → heartRate null; ngày tương lai bị 422', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ HR rỗng');
+    for (let i = 0; i < 3; i += 1) {
+      await send(
+        ctx,
+        fixture,
+        makeEnvelope(fixture.deviceId, {
+          sequence: i,
+          boot_id: 'boot-hr',
+          measured_at: `2026-11-13T05:0${i}:00Z`,
+          metrics: { heart_rate_bpm: null, steps_since_boot: 10 * i },
+          quality: { heart_rate: 'poor_signal', motion: 'valid' },
+        }),
+      );
+    }
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.heartRate).toBeNull();
+    expect(response.body.steps.total).toBe(20);
+
+    const future = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2027-01-01`,
+    );
+    expect(future.status).toBe(422);
+  });
+
+  it('daily-summary steps: reset counter không tạo số âm, đánh dấu partial; nhiều boot cộng riêng', async () => {
+    // Boot có reset: 100 → 140 → 90 (reset) → 130.
+    const resetFixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ reset');
+    const resetSteps = [100, 140, 90, 130];
+    for (let i = 0; i < resetSteps.length; i += 1) {
+      await send(
+        ctx,
+        resetFixture,
+        makeEnvelope(resetFixture.deviceId, {
+          sequence: i,
+          boot_id: 'boot-r',
+          measured_at: `2026-11-13T06:0${i}:00Z`,
+          metrics: { heart_rate_bpm: null, steps_since_boot: resetSteps[i]! },
+          quality: { heart_rate: 'sensor_error', motion: 'valid' },
+        }),
+      );
+    }
+    const resetRes = await owner.agent.get(
+      `/api/v1/subjects/${resetFixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(resetRes.status).toBe(200);
+    expect(resetRes.body.steps.total).toBe(80);
+    expect(resetRes.body.steps.completeness).toBe('partial');
+    expect(resetRes.body.steps.notes.length).toBeGreaterThan(0);
+
+    // Nhiều boot trong ngày: cộng delta từng boot, mẫu đầu boot không suy ra delta.
+    const multiFixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ nhiều boot');
+    const multiRows: Array<{ boot: string; steps: number }> = [
+      { boot: 'boot-a', steps: 100 },
+      { boot: 'boot-a', steps: 140 },
+      { boot: 'boot-b', steps: 0 },
+      { boot: 'boot-b', steps: 30 },
+    ];
+    for (let i = 0; i < multiRows.length; i += 1) {
+      await send(
+        ctx,
+        multiFixture,
+        makeEnvelope(multiFixture.deviceId, {
+          sequence: i,
+          boot_id: multiRows[i]!.boot,
+          measured_at: `2026-11-13T07:0${i}:00Z`,
+          metrics: { heart_rate_bpm: null, steps_since_boot: multiRows[i]!.steps },
+          quality: { heart_rate: 'sensor_error', motion: 'valid' },
+        }),
+      );
+    }
+    const multiRes = await owner.agent.get(
+      `/api/v1/subjects/${multiFixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(multiRes.status).toBe(200);
+    expect(multiRes.body.steps).toEqual({ total: 70, completeness: 'complete', notes: [] });
+  });
+
+  it('export.csv: đúng header, có BOM, có audit, từ chối khi không quyền', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ export');
+    const base = Date.now() - 3600 * 1000;
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, {
+      sequence: 0,
+      measured_at: new Date(base).toISOString(),
+      metrics: { heart_rate_bpm: 66, steps_since_boot: 7 },
+    }));
+    await send(ctx, fixture, makeEnvelope(fixture.deviceId, {
+      sequence: 1,
+      measured_at: null,
+      clock_status: 'unsynced',
+      metrics: { heart_rate_bpm: null, steps_since_boot: 7 },
+      quality: { heart_rate: 'not_worn', motion: 'valid' },
+    }));
+
+    const from = new Date(base - 2_000).toISOString();
+    const to = new Date().toISOString();
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers['content-type']).toContain('text/csv');
+    expect(response.headers['content-disposition']).toContain('attachment');
+
+    const text: string = response.text;
+    expect(text.startsWith('\uFEFF')).toBe(true);
+    const lines = text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(lines[0]).toBe(CSV_HEADER.join(','));
+    expect(lines).toHaveLength(3); // header + 2 dòng dữ liệu
+    const unsyncedLine = lines.find((line) => line.startsWith(','));
+    expect(unsyncedLine).toBeTruthy(); // measured_at rỗng cho bản ghi unsynced
+    const firstLine = lines[1];
+    expect(firstLine).toBeTruthy();
+    expect(firstLine).toContain('66');
+    expect(firstLine!.endsWith(',false')).toBe(true); // is_synthetic=false
+
+    const auditRows = await ctx.db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.action, 'measurement.export'));
+    expect(auditRows).toHaveLength(1);
+    expect(auditRows[0]?.targetId).toBe(fixture.subjectId);
+    expect(auditRows[0]?.outcome).toBe('success');
+
+    const stranger = await registerUser(ctx.app);
+    const denied = await stranger.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(denied.status).toBe(404);
+  });
+
+  it('cursor không hợp lệ bị 422; khoảng > 31 ngày bị 422', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner);
+    const badCursor = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?cursor=${encodeURIComponent('khong-hop-le')}`,
+    );
+    expect(badCursor.status).toBe(422);
+
+    const tooLong = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(new Date(Date.now() - 32 * 24 * 3600 * 1000).toISOString())}`,
+    );
+    expect(tooLong.status).toBe(422);
+  });
+});

@@ -1,5 +1,7 @@
+import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { INestApplication, Type } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
 import type { AuthSession } from '@annhien/contracts/auth';
 import request from 'supertest';
@@ -11,6 +13,8 @@ import { users } from '../src/database/schema';
 import { AuditModule } from '../src/access/audit.module';
 import { AccessModule } from '../src/access/access.module';
 import { AuthModule } from '../src/auth/auth.module';
+import { SessionGuard } from '../src/auth/session.guard';
+import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DatabaseModule } from '../src/database/database.module';
 
 export const TEST_ORIGIN = 'http://localhost:5173';
@@ -50,6 +54,20 @@ export async function createTestApp(): Promise<TestContext> {
 }
 
 /**
+ * Hạ tầng global giống AppModule cho test module rời: guard phiên + envelope lỗi.
+ * Nhờ vậy module không phải tự đăng ký APP_GUARD/APP_FILTER (tránh chạy đôi khi
+ * được import vào AppModule).
+ */
+@Module({
+  imports: [AuthModule],
+  providers: [
+    { provide: APP_GUARD, useClass: SessionGuard },
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
+  ],
+})
+class TestInfraModule {}
+
+/**
  * Dựng app kiểm thử cho một module miền, dùng chung DB/auth/access global.
  * Dùng trong worker để test module trước khi lead nối vào AppModule.
  */
@@ -57,7 +75,7 @@ export async function createModuleTestApp(
   moduleOrModules: Type<unknown> | Type<unknown>[],
 ): Promise<TestContext> {
   const modules = Array.isArray(moduleOrModules) ? moduleOrModules : [moduleOrModules];
-  return buildTestApp([DatabaseModule, AuditModule, AccessModule, AuthModule, ...modules]);
+  return buildTestApp([DatabaseModule, AuditModule, AccessModule, AuthModule, TestInfraModule, ...modules]);
 }
 
 type AppEnvLike = ReturnType<typeof loadEnv>;

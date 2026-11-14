@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { existsSync, mkdirSync } from 'node:fs';
 import { Inject, Injectable, type OnApplicationShutdown } from '@nestjs/common';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
@@ -20,7 +21,21 @@ export type DatabaseHandle = {
   close: () => Promise<void>;
 };
 
-const migrationsFolder = resolve(__dirname, '../../drizzle');
+/**
+ * Thư mục migration nằm ở `apps/api/drizzle` cả khi chạy tsx (src/database)
+ * lẫn khi chạy build (dist/src/database). Tìm theo cả hai độ sâu.
+ */
+function resolveMigrationsFolder(): string {
+  const candidates = [
+    resolve(__dirname, '../../drizzle'),
+    resolve(__dirname, '../../../drizzle'),
+    resolve(process.cwd(), 'drizzle'),
+  ];
+  const found = candidates.find((path) => existsSync(resolve(path, 'meta/_journal.json')));
+  return found ?? candidates[0]!;
+}
+
+const migrationsFolder = resolveMigrationsFolder();
 
 export async function createDatabase(env: AppEnv): Promise<DatabaseHandle> {
   if (env.DATABASE_URL) {
@@ -37,6 +52,7 @@ export async function createDatabase(env: AppEnv): Promise<DatabaseHandle> {
   }
 
   const dataDir = env.PGLITE_MEMORY ? undefined : pgliteDataDir(env);
+  if (dataDir) mkdirSync(dataDir, { recursive: true });
   const client = dataDir ? new PGlite(dataDir) : new PGlite();
   await client.waitReady;
   const db = drizzlePglite(client, { schema }) as unknown as AppDb;
