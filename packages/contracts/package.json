@@ -1,0 +1,77 @@
+{
+  "name": "@annhien/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hợp đồng dữ liệu dùng chung cho API, web và simulator",
+  "main": "dist/core.js",
+  "types": "dist/core.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts",
+      "default": "./dist/auth.js"
+    },
+    "./subjects": {
+      "types": "./dist/subjects.d.ts",
+      "default": "./dist/subjects.js"
+    },
+    "./care": {
+      "types": "./dist/care.d.ts",
+      "default": "./dist/care.js"
+    },
+    "./devices": {
+      "types": "./dist/devices.d.ts",
+      "default": "./dist/devices.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry.d.ts",
+      "default": "./dist/telemetry.js"
+    },
+    "./measurements": {
+      "types": "./dist/measurements.d.ts",
+      "default": "./dist/measurements.js"
+    },
+    "./incidents": {
+      "types": "./dist/incidents.d.ts",
+      "default": "./dist/incidents.js"
+    },
+    "./notifications": {
+      "types": "./dist/notifications.d.ts",
+      "default": "./dist/notifications.js"
+    },
+    "./assistant": {
+      "types": "./dist/assistant.d.ts",
+      "default": "./dist/assistant.js"
+    },
+    "./tasks": {
+      "types": "./dist/tasks.d.ts",
+      "default": "./dist/tasks.js"
+    },
+    "./studio": {
+      "types": "./dist/studio.d.ts",
+      "default": "./dist/studio.js"
+    },
+    "./admin": {
+      "types": "./dist/admin.d.ts",
+      "default": "./dist/admin.js"
+    },
+    "./policies": {
+      "types": "./dist/policies.d.ts",
+      "default": "./dist/policies.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
