@@ -762,14 +762,13 @@ export function AdminPage() {
         </p>
       </header>
 
-      <div className="adm-tabs" role="tablist" aria-label="Các mục quản trị">
+      <div className="adm-tabs" role="group" aria-label="Các mục quản trị">
         {TABS.map((option) => (
           <Button
             key={option.value}
             variant={tab === option.value ? 'primary' : 'subtle'}
             size="sm"
-            role="tab"
-            aria-selected={tab === option.value}
+            aria-pressed={tab === option.value}
             onClick={() => setTab(option.value)}
           >
             {option.label}

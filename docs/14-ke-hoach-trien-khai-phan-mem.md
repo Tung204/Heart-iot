@@ -42,7 +42,7 @@ Dựng một lát cắt **chạy được, kiểm được, tái lập được*
 | Test | Jest + SWC (API), Vitest + Testing Library (web), Playwright (E2E) | Kiểm đúng lớp sở hữu hành vi |
 | Font/UI | font self-host (@fontsource), CSS token | Không phụ thuộc CDN khi demo offline |
 
-Xem [ADR 0002](../decisions/0002-nen-tang-trien-khai.md).
+Xem [ADR 0002](decisions/0002-nen-tang-trien-khai.md).
 
 ## 4. Ranh giới module API
 
@@ -196,3 +196,15 @@ Kết quả test/kiểm cuối cùng được ghi ở `reports/qa/` và worklog;
 - PGlite mở file DB độc quyền theo process: phải dừng API trước khi chạy seed/migration từ process khác.
 - `apps/api` build ra `dist/src/main.js` (rootDir `src`); script `start` đã trỏ đúng.
 - Web dev dùng alias `@annhien/contracts` sang source TypeScript để tránh interop CJS/ESM; build dùng package exports.
+
+## 11. Kết quả review độc lập (14–15/11/2026)
+
+Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riêng; không tin kết quả trong handoff.
+
+- **Backend** (`reports/qa/review-backend-2026-11-14.md`): 0 P0; 2 P1 đã được lead sửa và reviewer tái kiểm đóng:
+  - SSE phải kiểm `canReceiveAlerts`, không chỉ có link active.
+  - Dedupe sự kiện incident theo `(device_id, message_id)`; cùng message_id khác nội dung trả CONFLICT thay vì duplicate.
+  Còn P2: `requireHistory` với cửa sổ mặc định của caregiver mới (đã kẹp mềm cho danh sách measurements), 403/404 chưa nhất quán giữa list/detail alerts, thiếu unique index cho invitation pending, PGlite đơn tiến trình, và ghi chú vận hành.
+- **Frontend** (`reports/qa/review-frontend-2026-11-14.md`): 0 P0/P1; 5 P2 (form mời hiện cho caregiver, tab admin chưa theo ARIA APG, mốc thời gian lịch sử đóng băng, bundle >500 kB, nút sao chép im lặng khi clipboard bị chặn). Lead đã sửa P2-1/P2-2/P2-3/P2-5 và chạy lại typecheck/test/build; P2-4 (code-split) giữ là việc tiếp theo. Một lỗi 404 nhất thời trang lời mời không tái hiện sau khi API ổn định, chưa kết luận.
+
+Các P2 còn mở không chặn demo nhưng phải được xử lý hoặc chốt trước khi dùng dữ liệu thật/nhiều instance.

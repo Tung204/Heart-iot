@@ -149,7 +149,14 @@ export class MeasurementsService {
     if (from.getTime() > Date.now()) {
       throw AppError.validation('Ngày yêu cầu nằm trong tương lai.');
     }
-    await this.access.requireHistory(userId, subjectId, from);
+    const { effectiveFrom } = await this.access.requireHistory(userId, subjectId, undefined);
+    if (to.getTime() <= effectiveFrom.getTime()) {
+      throw AppError.forbidden('Ngày yêu cầu nằm trước mốc chia sẻ dữ liệu.', {
+        effectiveFrom: effectiveFrom.toISOString(),
+      });
+    }
+    // Ngày có mốc chia sẻ ở giữa (thường là hôm nay): chỉ tính phần sau khi được chia sẻ.
+    const windowFrom = from < effectiveFrom ? effectiveFrom : from;
 
     const policy = await this.policy.getActive();
     const intervalSeconds = policy.value.heartbeatIntervalSeconds;
@@ -164,14 +171,14 @@ export class MeasurementsService {
         and(
           inArray(telemetry.assignmentId, assignmentIds),
           isNotNull(telemetry.measuredAt),
-          gte(telemetry.measuredAt, from),
+          gte(telemetry.measuredAt, windowFrom),
           lt(telemetry.measuredAt, to),
         ),
       )
       .orderBy(asc(telemetry.measuredAt), asc(telemetry.id));
 
     const [unsyncedCount, incidentRows] = await Promise.all([
-      this.countUnsyncedInWindow(assignmentIds, from, to),
+      this.countUnsyncedInWindow(assignmentIds, windowFrom, to),
       this.db
         .select({ state: incidents.state })
         .from(incidents)
@@ -195,8 +202,8 @@ export class MeasurementsService {
       timezone: access.subject.timezone,
       heartRate: computeHeartRate(dayRows),
       steps: computeSteps(dayRows),
-      coverage: computeCoverage(from, coverageTo, intervalSeconds, measuredAts.length),
-      gaps: computeGaps(from, coverageTo, intervalSeconds, measuredAts, unsyncedCount),
+      coverage: computeCoverage(windowFrom, coverageTo, intervalSeconds, measuredAts.length),
+      gaps: computeGaps(windowFrom, coverageTo, intervalSeconds, measuredAts, unsyncedCount),
       incidents: {
         total: incidentRows.length,
         resolved: incidentRows.filter((row) => row.state === 'resolved').length,

@@ -33,9 +33,11 @@ CHAPTERS = [
     ("11", "nen-tang-ai", "docs/11-nen-tang-ai-va-cau-hinh-dong.md", "Nền tảng AI và cấu hình động"),
     ("12", "nguyen-tac-phat-trien", "docs/12-nguyen-tac-phat-trien-va-bang-chung.md", "Nguyên tắc phát triển và bằng chứng"),
     ("13", "thuc-thi-ai", "docs/13-dac-ta-thuc-thi-ai-va-cau-hinh.md", "Thực thi AI và cấu hình động"),
+    ("14", "ke-hoach-trien-khai", "docs/14-ke-hoach-trien-khai-phan-mem.md", "Kế hoạch triển khai và trạng thái"),
     ("R", "review", "docs/reviews/01-thiet-ke-v0.1.md", "Review thiết kế v0.1"),
     ("R2", "review-ai", "docs/reviews/02-nen-tang-ai-va-cau-hinh-dong.md", "Review nền tảng AI"),
     ("A", "quyet-dinh", "docs/decisions/0001-dinh-huong-prototype.md", "Quyết định kiến trúc"),
+    ("A2", "quyet-dinh-nen-tang", "docs/decisions/0002-nen-tang-trien-khai.md", "Quyết định nền tảng triển khai"),
 ]
 MODULES = [
     ("web", "apps/web/README.md", "apps/web — Giao diện web"),

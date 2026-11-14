@@ -8,9 +8,9 @@
 
 ## Kết luận tổng thể
 
-- **2 finding P1 mở** (rò quyền cảnh báo qua SSE; mất sự kiện incident do dedupe message_id không theo thiết bị) và **5 finding P2**. Không có P0.
+- **2 finding P1** (rò quyền cảnh báo qua SSE; mất sự kiện incident do dedupe message_id không theo thiết bị) và **6 finding P2**. Không có P0.
 - Các cổng build/typecheck/test/seed đều xanh với output thật; hơn 150 kiểm curl trực tiếp chạy trên API thật.
-- Theo định nghĩa hoàn thành v1 (docs/14 mục 10): **chưa đạt** — còn P1 mở.
+- **Cập nhật 15/11/2026:** lead đã sửa cả 2 P1; reviewer tái kiểm độc lập trên API thật → **2 P1 đã đóng** (xem mục 5). Không còn P0/P1 mở; 6 P2 còn lại được ghi rõ. Kết luận cuối ở mục 6.
 
 ---
 
@@ -118,6 +118,8 @@ data: {"id":"3759fb4e-8369-4e7f-8cf2-b0a29e88c819","incidentId":"1fe621ed-bf52-4
 
 **Đề xuất:** gate SSE bằng cùng điều kiện của listAlerts (owner hoặc `canReceiveAlerts`), hoặc lọc kiểu sự kiện theo permission trong `RealtimeService.stream`; đồng thời xem lại việc replay `notification.sent`/`care.*` cho mọi người có link.
 
+**TRẠNG THÁI (15/11/2026): ĐÃ ĐÓNG.** Lead sửa `realtime.controller.ts:24` và vòng poll `realtime.service.ts:63` dùng `access.requireAction(user.id, subjectId, 'receive_alerts')` (đối chiếu `access.service.ts:80-90`, linked caregiver thiếu quyền → 403). Tái kiểm API thật cổng 3100/DB review: caregiver `canReceiveAlerts=false` mở SSE → **403** `{"code":"FORBIDDEN","message":"Quyền được chia sẻ không cho phép thao tác này."}` (trước fix: 200 + replay toàn bộ); caregiver `canReceiveAlerts=true` → 200 nhận `alert.updated`; owner → 200; người lạ → 404; không phiên → 401; thu hồi link giữa stream → `event: revoked` rồi đóng. Test mới `test/sse.spec.ts` (S2 bổ sung case 403) pass. Chi tiết lệnh ở mục 5.
+
 ### P1-2 — Dedupe sự kiện incident theo message_id toàn cục (không theo thiết bị): sự kiện của thiết bị khác bị coi là duplicate và bị rơi
 
 **Vị trí:** `apps/api/src/incidents/incidents.service.ts:204-207` — pre-check trùng:
@@ -152,6 +154,8 @@ ACK trả `duplicate` trỏ vào incident **của thiết bị A**; bản tin c�
 **Cách tái hiện:** hai thiết bị đều có assignment mở; gửi cùng `message_id` với nội dung khác nhau từ thiết bị thứ hai → nhận ack duplicate thay vì accepted.
 
 **Đề xuất:** thêm `and(eq(incidentEvents.deviceId, device.id))` vào pre-check; đối xứng với cách telemetry ingest đã làm đúng (`telemetry-ingest.service.ts`, lọc theo `(deviceId, messageId)`).
+
+**TRẠNG THÁI (15/11/2026): ĐÃ ĐÓNG.** Lead thêm điều kiện `deviceId` vào pre-check (`incidents.service.ts:203-214`). Tái kiểm API thật cổng 3100/DB review (2 thiết bị đều có assignment mở): thiết bị A gửi `message_id=rev2-xmsg-1` → accepted, incident `7e99dd5c-…`; thiết bị B gửi **cùng message_id** → **accepted**, incident riêng `25eb1b7d-…` (trước fix: `duplicate` trỏ sang incident của A). Hồi quy: cùng thiết bị gửi lại bản tin giống hệt → `duplicate` (đúng); B gửi tiếp `fall.confirmed` mở cảnh báo riêng trên đúng hồ sơ, alert của A không đổi. Test mới `test/incidents.spec.ts` (T6 bổ sung cross-device shared message_id) pass. Chi tiết lệnh ở mục 5.
 
 ### P2-1 — `requireHistory` từ chối thẳng khi `from < sharedFrom`: caregiver vừa được chấp nhận bị 403 trên mọi cửa sổ mặc định trong ~24 giờ đầu
 
@@ -224,6 +228,26 @@ RuntimeError: Aborted(). Build with -sASSERTIONS for more info.
 
 **Tác động:** rủi ro vận hành dev: `pnpm seed`/`db:migrate` chạy trùng data dir với API đang chạy có thể crash hoặc ghi đè lẫn nhau. Lưu ý ghi vào README/hướng dẫn chạy.
 
+**Bổ sung 15/11:** sau khi kill cứng API review phiên trước, thư mục `.data/review` **không mở lại được nữa** — API mới bootstrap chết ngay với cùng lỗi `RuntimeError: Aborted()`. Reviewer đã chuyển dir hỏng sang `.data/review-corrupt-20261115`, seed lại DB review từ đầu và chạy tái kiểm bình thường (chỉ ảnh hưởng DB riêng của reviewer, không đụng `.data/pglite`).
+
+### P2-6 — Dedupe cấp message_id của sự kiện incident không so nội dung: cùng thiết bị, cùng message_id nhưng payload khác → trả `duplicate` thay vì CONFLICT
+
+**Vị trí:** `apps/api/src/incidents/incidents.service.ts:203-224` — pre-check tìm thấy `(deviceId, message_id)` đã lưu thì trả ngay `status: 'duplicate'`, **không so vân tay nội dung**. So sánh: telemetry ingest có so `payloadHash` → 409 (`telemetry-ingest.service.ts`, nhánh `message_id_conflict`).
+
+**Bằng chứng (output thật, sau khi P1-2 đã đóng):** thiết bị A đã gửi `rev2-xmsg-1` kiểu `fall.candidate`; gửi lại cùng `message_id` nhưng đổi `event_type` sang `sos.confirmed`:
+
+```json
+{"status":"duplicate","sourceMessageId":"rev2-xmsg-1","receivedAt":"2026-11-14T17:18:23.800Z","incidentId":"7e99dd5c-e115-4d86-a41a-21e394f25316","acceptedRevision":1,"code":null,"message":null}
+```
+
+(Thiết bị gửi lại bản tin **giống hệt** → `duplicate` là đúng; trường hợp này payload khác hẳn mà vẫn `duplicate`.)
+
+**Tác động:** docs/04 quy định "Cùng key nhưng khác nội dung là xung đột, không âm thầm overwrite". Dữ liệu không bị ghi đè (dòng cũ giữ nguyên), nhưng vi phạm giao thức bị nuốt: thiết bị tin ACK `duplicate` và xóa bản tin khỏi hàng đợi, server không audit. Đây là lỗ hổng tồn đọng **có từ trước fix P1-2**, lộ ra trong lúc tái kiểm, không phải regression của fix.
+
+**Cách tái hiện:** thiết bị đã gửi sự kiện với `message_id=X`; gửi lại cùng `X` với `event_type`/nội dung khác → nhận `duplicate` (mong đợi theo docs/04: từ chối + audit CONFLICT).
+
+**Đề xuất:** ở pre-check, so `eventFingerprint(envelope)` với vân tay bản tin đã lưu (đã có sẵn hàm `storedEventFingerprint`); giống → `duplicate`, khác → `rejected` CONFLICT + audit, đối xứng với telemetry.
+
 ---
 
 ## 3. Đã kiểm và KHÔNG có lỗi (output thật, API cổng 3100 + DB review)
@@ -276,14 +300,63 @@ RuntimeError: Aborted(). Build with -sASSERTIONS for more info.
 
 ---
 
-## 5. Tóm tắt
+## 5. Tái kiểm sau fix của lead (15/11/2026, ~00:10–00:25 Asia/Ho_Chi_Minh)
 
-| Mức | Số | Mã |
+Môi trường như cũ: `PGLITE_DATA_DIR=.data/review PGLITE_MEMORY= PORT=3100` (DB review đã seed lại vì dir cũ hỏng do kill cứng — xem P2-5), không đụng `.data/pglite`/cổng 3000.
+
+### 5.1 Cổng kiểm
+
+```bash
+pnpm build:contracts && pnpm -r typecheck   # exit 0 (contracts/api/web/simulator đều Done)
+cd apps/api && node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/sse.spec.ts test/incidents.spec.ts
+# Test Suites: 2 passed, 2 total; Tests: 14 passed, 14 total (8.9s)
+node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand
+# Test Suites: 14 passed, 14 total; Tests: 100 passed, 100 total (57.7s)
+```
+
+### 5.2 P1-1 — SSE gate `receive_alerts` (API thật)
+
+Chuẩn bị: register `noperm@test.local`, owner mời với `canReceiveAlerts:false`, accept 201.
+
+```bash
+# caregiver canReceiveAlerts=false → 403, KHÔNG mở stream (trước fix: 200 + replay alert.updated)
+curl -s -o /tmp/sse-noperm.txt -w "status:%{http_code}" --max-time 6 -N -b cj-noperm.txt "$B/subjects/aaaaaaaa-.../events"
+# status:403
+# {"code":"FORBIDDEN","message":"Quyền được chia sẻ không cho phép thao tác này.","requestId":"4c11e3cd-..."}
+
+# caregiver canReceiveAlerts=true (minh) → 200, nhận alert.updated
+# status:200 + id: 1 / event: alert.updated ...
+# owner → 200; người lạ → 404; không phiên → 401
+# thu hồi link giữa stream (caregiver thứ 3): revoke:204 → stream kết thúc bằng `event: revoked` + `data: {}`
+```
+
+### 5.3 P1-2 — dedupe message_id theo (device_id, message_id) (API thật)
+
+Chuẩn bị: admin tạo thiết bị B (serial REV2-001), minh claim vào hồ sơ Binh (201). Thiết bị A = demo `dddddddd-…` (đã gán hồ sơ An).
+
+```bash
+# A gửi candidate msg rev2-xmsg-1 → accepted
+# {"status":"accepted",...,"incidentId":"7e99dd5c-e115-4d86-a41a-21e394f25316","acceptedRevision":1,...}
+# B gửi CÙNG message_id rev2-xmsg-1 → accepted, incident RIÊNG (trước fix: duplicate + incident của A)
+# {"status":"accepted",...,"incidentId":"25eb1b7d-234f-4a88-be77-f83b0da0cb13","acceptedRevision":1,...}
+# INCA != INCB → đúng
+# Hồi quy cùng thiết bị A: bản tin giống hệt → duplicate (đúng)
+# B gửi fall.confirmed (msg rev2-xmsg-2) → accepted; alerts của An không đổi ['ffffffff-...'],
+# alerts của Binh có incident B mở: [('25eb1b7d-...', 'open')]
+```
+
+Lưu ý phát sinh trong lúc tái kiểm: **P2-6** (cùng thiết bị, cùng message_id, payload khác → vẫn `duplicate`, không so nội dung) — ghi chi tiết ở mục 2.
+
+---
+
+## 6. Tóm tắt và kết luận cuối
+
+| Mức | Số | Trạng thái |
 | --- | --- | --- |
 | P0 | 0 | — |
-| P1 | 2 | SSE không kiểm `canReceiveAlerts`; dedupe incident theo message_id không theo thiết bị |
-| P2 | 5 | requireHistory chặn caregiver mới ~24h; 403/404 không nhất quán alerts list/detail; steps daily-summary bị thổi phồng sau reset giữa boot; thiếu partial unique invitation pending; PGlite đơn tiến trình |
+| P1 | 2 | **ĐÃ ĐÓNG** (tái kiểm API thật + test mới 15/11): SSE gate `receive_alerts`; dedupe incident theo `(device_id, message_id)` |
+| P2 | 6 | Còn mở: requireHistory chặn caregiver mới ~24h; 403/404 không nhất quán alerts list/detail; steps daily-summary bị thổi phồng sau reset giữa boot; thiếu partial unique invitation pending; PGlite đơn tiến trình; **mới** — dedupe message_id không so nội dung (P2-6) |
 
-Cổng chất lượng đạt: `pnpm build:contracts` exit 0, `pnpm -r typecheck` exit 0, full test suite 14/14 suites — 100/100 tests pass, seed 2 lần idempotent. Toàn bộ kiểm curl REST/SSE/export/AI/studio/tasks/admin ghi ở mục 3 đều cho kết quả đúng hợp đồng.
+Cổng chất lượng đạt: `pnpm build:contracts` exit 0, `pnpm -r typecheck` exit 0, full test suite 14/14 suites — 100/100 tests pass (chạy lại sau fix), seed 2 lần idempotent. Toàn bộ kiểm curl REST/SSE/export/AI/studio/tasks/admin ghi ở mục 3 đều cho kết quả đúng hợp đồng.
 
-**Kết luận:** chưa đạt tiêu chí hoàn thành v1 theo docs/14 mục 10 (còn 2 P1 mở). Sau khi fix P1, reviewer nên chạy lại 2 kịch bản tái hiện ở mục 2 để xác nhận.
+**Kết luận:** sau tái kiểm độc lập ngày 15/11/2026, **không còn P0/P1 mở** — tiêu chí review của docs/14 mục 10 đạt ở phần findings nghiêm trọng. Còn 6 P2 được ghi rõ (mục 2), trong đó P2-6 phát sinh từ lúc tái kiểm P1-2; các P2 còn lại không chặn demo v1 nhưng nên được xử lý/gắn quyết định trước dữ liệu thật.

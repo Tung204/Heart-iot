@@ -354,6 +354,16 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     expect(resend.body.status).toBe('duplicate');
     expect(resend.body.acceptedRevision).toBe(1);
 
+    // Cùng message_id nhưng nội dung khác → CONFLICT, không được nuốt thành duplicate.
+    const conflict = await postEvent(ctx, fx.deviceId, fx.deviceKey, {
+      ...first,
+      event_type: 'sos.confirmed',
+      incident_type: 'sos',
+    });
+    expect(conflict.status).toBe(202);
+    expect(conflict.body.status).toBe('rejected');
+    expect(conflict.body.code).toBe('CONFLICT');
+
     const incidentRows = await db
       .select()
       .from(incidents)

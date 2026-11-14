@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import type { HeartRateQuality } from '@annhien/contracts';
@@ -51,7 +51,13 @@ export function HistoryPage() {
   const activeSubject = useActiveSubject(subjects.data);
   const [rangeKey, setRangeKey] = useState<RangeKey>('24h');
 
-  const now = useMemo(() => Date.now(), [rangeKey]);
+  // Mốc hiện tại được làm mới mỗi phút để cửa sổ 24h không bị "đóng băng".
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => setNow(Date.now()), [rangeKey]);
   const rangeOption =
     RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
   const historyDays = activeSubject?.permissions.historyDays ?? 1;

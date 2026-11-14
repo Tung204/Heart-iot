@@ -202,7 +202,13 @@ export class IncidentsService {
     return this.db.transaction(async (tx) => {
       // 1) Bản tin này đã được lưu chưa? (unique device_id + message_id)
       const storedMessage = await tx
-        .select({ incidentId: incidentEvents.incidentId, eventRevision: incidentEvents.eventRevision })
+        .select({
+          incidentId: incidentEvents.incidentId,
+          eventRevision: incidentEvents.eventRevision,
+          eventType: incidentEvents.eventType,
+          measuredAt: incidentEvents.measuredAt,
+          payload: incidentEvents.payload,
+        })
         .from(incidentEvents)
         .where(
           and(
@@ -212,16 +218,35 @@ export class IncidentsService {
         )
         .limit(1);
       if (storedMessage.length > 0) {
-        const incidentRows = await tx
-          .select({ id: incidents.id })
-          .from(incidents)
-          .where(eq(incidents.id, storedMessage[0]!.incidentId))
-          .limit(1);
+        const stored = storedMessage[0]!;
+        // Cùng (device_id, message_id) nhưng khác nội dung là xung đột giao thức,
+        // không được trả duplicate để thiết bị xóa bản tin khỏi hàng đợi.
+        if (eventFingerprint(envelope) !== storedEventFingerprint(stored)) {
+          await this.audit.record(
+            {
+              actorKind: 'device',
+              action: 'incident.ingest',
+              targetType: 'incident',
+              targetId: stored.incidentId,
+              outcome: 'conflict',
+              metadata: { code: 'CONFLICT', messageId: envelope.message_id },
+            },
+            tx,
+          );
+          return ingestAckSchema.parse({
+            ...ackBase,
+            status: 'rejected',
+            incidentId: null,
+            acceptedRevision: null,
+            code: 'CONFLICT',
+            message: 'message_id đã được dùng cho một sự kiện khác nội dung.',
+          });
+        }
         return ingestAckSchema.parse({
           ...ackBase,
           status: 'duplicate',
-          incidentId: incidentRows[0]?.id ?? null,
-          acceptedRevision: storedMessage[0]!.eventRevision,
+          incidentId: stored.incidentId,
+          acceptedRevision: stored.eventRevision,
           code: null,
           message: null,
         });

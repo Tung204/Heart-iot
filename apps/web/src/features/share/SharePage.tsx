@@ -18,6 +18,7 @@ import { formatDateTime } from '../../lib/format';
 import { getApiErrorMessage, isNotFoundError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { zodFieldErrorMap } from '../../lib/validation';
+import { useSubjects } from '../subjects/useSubjects';
 import {
   createInvitation,
   fetchCareLinks,
@@ -65,6 +66,10 @@ export function SharePage() {
   const [created, setCreated] = useState<InvitationCreated | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+
+  const subjects = useSubjects();
+  const subject = subjects.data?.find((item) => item.id === id);
 
   const invitations = useQuery({
     queryKey: queryKeys.subjectInvitations(id),
@@ -138,13 +143,49 @@ export function SharePage() {
     if (!created) return;
     if (!navigator.clipboard?.writeText) {
       setCopied(false);
+      setCopyError(true);
       return;
     }
     void navigator.clipboard
       .writeText(created.acceptUrl)
-      .then(() => setCopied(true))
-      .catch(() => setCopied(false));
+      .then(() => {
+        setCopied(true);
+        setCopyError(false);
+      })
+      .catch(() => {
+        setCopied(false);
+        setCopyError(true);
+      });
   };
+
+  if (subjects.isPending) return <PageLoader label="Đang kiểm tra quyền hồ sơ…" />;
+  if (subjects.isError) {
+    return (
+      <ErrorState
+        title="Không tải được hồ sơ"
+        message={getApiErrorMessage(subjects.error)}
+        onRetry={() => void subjects.refetch()}
+      />
+    );
+  }
+  if (!subject) {
+    return (
+      <EmptyState
+        title="Không tìm thấy hồ sơ"
+        description="Hồ sơ không tồn tại hoặc bạn không còn quyền truy cập."
+        action={<ButtonLink to="/app/subjects">Về danh sách hồ sơ</ButtonLink>}
+      />
+    );
+  }
+  if (subject.role !== 'owner') {
+    return (
+      <EmptyState
+        title="Chỉ chủ hồ sơ quản lý chia sẻ"
+        description="Bạn đang xem hồ sơ với quyền người thân. Liên hệ chủ hồ sơ nếu cần thay đổi quyền truy cập."
+        action={<ButtonLink to="/app/subjects">Về danh sách hồ sơ</ButtonLink>}
+      />
+    );
+  }
 
   return (
     <div className="stack">
@@ -253,6 +294,12 @@ export function SharePage() {
                   {copied ? 'Đã sao chép' : 'Sao chép đường dẫn'}
                 </Button>
               </div>
+              {copyError ? (
+                <p className="field__hint" role="status">
+                  Trình duyệt không cho phép sao chép tự động. Hãy chọn và sao chép đường dẫn
+                  trong ô phía trên.
+                </p>
+              ) : null}
               <p className="field__hint">
                 Đường dẫn và mã chỉ hiển thị đúng một lần này — hãy lưu ngay. Đóng thông báo
                 này sẽ không xem lại được; khi đó chỉ có thể tạo lời mời mới.

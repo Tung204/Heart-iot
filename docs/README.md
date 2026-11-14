@@ -23,7 +23,9 @@ Ngày soạn: **10/11/2026**. Trạng thái: **bản đề xuất**, dựa trên
 | [11 — Nền tảng AI, web/app và cấu hình động](11-nen-tang-ai-va-cau-hinh-dong.md) | Nền tảng tổng quát gồm gì, AI tự làm tới đâu, có sửa backend không, preview frontend thế nào? |
 | [12 — Nguyên tắc phát triển và bằng chứng](12-nguyen-tac-phat-trien-va-bang-chung.md) | Duy trì docs, dùng đúng API/version, tái sử dụng và tránh sửa sót module thế nào? |
 | [13 — Đặc tả thực thi AI và cấu hình](13-dac-ta-thuc-thi-ai-va-cau-hinh.md) | Quyền, tác vụ, retry, preview, lịch/trigger, code và bằng chứng được quản lý cụ thể ra sao? |
+| [14 — Kế hoạch triển khai và trạng thái](14-ke-hoach-trien-khai-phan-mem.md) | Đã làm gì, chạy/kiểm thế nào, còn giới hạn nào, kết quả review độc lập ra sao? |
 | [Quyết định kiến trúc dự thảo](decisions/0001-dinh-huong-prototype.md) | Vì sao đề xuất các lựa chọn hiện tại, khi nào xem xét lại? |
+| [Quyết định nền tảng triển khai](decisions/0002-nen-tang-trien-khai.md) | Stack, PGlite/PostgreSQL, phiên cookie, SSE và phạm vi v1 đã chốt thế nào? |
 | [Review thiết kế v0.1](reviews/01-thiet-ke-v0.1.md) | Những điểm cần sửa/làm rõ trước khi triển khai, tình huống lỗi và giới hạn kiểm chứng? |
 | [Review nền tảng AI](reviews/02-nen-tang-ai-va-cau-hinh-dong.md) | Bốn khoảng trống Codex tìm được đã bổ sung thế nào, còn phải kiểm gì khi triển khai? |
 
