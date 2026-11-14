@@ -61,6 +61,14 @@
     "./policies": {
       "types": "./dist/policies.d.ts",
       "default": "./dist/policies.js"
+    },
+    "./insights": {
+      "types": "./dist/insights.d.ts",
+      "default": "./dist/insights.js"
+    },
+    "./contacts": {
+      "types": "./dist/contacts.d.ts",
+      "default": "./dist/contacts.js"
     }
   },
   "scripts": {

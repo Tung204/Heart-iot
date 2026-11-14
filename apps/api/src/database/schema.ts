@@ -209,6 +209,31 @@ export const invitations = pgTable(
   ],
 );
 
+export const emergencyContacts = pgTable(
+  'emergency_contacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    relationship: text('relationship').notNull(),
+    phone: text('phone').notNull(),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    createdByUserId: uuid('created_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index('emergency_contacts_subject_idx').on(table.subjectId),
+    uniqueIndex('emergency_contacts_primary_uq')
+      .on(table.subjectId)
+      .where(sql`is_primary`),
+  ],
+);
+
 export const devices = pgTable(
   'devices',
   {

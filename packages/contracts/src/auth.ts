@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isoDateTimeSchema, userSummarySchema } from './core';
+import { idSchema, isoDateTimeSchema, userSummarySchema } from './core';
 
 export const registerSchema = z
   .object({
@@ -28,3 +28,31 @@ export const meSchema = z.object({
   user: userSummarySchema,
 });
 export type Me = z.infer<typeof meSchema>;
+
+export const updateProfileSchema = z
+  .object({
+    displayName: z.string().trim().min(1).max(120),
+  })
+  .strict();
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(200),
+    newPassword: z.string().min(10).max(200),
+  })
+  .strict();
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+export const sessionSummarySchema = z.object({
+  id: idSchema,
+  createdAt: isoDateTimeSchema,
+  expiresAt: isoDateTimeSchema,
+  current: z.boolean(),
+});
+export type SessionSummary = z.infer<typeof sessionSummarySchema>;
+
+export const sessionListSchema = z.object({
+  items: z.array(sessionSummarySchema),
+});
+export type SessionList = z.infer<typeof sessionListSchema>;

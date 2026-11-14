@@ -51,3 +51,17 @@ export const closeTaskSchema = z
   .object({ reason: z.string().trim().min(3).max(500) })
   .strict();
 export type CloseTask = z.infer<typeof closeTaskSchema>;
+
+/** POST /maintenance-tasks — chủ hồ sơ/admin tạo việc bảo trì cho thiết bị đã gắn. */
+export const createTaskSchema = z
+  .object({
+    subjectId: idSchema,
+    deviceId: idSchema,
+    kind: z.enum(['maintenance', 'signal_check', 'battery_check', 'device_check', 'other']),
+    title: z.string().trim().min(4).max(200),
+    priority: z.number().int().min(0).max(100),
+    dueAt: isoDateTimeSchema.optional(),
+    notes: z.string().trim().max(2000).optional(),
+  })
+  .strict();
+export type CreateTaskInput = z.infer<typeof createTaskSchema>;
