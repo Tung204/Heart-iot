@@ -177,7 +177,7 @@ test('tổng quan hiển thị cảnh báo mở và đường dẫn tới lịch
   await page.goto('/app');
 
   await expect(page.getByRole('heading', { level: 1, name: /Tổng quan/ })).toBeVisible();
-  await expect(page.getByText('Cảnh báo đang mở')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cảnh báo đang mở' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Xem tất cả cảnh báo →' })).toBeVisible();
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Lịch sử' }).first()).toBeVisible();
 });

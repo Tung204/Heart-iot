@@ -253,8 +253,16 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     const limitedList = await fx.limited.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
     expect(limitedList.status).toBe(403);
 
+    // Cùng ranh giới quyền: list và detail đều 403 khi có link nhưng thiếu quyền.
+    const limitedDetail = await fx.limited.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(limitedDetail.status).toBe(403);
+
     const outsiderList = await fx.outsider.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
     expect(outsiderList.status).toBe(404);
+
+    // Người ngoài không có link: detail 404, không lộ cảnh báo có tồn tại.
+    const outsiderDetail = await fx.outsider.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(outsiderDetail.status).toBe(404);
   });
 
   it('T3: cancel trước confirmed đóng incident, không có alert; confirmed muộn không mở lại (FR-06, R-01)', async () => {

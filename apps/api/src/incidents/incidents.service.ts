@@ -702,10 +702,9 @@ export class IncidentsService {
       this.access.assertAction(access, action);
       return incidentRow;
     }
-    // Xem chi tiết là tài nguyên riêng tư: không có quyền xem → 404.
-    if (access.role !== 'owner' && !access.permissions.canReceiveAlerts) {
-      throw AppError.notFound('Không tìm thấy cảnh báo.');
-    }
+    // Nhất quán với list: có link nhưng thiếu quyền nhận cảnh báo → 403;
+    // không có link thì requireSubject ở trên đã trả 404 (không lộ tồn tại).
+    this.access.assertAction(access, 'receive_alerts');
     return incidentRow;
   }
 

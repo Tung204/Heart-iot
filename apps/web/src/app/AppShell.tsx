@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
+import { AppErrorBoundary } from '../components/AppErrorBoundary';
 import { Button } from '../components/Button';
 import { SkipLink } from '../components/SkipLink';
 import { StatusPill } from '../components/StatusPill';
@@ -90,6 +91,7 @@ export function AppShell() {
   const me = useMe();
   const logout = useLogout();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [revokedInfo, setRevokedInfo] = useState<{ subjectId: string; name: string } | null>(null);
@@ -308,7 +310,10 @@ export function AppShell() {
               </Alert>
             ) : null}
             {adminOnly ? null : <SubjectSwitcher />}
-            <Outlet />
+            {/* Key theo pathname để lỗi của trang trước không dính sang trang mới. */}
+            <AppErrorBoundary key={location.pathname}>
+              <Outlet />
+            </AppErrorBoundary>
           </div>
         </main>
 

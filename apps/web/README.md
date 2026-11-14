@@ -1,7 +1,8 @@
 # Web — An Nhiên
 
-Giao diện web của An Nhiên: landing, đăng nhập/đăng ký, khung ứng dụng `/app` và các màn hình
-nghiệp vụ (tổng quan, lịch sử, cảnh báo, hồ sơ, thiết bị, chia sẻ, thông báo).
+Giao diện web của An Nhiên: landing, đăng nhập/đăng ký, khung ứng dụng `/app`, các màn hình
+nghiệp vụ (tổng quan, lịch sử, cảnh báo, hồ sơ, thiết bị, chia sẻ, thông báo, trợ lý, công việc,
+Studio, quản trị). Các trang sau đăng nhập được **tách chunk theo route** để giảm bundle tải lần đầu.
 React 19 + TypeScript + Vite 8, React Router 7, TanStack Query 5, hợp đồng zod từ `@annhien/contracts`.
 
 **Bản demo:** dữ liệu tổng hợp (nhãn "Nguồn: dữ liệu mô phỏng" khi API trả `source=synthetic`);
@@ -55,10 +56,10 @@ e2e/            smoke Playwright
 - Công khai: `/` (landing), `/login`, `/register`, `/invite/:token`, `*` (404).
 - Bảo vệ (`/app`): `index` tổng quan, `history`, `alerts` + `alerts/:id`, `subjects`,
   `subjects/:id/share`, `devices`, `notifications`, `assistant`, `tasks`, `admin`,
-  `studio` + `studio/:id` + `studio/:id/data`. Nav mobile ≤ 6 mục chính, mục phụ trong menu "Thêm"
-  (Trợ lý/Công việc/Studio/Quản trị — hiện theo quyền hồ sơ và role).
+  `studio` + `studio/:id` + `studio/:id/data`; route lạ hiển thị 404 trong khung.
+  Nav mobile có 5 mục chính; mục phụ nằm trong menu "Thêm" và hiện theo quyền hồ sơ/role.
 
-## Quy ước wave 2
+## Quy ước
 
 - Mọi query/mutation dùng schema + type từ `@annhien/contracts/*` qua `parseResponse`;
   không có schema tạm trong src.
@@ -74,16 +75,12 @@ e2e/            smoke Playwright
 
 ## Trạng thái
 
-- Wave 1: landing, login/register, shell, `/invite/:token`, 404.
-- Wave 2 (fe-features): tổng quan, lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ, thiết bị,
-  chia sẻ, thông báo. E2E mới chưa chạy đầy đủ — cần API đang chạy; xem ghi chú trong
-  `reports/handoffs/wave2-fe-features.md`.
-- Wave 3 (fe-studio): `/app/studio` danh sách/tạo view; `/app/studio/:id` soạn draft →
-  preview (mẫu/thật) → publish (CAS, 409 APPROVAL_STALE) → lịch sử + rollback;
-  `/app/studio/:id/data` render bản công bố với dữ liệu thật. Xem
-  `reports/handoffs/wave3-fe-studio.md`.
-- Wave 4 (fe-admin-ai): `/app/assistant` (tóm tắt/hỏi đáp theo quyền canViewAi, badge mẫu/AI,
-  429), `/app/tasks` (công việc bảo trì, đóng có lý do, 409), `/app/admin` (chỉ admin:
-  tổng quan, người dùng, policy preview→publish CAS, audit). Xem
-  `reports/handoffs/wave4-fe-admin-ai.md`.
-- Các route `/app/*` chưa có → trang "sẽ có ở wave sau".
+- **v1 đã có:** landing, auth, khung ứng dụng, tổng quan, lịch sử + biểu đồ, cảnh báo + SSE,
+  hồ sơ/chia sẻ, thiết bị, thông báo, trợ lý, công việc, Studio draft→preview→publish→rollback,
+  quản trị + policy CAS + audit; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
+- **Hiệu năng:** route sau đăng nhập dùng `React.lazy` + `Suspense`; build tách trang thành chunk
+  riêng (Admin/Studio/History/Assistant…) thay vì một bundle duy nhất.
+- **Kiểm:** 19 file/72 test Vitest, `pnpm build` sạch cảnh báo chunk >500 kB, E2E 4/4 khi API chạy.
+  Số test có thể tăng; luôn chạy lại thay vì tin README.
+- **Chưa có:** Web Push khi đóng trình duyệt, PWA/native, dữ liệu sức khỏe thật, firmware/đo thật.
+  Cảnh báo chỉ hiển thị khi trang đang mở; không tự gọi cấp cứu.

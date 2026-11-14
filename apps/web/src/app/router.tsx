@@ -1,32 +1,70 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { PageLoader } from '../components/PageLoader';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
-import { AdminPage } from '../features/admin/AdminPage';
-import { AssistantPage } from '../features/assistant/AssistantPage';
-import { TasksPage } from '../features/tasks/TasksPage';
 import { InvitePage } from '../features/invitations/InvitePage';
-import { AlertsPage } from '../features/alerts/AlertsPage';
-import { AlertDetailPage } from '../features/alerts/AlertDetailPage';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
-import { DevicesPage } from '../features/devices/DevicesPage';
-import { HistoryPage } from '../features/history/HistoryPage';
-import { NotificationsPage } from '../features/notifications/NotificationsPage';
-import { SharePage } from '../features/share/SharePage';
-import { StudioViewDataPage } from '../features/studio/StudioViewDataPage';
-import { StudioViewDetailPage } from '../features/studio/StudioViewDetailPage';
-import { StudioViewsPage } from '../features/studio/StudioViewsPage';
-import { SubjectsPage } from '../features/subjects/SubjectsPage';
 import { LandingPage } from '../pages/LandingPage';
 import { AppNotFoundPage } from '../pages/AppNotFoundPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppShell } from './AppShell';
 import { ProtectedRoute } from './ProtectedRoute';
 
+// Các trang sau đăng nhập được tách chunk theo route: lần đầu chỉ tải phần cần dùng.
+// Named export được chuyển thành default để React.lazy dùng được.
+const AdminPage = lazy(() =>
+  import('../features/admin/AdminPage').then((m) => ({ default: m.AdminPage })),
+);
+const AssistantPage = lazy(() =>
+  import('../features/assistant/AssistantPage').then((m) => ({ default: m.AssistantPage })),
+);
+const TasksPage = lazy(() =>
+  import('../features/tasks/TasksPage').then((m) => ({ default: m.TasksPage })),
+);
+const AlertsPage = lazy(() =>
+  import('../features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage })),
+);
+const AlertDetailPage = lazy(() =>
+  import('../features/alerts/AlertDetailPage').then((m) => ({ default: m.AlertDetailPage })),
+);
+const DashboardPage = lazy(() =>
+  import('../features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const DevicesPage = lazy(() =>
+  import('../features/devices/DevicesPage').then((m) => ({ default: m.DevicesPage })),
+);
+const HistoryPage = lazy(() =>
+  import('../features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })),
+);
+const NotificationsPage = lazy(() =>
+  import('../features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
+);
+const SharePage = lazy(() =>
+  import('../features/share/SharePage').then((m) => ({ default: m.SharePage })),
+);
+const StudioViewDataPage = lazy(() =>
+  import('../features/studio/StudioViewDataPage').then((m) => ({ default: m.StudioViewDataPage })),
+);
+const StudioViewDetailPage = lazy(() =>
+  import('../features/studio/StudioViewDetailPage').then((m) => ({ default: m.StudioViewDetailPage })),
+);
+const StudioViewsPage = lazy(() =>
+  import('../features/studio/StudioViewsPage').then((m) => ({ default: m.StudioViewsPage })),
+);
+const SubjectsPage = lazy(() =>
+  import('../features/subjects/SubjectsPage').then((m) => ({ default: m.SubjectsPage })),
+);
+
+/** Giữ fallback nhất quán khi chunk của route đang tải (mạng chậm/mất mạng). */
+function page(element: ReactNode): ReactNode {
+  return <Suspense fallback={<PageLoader label="Đang tải trang…" />}>{element}</Suspense>;
+}
+
 /**
  * Sơ đồ route:
  * - Công khai: / (landing), /login, /register, /invite/:token, * (404).
  * - Bảo vệ (/app): tổng quan, lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
- *   thiết bị, thông báo. Route chưa có → trang "sẽ có ở wave sau".
+ *   thiết bị, thông báo, trợ lý, công việc, Studio, quản trị. Route lạ → 404 trong khung.
  */
 export const appRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
@@ -40,20 +78,20 @@ export const appRoutes: RouteObject[] = [
       {
         element: <AppShell />,
         children: [
-          { index: true, element: <DashboardPage /> },
-          { path: 'history', element: <HistoryPage /> },
-          { path: 'alerts', element: <AlertsPage /> },
-          { path: 'alerts/:id', element: <AlertDetailPage /> },
-          { path: 'subjects', element: <SubjectsPage /> },
-          { path: 'subjects/:id/share', element: <SharePage /> },
-          { path: 'devices', element: <DevicesPage /> },
-          { path: 'notifications', element: <NotificationsPage /> },
-          { path: 'assistant', element: <AssistantPage /> },
-          { path: 'tasks', element: <TasksPage /> },
-          { path: 'admin', element: <AdminPage /> },
-          { path: 'studio', element: <StudioViewsPage /> },
-          { path: 'studio/:id', element: <StudioViewDetailPage /> },
-          { path: 'studio/:id/data', element: <StudioViewDataPage /> },
+          { index: true, element: page(<DashboardPage />) },
+          { path: 'history', element: page(<HistoryPage />) },
+          { path: 'alerts', element: page(<AlertsPage />) },
+          { path: 'alerts/:id', element: page(<AlertDetailPage />) },
+          { path: 'subjects', element: page(<SubjectsPage />) },
+          { path: 'subjects/:id/share', element: page(<SharePage />) },
+          { path: 'devices', element: page(<DevicesPage />) },
+          { path: 'notifications', element: page(<NotificationsPage />) },
+          { path: 'assistant', element: page(<AssistantPage />) },
+          { path: 'tasks', element: page(<TasksPage />) },
+          { path: 'admin', element: page(<AdminPage />) },
+          { path: 'studio', element: page(<StudioViewsPage />) },
+          { path: 'studio/:id', element: page(<StudioViewDetailPage />) },
+          { path: 'studio/:id/data', element: page(<StudioViewDataPage />) },
           { path: '*', element: <AppNotFoundPage /> },
         ],
       },
