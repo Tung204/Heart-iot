@@ -10,7 +10,7 @@ import { MeasurementChart, type ChartPoint } from '../../components/MeasurementC
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import { Button } from '../../components/Button';
-import { clampRangeToHistoryDays, formatDateTime } from '../../lib/format';
+import { clampRangeToHistoryDays, formatCompactDateTime, formatDateTime } from '../../lib/format';
 import { getApiErrorMessage } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useActiveSubject } from '../subjects/selection';
@@ -50,6 +50,7 @@ export function HistoryPage() {
   const subjects = useSubjects();
   const activeSubject = useActiveSubject(subjects.data);
   const [rangeKey, setRangeKey] = useState<RangeKey>('24h');
+  const [visibleRows, setVisibleRows] = useState(20);
 
   // Mốc hiện tại được làm mới mỗi phút để cửa sổ 24h không bị "đóng băng".
   const [now, setNow] = useState(() => Date.now());
@@ -67,6 +68,10 @@ export function HistoryPage() {
     () => clampRangeToHistoryDays(now - clampedHours * 3600 * 1000, now, historyDays),
     [now, clampedHours, historyDays],
   );
+
+  useEffect(() => {
+    setVisibleRows(20);
+  }, [rangeKey, activeSubject?.id]);
 
   const measurements = useInfiniteQuery({
     queryKey: activeSubject
@@ -112,6 +117,8 @@ export function HistoryPage() {
     .map((item) => ({ measuredAt: item.measuredAt, heartRateBpm: item.heartRateBpm }));
 
   const isClamped = clampedHours < rangeOption.hours;
+  const visibleItems = items.slice(0, visibleRows);
+  const hasHiddenRows = items.length > visibleItems.length;
 
   return (
     <div className="stack">
@@ -181,6 +188,7 @@ export function HistoryPage() {
         />
       ) : (
         <>
+          <p className="chart-hint-mobile">Vuốt ngang biểu đồ để xem đủ khoảng thời gian.</p>
           <MeasurementChart
             points={chartPoints}
             gaps={gaps}
@@ -189,8 +197,8 @@ export function HistoryPage() {
 
           {coverage ? (
             <p className="metric-line">
-              Độ phủ: {coverage.percent}% ({coverage.observedCount}/{coverage.expectedCount} mẫu
-              dự kiến, mỗi {coverage.expectedIntervalSeconds}s) · {gaps.length} khoảng thiếu ·
+              Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận (mỗi{' '}
+              {coverage.expectedIntervalSeconds}s) · {gaps.length} khoảng thiếu ·
               {unsynced > 0 ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian` : ' không có mẫu lệch đồng hồ'}
             </p>
           ) : null}
@@ -207,10 +215,11 @@ export function HistoryPage() {
             </div>
           ) : null}
 
-          <div className="table-wrap" role="region" aria-label="Bảng dữ liệu đo" tabIndex={0}>
+          <div className="table-wrap table-wrap--history" role="region" aria-label="Bảng dữ liệu đo" tabIndex={0}>
             <table className="data-table">
               <caption>
-                Bảng dữ liệu đo — thay thế cho biểu đồ. {items.length} dòng đang hiển thị.
+                Bảng dữ liệu đo — thay thế cho biểu đồ. Đang hiển thị {visibleItems.length}/
+                {items.length} dòng.
               </caption>
               <thead>
                 <tr>
@@ -223,9 +232,9 @@ export function HistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
+                {visibleItems.map((item) => (
                   <tr key={`${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}`}>
-                    <td>{item.measuredAt ? formatDateTime(item.measuredAt) : 'Không rõ giờ đo'}</td>
+                    <td>{item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}</td>
                     <td>
                       {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
                         <strong>{item.heartRateBpm} bpm</strong>
@@ -253,6 +262,68 @@ export function HistoryPage() {
             </table>
           </div>
 
+          <ul className="measurement-cards" aria-label="Dữ liệu đo gần nhất">
+            {visibleItems.map((item) => (
+              <li
+                key={`card-${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}`}
+                className="measurement-card"
+              >
+                <div className="measurement-card__head">
+                  <p className="measurement-card__time">
+                    {item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}
+                  </p>
+                  {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}
+                  {item.measuredAt === null ? (
+                    <StatusPill tone="neutral">Chưa đồng bộ</StatusPill>
+                  ) : null}
+                </div>
+                <dl className="measurement-card__facts">
+                  <div>
+                    <dt>Nhịp tim</dt>
+                    <dd>
+                      {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
+                        <strong>{item.heartRateBpm} bpm</strong>
+                      ) : (
+                        '—'
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Chất lượng</dt>
+                    <dd>
+                      {HR_QUALITY_LABELS[item.heartRateQuality]}
+                      {item.isQuarantined ? ' · bị cách ly' : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Bước</dt>
+                    <dd>{item.stepsSinceBoot}</dd>
+                  </div>
+                  <div>
+                    <dt>Pin</dt>
+                    <dd>
+                      {item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          {hasHiddenRows ? (
+            <div className="history-load-more">
+              <Button variant="secondary" onClick={() => setVisibleRows((count) => count + 20)}>
+                Hiện thêm 20 dòng
+              </Button>
+              <Button variant="subtle" onClick={() => setVisibleRows(items.length)}>
+                Hiện tất cả {items.length} dòng
+              </Button>
+              <span className="field__hint">
+                Đang hiện {visibleItems.length}/{items.length} dòng
+              </span>
+            </div>
+          ) : null}
+
           {measurements.hasNextPage ? (
             <div>
               <Button
@@ -260,7 +331,7 @@ export function HistoryPage() {
                 onClick={() => void measurements.fetchNextPage()}
                 disabled={measurements.isFetchingNextPage}
               >
-                {measurements.isFetchingNextPage ? 'Đang tải…' : 'Tải thêm dữ liệu'}
+                {measurements.isFetchingNextPage ? 'Đang tải…' : 'Tải thêm từ máy chủ'}
               </Button>
             </div>
           ) : null}

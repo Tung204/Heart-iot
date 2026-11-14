@@ -90,7 +90,7 @@ export function InvitePage() {
           ) : invitation.isSuccess ? (
             <>
               <h1 id="invite-title" className="auth-card__title">
-                Lời mời tham gia An Nhiên
+                Lời mời theo dõi
               </h1>
               <p className="auth-card__intro">
                 {invitation.data.inviterName} mời bạn cùng theo dõi hồ sơ{' '}

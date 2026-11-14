@@ -68,29 +68,43 @@ export function SubjectSwitcher() {
     setActiveSubjectId(value === '' ? null : value);
   };
 
+  const selected = items.find((item) => item.id === effectiveSelected) ?? items[0];
+  const initial = selected?.displayName.trim().split(/\s+/).at(-1)?.charAt(0).toUpperCase() ?? '?';
+
   return (
     <div className="subject-switcher">
-      <label className="subject-switcher__label" htmlFor="subject-switch">
-        Hồ sơ đang xem
-      </label>
-      <select
-        id="subject-switch"
-        className="subject-switcher__select"
-        value={effectiveSelected ?? ''}
-        onChange={(event) => handleChange(event.target.value)}
-      >
-        {items.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.displayName}
-            {item.role === 'caregiver' ? ' (người thân)' : ''}
-          </option>
-        ))}
-      </select>
-      <div className="subject-switcher__foot">
-        <Link className="subject-switcher__manage" to="/app/subjects">
-          Quản lý hồ sơ và chia sẻ
-        </Link>
+      <div className="subject-switcher__identity">
+        <span className="subject-switcher__avatar" aria-hidden="true">
+          {initial}
+        </span>
+        <div className="subject-switcher__field">
+          <p className="subject-switcher__label" id="subject-switch-label">
+            Hồ sơ đang xem
+            {selected ? (
+              <span className="subject-switcher__role">
+                {' '}· {selected.role === 'owner' ? 'Chủ hồ sơ' : 'Người thân'}
+              </span>
+            ) : null}
+          </p>
+          <select
+            id="subject-switch"
+            className="subject-switcher__select"
+            aria-labelledby="subject-switch-label"
+            value={effectiveSelected ?? ''}
+            onChange={(event) => handleChange(event.target.value)}
+          >
+            {items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.displayName}
+                {item.role === 'caregiver' ? ' (người thân)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+      <Link className="subject-switcher__manage" to="/app/subjects">
+        Quản lý và chia sẻ
+      </Link>
     </div>
   );
 }

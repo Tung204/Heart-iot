@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'subtle' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'subtle' | 'danger' | 'danger-quiet';
 export type ButtonSize = 'sm' | 'md';
 
 interface ButtonOptions {

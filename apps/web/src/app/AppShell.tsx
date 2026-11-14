@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
@@ -12,6 +12,72 @@ import { getActiveSubjectId, setActiveSubjectId, useActiveSubject } from '../fea
 import { useSubjects } from '../features/subjects/useSubjects';
 import { SubjectSwitcher } from '../features/subjects/SubjectSwitcher';
 import { queryKeys } from '../lib/query';
+
+type NavIconName = 'home' | 'history' | 'alert' | 'device' | 'bell' | 'person' | 'more' | 'admin';
+
+function NavIcon({ name }: { name: NavIconName }) {
+  const paths: Record<NavIconName, ReactNode> = {
+    home: <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />,
+    history: (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5V12l3 2" />
+      </>
+    ),
+    alert: (
+      <>
+        <path d="M12 3.5 3.5 19h17z" />
+        <path d="M12 9v4.5M12 16.5v.1" />
+      </>
+    ),
+    device: (
+      <>
+        <rect x="7" y="5" width="10" height="14" rx="3" />
+        <path d="M9 2.5h6M9 21.5h6M12 9v2.5l1.5 1" />
+      </>
+    ),
+    bell: (
+      <>
+        <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z" />
+        <path d="M10 19a2 2 0 0 0 4 0" />
+      </>
+    ),
+    person: (
+      <>
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M5 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5" />
+      </>
+    ),
+    more: (
+      <>
+        <circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none" />
+        <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+        <circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none" />
+      </>
+    ),
+    admin: (
+      <>
+        <path d="M12 3 4.5 6v5c0 5 3 8 7.5 10 4.5-2 7.5-5 7.5-10V6z" />
+        <path d="m9 12 2 2 4-4" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      className="shell__nav-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
 
 /**
  * Khung ứng dụng /app:
@@ -80,40 +146,51 @@ export function AppShell() {
   const navItems = adminOnly ? (
     <>
       <NavLink to="/app/admin" className={navLinkClass}>
-        Quản trị
+        <NavIcon name="admin" />
+        <span>Quản trị</span>
       </NavLink>
     </>
   ) : (
     <>
       <NavLink to="/app" end className={navLinkClass}>
-        Tổng quan
+        <NavIcon name="home" />
+        <span>Tổng quan</span>
       </NavLink>
       <NavLink to="/app/history" className={navLinkClass}>
-        Lịch sử
+        <NavIcon name="history" />
+        <span>Lịch sử</span>
       </NavLink>
       <NavLink to="/app/alerts" className={navLinkClass}>
-        Cảnh báo
+        <NavIcon name="alert" />
+        <span>Cảnh báo</span>
       </NavLink>
-      <NavLink to="/app/devices" className={navLinkClass}>
-        Thiết bị
+      <NavLink to="/app/devices" className={({ isActive }) => `${navLinkClass({ isActive })} shell__nav-optional`}>
+        <NavIcon name="device" />
+        <span>Thiết bị</span>
       </NavLink>
-      <NavLink to="/app/notifications" className={navLinkClass}>
-        Thông báo
+      <NavLink to="/app/notifications" className={({ isActive }) => `${navLinkClass({ isActive })} shell__nav-optional`}>
+        <NavIcon name="bell" />
+        <span>Thông báo</span>
       </NavLink>
       <NavLink to="/app/subjects" className={navLinkClass}>
-        Hồ sơ
+        <NavIcon name="person" />
+        <span>Hồ sơ</span>
       </NavLink>
     </>
   );
 
-  const moreItems: { to: string; label: string }[] = [];
+  const moreItems: { to: string; label: string; mobileOnly?: boolean }[] = [];
+  if (!adminOnly) {
+    moreItems.push({ to: '/app/devices', label: 'Thiết bị', mobileOnly: true });
+    moreItems.push({ to: '/app/notifications', label: 'Thông báo', mobileOnly: true });
+  }
   if (hasAiPermission) moreItems.push({ to: '/app/assistant', label: 'Trợ lý' });
   if (hasTasksPermission) moreItems.push({ to: '/app/tasks', label: 'Công việc' });
   if (isStudioUser) moreItems.push({ to: '/app/studio', label: 'Studio' });
   if (isAdmin) moreItems.push({ to: '/app/admin', label: 'Quản trị' });
 
   const moreMenu =
-    moreItems.length > 0 ? (
+    moreItems.length > 0 && !adminOnly ? (
       <div className={`shell__more${moreOpen ? ' is-open' : ''}`}>
         <button
           type="button"
@@ -122,7 +199,8 @@ export function AppShell() {
           aria-haspopup="true"
           onClick={() => setMoreOpen((value) => !value)}
         >
-          Thêm
+          <NavIcon name="more" />
+          <span>Thêm</span>
         </button>
         {moreOpen ? (
           <div className="shell__more-menu">
@@ -130,7 +208,9 @@ export function AppShell() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={navLinkClass}
+                className={({ isActive }) =>
+                  `${navLinkClass({ isActive })}${item.mobileOnly ? ' shell__more-mobile' : ''}`
+                }
                 onClick={() => setMoreOpen(false)}
               >
                 {item.label}
@@ -184,14 +264,18 @@ export function AppShell() {
       <div className="shell__body">
         <header className="shell__topbar">
           <div className="shell__topbar-row">
-            <Link to="/app" className="brand">
-              An Nhiên
-            </Link>
+            <div className="shell__mobile-brand">
+              <Link to="/app" className="brand">
+                An Nhiên
+              </Link>
+              <span className="shell__mobile-demo">Bản demo</span>
+            </div>
             <div className="shell__topbar-actions">
               <TextSizeToggle />
               <Button
                 variant="subtle"
                 size="sm"
+                className="shell__topbar-logout"
                 onClick={handleLogout}
                 disabled={logout.isPending}
               >

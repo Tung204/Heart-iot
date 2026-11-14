@@ -143,7 +143,7 @@ describe('AdminPage', () => {
     const user = userEvent.setup();
 
     // Chuyển tab policy rồi đợi form nạp giá trị active.
-    await user.click(await screen.findByRole('button', { name: 'Policy thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
     expect(await screen.findByDisplayValue('15')).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)'));
@@ -194,7 +194,7 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Policy thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
     await screen.findByDisplayValue('15');
 
     await user.click(screen.getByRole('button', { name: 'Phát hành' }));
@@ -237,7 +237,7 @@ describe('AdminPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Audit' }));
     expect(await screen.findByText('admin.user.disable')).toBeInTheDocument();
     expect(screen.getByText('Thành công')).toBeInTheDocument();
-    await user.click(screen.getByText('Metadata'));
+    await user.click(screen.getByText('Chi tiết kỹ thuật'));
     expect(screen.getByText(/"reason": "Tài khoản spam"/)).toBeInTheDocument();
   });
 });

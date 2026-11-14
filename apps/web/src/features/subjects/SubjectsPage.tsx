@@ -27,12 +27,14 @@ export function SubjectsPage() {
   const subjects = useSubjects();
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const create = useMutation({
     mutationFn: (input: CreateSubjectInput) => createSubject(input),
     onSuccess: (created) => {
       setFormError(null);
+      setCreateOpen(false);
       void queryClient.invalidateQueries({ queryKey: queryKeys.subjects });
       // Chọn ngay hồ sơ vừa tạo để dashboard hiển thị.
       setActiveSubjectId(created.id);
@@ -87,7 +89,7 @@ export function SubjectsPage() {
         <>
           <section aria-labelledby="subject-list-heading">
             <h2 id="subject-list-heading" className="section-title">
-              Danh sách hồ sơ
+              Hồ sơ của bạn
             </h2>
             <ul className="subject-list">
               {items.map((item) => (
@@ -155,17 +157,37 @@ export function SubjectsPage() {
           </section>
 
           <section aria-labelledby="subject-create-heading">
-            <h2 id="subject-create-heading" className="section-title">
-              Tạo hồ sơ mới
-            </h2>
-            <Card>
-              {formError ? <Alert tone="error">{formError}</Alert> : null}
-              <SubjectForm
-                mode="create"
-                pending={create.isPending}
-                onSubmit={(values) => create.mutate(values)}
-              />
-            </Card>
+            <div className="section-heading-row">
+              <h2 id="subject-create-heading" className="section-title">
+                Thêm người cần theo dõi
+              </h2>
+              <Button
+                variant={createOpen ? 'subtle' : 'secondary'}
+                size="sm"
+                onClick={() => setCreateOpen((value) => !value)}
+                aria-expanded={createOpen}
+                aria-controls="subject-create-form"
+              >
+                {createOpen ? 'Đóng form' : 'Tạo hồ sơ mới'}
+              </Button>
+            </div>
+            {createOpen ? (
+              <div id="subject-create-form">
+                <Card>
+                  {formError ? <Alert tone="error">{formError}</Alert> : null}
+                  <SubjectForm
+                    mode="create"
+                    pending={create.isPending}
+                    onSubmit={(values) => create.mutate(values)}
+                  />
+                </Card>
+              </div>
+            ) : (
+              <p className="field__hint">
+                Mỗi hồ sơ cần một tên hiển thị; hệ thống tự dùng múi giờ mặc định của bạn. Bạn có
+                thể mời người thân sau khi tạo.
+              </p>
+            )}
           </section>
         </>
       )}

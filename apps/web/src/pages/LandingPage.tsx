@@ -38,21 +38,64 @@ export function LandingPage() {
       <main id="main" tabIndex={-1}>
         <section className="hero" aria-labelledby="hero-title">
           <div className="container hero__inner">
-            <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
-            <h1 id="hero-title" className="hero__title">
-              An Nhiên
-            </h1>
-            <p className="hero__lead">
-              Yên tâm hơn khi người thân ở một mình: theo dõi trạng thái hằng ngày và nhận cảnh
-              báo khi có dấu hiệu bất thường — ngay trên trình duyệt.
-            </p>
-            <div className="hero__actions">
-              <ButtonLink to="/login">Đăng nhập</ButtonLink>
-              <ButtonLink to="/register" variant="secondary">
-                Tạo tài khoản
-              </ButtonLink>
+            <div className="hero__copy">
+              <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
+              <h1 id="hero-title" className="hero__title">
+                Người thân ở nhà, mình vẫn an tâm
+              </h1>
+              <p className="hero__lead">
+                An Nhiên theo dõi nhịp tim, vận động và gửi cảnh báo khi có dấu hiệu bất thường —
+                để người thân biết tình hình mà không cần gọi hỏi liên tục.
+              </p>
+              <div className="hero__actions">
+                <ButtonLink to="/login">Đăng nhập</ButtonLink>
+                <ButtonLink to="/register" variant="secondary">
+                  Tạo tài khoản
+                </ButtonLink>
+              </div>
+              <p className="hero__note">
+                Miễn phí dùng thử trong bản demo. Không thay thế thiết bị y tế hoặc cấp cứu.
+              </p>
             </div>
-            <p className="hero__note">Miễn phí dùng thử trong bản demo.</p>
+            <div className="hero-preview" aria-hidden="true">
+              <div className="hero-preview__top">
+                <span className="hero-preview__brand">An Nhiên</span>
+                <span className="hero-preview__tag">Minh hoạ giao diện</span>
+              </div>
+              <div className="hero-preview__screen">
+                <p className="hero-preview__eyebrow">Đang theo dõi</p>
+                <p className="hero-preview__name">Bà Trần Thị An</p>
+                <svg
+                  className="hero-preview__wave"
+                  viewBox="0 0 260 70"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M0 45h28l8-18 9 34 9-25 8 9h30l8-14 10 28 8-20 7 6h35l9-22 9 37 8-24 7 9h30l8-12 9 23 8-18 7 7h25"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <ul className="hero-preview__rows">
+                  <li>
+                    <span className="hero-preview__dot" /> Nhịp tim và vận động
+                  </li>
+                  <li>
+                    <span className="hero-preview__dot" /> Trạng thái kết nối thiết bị
+                  </li>
+                  <li>
+                    <span className="hero-preview__dot hero-preview__dot--alert" /> Cảnh báo cho
+                    người thân
+                  </li>
+                </ul>
+              </div>
+              <p className="hero-preview__foot">
+                Hình minh hoạ · không phải số đo thật
+              </p>
+            </div>
           </div>
         </section>
 

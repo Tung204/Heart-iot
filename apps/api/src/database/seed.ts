@@ -153,7 +153,7 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
     .values({
       id: DEMO.deviceId,
       serial: DEMO.serial,
-      label: 'Vòng đeo tay demo của bà An',
+      label: 'Vòng đeo tay của bà An',
       credentialHash: sha256(DEMO.deviceKey),
       firmwareVersion: '0.0.0-sim',
       lastSeenAt: now,

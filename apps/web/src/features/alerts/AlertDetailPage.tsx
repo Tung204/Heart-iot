@@ -210,6 +210,7 @@ export function AlertDetailPage() {
 
       {isActionableState(alert.state) ? (
         <Card
+          className="alert-detail__action-card"
           title={alert.state === 'acknowledged' ? 'Đang có người hỗ trợ' : 'Cảnh báo cần hành động'}
         >
           {alert.acknowledgedBy ? (
@@ -232,7 +233,7 @@ export function AlertDetailPage() {
             ) : null}
             {canResolve ? (
               <Button variant="secondary" onClick={() => setResolveOpen((v) => !v)}>
-                {resolveOpen ? 'Ẩn form đóng' : 'Đóng cảnh báo'}
+                {resolveOpen ? 'Thu gọn' : 'Đóng cảnh báo'}
               </Button>
             ) : (
               <p className="field__hint">

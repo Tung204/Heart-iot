@@ -8,7 +8,10 @@ describe('LandingPage', () => {
   it('hiển thị tên sản phẩm, nhãn dữ liệu mô phỏng và CTA đăng nhập/đăng ký', async () => {
     renderApp('/', () => me401Response());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'An Nhiên' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Người thân ở nhà, mình vẫn an tâm' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('An Nhiên').length).toBeGreaterThan(0);
     expect(screen.getByText(/dữ liệu mô phỏng/i)).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Đăng nhập' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Tạo tài khoản' }).length).toBeGreaterThan(0);

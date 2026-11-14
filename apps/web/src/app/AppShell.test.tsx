@@ -111,10 +111,17 @@ describe('AppShell — menu điều hướng theo quyền', () => {
     expect(screen.queryByRole('link', { name: 'Quản trị' })).not.toBeInTheDocument();
   });
 
-  it('caregiver không có canViewAi/canReceiveAlerts → không có menu phụ "Thêm"', async () => {
+  it('caregiver không có canViewAi/canReceiveAlerts → menu Thêm chỉ còn Thiết bị/Thông báo', async () => {
     renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
+    const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
-    expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument();
+    await openMoreMenu(user);
+
+    expect(screen.getAllByRole('link', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Thông báo' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('link', { name: 'Trợ lý' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Công việc' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Studio' })).not.toBeInTheDocument();
   });
 });

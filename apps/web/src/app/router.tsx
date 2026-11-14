@@ -17,9 +17,9 @@ import { StudioViewDetailPage } from '../features/studio/StudioViewDetailPage';
 import { StudioViewsPage } from '../features/studio/StudioViewsPage';
 import { SubjectsPage } from '../features/subjects/SubjectsPage';
 import { LandingPage } from '../pages/LandingPage';
+import { AppNotFoundPage } from '../pages/AppNotFoundPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { AppShell } from './AppShell';
-import { ComingSoonPage } from './ComingSoonPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 /**
@@ -54,7 +54,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'studio', element: <StudioViewsPage /> },
           { path: 'studio/:id', element: <StudioViewDetailPage /> },
           { path: 'studio/:id/data', element: <StudioViewDataPage /> },
-          { path: '*', element: <ComingSoonPage /> },
+          { path: '*', element: <AppNotFoundPage /> },
         ],
       },
     ],

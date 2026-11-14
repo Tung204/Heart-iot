@@ -110,15 +110,15 @@ export function StudioViewsPage() {
       <header>
         <h1 className="page-title">Studio</h1>
         <p className="page-lead">
-          Soạn view workspace theo chu trình <strong>nháp → xem trước → công bố</strong>.
-          Preview trước khi áp dụng; dữ liệu mẫu luôn có nhãn.
+          Tạo bố cục màn hình theo quy trình <strong>nháp → xem trước → công bố</strong>.
+          Luôn xem trước trước khi áp dụng; dữ liệu mẫu có nhãn rõ ràng.
         </p>
       </header>
 
       <section aria-labelledby="view-list-heading">
         <div className="studio-actions-row">
           <h2 id="view-list-heading" className="section-title">
-            Workspace views
+            View đã tạo
           </h2>
           <Button variant="secondary" onClick={() => setCreating((value) => !value)}>
             {creating ? 'Đóng form tạo view' : 'Tạo view'}
@@ -128,12 +128,12 @@ export function StudioViewsPage() {
         {creating ? (
           <Card
             title="Tạo view mới"
-            description="Config ban đầu là một widget chỉ số nhịp tim — có thể sửa trong trang chi tiết sau khi tạo."
+            description="Cấu hình ban đầu là một ô chỉ số nhịp tim — có thể sửa trong trang chi tiết sau khi tạo."
           >
             <form className="studio-create-form" onSubmit={handleCreate} noValidate>
               <TextField
                 id="view-key"
-                label="Key"
+                label="Key định danh"
                 required
                 value={key}
                 error={fieldErrors.fields.key}
@@ -154,7 +154,7 @@ export function StudioViewsPage() {
               />
               <div className="field">
                 <label className="field__label" htmlFor="view-scope">
-                  Phạm vi (scope)
+                  Phạm vi
                 </label>
                 <select
                   id="view-scope"
@@ -232,7 +232,7 @@ export function StudioViewsPage() {
         ) : (views.data?.items ?? []).length === 0 ? (
           <EmptyState
             title="Chưa có view nào"
-            description="Tạo view đầu tiên để bắt đầu soạn giao diện workspace."
+            description="Tạo view đầu tiên để bắt đầu bố cục màn hình."
           />
         ) : (
           <ul className="studio-view-list">

@@ -60,3 +60,19 @@
 Nút hủy/SOS trên thiết bị cần thao tác dễ phân biệt. Giao diện dùng chữ rõ, nhãn có nghĩa, không dùng màu là tín hiệu duy nhất, điều hướng bàn phím và bố cục thích ứng. Cần thử nhiệm vụ thực tế để kết luận phù hợp với người cao tuổi; không coi thiết kế đẹp là bằng chứng sử dụng tốt.
 
 Thông báo ở màn hình khóa chỉ chứa nội dung tối thiểu theo lựa chọn chia sẻ, không đưa toàn bộ chỉ số sức khỏe. Nếu thêm Web Push, xin quyền tại thời điểm người dùng chọn nhận thông báo và kiểm chính nền tảng mục tiêu. Chưa có bằng chứng app đóng vẫn nhận được thông báo.
+
+## Hiện trạng giao diện v1 (15/11/2026)
+
+Phần giao diện đã được triển khai và kiểm thủ công bằng Playwright, không chỉ dựa vào test tự động:
+
+- Tổng quan ưu tiên **cảnh báo đang mở** trước số liệu; sau đó là tổng hợp ngày và trạng thái thiết bị.
+  Hồ sơ đang xem dùng thanh ngữ cảnh gọn, có vai trò (chủ hồ sơ/người thân) và lối tắt quản lý chia sẻ.
+- Lịch sử hiển thị bảng 20 dòng kèm tải thêm trên máy tính, thẻ dữ liệu trên điện thoại; biểu đồ cuộn ngang,
+  có nhãn ngày khi khoảng xem dài hơn 12 giờ và chú giải khoảng thiếu dữ liệu bằng chữ.
+- Landing, đăng nhập và đăng ký nêu rõ phạm vi demo; đăng nhập có lối điền nhanh tài khoản demo theo vai trò.
+  Trang lời mời, chia sẻ, thiết bị, thông báo, trợ lý, công việc, Studio và Quản trị đều có trạng thái trống/lỗi/quyền.
+- Điều hướng di động dùng thanh dưới với 5 mục chính; mục phụ nằm trong “Thêm”. Chữ lớn, vùng chạm rộng,
+  trạng thái không chỉ dựa vào màu và có liên kết bỏ qua nội dung.
+- Đã kiểm ở 1280×900, 390×844, 360×740 và chế độ chữ lớn; không có tràn ngang. Đây là kiểm giao diện kỹ thuật,
+  **chưa thay thế** kiểm khả dụng với người cao tuổi/người chăm sóc thật.
+

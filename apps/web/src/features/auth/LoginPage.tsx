@@ -11,6 +11,12 @@ import { loginSchema } from './api';
 import { useLogin, useMe } from './useAuth';
 import { AuthLayout } from './AuthLayout';
 
+const DEMO_ACCOUNTS = [
+  { role: 'Chủ hồ sơ', email: 'ba-an@demo.annhien.local', password: 'demo-an-nhien-2026' },
+  { role: 'Người thân', email: 'minh@demo.annhien.local', password: 'demo-an-nhien-2026' },
+  { role: 'Quản trị', email: 'admin@demo.annhien.local', password: 'demo-admin-2026' },
+] as const;
+
 export function LoginPage() {
   const me = useMe();
   const loginMutation = useLogin();
@@ -99,6 +105,31 @@ export function LoginPage() {
           {loginMutation.isPending ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </Button>
       </form>
+      <details className="demo-accounts">
+        <summary>Tài khoản demo có sẵn</summary>
+        <p className="field__hint">
+          Chọn vai trò để điền nhanh email và mật khẩu demo. Dữ liệu trong bản demo là dữ liệu
+          mô phỏng.
+        </p>
+        <div className="demo-accounts__list">
+          {DEMO_ACCOUNTS.map((account) => (
+            <button
+              key={account.email}
+              type="button"
+              className="demo-account"
+              onClick={() => {
+                setEmail(account.email);
+                setPassword(account.password);
+                setFieldErrors({});
+                setFormError(null);
+              }}
+            >
+              <span className="demo-account__role">{account.role}</span>
+              <span className="demo-account__email">{account.email}</span>
+            </button>
+          ))}
+        </div>
+      </details>
     </AuthLayout>
   );
 }

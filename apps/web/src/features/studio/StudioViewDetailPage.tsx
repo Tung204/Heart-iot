@@ -325,7 +325,7 @@ export function StudioViewDetailPage() {
         </header>
         <Card title="Thông tin view">
           <p>
-            Key <strong>{viewData.key}</strong> · {VIEW_STATUS_LABELS[viewData.status]}
+            Mã view <code>{viewData.key}</code> · {VIEW_STATUS_LABELS[viewData.status]}
           </p>
           {viewData.currentPublication ? (
             <div>
@@ -346,7 +346,7 @@ export function StudioViewDetailPage() {
       <header>
         <h1 className="page-title">{viewData.name}</h1>
         <p className="page-lead">
-          Key <strong>{viewData.key}</strong>
+          Mã view <code>{viewData.key}</code>
           <StatusPill tone="neutral" className="studio-datamode">
             {SCOPE_LABELS[viewData.scope]}
           </StatusPill>
@@ -355,8 +355,7 @@ export function StudioViewDetailPage() {
           </StatusPill>
           {viewData.currentPublication ? (
             <span className="studio-datamode">
-              Đang công bố r{viewData.currentPublication.revision} (
-              {shortDigest(viewData.currentPublication.digest)})
+              Đang công bố bản r{viewData.currentPublication.revision}
             </span>
           ) : null}
         </p>
@@ -381,8 +380,7 @@ export function StudioViewDetailPage() {
       <section aria-labelledby="draft-heading">
         <div className="studio-actions-row">
           <h2 id="draft-heading" className="section-title">
-            Bản nháp r{viewData.draftRevision}
-            {viewData.draftDigest ? ` · digest ${shortDigest(viewData.draftDigest)}` : ''}
+            Bản nháp · lần sửa r{viewData.draftRevision}
           </h2>
           <ButtonLink to={`/app/studio/${id}/data`} variant="subtle" size="sm">
             Xem dữ liệu đã công bố
@@ -412,8 +410,8 @@ export function StudioViewDetailPage() {
                   setDraft((current) => (current ? { ...current, layout: event.target.value as 'stack' | 'grid' } : current))
                 }
               >
-                <option value="stack">Xếp dọc (stack)</option>
-                <option value="grid">Lưới (grid)</option>
+                <option value="stack">Một cột</option>
+                <option value="grid">Lưới nhiều cột</option>
               </select>
               {configErrors.layout ? (
                 <p className="field__error" role="alert">
@@ -462,7 +460,7 @@ export function StudioViewDetailPage() {
                   <div className="studio-widget-editor__fields">
                     <TextField
                       id={`widget-${index}-id`}
-                      label="Id widget"
+                      label="Mã widget"
                       required
                       value={widget.id}
                       error={errors?.id}
@@ -501,7 +499,7 @@ export function StudioViewDetailPage() {
                     />
                     <div className="field">
                       <label className="field__label" htmlFor={`widget-${index}-span`}>
-                        Độ rộng (span)
+                        Độ rộng
                       </label>
                       <select
                         id={`widget-${index}-span`}
@@ -575,7 +573,7 @@ export function StudioViewDetailPage() {
         <h2 id="preview-heading" className="section-title">
           Xem trước
         </h2>
-        <Card description="Preview chỉ đọc — không ghi dữ liệu nghiệp vụ. Mặc định dùng dữ liệu mẫu có nhãn; có thể chọn hồ sơ mình có quyền để xem dữ liệu thật.">
+        <Card description="Xem trước chỉ đọc — không ghi dữ liệu nghiệp vụ. Mặc định dùng dữ liệu mẫu có nhãn; có thể chọn hồ sơ mình có quyền để xem dữ liệu thật.">
           <div className="studio-actions-row">
             <div className="field">
               <label className="field__label" htmlFor="preview-subject">
@@ -640,7 +638,7 @@ export function StudioViewDetailPage() {
         <h2 id="publish-heading" className="section-title">
           Công bố
         </h2>
-        <Card description="Công bố kích hoạt bản nháp hiện tại thành bản mới (compare-and-set theo draftRevision + digest + baseRevision). Bản đang hoạt động cũ sẽ bị thay thế, lịch sử vẫn giữ.">
+        <Card description="Công bố sẽ thay bản đang chạy bằng bản nháp hiện tại. Bản cũ vẫn được giữ trong lịch sử để đối chiếu hoặc quay lại.">
           <TextField
             id="publish-note"
             label="Ghi chú (tùy chọn)"

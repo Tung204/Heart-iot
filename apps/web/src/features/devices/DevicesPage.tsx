@@ -46,6 +46,7 @@ export function DevicesPage() {
     general: [],
   });
   const [releasingId, setReleasingId] = useState<string | null>(null);
+  const [claimOpen, setClaimOpen] = useState(false);
 
   const devices = useQuery({
     queryKey: activeSubject ? queryKeys.subjectDevices(activeSubject.id) : ['subjects', 'none', 'devices'],
@@ -61,6 +62,7 @@ export function DevicesPage() {
     },
     onSuccess: () => {
       setClaimCode('');
+      setClaimOpen(false);
       setFieldErrors({ fields: {}, general: [] });
       if (activeSubject) {
         void queryClient.invalidateQueries({ queryKey: queryKeys.subjectDevices(activeSubject.id) });
@@ -109,6 +111,9 @@ export function DevicesPage() {
     setFieldErrors({ fields: {}, general: [] });
     claim.mutate();
   };
+
+  const hasDevices = (devices.data?.items.length ?? 0) > 0;
+  const showClaimForm = claimOpen || !hasDevices;
 
   return (
     <div className="stack">
@@ -210,9 +215,22 @@ export function DevicesPage() {
       </section>
 
       <section aria-labelledby="claim-heading">
-        <h2 id="claim-heading" className="section-title">
-          Gắn thiết bị mới
-        </h2>
+        <div className="section-heading-row">
+          <h2 id="claim-heading" className="section-title">
+            Gắn thiết bị mới
+          </h2>
+          {hasDevices && !claimOpen ? (
+            <Button variant="secondary" size="sm" onClick={() => setClaimOpen(true)}>
+              Nhập mã gắn thiết bị
+            </Button>
+          ) : null}
+        </div>
+        {!showClaimForm ? (
+          <p className="field__hint">
+            Mỗi hồ sơ có thể gắn một thiết bị đeo. Tháo gắn thiết bị cũ trước khi gắn thiết bị
+            khác.
+          </p>
+        ) : (
         <Card description="Nhập mã gắn thiết bị (9 ký tự, không dùng số 0/1) từ thiết bị đeo. Mã chỉ dùng được một lần và hết hạn sau 15 phút.">
           <form className="claim-form" onSubmit={handleClaim} noValidate>
             <TextField
@@ -242,6 +260,7 @@ export function DevicesPage() {
             </div>
           </form>
         </Card>
+        )}
       </section>
     </div>
   );

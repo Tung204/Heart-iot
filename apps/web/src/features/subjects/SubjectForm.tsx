@@ -82,17 +82,33 @@ export function SubjectForm({
         autoComplete="off"
         maxLength={120}
       />
-      <TextField
-        id="subject-timezone"
-        label="Múi giờ"
-        required
-        value={timezone}
-        error={errors.fields.timezone}
-        hint="Múi giờ dùng để tính ngày tổng hợp. Mặc định Asia/Ho_Chi_Minh."
-        onChange={(event) => setTimezone(event.target.value)}
-        autoComplete="off"
-        maxLength={64}
-      />
+      <div className="field">
+        <label className="field__label" htmlFor="subject-timezone">
+          Múi giờ <span className="field__required" aria-hidden="true"> *</span>
+        </label>
+        <p className="field__hint">Dùng để tính ngày tổng hợp. Mặc định theo Việt Nam.</p>
+        <select
+          id="subject-timezone"
+          className={`field__input${errors.fields.timezone ? ' field__input--error' : ''}`}
+          value={timezone}
+          aria-invalid={errors.fields.timezone ? true : undefined}
+          onChange={(event) => setTimezone(event.target.value)}
+        >
+          {['Asia/Ho_Chi_Minh', 'Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo', 'UTC'].includes(
+            timezone,
+          ) ? null : <option value={timezone}>{timezone}</option>}
+          <option value="Asia/Ho_Chi_Minh">Việt Nam — Asia/Ho_Chi_Minh</option>
+          <option value="Asia/Bangkok">Thái Lan — Asia/Bangkok</option>
+          <option value="Asia/Singapore">Singapore — Asia/Singapore</option>
+          <option value="Asia/Tokyo">Nhật Bản — Asia/Tokyo</option>
+          <option value="UTC">Giờ quốc tế — UTC</option>
+        </select>
+        {errors.fields.timezone ? (
+          <p className="field__error" role="alert">
+            {errors.fields.timezone}
+          </p>
+        ) : null}
+      </div>
       {errors.general.length > 0 ? (
         <p className="subject-form__error" role="alert">
           {errors.general.join(' ')}

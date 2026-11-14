@@ -14,6 +14,32 @@ export function formatDateTime(iso: string): string {
   }).format(date);
 }
 
+
+/** Ngày dạng 14/11/2026 — dùng trong bảng để không phải xuống dòng. */
+export function formatShortDate(iso: string): string {
+  const date = toDate(iso);
+  if (!date) return iso;
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+}
+
+/** Ngày + giờ ngắn (14/11 04:56) cho bảng dữ liệu dày đặc. */
+export function formatCompactDateTime(iso: string): string {
+  const date = toDate(iso);
+  if (!date) return iso;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const time = new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+  return `${day}/${month} ${time}`;
+}
+
 export function formatDate(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;

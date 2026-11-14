@@ -14,7 +14,7 @@ export function TextSizeToggle() {
       <span className="text-size-toggle__icon" aria-hidden="true">
         Aa
       </span>
-      {large ? 'Tắt chữ lớn' : 'Bật chữ lớn'}
+      <span className="text-size-toggle__label">{large ? 'Tắt chữ lớn' : 'Bật chữ lớn'}</span>
     </button>
   );
 }

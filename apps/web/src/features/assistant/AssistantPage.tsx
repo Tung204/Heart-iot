@@ -10,7 +10,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
-import { formatDateTime } from '../../lib/format';
+import { formatDateTime, formatShortDate } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { useActiveSubject } from '../subjects/selection';
@@ -50,6 +50,32 @@ function SourcesList({ sources }: { sources: AssistantSummary['sources'] }) {
 /** Disclaimer bắt buộc — mọi bản tóm tắt/câu trả lời đều hiển thị cùng một ranh giới. */
 function Disclaimer() {
   return <p className="ai-disclaimer">{ASSISTANT_DISCLAIMER}</p>;
+}
+
+/** Đổi ISO trong câu do backend sinh sang định dạng người đọc, không đổi nội dung số liệu. */
+function humanizeDates(text: string): string {
+  return text
+    .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z/g, (iso) => formatDateTime(iso))
+    .replace(
+      /(\d{4})-(\d{2})-(\d{2})\s*[–-]\s*(\d{4})-(\d{2})-(\d{2})/g,
+      (_match, y1, m1, d1, y2, m2, d2) => `${d1}/${m1}/${y1} – ${d2}/${m2}/${y2}`,
+    )
+    .replace(/(\d{4})-(\d{2})-(\d{2})/g, (_match, y, m, d) => `${d}/${m}/${y}`);
+}
+
+type SummaryFact = AssistantSummary['sections'][number]['facts'][number];
+
+function findFact(summary: AssistantSummary, labels: string[]): SummaryFact | undefined {
+  for (const section of summary.sections) {
+    const fact = section.facts.find((item) => labels.includes(item.label));
+    if (fact) return fact;
+  }
+  return undefined;
+}
+
+function factText(fact: SummaryFact | undefined): string {
+  if (!fact) return '—';
+  return `${String(fact.value)}${fact.unit ? ` ${fact.unit}` : ''}`;
 }
 
 function AnswerView({ answer }: { answer: AssistantAnswer }) {
@@ -207,15 +233,23 @@ export function AssistantPage() {
             onRetry={() => void summary.refetch()}
           />
         ) : summaryData ? (
-          <Card
-            description={`Khoảng ${formatDateTime(summaryData.periodStart)} – ${formatDateTime(summaryData.periodEnd)} · tạo lúc ${formatDateTime(summaryData.generatedAt)}`}
-          >
+          <Card>
             <div className="ai-summary">
-              <div className="ai-summary__meta">
-                <ProviderBadge status={summaryData.status} provider={summaryData.provider} />
-                {summaryData.model ? (
-                  <span className="ai-answer__model">mô hình {summaryData.model}</span>
-                ) : null}
+              <div className="ai-summary__top">
+                <div>
+                  <p className="ai-summary__period">
+                    {formatShortDate(summaryData.periodStart)} – {formatShortDate(summaryData.periodEnd)}
+                  </p>
+                  <p className="ai-summary__stamp">
+                    Tạo lúc {formatDateTime(summaryData.generatedAt)} · 7 ngày gần nhất
+                  </p>
+                </div>
+                <div className="ai-summary__meta">
+                  <ProviderBadge status={summaryData.status} provider={summaryData.provider} />
+                  {summaryData.model ? (
+                    <span className="ai-answer__model">mô hình {summaryData.model}</span>
+                  ) : null}
+                </div>
               </div>
               {summaryData.status === 'degraded' && summaryData.degradedReason ? (
                 <Alert tone="warning" title="Đang dùng bản theo mẫu">
@@ -227,30 +261,78 @@ export function AssistantPage() {
                   Hồ sơ chưa có mẫu đo trong khoảng thời gian này — trợ lý không bịa số liệu.
                 </Alert>
               ) : null}
-              <p className="ai-summary__headline">{summaryData.headline}</p>
-              {summaryData.sections.map((section) => (
-                <div key={`${section.kind}-${section.title}`} className="ai-section">
-                  <h3 className="ai-section__title">{section.title}</h3>
-                  <p className="ai-section__body">{section.body}</p>
-                  {section.facts.length > 0 ? (
-                    <dl className="ai-facts">
-                      {section.facts.map((fact, index) => (
-                        <div key={`${fact.label}-${index}`}>
-                          <dt>{fact.label}</dt>
-                          <dd>
-                            {String(fact.value)}
-                            {fact.unit ? ` ${fact.unit}` : ''}
-                            {fact.sourceRef ? (
-                              <span className="ai-facts__ref"> nguồn {fact.sourceRef}</span>
-                            ) : null}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  ) : null}
+              <div className="ai-stat-grid">
+                <div className="ai-stat">
+                  <p className="ai-stat__label">Nhịp tim trung bình</p>
+                  <p className="ai-stat__value">
+                    {factText(findFact(summaryData, ['Nhịp tim trung bình', 'Trung bình']))}
+                  </p>
                 </div>
-              ))}
-              <SourcesList sources={summaryData.sources} />
+                <div className="ai-stat">
+                  <p className="ai-stat__label">Mẫu đo</p>
+                  <p className="ai-stat__value">
+                    {factText(findFact(summaryData, ['Số mẫu đo', 'Số mẫu']))}
+                  </p>
+                </div>
+                <div className="ai-stat">
+                  <p className="ai-stat__label">Cảnh báo đang mở</p>
+                  <p className="ai-stat__value">
+                    {factText(findFact(summaryData, ['Cảnh báo đang mở']))}
+                  </p>
+                </div>
+                <div className="ai-stat">
+                  <p className="ai-stat__label">Pin gần nhất</p>
+                  <p className="ai-stat__value">
+                    {factText(findFact(summaryData, ['Pin mẫu gần nhất', 'Pin gần nhất']))}
+                  </p>
+                </div>
+              </div>
+              <p className="ai-summary__headline">
+                {humanizeDates(summaryData.headline).replace(/^Dữ liệu theo dõi .*?:\s*/i, '')}
+              </p>
+              <div className="ai-insights">
+                {summaryData.sections
+                  .filter((section) => section.kind !== 'note')
+                  .map((section) => (
+                    <div key={`${section.kind}-${section.title}`} className="ai-insight">
+                      <h3 className="ai-insight__title">{section.title}</h3>
+                      <p className="ai-insight__body">{humanizeDates(section.body)}</p>
+                    </div>
+                  ))}
+              </div>
+              <details className="ai-details">
+                <summary>
+                  Chi tiết số liệu, nguồn và cách tổng hợp
+                </summary>
+                <div className="ai-facts">
+                  {summaryData.sections
+                    .filter((section) => section.facts.length > 0)
+                    .map((section) => (
+                      <div key={`facts-${section.kind}`} className="ai-facts__group">
+                        <h4>{section.title}</h4>
+                        <dl>
+                          {section.facts.map((fact, index) => (
+                            <div key={`${fact.label}-${index}`}>
+                              <dt>{fact.label}</dt>
+                              <dd>
+                                {String(fact.value)}
+                                {fact.unit ? ` ${fact.unit}` : ''}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    ))}
+                </div>
+                <SourcesList sources={summaryData.sources} />
+                {summaryData.sections.find((section) => section.kind === 'note') ? (
+                  <p className="ai-details__note">
+                    {humanizeDates(
+                      summaryData.sections.find((section) => section.kind === 'note')?.body ?? '',
+                    )}
+                  </p>
+                ) : null}
+              </details>
               <Disclaimer />
             </div>
           </Card>
@@ -262,6 +344,22 @@ export function AssistantPage() {
           Hỏi về số liệu theo dõi
         </h2>
         <Card description="Câu hỏi chỉ xoay quanh số liệu đo đã được kiểm quyền. Câu hỏi chẩn đoán, kê đơn hoặc dự đoán nguy cơ sẽ bị từ chối.">
+          <div className="ai-suggestions" aria-label="Gợi ý câu hỏi">
+            {[
+              'Tuần này nhịp tim trung bình thế nào?',
+              'Có cảnh báo nào đang mở không?',
+              'Pin thiết bị gần nhất còn bao nhiêu?',
+            ].map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className="ai-suggestion"
+                onClick={() => setQuestion(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
           <form className="ai-ask-form" onSubmit={handleAsk} noValidate>
             <div className="field">
               <label className="field__label" htmlFor="assistant-question">

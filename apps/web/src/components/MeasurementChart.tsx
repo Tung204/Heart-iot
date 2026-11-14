@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { MeasurementGap } from '@annhien/contracts/measurements';
-import { formatTime } from '../lib/format';
+import { formatCompactDateTime, formatDate, formatTime } from '../lib/format';
 
 export interface ChartPoint {
   measuredAt: string;
@@ -42,6 +42,7 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
   const rangeStart = new Date(range.from).getTime();
   const rangeEnd = new Date(range.to).getTime();
   const spanMs = Math.max(1, rangeEnd - rangeStart);
+  const showDateOnAxis = spanMs > 12 * 3600 * 1000;
 
   const xFor = (iso: string): number => {
     const t = new Date(iso).getTime();
@@ -56,6 +57,10 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
   const linePoints = points
     .map((p) => `${xFor(p.measuredAt).toFixed(1)},${yFor(p.heartRateBpm).toFixed(1)}`)
     .join(' ');
+  const areaPoints =
+    points.length > 1
+      ? `${MARGIN.left},${MARGIN.top + plotHeight} ${linePoints} ${WIDTH - MARGIN.right},${MARGIN.top + plotHeight}`
+      : '';
 
   const yTicks = [bounds.min, Math.round((bounds.min + bounds.max) / 2), bounds.max];
   const xTicks: Array<{ t: number; iso: string; anchor: 'start' | 'middle' | 'end' }> = [
@@ -78,6 +83,7 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
 
   return (
     <figure className="chart">
+      <div className="chart__scroll">
       <svg
         className="chart__svg"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -134,27 +140,30 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
             textAnchor={tick.anchor}
             className="chart__tick"
           >
-            {formatTime(tick.iso)}
+            {showDateOnAxis ? formatCompactDateTime(tick.iso) : formatTime(tick.iso)}
           </text>
         ))}
 
         {/* Đường + điểm dữ liệu */}
+        {areaPoints ? <polygon points={areaPoints} className="chart__area" /> : null}
         {points.length > 1 ? (
           <polyline points={linePoints} fill="none" className="chart__line" />
         ) : null}
-        {points.map((point) => (
-          <circle
-            key={point.measuredAt}
-            cx={xFor(point.measuredAt)}
-            cy={yFor(point.heartRateBpm)}
-            r={points.length > 40 ? 2 : 3}
-            className="chart__dot"
-          >
-            <title>
-              {formatTime(point.measuredAt)}: {point.heartRateBpm} nhịp/phút
-            </title>
-          </circle>
-        ))}
+        {points.length <= 40
+          ? points.map((point) => (
+              <circle
+                key={point.measuredAt}
+                cx={xFor(point.measuredAt)}
+                cy={yFor(point.heartRateBpm)}
+                r={3}
+                className="chart__dot"
+              >
+                <title>
+                  {formatCompactDateTime(point.measuredAt)}: {point.heartRateBpm} nhịp/phút
+                </title>
+              </circle>
+            ))
+          : null}
 
         {points.length === 0 ? (
           <text
@@ -167,10 +176,15 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
           </text>
         ) : null}
       </svg>
+      </div>
       <figcaption className="chart__caption">
-        {gaps.length > 0
-          ? `${gaps.length} khoảng thiếu dữ liệu (ô nền tô đậm trong biểu đồ). Bảng dữ liệu bên dưới liệt kê từng mẫu.`
-          : 'Bảng dữ liệu bên dưới liệt kê từng mẫu đo.'}
+        <span>
+          {formatDate(range.from)} – {formatDate(range.to)}
+          {gaps.length > 0
+            ? ` · ${gaps.length} khoảng thiếu dữ liệu (ô nền tô đậm)`
+            : ''}
+          . Bảng dữ liệu bên dưới liệt kê từng mẫu.
+        </span>
       </figcaption>
     </figure>
   );

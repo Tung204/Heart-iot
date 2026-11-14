@@ -155,12 +155,12 @@ export function TasksPage() {
       ) : null}
       {closeNotice ? <Alert tone="success">{closeNotice}</Alert> : null}
 
-      <div className="task-filters" role="group" aria-label="Lọc theo trạng thái">
+      <div className="segmented" role="group" aria-label="Lọc theo trạng thái">
         {FILTERS.map((option) => (
-          <Button
+          <button
             key={option.value}
-            variant={filter === option.value ? 'primary' : 'subtle'}
-            size="sm"
+            type="button"
+            className={`segmented__item${filter === option.value ? ' is-active' : ''}`}
             aria-pressed={filter === option.value}
             onClick={() => {
               setFilter(option.value);
@@ -170,7 +170,7 @@ export function TasksPage() {
             }}
           >
             {option.label}
-          </Button>
+          </button>
         ))}
       </div>
 
@@ -205,9 +205,9 @@ export function TasksPage() {
                     <StatusPill tone={STATUS_TONES[task.status]}>{STATUS_LABELS[task.status]}</StatusPill>
                   </p>
                   <p className="task-card__meta">
-                    Ưu tiên {task.priority}/100
+                    Điểm ưu tiên {task.priority}/100
                     {subjectName ? ` · ${subjectName}` : ' · không gắn hồ sơ'}
-                    {' · '}thiết bị {task.deviceId.slice(0, 8)}
+                    {' · '}thiết bị #{task.deviceId.slice(0, 8)}
                     {task.dueAt ? ` · hạn ${formatDateTime(task.dueAt)}` : ' · không có hạn'}
                   </p>
                   {task.notes ? <p className="task-card__notes">{task.notes}</p> : null}

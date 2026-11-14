@@ -4,7 +4,10 @@ import { expect, test } from '@playwright/test';
 // Chạy: pnpm --filter @annhien/web test:e2e (cần dev server + API theo docs/14).
 test('landing hiển thị tên sản phẩm và nhãn demo', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1, name: 'An Nhiên' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Người thân ở nhà/ }),
+  ).toBeVisible();
+  await expect(page.getByText('An Nhiên', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/dữ liệu mô phỏng/i).first()).toBeVisible();
 });
 
