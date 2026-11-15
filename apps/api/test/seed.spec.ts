@@ -1,7 +1,7 @@
 import { count, eq } from 'drizzle-orm';
 import { createTestApp, TEST_ORIGIN, type TestContext } from './test-app';
 import { DEMO, seedDemo } from '../src/database/seed';
-import { incidents, maintenanceTasks, notificationOutbox, subjects, telemetry, users } from '../src/database/schema';
+import { emergencyContacts, incidents, maintenanceTasks, notificationOutbox, subjects, telemetry, users } from '../src/database/schema';
 import request from 'supertest';
 
 describe('Seed demo tổng hợp', () => {
@@ -27,6 +27,7 @@ describe('Seed demo tổng hợp', () => {
     const [incidentCount] = await ctx.db.select({ value: count() }).from(incidents);
     const [taskCount] = await ctx.db.select({ value: count() }).from(maintenanceTasks);
     const [outboxCount] = await ctx.db.select({ value: count() }).from(notificationOutbox);
+    const [contactCount] = await ctx.db.select({ value: count() }).from(emergencyContacts);
 
     expect(userCount?.value).toBe(3);
     expect(subjectCount?.value).toBe(2);
@@ -34,6 +35,7 @@ describe('Seed demo tổng hợp', () => {
     expect(incidentCount?.value).toBe(3);
     expect(taskCount?.value).toBe(2);
     expect(outboxCount?.value).toBe(2);
+    expect(contactCount?.value).toBe(1);
   });
 
   it('tài khoản demo đăng nhập được và thấy hồ sơ được chia sẻ', async () => {

@@ -7,6 +7,7 @@ import {
   careLinks,
   deviceAssignments,
   devices,
+  emergencyContacts,
   incidentEvents,
   incidents,
   maintenanceTasks,
@@ -145,6 +146,19 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
       status: 'active',
       sharedFrom: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
       acceptedAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000),
+    })
+    .onConflictDoNothing();
+
+  await db
+    .insert(emergencyContacts)
+    .values({
+      id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      subjectId: DEMO.subjectAn.id,
+      name: 'Người thân (demo)',
+      relationship: 'Con trai',
+      phone: '0900000000',
+      isPrimary: true,
+      createdByUserId: DEMO.owner.id,
     })
     .onConflictDoNothing();
 
