@@ -145,7 +145,7 @@ export function AlertsPage() {
           description={
             stateFilter === 'open'
               ? 'Khi thiết bị phát hiện nghi ngã hoặc yêu cầu trợ giúp, cảnh báo sẽ xuất hiện tại đây.'
-              : 'Các cảnh báo đã đóng/hủy sẽ được liệt kê tại đây khi có.'
+              : 'Các cảnh báo đã đóng/hủy hoặc chưa xác định do thiếu kết quả cuối sẽ được liệt kê tại đây khi có.'
           }
         />
       ) : (
@@ -176,6 +176,7 @@ export function AlertsPage() {
                   <p className="alert-row__meta">
                     {activeSubject?.displayName} · phát hiện {formatDateTime(item.detectedAt)}
                     {item.late ? ' · nhận trễ' : ''}
+                    {item.state === 'unconfirmed' ? ' · thiết bị không gửi kết quả cuối' : ''}
                     {item.acknowledgedBy ? (
                       <>
                         {' '}

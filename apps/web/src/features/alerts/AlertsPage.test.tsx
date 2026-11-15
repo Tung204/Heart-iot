@@ -65,3 +65,32 @@ describe('AlertsPage', () => {
     expect(screen.getByRole('button', { name: 'Tải lại danh sách' })).toBeInTheDocument();
   });
 });
+
+// FR-06 / vòng đời suspected → unconfirmed — cảnh báo "Chưa xác định" phải mở được.
+describe('AlertsPage — cảnh báo chưa xác định', () => {
+  it('tab Đã đóng hiện ứng viên quá hạn với nhãn "Chưa xác định" + ghi chú thiếu kết quả cuối, có link chi tiết', async () => {
+    renderPage(<AlertsPage />, (url) => {
+      const u = String(url);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [SUBJECT] });
+      if (u.includes(`/subjects/${SUBJECT.id}/alerts`)) {
+        return mockResponse({
+          items: [{ ...INCIDENT, state: 'unconfirmed', version: 2 }],
+          nextCursor: null,
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Đã đóng' }));
+
+    expect(await screen.findByText('Chưa xác định')).toBeInTheDocument();
+    expect(screen.getByText(/thiết bị không gửi kết quả cuối/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Chi tiết' })).toHaveAttribute(
+      'href',
+      `/app/alerts/${INCIDENT.id}`,
+    );
+    // Không phải trạng thái cần xử lý: không hiện nút Xác nhận.
+    expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument();
+  });
+});
