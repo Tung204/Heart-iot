@@ -337,7 +337,7 @@ export function AdminDevicesTab() {
                       <dd>
                         {device.assignedSubjectId ? (
                           <span className="adm-device__subject" title={device.assignedSubjectId}>
-                            Mã hồ sơ{' '}
+                            Mã{' '}
                             <code className="adm-device__id">
                               {device.assignedSubjectId.slice(0, 8)}
                             </code>
