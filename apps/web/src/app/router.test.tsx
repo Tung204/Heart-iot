@@ -30,6 +30,16 @@ describe('router — Hôm nay là mặc định của /app', () => {
       'href',
       '/app/overview',
     );
+    expect(screen.getAllByRole('link', { name: 'Sức khỏe' })[0]).toHaveAttribute(
+      'href',
+      '/app/overview',
+    );
+    expect(screen.getAllByRole('link', { name: 'Hôm nay' })[0]).toHaveAttribute('href', '/app');
+    expect(screen.getAllByRole('link', { name: 'Người thân' })[0]).toHaveAttribute(
+      'href',
+      '/app/subjects',
+    );
+    expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Lịch sử đo/ })).not.toBeInTheDocument();
   });
 
@@ -60,5 +70,11 @@ describe('router — Hôm nay là mặc định của /app', () => {
     });
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/app/admin'));
+  });
+
+  it('/app/notifications → chuyển sang /app/alerts (thông báo đã gộp vào cảnh báo)', async () => {
+    const { router } = renderApp('/app/notifications', routeHandler);
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/app/alerts'));
   });
 });
