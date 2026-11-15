@@ -14,10 +14,11 @@ export function NotFoundPage() {
             Không tìm thấy trang
           </h1>
           <p className="auth-card__intro">
-            Đường dẫn bạn mở không tồn tại hoặc đã được chuyển đi. Nếu bạn mở một đường dẫn lời
-            mời, hãy kiểm tra lại xem có thiếu ký tự nào không.
+            Đường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy
+            kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.
           </p>
           <ButtonLink to="/">Về trang chủ</ButtonLink>
+          <p className="auth-note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
         </section>
       </main>
       <SiteFooter />

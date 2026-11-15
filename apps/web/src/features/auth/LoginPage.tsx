@@ -10,11 +10,11 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { loginSchema } from './api';
 import { useLogin, useMe } from './useAuth';
 import { AuthLayout } from './AuthLayout';
+import { useFocusErrorAlert, useFocusFirstError } from './useFocusFirstError';
 
-const DEMO_ACCOUNTS = [
-  { role: 'Chủ hồ sơ', email: 'ba-an@demo.annhien.local', password: 'demo-an-nhien-2026' },
-  { role: 'Người thân', email: 'minh@demo.annhien.local', password: 'demo-an-nhien-2026' },
-  { role: 'Quản trị', email: 'admin@demo.annhien.local', password: 'demo-admin-2026' },
+const FIELD_ORDER = [
+  ['email', 'login-email'],
+  ['password', 'login-password'],
 ] as const;
 
 export function LoginPage() {
@@ -27,6 +27,12 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  useFocusFirstError(fieldErrors, FIELD_ORDER);
+  // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
+  const formErrorRef = useFocusErrorAlert(
+    formError && Object.keys(fieldErrors).length === 0 ? formError : null,
+  );
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;
@@ -62,7 +68,7 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Đăng nhập"
-      intro="Đăng nhập để xem trạng thái người thân và nhận cảnh báo."
+      intro="Xem tình hình người thân và cảnh báo."
       footer={
         <p className="auth-footer">
           Chưa có tài khoản?{' '}
@@ -74,7 +80,7 @@ export function LoginPage() {
     >
       <form onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error">
+          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không đăng nhập được">
               {formError}
             </Alert>
@@ -105,31 +111,6 @@ export function LoginPage() {
           {loginMutation.isPending ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </Button>
       </form>
-      <details className="demo-accounts">
-        <summary>Tài khoản mẫu</summary>
-        <p className="field__hint">
-          Chọn vai trò để điền nhanh email và mật khẩu của tài khoản mẫu dùng để trải nghiệm. Dữ
-          liệu hiển thị trong ứng dụng là dữ liệu mô phỏng.
-        </p>
-        <div className="demo-accounts__list">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.email}
-              type="button"
-              className="demo-account"
-              onClick={() => {
-                setEmail(account.email);
-                setPassword(account.password);
-                setFieldErrors({});
-                setFormError(null);
-              }}
-            >
-              <span className="demo-account__role">{account.role}</span>
-              <span className="demo-account__email">{account.email}</span>
-            </button>
-          ))}
-        </div>
-      </details>
     </AuthLayout>
   );
 }

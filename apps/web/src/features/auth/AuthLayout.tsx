@@ -10,7 +10,7 @@ interface AuthLayoutProps {
   footer?: ReactNode;
 }
 
-/** Khung trang đăng nhập/đăng ký: thẻ giữa màn hình + giới hạn dữ liệu hiển thị. */
+/** Khung đăng nhập/đăng ký: thẻ giữa màn hình, logo ở trên, một dòng dữ liệu mô phỏng. */
 export function AuthLayout({ title, intro, children, footer }: AuthLayoutProps) {
   return (
     <div className="public">
@@ -28,11 +28,8 @@ export function AuthLayout({ title, intro, children, footer }: AuthLayoutProps) 
           {intro ? <p className="auth-card__intro">{intro}</p> : null}
           {children}
         </section>
-        <p className="demo-notice">
-          Dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Thông tin không dùng để chẩn đoán
-          hay thay lời khuyên y tế.
-        </p>
         {footer}
+        <p className="auth-note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
       </main>
     </div>
   );

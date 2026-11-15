@@ -38,7 +38,7 @@ cd apps/api && pnpm dev
 cd apps/web && pnpm dev
 ```
 
-Mở http://localhost:5173. Tài khoản demo (mật khẩu chỉ dùng cho demo cục bộ):
+Mở http://localhost:5173. Tài khoản demo **chỉ dùng khi chạy seed local, không hiện trong UI**: gõ tay email/mật khẩu ở trang đăng nhập. Giao diện công khai không còn khối tự điền tài khoản, và các chuỗi này không có trong bundle web gửi tới trình duyệt.
 
 | Vai trò | Email | Mật khẩu |
 | --- | --- | --- |

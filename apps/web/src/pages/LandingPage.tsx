@@ -1,54 +1,115 @@
-import { ButtonLink } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { SiteFooter } from '../components/SiteFooter';
 import { SiteHeader } from '../components/SiteHeader';
 import { SkipLink } from '../components/SkipLink';
-import { StatusPill } from '../components/StatusPill';
-import { Alert } from '../components/Alert';
+import { useMe } from '../features/auth/useAuth';
+import { isUnauthorizedError } from '../lib/api';
 
-const STEPS = [
-  {
-    title: 'Gắn thiết bị đeo',
-    description:
-      'Người thân đeo một thiết bị nhỏ gọn ghi nhịp tim và vận động, phát hiện dấu hiệu nghi ngờ té ngã.',
-  },
-  {
-    title: 'Dữ liệu về hệ thống',
-    description:
-      'Thiết bị gửi dữ liệu về máy chủ An Nhiên. Hệ thống lưu lịch sử và phát hiện bất thường theo quy tắc đã cấu hình.',
-  },
-  {
-    title: 'Trợ lý tóm tắt, người thân quyết định',
-    description:
-      'Người thân mở trợ lý để xem tóm tắt, hỏi về số liệu và nhận cảnh báo trên web. Cảnh báo vẫn do hệ thống tạo độc lập với trợ lý.',
-  },
-];
+/**
+ * Dòng an toàn ngay dưới CTA. Phải giữ đủ bốn ý: dữ liệu mô phỏng, cảnh báo chỉ
+ * có khi web đang kết nối, không tự gọi cấp cứu và không thay thế cấp cứu.
+ */
+export const HERO_SAFETY_NOTE =
+  'Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.';
 
-const ASSISTANT_POINTS = [
+const CAPABILITIES = [
   {
-    title: 'Hỏi như đang trò chuyện',
-    description:
-      'Hỏi về nhịp tim, số mẫu, pin, cảnh báo đang mở hay lịch sử đo. Câu trả lời nối tiếp trong cùng cuộc hội thoại.',
+    title: 'Theo dõi',
+    text: 'Nhịp tim, vận động và kết nối thiết bị của người thân.',
   },
   {
-    title: 'Luôn kèm bối cảnh dữ liệu',
-    description:
-      'Mỗi câu trả lời nêu độ phủ, khoảng thiếu, nguồn dữ liệu mô phỏng và giới hạn — không biến dữ liệu thiếu thành kết luận.',
+    title: 'Báo khi cần',
+    text: 'Cảnh báo do hệ thống tạo, không phụ thuộc trợ lý.',
   },
   {
-    title: 'Cảnh báo không phụ thuộc AI',
-    description:
-      'Cảnh báo được tạo và cập nhật bởi hệ thống. Trợ lý không tự xác nhận, không tự đóng và không thay người thân xử lý.',
+    title: 'Hỏi trợ lý',
+    text: 'Hỏi trợ lý AI về số liệu của người thân.',
   },
-];
+] as const;
 
-const BOUNDARIES = [
-  'Dữ liệu hiển thị là dữ liệu mô phỏng từ thiết bị mô phỏng — không dùng cho quyết định y tế.',
-  'Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ.',
-  'Hệ thống không tự gọi cấp cứu và không gửi thông báo khi trình duyệt đã đóng.',
-  'Phát hiện té ngã là phần đang hoàn thiện; độ chính xác chưa được đo trên dữ liệu thật.',
-];
+/** Biểu tượng nét mảnh cho 3 thẻ — chỉ để phân biệt nhanh, không mang thông tin. */
+function CapabilityIcon({ index }: { index: number }) {
+  const common = {
+    width: 26,
+    height: 26,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+  if (index === 0) {
+    return (
+      <svg {...common}>
+        <path d="M20.4 5.6a5.2 5.2 0 0 0-7.4 0L12 6.6l-1-1a5.2 5.2 0 0 0-7.4 7.4l1 1L12 21l7.4-7 1-1a5.2 5.2 0 0 0 0-7.4Z" />
+      </svg>
+    );
+  }
+  if (index === 1) {
+    return (
+      <svg {...common}>
+        <path d="M18 8.5a6 6 0 1 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 14.5 18 8.5Z" />
+        <path d="M10.3 19.5a2.1 2.1 0 0 0 3.4 0" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <path d="M21 11.6a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.7-.8L3 21l1.8-5A8.3 8.3 0 0 1 3 11.6 8.4 8.4 0 0 1 12 3.2a8.4 8.4 0 0 1 9 8.4Z" />
+      <path d="M8.5 11.6h.01M12 11.6h.01M15.5 11.6h.01" strokeWidth="2.4" />
+    </svg>
+  );
+}
+
+/** Hình minh hoạ thuần trang trí: một nhịp tim đi qua vòng tín hiệu. */
+function HeroArt() {
+  return (
+    <div className="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 360 360" focusable="false">
+        <circle
+          cx="180"
+          cy="180"
+          r="164"
+          fill="none"
+          stroke="var(--color-line-strong)"
+          strokeWidth="1.5"
+          strokeDasharray="2 10"
+          strokeLinecap="round"
+        />
+        <circle cx="180" cy="180" r="122" fill="var(--color-surface)" />
+        <circle
+          cx="180"
+          cy="180"
+          r="122"
+          fill="none"
+          stroke="var(--color-teal)"
+          strokeOpacity="0.2"
+          strokeWidth="10"
+        />
+        <path
+          d="M70 180h56l16-44 22 88 18-58 12 26h26l14-26 20 48 14-34h32"
+          fill="none"
+          stroke="var(--color-teal)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="300" cy="180" r="7" fill="var(--color-brick)" />
+      </svg>
+    </div>
+  );
+}
 
 export function LandingPage() {
+  const me = useMe();
+  const user = me.data?.user ?? null;
+  // Chưa biết phiên (đang tải) hoặc lỗi máy chủ: không hiện CTA khách để tránh
+  // người đã đăng nhập bấm nhầm "Tạo tài khoản".
+  const sessionFailed = me.isError && !isUnauthorizedError(me.error);
+  const guest = !user && !me.isPending && !sessionFailed;
+
   return (
     <div className="public">
       <SkipLink />
@@ -57,150 +118,79 @@ export function LandingPage() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="container hero__inner">
             <div className="hero__copy">
-              <StatusPill tone="teal">Trợ lý theo dõi người thân</StatusPill>
               <h1 id="hero-title" className="hero__title">
                 Người thân ở nhà, mình vẫn an tâm
               </h1>
               <p className="hero__lead">
-                An Nhiên theo dõi nhịp tim, vận động và gửi cảnh báo khi có dấu hiệu bất thường.
-                Trợ lý trong ứng dụng tổng hợp số liệu đã kiểm quyền để người thân biết tình hình
-                và việc gì cần xử lý — không cần gọi hỏi liên tục.
+                An Nhiên ghi nhịp tim và vận động từ thiết bị đeo của người thân, rồi báo
+                bạn khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
               </p>
+              {me.isPending ? (
+                // Đang kiểm phiên: chỉ báo tải, không render CTA để CTA không nhấp nháy.
+                <p className="hero__session hero__loading" role="status" aria-busy="true">
+                  <span className="hero__spinner" aria-hidden="true" />
+                  Đang kiểm tra phiên đăng nhập…
+                </p>
+              ) : null}
               <div className="hero__actions">
-                <ButtonLink to="/app">Mở trợ lý</ButtonLink>
-                <ButtonLink to="/register" variant="secondary">
-                  Tạo tài khoản
-                </ButtonLink>
+                {user ? <ButtonLink to="/app">Mở ứng dụng</ButtonLink> : null}
+                {guest ? (
+                  <>
+                    <ButtonLink to="/register">Tạo tài khoản</ButtonLink>
+                    <ButtonLink to="/login" variant="secondary">
+                      Đăng nhập
+                    </ButtonLink>
+                  </>
+                ) : null}
               </div>
-              <p className="hero__note">
-                Dữ liệu hiển thị là dữ liệu mô phỏng. Không thay thế thiết bị y tế hoặc cấp cứu.
-              </p>
-            </div>
-            <div className="hero-preview" aria-hidden="true">
-              <div className="hero-preview__top">
-                <span className="hero-preview__brand">An Nhiên</span>
-                <span className="hero-preview__tag">Minh hoạ giao diện</span>
-              </div>
-              <div className="hero-preview__screen">
-                <p className="hero-preview__eyebrow">Đang theo dõi</p>
-                <p className="hero-preview__name">Bà Trần Thị An</p>
-                <svg
-                  className="hero-preview__wave"
-                  viewBox="0 0 260 70"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M0 45h28l8-18 9 34 9-25 8 9h30l8-14 10 28 8-20 7 6h35l9-22 9 37 8-24 7 9h30l8-12 9 23 8-18 7 7h25"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <ul className="hero-preview__rows">
-                  <li>
-                    <span className="hero-preview__dot" /> Nhịp tim và vận động
-                  </li>
-                  <li>
-                    <span className="hero-preview__dot" /> Trạng thái kết nối thiết bị
-                  </li>
-                  <li>
-                    <span className="hero-preview__dot hero-preview__dot--alert" /> Cảnh báo cho
-                    người thân
-                  </li>
-                </ul>
-              </div>
-              <p className="hero-preview__foot">Hình minh hoạ · không phải số đo thật</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="section" aria-labelledby="problem-heading">
-          <div className="container">
-            <h2 id="problem-heading" className="section-title">
-              Vì sao An Nhiên?
-            </h2>
-            <p className="section__lead">
-              Người lớn tuổi thường ở nhà một mình trong lúc con cháu đi làm. Một cú ngã hoặc một
-              dấu hiệu sức khỏe bất thường có thể không được phát hiện kịp. An Nhiên kết nối thiết
-              bị đeo với trợ lý trên web để người thân nắm được tình hình hằng ngày và biết khi nào
-              cần can thiệp.
-            </p>
-          </div>
-        </section>
-
-        <section className="section section--tinted" aria-labelledby="how-heading">
-          <div className="container">
-            <h2 id="how-heading" className="section-title">
-              Cách hoạt động
-            </h2>
-            <ol className="steps">
-              {STEPS.map((step, index) => (
-                <li className="step" key={step.title}>
-                  <span className="step__number" aria-hidden="true">
-                    {index + 1}
-                  </span>
-                  <h3 className="step__title">{step.title}</h3>
-                  <p className="step__desc">{step.description}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        <section className="section" aria-labelledby="assistant-heading">
-          <div className="container">
-            <h2 id="assistant-heading" className="section-title">
-              Trợ lý ở trung tâm
-            </h2>
-            <p className="section__lead">
-              Mở ứng dụng là vào thẳng không gian trợ lý. Các màn hình còn lại là công cụ để kiểm
-              chứng và xử lý việc trợ lý nêu ra.
-            </p>
-            <div className="steps">
-              {ASSISTANT_POINTS.map((point) => (
-                <div className="step" key={point.title}>
-                  <h3 className="step__title">{point.title}</h3>
-                  <p className="step__desc">{point.description}</p>
+              {sessionFailed ? (
+                // Không kiểm tra được phiên ≠ khách: giữ đường vào và cho thử lại.
+                // Nếu đã có người dùng trong bộ đệm thì không mời đăng nhập/đăng ký lại.
+                <div className="hero__session">
+                  <p role="status">Không kiểm tra được phiên đăng nhập.</p>
+                  <div className="hero__session-actions">
+                    {!user ? (
+                      <>
+                        <ButtonLink to="/login" variant="secondary">
+                          Đăng nhập
+                        </ButtonLink>
+                        <ButtonLink to="/register" variant="secondary">
+                          Tạo tài khoản
+                        </ButtonLink>
+                      </>
+                    ) : null}
+                    <Button
+                      variant="subtle"
+                      onClick={() => void me.refetch()}
+                      disabled={me.isFetching}
+                    >
+                      {me.isFetching ? 'Đang thử lại…' : 'Thử lại'}
+                    </Button>
+                  </div>
                 </div>
-              ))}
+              ) : null}
+              <p className="hero__note">{HERO_SAFETY_NOTE}</p>
             </div>
+            <HeroArt />
           </div>
         </section>
 
-        <section className="section section--tinted" aria-labelledby="limits-heading">
+        <section className="section landing-section" aria-labelledby="capabilities-heading">
           <div className="container">
-            <h2 id="limits-heading" className="section-title">
-              Ranh giới an toàn
+            <h2 id="capabilities-heading" className="section-title">
+              An Nhiên làm gì
             </h2>
-            <p className="section__lead">
-              Chúng tôi nói rõ những gì hệ thống KHÔNG làm, để bạn không chờ đợi sai:
-            </p>
-            <ul className="boundaries">
-              {BOUNDARIES.map((item) => (
-                <li key={item}>
-                  <Alert tone="warning">{item}</Alert>
+            <ul className="capabilities" role="list">
+              {CAPABILITIES.map((item, index) => (
+                <li className="capability" key={item.title}>
+                  <span className="capability__icon">
+                    <CapabilityIcon index={index} />
+                  </span>
+                  <h3 className="capability__title">{item.title}</h3>
+                  <p className="capability__text">{item.text}</p>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-
-        <section className="section" aria-labelledby="cta-heading">
-          <div className="container cta-band">
-            <h2 id="cta-heading" className="section-title">
-              Bắt đầu với trợ lý
-            </h2>
-            <p className="section__lead">
-              Tạo tài khoản, lập hồ sơ và trò chuyện với trợ lý về số liệu theo dõi của người thân.
-            </p>
-            <div className="cta-band__actions">
-              <ButtonLink to="/register">Tạo tài khoản</ButtonLink>
-              <ButtonLink to="/login" variant="secondary">
-                Đăng nhập
-              </ButtonLink>
-            </div>
           </div>
         </section>
       </main>

@@ -10,6 +10,14 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { registerSchema } from './api';
 import { useMe, useRegister } from './useAuth';
 import { AuthLayout } from './AuthLayout';
+import { useFocusErrorAlert, useFocusFirstError } from './useFocusFirstError';
+
+const FIELD_ORDER = [
+  ['displayName', 'register-name'],
+  ['email', 'register-email'],
+  ['password', 'register-password'],
+  ['confirmPassword', 'register-confirm'],
+] as const;
 
 export function RegisterPage() {
   const me = useMe();
@@ -23,6 +31,12 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  useFocusFirstError(fieldErrors, FIELD_ORDER);
+  // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
+  const formErrorRef = useFocusErrorAlert(
+    formError && Object.keys(fieldErrors).length === 0 ? formError : null,
+  );
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;
@@ -66,7 +80,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Tạo tài khoản"
-      intro="Tạo tài khoản để bắt đầu theo dõi người thân cùng An Nhiên."
+      intro="Theo dõi người thân cùng An Nhiên."
       footer={
         <p className="auth-footer">
           Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
@@ -75,7 +89,7 @@ export function RegisterPage() {
     >
       <form onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error">
+          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không tạo được tài khoản">
               {formError}
             </Alert>
@@ -87,7 +101,6 @@ export function RegisterPage() {
           type="text"
           autoComplete="name"
           required
-          hint="Tên của bạn, hiển thị với người thân."
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           error={fieldErrors.displayName}
