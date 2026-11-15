@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import {
   INCIDENT,
   SESSION,
@@ -108,6 +108,19 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
     expect(await screen.findByText(/73 bpm/, {}, SLOW)).toBeInTheDocument();
     expect(screen.getByText(/1234 bước/)).toBeInTheDocument();
     expect(screen.getByText('Vòng tay')).toBeInTheDocument();
+    // R-12: bỏ ô số thứ tư khỏi màn chính và không lặp cách đếm cảnh báo.
+    expect(screen.queryByText('Dữ liệu nhận được')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cảnh báo hôm nay/)).not.toBeInTheDocument();
+  });
+
+  it('daily-summary source=synthetic → nhãn nguồn ngay cạnh khối Tổng hợp hôm nay', async () => {
+    renderApp('/app/overview', dashboardHandler());
+
+    const heading = await screen.findByRole('heading', { name: 'Tổng hợp hôm nay' }, SLOW);
+    await screen.findByText(/73 bpm/, {}, SLOW);
+    const section = heading.closest('section');
+    expect(section).not.toBeNull();
+    expect(within(section as HTMLElement).getByText('Nguồn: dữ liệu mô phỏng')).toBeInTheDocument();
   });
 
   it('không có cảnh báo mở → ghi rõ bằng chữ, không hiện số 0 giả', async () => {

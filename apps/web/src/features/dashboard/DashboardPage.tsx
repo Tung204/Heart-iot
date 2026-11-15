@@ -28,13 +28,6 @@ const FRESHNESS_TONES = {
   never: 'neutral',
 } as const;
 
-const HR_QUALITY_LABELS = {
-  valid: 'tín hiệu tốt',
-  poor_signal: 'tín hiệu kém',
-  not_worn: 'không đeo',
-  sensor_error: 'lỗi cảm biến',
-} as const;
-
 /** 403 là trạng thái quyền, không phải lỗi kỹ thuật: hiển thị thông điệp nghiệp vụ. */
 function isForbiddenError(error: unknown): boolean {
   return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
@@ -214,6 +207,9 @@ export function DashboardPage() {
             <h2 id="daily-summary-heading" className="section-title">
               Tổng hợp hôm nay
             </h2>
+            {summary.data?.source === 'synthetic' ? (
+              <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
+            ) : null}
           </div>
           {summary.isPending ? <RegionLoading label="Đang tải dữ liệu tổng quan…" /> : null}
           {summary.isError && isForbiddenError(summary.error) ? (
@@ -232,7 +228,7 @@ export function DashboardPage() {
             <Card>
               <div className="metric-grid">
                 <div className="metric">
-                  <p className="metric__label">Nhịp tim</p>
+                  <p className="metric__label">Nhịp tim trung bình hôm nay</p>
                   {summary.data.heartRate ? (
                     <p className="metric__value">
                       {Math.round(summary.data.heartRate.avg)} bpm
@@ -267,23 +263,14 @@ export function DashboardPage() {
                       : 'Chưa có thông tin pin'}
                   </p>
                 </div>
-                <div className="metric">
-                  <p className="metric__label">Dữ liệu nhận được</p>
-                  <p className="metric__value">
-                    {summary.data.coverage.percent}%
-                    <span className="metric__sub">
-                      {summary.data.coverage.observedCount} lần nhận
-                    </span>
-                  </p>
-                </div>
               </div>
               <div className="dashboard-summary__footer">
                 <p className="metric-line">
-                  Cảnh báo hôm nay: {summary.data.incidents.total} (đã đóng{' '}
-                  {summary.data.incidents.resolved}) ·{' '}
                   {summary.data.lastSeenAt
-                    ? `dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
-                    : 'chưa nhận dữ liệu từ thiết bị'}
+                    ? `Dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
+                    : 'Chưa nhận dữ liệu từ thiết bị'}
+                  {' · '}dữ liệu nhận được {summary.data.coverage.percent}% (
+                  {summary.data.coverage.observedCount} lần nhận)
                   {summary.data.gaps.length > 0
                     ? ` · ${summary.data.gaps.length} khoảng thiếu dữ liệu`
                     : ''}
@@ -337,24 +324,6 @@ export function DashboardPage() {
                     </div>
                     {device.healthDataVisible === false ? null : (
                       <>
-                        <div>
-                          <dt>Nhịp tim gần nhất</dt>
-                          <dd>
-                            {device.lastHeartRateBpm !== null &&
-                            device.lastHeartRateQuality === 'valid' ? (
-                              <strong>{device.lastHeartRateBpm} bpm</strong>
-                            ) : (
-                              'chưa có lần đo hợp lệ'
-                            )}
-                            {device.lastHeartRateQuality &&
-                            device.lastHeartRateQuality !== 'valid' ? (
-                              <span className="metric-line__note">
-                                {' '}
-                                (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
-                              </span>
-                            ) : null}
-                          </dd>
-                        </div>
                         <div>
                           <dt>Pin</dt>
                           <dd>

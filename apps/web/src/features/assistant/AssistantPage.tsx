@@ -27,6 +27,27 @@ function isForbiddenError(error: unknown): boolean {
   return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
 }
 
+/**
+ * 403 do middleware origin/ghi bị chặn khác với 403 do không được xem số đo.
+ * Server chưa có mã lỗi riêng cho hai trường hợp này nên đọc câu lỗi đã phát
+ * hành; chỉ dùng để chọn thông điệp, không dùng để quyết định quyền.
+ */
+function isOriginBlockedError(error: unknown): boolean {
+  return (
+    isForbiddenError(error) &&
+    isApiError(error) &&
+    /origin|thao tác ghi/i.test(error.message)
+  );
+}
+
+function isMeasurementPermissionError(error: unknown): boolean {
+  return (
+    isForbiddenError(error) &&
+    isApiError(error) &&
+    /số đo|chia sẻ/i.test(error.message)
+  );
+}
+
 const ALERTS_FORBIDDEN_TEXT = 'Bạn không có quyền xem cảnh báo của hồ sơ này.';
 const MEASUREMENTS_FORBIDDEN_TEXT = 'Bạn chưa được xem số đo của hồ sơ này.';
 const MEASUREMENTS_NOT_SHARED_TITLE = 'Chủ hồ sơ không chia sẻ số đo';
@@ -207,6 +228,11 @@ export function AssistantPage() {
   const askError = ask.isError && ask.variables?.subjectId === subjectId ? ask.error : null;
   const askForbidden = askError !== null && isForbiddenError(askError);
   const askBlocked = !canUseAi || !canViewMeasurements || askForbidden;
+  const askBlockedByOrigin = isOriginBlockedError(askError);
+  const askBlockedByMeasurementPermission =
+    isForbiddenError(askError) &&
+    !askBlockedByOrigin &&
+    (!canViewMeasurements || isMeasurementPermissionError(askError));
 
   // Cuộn vừa đủ tới câu trả lời mới; block "nearest" không nhảy trang khi đã thấy.
   useEffect(() => {
@@ -252,31 +278,59 @@ export function AssistantPage() {
   }, null);
 
   /**
-   * Thiết bị ngoại tuyến hoặc dữ liệu cũ hơn ngưỡng policy.
+   * Hai tín hiệu khác nhau, không gộp câu:
+   * - ngoại tuyến: `online=false`/`freshness=offline` (hoặc lastSeen quá ngưỡng) →
+   *   “Thiết bị ngoại tuyến · dữ liệu cuối {lastSeenAt}”.
+   * - dữ liệu cũ: thiết bị vẫn online nhưng `freshness=stale` →
+   *   “Chưa có số đo mới · lần đo cuối {lastMeasuredAt}”.
    * Dùng `asOf` của server làm mốc "bây giờ" để kết quả ổn định, không phụ thuộc
    * đồng hồ trình duyệt; freshness do server tính vẫn là tín hiệu chính.
+   * Khi nhiều thiết bị, chỉ lấy mốc của chính nhóm thiết bị đang cảnh báo —
+   * không lấy mốc của thiết bị khỏe hơn để câu cảnh báo tự mâu thuẫn.
    */
   const deviceWarning = (() => {
     if (!status.data || !canViewMeasurements || healthDataHidden) return null;
-    const seenDevices = status.data.devices.filter((device) => device.lastSeenAt !== null);
-    if (seenDevices.length === 0) return null;
     const thresholdSeconds =
       status.data.policy.value.offlineAfterSeconds ?? OFFLINE_FALLBACK_SECONDS;
     const asOfMs = new Date(status.data.asOf).getTime();
-    const offline = status.data.devices.some(
+    const devicesWithSeen = status.data.devices.filter(
+      (device) => device.lastSeenAt !== null,
+    );
+    if (devicesWithSeen.length === 0) return null;
+
+    const offlineDevices = devicesWithSeen.filter(
       (device) =>
         device.online === false ||
         device.freshness === 'offline' ||
-        device.freshness === 'stale' ||
-        (device.lastSeenAt !== null &&
-          asOfMs - new Date(device.lastSeenAt).getTime() > thresholdSeconds * 1000),
+        asOfMs - new Date(device.lastSeenAt as string).getTime() > thresholdSeconds * 1000,
     );
-    if (!offline) return null;
-    const latest = seenDevices.reduce<string>((current, device) => {
-      const seen = device.lastSeenAt as string;
-      return new Date(seen).getTime() > new Date(current).getTime() ? seen : current;
-    }, seenDevices[0]!.lastSeenAt as string);
-    return `Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(latest)}`;
+    if (offlineDevices.length > 0) {
+      const latestOfflineSeen = offlineDevices.reduce((latest, device) => {
+        const seen = device.lastSeenAt as string;
+        return new Date(seen).getTime() > new Date(latest).getTime() ? seen : latest;
+      }, offlineDevices[0]!.lastSeenAt as string);
+      const label =
+        offlineDevices.length > 1
+          ? `${offlineDevices.length} thiết bị ngoại tuyến`
+          : 'Thiết bị ngoại tuyến';
+      return `${label} · dữ liệu cuối ${formatTime(latestOfflineSeen)}`;
+    }
+
+    const staleDevices = status.data.devices.filter(
+      (device) => device.freshness === 'stale' && device.online !== false,
+    );
+    if (staleDevices.length > 0) {
+      const measured = staleDevices
+        .map((device) => device.lastMeasuredAt)
+        .filter((value): value is string => value !== null);
+      if (measured.length === 0) return 'Chưa có số đo mới.';
+      const latestMeasured = measured.reduce((latest, value) =>
+        new Date(value).getTime() > new Date(latest).getTime() ? value : latest,
+      );
+      return `Chưa có số đo mới · lần đo cuối ${formatTime(latestMeasured)}`;
+    }
+
+    return null;
   })();
 
   /** Trạng thái đo khi không có cảnh báo nào cần báo (hoặc không xem được cảnh báo). */
@@ -382,7 +436,9 @@ export function AssistantPage() {
   };
 
   const statusCard = buildStatus();
-  const hasConversation = turns.length > 0 || askPending || askError !== null;
+  // Chỉ render vùng live khi thật sự có lượt hỏi/đang chờ; lỗi 403 không để lại
+  // `role=log` rỗng cho trình đọc màn hình.
+  const hasConversation = turns.length > 0 || askPending;
 
   return (
     <div className="stack today">
@@ -456,9 +512,20 @@ export function AssistantPage() {
               ) : null}
               {askError ? (
                 isForbiddenError(askError) ? (
-                  <Alert tone="info" title={MEASUREMENTS_NOT_SHARED_TITLE}>
-                    {MEASUREMENTS_NOT_SHARED_TEXT}
-                  </Alert>
+                  askBlockedByMeasurementPermission ? (
+                    <Alert tone="info" title={MEASUREMENTS_NOT_SHARED_TITLE}>
+                      {MEASUREMENTS_NOT_SHARED_TEXT}
+                    </Alert>
+                  ) : askBlockedByOrigin ? (
+                    <Alert tone="warning" title="Trình duyệt chặn thao tác gửi">
+                      {getApiErrorMessage(askError)} Tải lại trang bằng đúng địa chỉ ứng dụng
+                      rồi thử lại.
+                    </Alert>
+                  ) : (
+                    <Alert tone="warning" title="Không gửi được câu hỏi">
+                      {getApiErrorMessage(askError)}
+                    </Alert>
+                  )
                 ) : isApiError(askError) && askError.code === 'RATE_LIMITED' ? (
                   <Alert tone="warning" title="Đã đạt giới hạn câu hỏi">
                     {getApiErrorMessage(askError)} Vui lòng thử lại sau vài phút.

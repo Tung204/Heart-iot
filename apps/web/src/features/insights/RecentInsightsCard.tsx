@@ -99,7 +99,7 @@ function InsightMetrics({ data }: { data: InsightsResponse }) {
   return (
     <dl className="insights-metrics">
       <div className="insights-metric">
-        <dt className="insights-metric__label">Nhịp tim trung bình</dt>
+        <dt className="insights-metric__label">Nhịp tim trung bình {data.days.length} ngày</dt>
         <dd className="insights-metric__value">
           {data.summary.avgHeartRate !== null ? `${data.summary.avgHeartRate} bpm` : '—'}
           <span className="insights-metric__sub">
@@ -224,10 +224,6 @@ export function RecentInsightsCard({ subjectId }: { subjectId: string | null }) 
                 </ul>
               ) : null}
               <div className="insights-card__footer">
-                <p className="insights-card__incidents">
-                  Cảnh báo trong kỳ: {data.summary.incidentsTotal} (đã đóng{' '}
-                  {data.summary.incidentsResolved})
-                </p>
                 <Link to="/app/history">Xem lịch sử và biểu đồ →</Link>
               </div>
             </>

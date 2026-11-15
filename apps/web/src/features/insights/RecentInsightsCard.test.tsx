@@ -112,7 +112,7 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     expect(screen.queryByRole('list', { name: 'Nhịp tim trung bình theo ngày' })).toBeNull();
   });
 
-  it('thành công → 4 chỉ số, biểu đồ có nhãn từng ngày, ngày thiếu hiển thị "—"', async () => {
+  it('thành công → 4 chỉ số, không lặp đếm cảnh báo, biểu đồ có nhãn từng ngày, ngày thiếu hiển thị "—"', async () => {
     renderPage(<RecentInsightsCard subjectId={SUBJECT.id} />, () => mockResponse(makeResponse()));
 
     expect(await screen.findByText('74.2 bpm')).toBeInTheDocument();
@@ -120,7 +120,8 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     expect(screen.getByText('2.400 bước')).toBeInTheDocument();
     expect(screen.getByText('2/3')).toBeInTheDocument();
     expect(screen.getByText('12.5%')).toBeInTheDocument();
-    expect(screen.getByText(/Cảnh báo trong kỳ: 2 \(đã đóng 1\)/)).toBeInTheDocument();
+    // Cảnh báo đang mở là nguồn đếm duy nhất ở khu vực cảnh báo; không lặp ở card xu hướng.
+    expect(screen.queryByText(/Cảnh báo trong kỳ/)).toBeNull();
 
     const chart = screen.getByRole('list', { name: 'Nhịp tim trung bình theo ngày' });
     const columns = within(chart).getAllByRole('listitem');
@@ -230,9 +231,9 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     });
     renderPage(<RecentInsightsCard subjectId={SUBJECT.id} />, () => mockResponse(response));
 
-    expect(await screen.findByText('Nhịp tim trung bình')).toBeInTheDocument();
+    expect(await screen.findByText(/Nhịp tim trung bình \d+ ngày/)).toBeInTheDocument();
     // Nhịp tim trung bình và tổng bước đều "—", không hiển thị 0 giả.
-    const metrics = screen.getByText('Nhịp tim trung bình').closest('div');
+    const metrics = screen.getByText(/Nhịp tim trung bình \d+ ngày/).closest('div');
     expect(metrics).not.toBeNull();
     expect(within(metrics!).getByText('—')).toBeInTheDocument();
     expect(screen.getByText('Tổng bước').closest('div')).toHaveTextContent('chưa đủ dữ liệu bước');

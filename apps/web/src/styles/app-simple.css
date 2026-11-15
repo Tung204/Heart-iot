@@ -180,18 +180,8 @@
   .today .page-title {
     font-size: var(--text-xl);
   }
-  .today-status {
-    padding: var(--space-3) var(--space-4);
-  }
   .today-status__text {
     font-size: var(--text-lg);
-  }
-  .today-status__action,
-  .today-status__action .button {
-    width: 100%;
-  }
-  .today-ask {
-    padding: var(--space-3);
   }
   .today-links {
     flex-direction: column;
@@ -230,7 +220,7 @@
   padding-top: var(--space-2);
 }
 
-/* ---------- P1/P2 v4-fix: trạng thái an toàn, menu Thêm, tìm kiếm ---------- */
+/* ---------- P1/P2 v4-fix: trạng thái an toàn, menu Thêm, đăng xuất ---------- */
 
 /* F03 — dòng phụ cảnh báo độ tươi thiết bị, không bị chìm trong nền. */
 .today-status__detail {
@@ -271,24 +261,41 @@
   max-width: min(16rem, calc(100vw - 1.5rem));
 }
 
-/* F15 — hỏi lại trước khi đăng xuất, cả sidebar lẫn topbar. */
+/* F15/R-09 — hỏi lại trước khi đăng xuất, cả sidebar lẫn topbar.
+   Bản topbar là một hàng riêng full-width dưới topbar-row, không nằm trong
+   cụm actions nên không đẩy mép phải ra ngoài màn 360/390. */
 .shell__logout-confirm {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  min-width: 0;
   padding: var(--space-2) 0;
 }
 
 .shell__logout-confirm-text {
   margin: 0;
+  min-width: 0;
   font-size: var(--text-sm);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .shell__logout-confirm-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.shell__logout-confirm--topbar {
+  flex: 1 1 100%;
+  width: 100%;
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-2);
+}
+
+.shell__logout-confirm--topbar .shell__logout-confirm-actions .button {
+  flex: 1 1 7rem;
+  min-height: 44px;
 }
 
 /* T02 — câu giới hạn y tế/nguồn của từng câu trả lời, không lẫn với nguồn số liệu. */
@@ -311,6 +318,59 @@
 .today-ask__suggestions::-webkit-scrollbar {
   display: block;
   height: 0.5rem;
+}
+
+/* R-11 — nhãn nguồn cạnh khối Tổng hợp; cho hàng tiêu đề xuống dòng thay vì
+   ép tiêu đề “Tổng hợp hôm nay” vỡ chữ ở desktop hẹp. */
+.dashboard__primary .dashboard-section-head {
+  flex-wrap: wrap;
+}
+
+/* R-17 — nhãn nguồn trong card Xu hướng phải xuống dòng; một pill dài
+   nowrap từng đẩy trang rộng 404px ở 360/390 + chữ lớn. */
+.insights-card__notice {
+  min-width: 0;
+}
+
+.insights-card__notice .pill {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* R-19 — Hôm nay ở 360 + chữ lớn: thu gọn thẻ trạng thái và khối hỏi để nút
+   Gửi nằm trên bottom-nav. Hai hành động khẩn cấp xếp ngang, vẫn đủ 44px. */
+@media (max-width: 639px) {
+  .today {
+    gap: var(--space-3);
+  }
+  .today-status {
+    gap: var(--space-1) var(--space-2);
+    padding: var(--space-3);
+  }
+  .today-status__detail {
+    line-height: 1.35;
+  }
+  .today-status__action,
+  .today-status__actions {
+    width: 100%;
+  }
+  .today-status__action .button {
+    width: auto;
+  }
+  .today-status__actions .button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--space-3);
+  }
+  .today-ask {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+  .today-ask__suggestions {
+    gap: var(--space-1) var(--space-2);
+  }
 }
 
 /* F21 — chi tiết kỹ thuật của Lịch sử gập lại, vẫn giữ dữ liệu độ phủ/khoảng thiếu. */

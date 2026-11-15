@@ -144,6 +144,60 @@ function NavBadge({ count, label }: { count: number; label: string }) {
 }
 
 /**
+ * Hộp hỏi lại đăng xuất dùng chung cho sidebar và topbar.
+ * Topbar đặt nó ở một hàng riêng full-width để mở hộp không đẩy tràn ngang
+ * (R-09); Escape hủy như một dialog nhỏ.
+ */
+function LogoutConfirm({
+  pending,
+  className,
+  onConfirm,
+  onCancel,
+}: {
+  pending: boolean;
+  className?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  // Hộp hỏi lại thay nút Đăng xuất bằng hàng riêng: đưa focus vào lựa chọn an
+  // toàn (Hủy) để người bàn phím không bị rơi về body khi nút cũ unmount.
+  useEffect(() => {
+    cancelRef.current?.focus();
+  }, []);
+
+  return (
+    <div
+      className={`shell__logout-confirm${className ? ` ${className}` : ''}`}
+      role="group"
+      aria-label="Xác nhận đăng xuất"
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') return;
+        event.stopPropagation();
+        onCancel();
+      }}
+    >
+      <p className="shell__logout-confirm-text">Đăng xuất khỏi tài khoản?</p>
+      <div className="shell__logout-confirm-actions">
+        <Button variant="danger" size="sm" disabled={pending} onClick={onConfirm}>
+          {pending ? 'Đang đăng xuất…' : 'Đăng xuất'}
+        </Button>
+        <Button
+          ref={cancelRef}
+          variant="subtle"
+          size="sm"
+          disabled={pending}
+          onClick={onCancel}
+        >
+          Hủy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Nút đăng xuất có bước hỏi lại: một chạm không kết thúc phiên.
  * Hai vị trí (sidebar desktop, topbar mobile) dùng cùng hành vi nhưng mỗi nơi
  * giữ trạng thái xác nhận riêng; chỉ một vị trí hiển thị theo breakpoint.
@@ -158,10 +212,12 @@ function LogoutControl({
   onLogout: () => void;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   if (!confirming) {
     return (
       <Button
+        ref={triggerRef}
         variant="subtle"
         size="sm"
         className={className}
@@ -174,25 +230,17 @@ function LogoutControl({
   }
 
   return (
-    <div className="shell__logout-confirm" role="group" aria-label="Xác nhận đăng xuất">
-      <p className="shell__logout-confirm-text">Đăng xuất khỏi tài khoản?</p>
-      <div className="shell__logout-confirm-actions">
-        <Button
-          variant="danger"
-          size="sm"
-          disabled={pending}
-          onClick={() => {
-            setConfirming(false);
-            onLogout();
-          }}
-        >
-          {pending ? 'Đang đăng xuất…' : 'Đăng xuất'}
-        </Button>
-        <Button variant="subtle" size="sm" disabled={pending} onClick={() => setConfirming(false)}>
-          Hủy
-        </Button>
-      </div>
-    </div>
+    <LogoutConfirm
+      pending={pending}
+      onConfirm={() => {
+        setConfirming(false);
+        onLogout();
+      }}
+      onCancel={() => {
+        setConfirming(false);
+        requestAnimationFrame(() => triggerRef.current?.focus());
+      }}
+    />
   );
 }
 
@@ -274,8 +322,10 @@ export function AppShell() {
   const activeSubject = useActiveSubject(subjects.data);
   const user = me.data?.user;
   const [moreOpen, setMoreOpen] = useState(false);
+  const [topbarLogoutConfirming, setTopbarLogoutConfirming] = useState(false);
   const isDesktop = useIsDesktop();
   const moreRef = useRef<HTMLDivElement>(null);
+  const topbarLogoutRef = useRef<HTMLButtonElement>(null);
 
   const isAdmin = user?.role === 'admin';
   const subjectsData = subjects.data ?? [];
@@ -491,13 +541,34 @@ export function AppShell() {
             </div>
             <div className="shell__topbar-actions">
               <TextSizeToggle />
-              <LogoutControl
-                pending={logout.isPending}
-                className="shell__topbar-logout"
-                onLogout={handleLogout}
-              />
+              {topbarLogoutConfirming ? null : (
+                <Button
+                  ref={topbarLogoutRef}
+                  variant="subtle"
+                  size="sm"
+                  className="shell__topbar-logout"
+                  onClick={() => setTopbarLogoutConfirming(true)}
+                  disabled={logout.isPending}
+                >
+                  Đăng xuất
+                </Button>
+              )}
             </div>
           </div>
+          {topbarLogoutConfirming ? (
+            <LogoutConfirm
+              pending={logout.isPending}
+              className="shell__logout-confirm--topbar"
+              onConfirm={() => {
+                setTopbarLogoutConfirming(false);
+                handleLogout();
+              }}
+              onCancel={() => {
+                setTopbarLogoutConfirming(false);
+                requestAnimationFrame(() => topbarLogoutRef.current?.focus());
+              }}
+            />
+          ) : null}
           {logoutError ? (
             <p className="shell__error" role="alert">
               {logoutError}

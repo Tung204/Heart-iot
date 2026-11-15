@@ -499,6 +499,30 @@ describe('AppShell — đăng xuất hỏi lại', () => {
 
     await waitFor(() => expect(logoutCalls(fetchMock).length).toBeGreaterThan(0));
   });
+
+  it('topbar mobile: hộp xác nhận là hàng riêng full-width ngoài topbar-row, Hủy đóng được', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    const topbar = document.querySelector<HTMLElement>('.shell__topbar');
+    expect(topbar).not.toBeNull();
+    // DOM: sidebar (index 0) rồi topbar (index 1); jsdom render cả hai.
+    await user.click(within(topbar as HTMLElement).getByRole('button', { name: 'Đăng xuất' }));
+
+    const group = within(topbar as HTMLElement).getByRole('group', {
+      name: 'Xác nhận đăng xuất',
+    });
+    expect(group).toHaveClass('shell__logout-confirm--topbar');
+    expect(group.parentElement).toBe(topbar);
+    expect(topbar!.querySelector('.shell__topbar-row')!.contains(group)).toBe(false);
+    expect(within(group).getByRole('button', { name: 'Hủy' })).toBeInTheDocument();
+
+    await user.click(within(group).getByRole('button', { name: 'Hủy' }));
+    expect(
+      within(topbar as HTMLElement).queryByRole('group', { name: 'Xác nhận đăng xuất' }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 // P1-1 (review UX v2) — đổi pathname trong /app phải đưa người dùng về đầu nội

@@ -219,11 +219,14 @@ export function AlertDetailPage() {
       ) : null}
 
       {/*
-        F04 — liên hệ khẩn cấp đứng trước mọi hành động đổi trạng thái: trong
-        viewport đầu 390/360, "Gọi" phải thấy được trước "Tôi đang hỗ trợ" và
-        "Đóng cảnh báo". Card tự ẩn khi lỗi tải để không chặn nội dung cảnh báo.
+        F04 — khi cảnh báo còn hành động, liên hệ khẩn cấp đứng trước mọi thao
+        tác đổi trạng thái: trong viewport đầu 390/360, "Gọi" phải thấy được
+        trước "Tôi đang hỗ trợ" và "Đóng cảnh báo".
+        R-05 — cảnh báo đã kết thúc/hủy thì không đặt card Gọi lên trước kết quả:
+        không còn hành động khẩn cấp nào để ưu tiên.
       */}
-      {alertSubject &&
+      {isActionableState(alert.state) &&
+      alertSubject &&
       viewerPermissions &&
       (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
         <EmergencyContactCard
@@ -372,8 +375,8 @@ export function AlertDetailPage() {
       )}
 
       {/*
-        Liên hệ khẩn cấp đã được đặt phía trên (F04) để hành động gọi nằm trong
-        màn đầu; ở đây chỉ còn phần diễn biến, hành động và người nhận.
+        Liên hệ khẩn cấp chỉ được đặt phía trên khi cảnh báo còn hành động (F04).
+        Với cảnh báo đã kết thúc, phần diễn biến/hành động bên dưới mới là nội dung chính.
       */}
       <section aria-labelledby="timeline-heading">
         <h2 id="timeline-heading" className="section-title">

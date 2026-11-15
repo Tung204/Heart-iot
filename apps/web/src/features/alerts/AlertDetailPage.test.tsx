@@ -188,6 +188,33 @@ describe('AlertDetailPage — thứ tự hành động khẩn cấp', () => {
       support.compareDocumentPosition(close) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
+
+  it('cảnh báo đã đóng → không đặt card Gọi trước "Cảnh báo đã kết thúc"', async () => {
+    let contactCalls = 0;
+    renderDetail((url) => {
+      const u = url;
+      if (u.includes('/emergency-contacts')) {
+        contactCalls += 1;
+        return mockResponse({ items: [CONTACT] });
+      }
+      if (u.includes(`/alerts/${INCIDENT.id}`)) {
+        return mockResponse({
+          ...DETAIL,
+          state: 'resolved',
+          resolvedAt: '2026-11-14T08:30:00.000Z',
+          resolutionReason: 'Đã hỗ trợ',
+          resolutionOutcome: 'supported',
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Cảnh báo đã kết thúc' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Gọi Trần Thị An' })).not.toBeInTheDocument();
+    expect(contactCalls).toBe(0);
+  });
 });
 
 // F-P2-4 / heading chi tiết cảnh báo phải tăng dần: H1 → H2, không nhảy H1 → H3.

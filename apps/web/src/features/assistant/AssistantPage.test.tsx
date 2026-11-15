@@ -246,9 +246,10 @@ describe('Hôm nay (/app)', () => {
     );
   });
 
-  it('lastSeenAt cũ hơn ngưỡng policy dù online → vẫn báo dữ liệu cũ', async () => {
+  it('freshness=stale (thiết bị vẫn online) → "Chưa có số đo mới" với lastMeasuredAt, không gọi ngoại tuyến', async () => {
     const asOf = '2026-11-15T12:15:00.000Z';
-    const lastSeenAt = '2026-11-15T09:12:00.000Z';
+    const lastSeenAt = '2026-11-15T12:14:30.000Z';
+    const lastMeasuredAt = '2026-11-15T11:20:00.000Z';
     renderPage(
       <AssistantPage />,
       todayHandler({
@@ -260,8 +261,9 @@ describe('Hôm nay (/app)', () => {
               {
                 ...SUBJECT_STATUS.devices[0],
                 online: true,
-                freshness: 'live',
+                freshness: 'stale',
                 lastSeenAt,
+                lastMeasuredAt,
               },
             ],
           }),
@@ -269,8 +271,52 @@ describe('Hôm nay (/app)', () => {
     );
 
     expect(
-      await screen.findByText(`Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(lastSeenAt)}`),
+      await screen.findByText(
+        `Chưa có số đo mới · lần đo cuối ${formatTime(lastMeasuredAt)}`,
+      ),
     ).toBeInTheDocument();
+    // Heartbeat 12:14 không được dùng làm mốc "dữ liệu cuối" và không được
+    // gọi thiết bị đang online là ngoại tuyến.
+    expect(screen.queryByText(/Thiết bị ngoại tuyến/)).not.toBeInTheDocument();
+    expect(screen.queryByText(formatTime(lastSeenAt))).not.toBeInTheDocument();
+  });
+
+  it('nhiều thiết bị: cảnh báo ngoại tuyến dùng mốc của chính thiết bị offline, không lấy mốc thiết bị online', async () => {
+    const asOf = '2026-11-15T12:15:00.000Z';
+    const offlineSeen = '2026-11-15T10:00:00.000Z';
+    const onlineSeen = '2026-11-15T12:14:30.000Z';
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        status: () =>
+          mockResponse({
+            ...SUBJECT_STATUS,
+            asOf,
+            devices: [
+              {
+                ...SUBJECT_STATUS.devices[0],
+                deviceId: '3f4d5a6b-7c8d-4e9f-8a1b-2c3d4e5f6a7c',
+                online: false,
+                freshness: 'offline',
+                lastSeenAt: offlineSeen,
+                lastMeasuredAt: '2026-11-15T09:59:00.000Z',
+              },
+              {
+                ...SUBJECT_STATUS.devices[0],
+                online: true,
+                freshness: 'live',
+                lastSeenAt: onlineSeen,
+                lastMeasuredAt: '2026-11-15T12:13:00.000Z',
+              },
+            ],
+          }),
+      }),
+    );
+
+    expect(
+      await screen.findByText(`Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(offlineSeen)}`),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(formatTime(onlineSeen))).not.toBeInTheDocument();
   });
 
   it('không cảnh báo mở → một câu có thời gian cập nhật, không nút cảnh báo', async () => {
@@ -583,5 +629,29 @@ describe('Hôm nay (/app)', () => {
     expect(await screen.findByText('Chủ hồ sơ không chia sẻ số đo')).toBeInTheDocument();
     expect(screen.queryByText(/Hãy thử lại/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeDisabled();
+    // Không để lại vùng live rỗng khi chưa có lượt nào.
+    expect(screen.queryByRole('log')).not.toBeInTheDocument();
+  });
+
+  it('ask 403 do origin/ghi bị chặn → không báo sai là chủ hồ sơ không chia sẻ số đo', async () => {
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        ask: () =>
+          mockResponse(
+            errorEnvelope('Origin không được phép cho thao tác ghi.', 'FORBIDDEN'),
+            403,
+          ),
+      }),
+    );
+    const user = userEvent.setup();
+
+    await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`);
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+
+    expect(await screen.findByText('Trình duyệt chặn thao tác gửi')).toBeInTheDocument();
+    expect(screen.queryByText('Chủ hồ sơ không chia sẻ số đo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('log')).not.toBeInTheDocument();
   });
 });

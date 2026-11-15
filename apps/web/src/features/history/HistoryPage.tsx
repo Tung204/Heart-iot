@@ -50,7 +50,7 @@ const VISIBLE_STEP = 50;
  */
 const MAX_VISIBLE_ROWS = 400;
 
-const INITIAL_VISIBLE_ROWS = 20;
+const INITIAL_VISIBLE_ROWS = 10;
 
 const MINUTE_MS = 60_000;
 
@@ -281,6 +281,26 @@ export function HistoryPage() {
   const visibleItems = useMemo(() => items.slice(0, visibleLimit), [items, visibleLimit]);
   const hasHiddenRows = items.length > visibleItems.length;
   const isCappedByWindow = hasHiddenRows && visibleLimit >= MAX_VISIBLE_ROWS;
+  // Một nút duy nhất: trước hết mở thêm dòng đã tải, khi đã hết dòng cục bộ mới
+  // tải trang tiếp theo từ máy chủ. Tránh hai nút “Hiện thêm”/“Tải thêm” cạnh nhau.
+  const canRevealMore = hasHiddenRows && visibleLimit < MAX_VISIBLE_ROWS;
+  const canFetchMore =
+    !canRevealMore && visibleLimit >= items.length && measurements.hasNextPage;
+  const loadMore = () => {
+    if (canRevealMore) {
+      setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS));
+      return;
+    }
+    if (!canFetchMore) return;
+    void measurements.fetchNextPage().then(() => {
+      setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS));
+    });
+  };
+  const loadMoreLabel = canRevealMore
+    ? `Hiện thêm ${Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng`
+    : measurements.isFetchingNextPage
+      ? 'Đang tải…'
+      : 'Tải thêm từ máy chủ';
   const measurementsForbidden =
     measurements.isError && isForbiddenError(measurements.error);
 
@@ -477,15 +497,14 @@ export function HistoryPage() {
             </div>
           )}
 
-          {hasHiddenRows && visibleLimit < MAX_VISIBLE_ROWS ? (
+          {canRevealMore || canFetchMore ? (
             <div className="history-load-more">
               <Button
                 variant="secondary"
-                onClick={() =>
-                  setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS))
-                }
+                onClick={loadMore}
+                disabled={measurements.isFetchingNextPage}
               >
-                Hiện thêm {Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng
+                {loadMoreLabel}
               </Button>
             </div>
           ) : null}
@@ -497,18 +516,6 @@ export function HistoryPage() {
                 : `Trang chỉ hiện tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần. `}
               Dùng nút “Tải CSV” ở trên để xem toàn bộ {items.length} dòng đã tải.
             </p>
-          ) : null}
-
-          {measurements.hasNextPage ? (
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => void measurements.fetchNextPage()}
-                disabled={measurements.isFetchingNextPage}
-              >
-                {measurements.isFetchingNextPage ? 'Đang tải…' : 'Tải thêm từ máy chủ'}
-              </Button>
-            </div>
           ) : null}
 
           <p className="field__hint">Dữ liệu hiển thị là dữ liệu mô phỏng.</p>
