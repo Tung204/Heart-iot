@@ -224,8 +224,15 @@ describe('Xu hướng: GET /subjects/:id/insights', () => {
     expect(todayDay.heartRate).toMatchObject({ validSamples: 1 });
     expect(todayDay.coverage.observedCount).toBe(1);
     expect(todayDay.coverage.expectedCount).toBeGreaterThan(0);
-    expect(todayDay.coverage.percent).toBeGreaterThan(0);
     expect(todayDay.coverage.percent).toBeLessThanOrEqual(100);
+    // Consistency với công thức policy tự tính từ response (không phụ thuộc giờ
+    // chạy): sáng sớm expectedCount nhỏ nên percent > 0, cuối ngày 1/4452 làm
+    // tròn 1 chữ số = 0.0. Kiểm công thức, không kiểm một ngưỡng theo thời gian.
+    const todayExpectedPercent = Math.min(
+      100,
+      Math.round((todayDay.coverage.observedCount / todayDay.coverage.expectedCount) * 1000) / 10,
+    );
+    expect(todayDay.coverage.percent).toBe(todayExpectedPercent);
     // Chỉ một mốc của boot → không suy ra delta bước.
     expect(todayDay.steps).toEqual({ total: 0, completeness: 'partial' });
 
@@ -750,5 +757,22 @@ describe('Xu hướng: GET /subjects/:id/insights', () => {
     });
     expect(coverageCounts(start, new Date(start.getTime() + 1_000), 15, 0).expectedCount).toBe(1);
     expect(coverageCounts(start, end, 15, 10_000).percent).toBe(100);
+  });
+
+  it('helper coverage: cửa sổ nhỏ tất định 1 mẫu/10 kỳ vọng → 10%, 0 mẫu → 0, clamp 100', () => {
+    const start = new Date('2026-11-13T00:00:00.000Z');
+    // 150s / 15s = 10 khoảng kỳ vọng — kiểm công thức làm tròn, không phụ thuộc giờ chạy.
+    const end = new Date(start.getTime() + 150 * 1000);
+    expect(coverageCounts(start, end, 15, 1)).toEqual({
+      percent: 10,
+      observedCount: 1,
+      expectedCount: 10,
+    });
+    expect(coverageCounts(start, end, 15, 0)).toEqual({
+      percent: 0,
+      observedCount: 0,
+      expectedCount: 10,
+    });
+    expect(coverageCounts(start, end, 15, 25).percent).toBe(100);
   });
 });
