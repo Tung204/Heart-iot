@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -78,6 +81,49 @@ function notification(overrides: Record<string, unknown> = {}) {
     createdAt: '2026-11-15T02:00:00.000Z',
     ...overrides,
   };
+}
+
+// Motion v2 — hiệu ứng chuyển trang chỉ chạy khi pathname đổi, tắt hoàn toàn
+// khi người dùng giảm chuyển động; hover chỉ áp dụng trên thiết bị có con trỏ.
+// CSS được đọc trực tiếp từ file nguồn (không snapshot) vì hành vi nằm ở CSS.
+const STYLES_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../styles');
+
+function readStyle(name: 'layout.css' | 'tokens.css'): string {
+  return readFileSync(resolve(STYLES_DIR, name), 'utf8');
+}
+
+/** Nội dung các khối @media đúng điều kiện, khớp ngoặc nhọn nên không phụ thuộc format. */
+function mediaBlocks(css: string, condition: string): string[] {
+  const blocks: string[] = [];
+  const marker = `@media ${condition}`;
+  let from = 0;
+  while (from < css.length) {
+    const start = css.indexOf(marker, from);
+    if (start === -1) break;
+    const open = css.indexOf('{', start);
+    if (open === -1) break;
+    let depth = 0;
+    let end = -1;
+    for (let i = open; i < css.length; i += 1) {
+      const ch = css.charAt(i);
+      if (ch === '{') depth += 1;
+      else if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) {
+          end = i;
+          break;
+        }
+      }
+    }
+    if (end === -1) break;
+    blocks.push(css.slice(open + 1, end));
+    from = end + 1;
+  }
+  return blocks;
+}
+
+function countOccurrences(haystack: string, needle: string): number {
+  return haystack.split(needle).length - 1;
 }
 
 interface NotificationPayload {
@@ -487,5 +533,102 @@ describe('AppShell — banner thông báo mới và mất SSE', () => {
         screen.queryByText(/Mất cập nhật trực tiếp — đang thử lại/),
       ).not.toBeInTheDocument(),
     );
+  });
+});
+
+// Motion v2 — nội dung route mới fade + dịch lên khi đổi pathname; phản hồi
+// khi bấm nút/link; banner thông báo mới trượt vào; tôn trọng giảm chuyển động.
+describe('AppShell — chuyển động nhẹ, có mục đích', () => {
+  it('lần tải đầu không chạy hiệu ứng; đổi pathname → phần tử route mới có lớp enter', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    const user = userEvent.setup();
+    await screen.findByText('nội dung trang');
+
+    // Lần tải đầu: có phần tử bọc nội dung nhưng chưa có lớp animation.
+    const first = document.querySelector<HTMLElement>('.shell__route');
+    expect(first).not.toBeNull();
+    expect(first).not.toHaveClass('shell__route--enter');
+
+    await user.click(screen.getAllByRole('link', { name: 'Lịch sử' })[0]!);
+    expect(await screen.findByText('trang lịch sử')).toBeInTheDocument();
+
+    // Đổi pathname → phần tử mới (key mới) mang lớp animation.
+    const next = document.querySelector<HTMLElement>('.shell__route');
+    expect(next).not.toBeNull();
+    expect(next).not.toBe(first);
+    expect(next).toHaveClass('shell__route');
+    expect(next).toHaveClass('shell__route--enter');
+    expect(next).toContainElement(screen.getByText('trang lịch sử'));
+
+    // Hiệu ứng chỉ bọc nội dung trang; nav nằm ngoài nên không bị che/mờ.
+    expect(document.querySelector('.shell__route .shell__sidebar')).toBeNull();
+    expect(document.querySelector('.shell__route .shell__bottomnav')).toBeNull();
+    expect(document.querySelector('.shell__sidebar .shell__route')).toBeNull();
+    expect(document.querySelector('.shell__bottomnav .shell__route')).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Tổng quan' }).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByRole('link', { name: 'Cảnh báo' }).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('refetch dữ liệu và đổi query param không tạo lại phần tử route (không nháy nội dung)', async () => {
+    let payload: NotificationPayload = { items: [], unreadCount: 0 };
+    const { queryClient } = renderShell({ user: OWNER_USER }, SUBJECTS, {
+      notifications: () => payload,
+    });
+    await screen.findByText('nội dung trang');
+    await waitFor(() => expect(queryClient.getQueryData(['notifications'])).toBeDefined());
+
+    const first = document.querySelector<HTMLElement>('.shell__route');
+    expect(first).not.toBeNull();
+
+    // Refetch (kể cả có thông báo mới làm banner hiện) không mount lại nội dung.
+    payload = { items: [notification()], unreadCount: 1 };
+    await act(async () => {
+      await queryClient.refetchQueries({ queryKey: ['notifications'] });
+    });
+    expect(document.querySelector('.shell__route')).toBe(first);
+    expect(first).not.toHaveClass('shell__route--enter');
+
+    // Đổi query param cùng trang cũng không chạy hiệu ứng chuyển trang.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('link', { name: 'đổi tham số' }));
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'đổi tham số' })).toHaveAttribute(
+        'href',
+        '/app?tab=2',
+      ),
+    );
+    expect(document.querySelector('.shell__route')).toBe(first);
+    expect(first).not.toHaveClass('shell__route--enter');
+  });
+
+  it('CSS: @media (prefers-reduced-motion: reduce) tắt animation mới', () => {
+    const tokens = mediaBlocks(readStyle('tokens.css'), '(prefers-reduced-motion: reduce)').join(
+      '\n',
+    );
+    // Global hiện có: mọi animation/transition về 0.01ms, chạy đúng một lần.
+    expect(tokens).toMatch(/animation-duration:\s*0\.01ms\s*!important/);
+    expect(tokens).toMatch(/animation-iteration-count:\s*1\s*!important/);
+
+    const layout = mediaBlocks(readStyle('layout.css'), '(prefers-reduced-motion: reduce)').join(
+      '\n',
+    );
+    // Khối riêng cho thành phần mới: tắt hẳn thay vì rút ngắn.
+    expect(layout).toContain('.shell__route--enter');
+    expect(layout).toContain('.shell__banner--notice');
+    expect(layout).toMatch(/animation:\s*none/);
+  });
+
+  it('CSS: hover của nút/link chỉ nằm trong @media (hover: hover)', () => {
+    const layout = readStyle('layout.css');
+    const hover = mediaBlocks(layout, '(hover: hover)').join('\n');
+    for (const selector of [
+      '.button:hover:not(:disabled)',
+      '.shell__nav-link:hover',
+      '.shell__more-toggle:hover',
+    ]) {
+      expect(hover).toContain(selector);
+      // Không còn bản hover nào ngoài khối @media (hover: hover).
+      expect(countOccurrences(layout, selector)).toBe(countOccurrences(hover, selector));
+    }
   });
 });
