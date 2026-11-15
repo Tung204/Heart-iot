@@ -4,6 +4,7 @@
 - **Worker:** fix-ux-p0-p1 (dispatched), worktree `C:/Users/nguye/orca/workspaces/DATN/fix-ux-p0-p1`
 - **Nhánh:** `fix-ux-p0-p1` (không merge)
 - **Base:** `1a504cd docs(orchestration): spec sửa UX P0/P1`
+- **Commit sửa:** `dbe9a90b8bc519df97470f30cac6617b22fcf733` (fix(web): cảnh báo tổng quan độc lập, cuộn đầu trang, tràn lời mời và nhãn demo mobile)
 - **Nguồn finding:** `reports/qa/v2-ux-visual.md` (worktree `qa-ux-visual`, HEAD `8434d66`) — P0-1, P1-1, P1-2, P1-5, P1-8
 - **Tài liệu tham chiếu:** `docs/06-trai-nghiem-va-man-hinh.md` (mục “Hiện trạng giao diện v1”: cảnh báo ưu tiên trước số liệu; responsive 1280/390/360/chữ lớn; không tràn ngang), `docs/12`
 - **Phạm vi đã giữ:** chỉ web UI + CSS + test web. **Không** sửa API, router, contracts, docs, logic quyền/dữ liệu.
