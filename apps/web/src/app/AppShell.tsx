@@ -39,6 +39,27 @@ function useResetScrollOnNavigate() {
   return mainRef;
 }
 
+/**
+ * Chuyển trang mềm, có mục đích: chỉ khi `pathname` đổi.
+ * - Lần tải đầu (POP/reload) không chạy hiệu ứng nên không làm chậm first paint.
+ * - Render lại do query/refetch/Sse hay đổi query param, hash giữ nguyên pathname
+ *   nên không tạo lại phần tử và không nhấp nháy nội dung.
+ * - `key` theo pathname buộc trang mới mount lại, nhờ đó CSS animation
+ *   (fade + dịch lên, xem `.shell__route--enter`) chạy đúng một lần. Hiệu ứng
+ *   chỉ dùng opacity/transform nên không gây layout shift, không che nav.
+ *
+ * State được cập nhật ngay trong render theo mẫu “adjusting state when props
+ * change” của React: nhờ vậy lớp animation có mặt ngay ở lần render đầu tiên
+ * của key mới, không phải chờ effect (sẽ là một nháy nội dung đã hiện).
+ */
+function useRouteTransition(pathname: string): { path: string; animate: boolean } {
+  const [route, setRoute] = useState({ path: pathname, animate: false });
+  if (route.path !== pathname) {
+    setRoute({ path: pathname, animate: true });
+  }
+  return route;
+}
+
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, ReactNode> = {
     home: <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />,
@@ -137,6 +158,7 @@ export function AppShell() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const mainRef = useResetScrollOnNavigate();
+  const routeTransition = useRouteTransition(location.pathname);
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [revokedInfo, setRevokedInfo] = useState<{ subjectId: string; name: string } | null>(null);
 
@@ -415,10 +437,16 @@ export function AppShell() {
               </div>
             ) : null}
             {adminOnly ? null : <SubjectSwitcher />}
-            {/* Key theo pathname để lỗi của trang trước không dính sang trang mới. */}
-            <AppErrorBoundary key={location.pathname}>
-              <Outlet />
-            </AppErrorBoundary>
+            {/* Key theo pathname: lỗi của trang trước không dính sang trang mới và
+                hiệu ứng chuyển trang chạy lại đúng một lần cho nội dung mới. */}
+            <div
+              key={routeTransition.path}
+              className={`shell__route${routeTransition.animate ? ' shell__route--enter' : ''}`}
+            >
+              <AppErrorBoundary>
+                <Outlet />
+              </AppErrorBoundary>
+            </div>
             {/* Mobile không có sidebar: nhắc giới hạn demo ở cuối nội dung, không bị ẩn. */}
             <p className="shell__mobile-safety-note">
               Cảnh báo chỉ hiển thị khi trang đang mở và kết nối với máy chủ. Bản demo không tự

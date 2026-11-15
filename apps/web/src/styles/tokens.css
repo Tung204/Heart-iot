@@ -69,7 +69,14 @@
   --max-content: 60rem;
   --max-page: 72rem;
 
+  /* Chuyển động — ngắn, có mục đích, chỉ để giải thích thay đổi trạng thái.
+     Mọi hiệu ứng đều tắt khi người dùng chọn giảm chuyển động (xem block
+     giảm chuyển động bên dưới và trong layout.css). */
   --motion-fast: 120ms ease-out;
+  --motion-press: 90ms ease-out;
+  --motion-route: 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --motion-banner: 220ms ease-out;
+  --motion-route-shift: 8px; /* 6–8px: đủ thấy hướng đi, không gây giật */
 }
 
 html {
@@ -89,6 +96,8 @@ html[data-text-size='large'] {
   html {
     scroll-behavior: auto;
   }
+  /* Chặn cả hiệu ứng mới (chuyển trang, banner, phản hồi khi bấm): không có
+     animation/transition kéo dài, nội dung hiện ngay và không nhấp nháy. */
   *,
   *::before,
   *::after {
