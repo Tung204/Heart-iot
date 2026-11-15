@@ -35,8 +35,8 @@ pnpm db:migrate  # áp migration (dừng API trước)
 
 ## Module và ranh giới
 
-`auth`, `access`, `subjects`, `care`, `devices`, `device-auth`, `ingest`, `measurements`, `incidents`,
-`notifications`, `realtime`, `studio`, `assistant`, `maintenance`, `admin`, `policy`.
+`auth`, `access`, `subjects`, `care`, `devices` (kèm `device-auth`), `ingest`, `measurements`, `incidents`,
+`notifications`, `realtime`, `studio`, `assistant`, `maintenance`, `admin`, `policy`, `health`.
 
 - Kiểm quyền theo **hồ sơ** tập trung ở `AccessService`; không dựa vào role admin để đọc dữ liệu sức khỏe.
 - Ingest thiết bị xác thực bằng header thiết bị; không dùng cookie người dùng.

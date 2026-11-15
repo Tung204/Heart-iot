@@ -1,6 +1,6 @@
 # Nguyên tắc phát triển, tái sử dụng và bằng chứng
 
-Ngày ghi nhận: **10/11/2026**. Tài liệu lưu yêu cầu cách làm của người dùng và quy trình áp dụng cho dự án. Các cơ chế CI, registry tự động, sandbox và kiểm thử sản phẩm bên dưới **chưa được triển khai**; không coi một file hướng dẫn là hệ thống cưỡng chế đã hoạt động.
+Ngày ghi nhận: **10/11/2026**. Tài liệu lưu yêu cầu cách làm của người dùng và quy trình áp dụng cho dự án. Các cơ chế CI, registry tự động, sandbox và quy trình kiểm thử sản phẩm mô tả bên dưới **chưa được triển khai** (đã có unit/integration test ở các package; xem [`tests/README.md`](../tests/README.md)); không coi một file hướng dẫn là hệ thống cưỡng chế đã hoạt động.
 
 ## Tài liệu là một phần của thay đổi
 
@@ -43,7 +43,7 @@ Không ép các nghiệp vụ khác nhau dùng chung một abstraction vì tên 
 
 Đề xuất khi bắt đầu có source: mỗi capability có tên, mục đích, nơi triển khai chính thức, contract, quyền, module dùng, test/tài liệu liên quan và trạng thái `planned`/`active`/`deprecated`. Phần có thể suy ra từ source/manifest nên sinh hoặc kiểm tự động; không duy trì danh sách endpoint/package thủ công thứ hai.
 
-Hiện tại repository chỉ có công cụ sinh tài liệu, payload minh họa và README module. Chưa có runtime tool registry, API contract triển khai hoặc Business Service để đăng ký là `active`. Dùng README/mục lục hiện tại; không tạo index giả chứa các đường dẫn code chưa tồn tại.
+Hiện repository đã có `packages/contracts` với zod schema cho 15 miền (được API, web và simulator import), các module NestJS trong `apps/api/src` và web React trong `apps/web/src`, cùng test chạy được ở ba package. **Chưa có** runtime tool registry/capability `active`, OpenAPI máy sinh hoặc quality gate tự động trong CI. Dùng manifest và README hiện có; không tạo index giả chứa đường dẫn code chưa tồn tại.
 
 Với thay đổi xuyên module, thực hiện:
 
@@ -80,7 +80,7 @@ Việc AI được giao sửa backend ở môi trường phát triển không c�
 - Chạy test tuần tự mặc định. Lỗi thì đọc bằng chứng và sửa nguyên nhân; không retry mù, bỏ/nới test để làm xanh.
 - Chỉ chạy full suite khi cần release gate hoặc bằng chứng hồi quy rộng. Chạy đạt không đồng nghĩa đã deploy hoặc được nghiệm thu.
 
-Khi có source, có thể thêm kiểm dependency boundary, contract và policy để ngăn lệch kiến trúc. Chọn kiểm tra gắn với rủi ro cụ thể; không mặc định phải cài mọi công cụ nêu trong bài tham khảo. Hiện chưa có các quality gate đó.
+Khi có source, có thể thêm kiểm dependency boundary, contract và policy để ngăn lệch kiến trúc. Chọn kiểm tra gắn với rủi ro cụ thể; không mặc định phải cài mọi công cụ nêu trong bài tham khảo. Ở HEAD đã có `pnpm -r typecheck`, test từng package, `tools/docs/build.py --check` và `tools/docs/check-examples.mjs`; **chưa có** CI tự động, dependency boundary hay contract test sinh tự động nên các cổng này vẫn phải chạy tay.
 
 ## Điều kiện báo hoàn thành
 

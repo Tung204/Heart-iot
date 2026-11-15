@@ -73,6 +73,5 @@ Phần giao diện đã được triển khai và kiểm thủ công bằng Play
   Trang lời mời, chia sẻ, thiết bị, thông báo, trợ lý, công việc, Studio và Quản trị đều có trạng thái trống/lỗi/quyền.
 - Điều hướng di động dùng thanh dưới với 5 mục chính; mục phụ nằm trong “Thêm”. Chữ lớn, vùng chạm rộng,
   trạng thái không chỉ dựa vào màu và có liên kết bỏ qua nội dung.
-- Đã kiểm ở 1280×900, 390×844, 360×740 và chế độ chữ lớn; không có tràn ngang. Đây là kiểm giao diện kỹ thuật,
-  **chưa thay thế** kiểm khả dụng với người cao tuổi/người chăm sóc thật.
+- Đã kiểm thủ công ở 1280×900, 390×844, 360×740 và chế độ chữ lớn trong phiên 15/11; không thấy tràn ngang (`scrollWidth == innerWidth`) ở các màn đã chụp. **Bằng chứng ảnh nằm ngoài repo** tại `C:\tmp\ui-final` (42 ảnh, worklog `reports/worklog/2026-11-15.md` ghi nhận); repo chưa có artifact nên người khác không tự kiểm lại được. Đây là kiểm giao diện kỹ thuật, **chưa thay thế** kiểm khả dụng với người cao tuổi/người chăm sóc thật.
 
