@@ -219,7 +219,7 @@ Người dùng bác giao diện v3 vì quá nhiều chữ/khối; yêu cầu tha
 | Trạng thái thiết bị | `offline` dùng `lastSeenAt`; `stale` dùng `lastMeasuredAt` và câu “Chưa có số đo mới”, không gọi ngoại tuyến | `AssistantPage.test.tsx`, re-review R-01 |
 | Hồi quy đã sửa | Topbar mobile không tràn khi hỏi đăng xuất; Overview chữ lớn không tràn; nút Gửi trên nav; resolved alert không đưa Gọi lên trước | `AppShell.test.tsx`, `AlertDetailPage.test.tsx`, `e2e/smoke.spec.ts` |
 
-**Review v4:** 3 reviewer độc lập (public/admin/app) tìm 69 phát hiện ban đầu; sau các vòng sửa còn 15 P2/P3 public, 18 P2/P3 admin, 24 P2/P3 app (1 P1 stale đã sửa). Báo cáo ở `reports/qa/v4-*.md`; **chưa có reviewer độc lập cho vòng sửa app thứ hai**. Các P2 còn lại (menu tài khoản, gộp 3 giá trị nhịp tim, hai nút tải lịch sử, policy summary 360) được ghi nhận, không tuyên bố đã đóng.
+**Review v4:** 3 reviewer độc lập (public/admin/app) tìm 69 phát hiện ban đầu; sau các vòng sửa còn 15 P2/P3 public, 18 P2/P3 admin, 24 P2/P3 app (1 P1 stale đã sửa). Báo cáo ở `reports/qa/v4-*.md`; **chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**. Các P2 còn lại (menu tài khoản, gộp 3 giá trị nhịp tim, hai nút tải lịch sử, policy summary 360) được ghi nhận, không tuyên bố đã đóng.
 
 ### Lệnh kiểm đã dùng
 
@@ -251,7 +251,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
 - **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
 - **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, retention/xóa cứng/backup; deletion-request mới ghi audit. Không tuyên bố tuân thủ pháp lý.
-- **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho vòng sửa app thứ hai**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
+- **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
 
 ### Giới hạn vận hành đã biết
 
