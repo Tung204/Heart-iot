@@ -66,7 +66,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Tạo tài khoản"
-      intro="Tạo tài khoản để bắt đầu theo dõi người thân cùng An Nhiên."
+      intro="Theo dõi người thân cùng An Nhiên."
       footer={
         <p className="auth-footer">
           Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
@@ -87,7 +87,6 @@ export function RegisterPage() {
           type="text"
           autoComplete="name"
           required
-          hint="Tên của bạn, hiển thị với người thân."
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           error={fieldErrors.displayName}

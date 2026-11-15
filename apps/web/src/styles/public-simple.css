@@ -1,1 +1,303 @@
-/* Giao diện công khai tối giản — worker public điền, lead nối import. */
+/* ============================================================
+   Giao diện công khai tối giản (landing, đăng nhập/đăng ký, 404)
+   Mỗi màn một mục đích: một tiêu đề, một câu giải thích, một hành động.
+   Tệp này tải sau layout.css nên các quy tắc dưới đây ghi đè bản cũ
+   cho riêng các lớp công khai; không đổi token hay bố cục ứng dụng.
+   ============================================================ */
+
+/* ---------- Header: logo + một điểm vào ---------- */
+
+.site-header {
+  background: var(--color-paper);
+}
+
+.site-header__inner {
+  flex-wrap: nowrap;
+  padding-block: var(--space-3);
+}
+
+.site-header .brand {
+  font-size: 1.375rem;
+}
+
+.site-header__nav {
+  margin-left: auto;
+}
+
+.site-header__login {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-s);
+  color: var(--color-teal-deep);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-header__login:hover {
+  background: var(--color-paper-deep);
+  color: var(--color-teal);
+}
+
+/* Hẹp ≤370px: vẫn một hàng vì chỉ còn một liên kết, không cần xuống dòng. */
+@media (max-width: 370px) {
+  .site-header__inner {
+    padding-block: var(--space-2);
+  }
+  .site-header__nav {
+    width: auto;
+    margin-left: auto;
+  }
+  .site-header__nav .button {
+    flex: 0 0 auto;
+    padding-inline: var(--space-3);
+  }
+}
+
+/* ---------- Hero: một màn, một lời dẫn, hai CTA ---------- */
+
+.hero {
+  background:
+    radial-gradient(78% 70% at 88% 16%, var(--color-teal-soft) 0%, transparent 62%),
+    linear-gradient(180deg, var(--color-paper-deep), var(--color-paper));
+}
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  padding-block: clamp(2.25rem, 6vw, 4.25rem) clamp(2rem, 5vw, 3.5rem);
+}
+
+@media (min-width: 900px) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+    gap: var(--space-7);
+  }
+}
+
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.hero__title {
+  max-width: 15ch;
+  font-size: clamp(2.15rem, 6.2vw, 3.5rem);
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.hero__lead {
+  max-width: 34rem;
+  font-size: clamp(1.0625rem, 2.2vw, 1.1875rem);
+  color: var(--color-ink-soft);
+  text-wrap: pretty;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+@media (max-width: 430px) {
+  .hero__actions {
+    flex-direction: column;
+  }
+  .hero__actions .button {
+    width: 100%;
+  }
+}
+
+/* Hình trang trí: ẩn trên mobile để nội dung chính lên trước. */
+.hero-art {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .hero-art {
+    display: block;
+    justify-self: end;
+    width: min(100%, 20rem);
+  }
+  .hero-art svg {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* ---------- Section: 3 thẻ, mỗi thẻ một câu ---------- */
+
+.landing-section {
+  padding-block: clamp(2.5rem, 6vw, 4rem) clamp(2.75rem, 6vw, 4.5rem);
+}
+
+.landing-section .section-title {
+  margin-bottom: var(--space-5);
+  font-size: clamp(1.55rem, 3.4vw, 2rem);
+}
+
+.capabilities {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .capabilities {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.capability {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-l);
+  background: var(--color-surface);
+}
+
+.capability__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: var(--space-1);
+  border-radius: 999px;
+  background: var(--color-teal-soft);
+  color: var(--color-teal-deep);
+}
+
+.capability__title {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+
+.capability__text {
+  color: var(--color-ink-soft);
+}
+
+/* ---------- Footer: hai dòng ---------- */
+
+.site-footer {
+  padding-block: var(--space-5);
+  background: var(--color-paper);
+}
+
+.site-footer p {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+}
+
+.site-footer__note {
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+}
+
+/* ---------- Đăng nhập / đăng ký / lời mời / 404 ---------- */
+
+.auth-header {
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.auth-header .brand {
+  font-size: 1.5rem;
+}
+
+.auth-main {
+  flex: 1;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
+}
+
+.auth-card {
+  max-width: 25rem;
+  padding: clamp(1.25rem, 5vw, 2rem);
+}
+
+.auth-card__title {
+  margin-bottom: var(--space-2);
+  font-size: clamp(1.6rem, 5vw, 1.9rem);
+  text-wrap: balance;
+}
+
+.auth-card__intro {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.auth-card .field {
+  margin-bottom: var(--space-4);
+}
+
+.auth-footer {
+  margin-top: 0;
+}
+
+.auth-note {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* Tài khoản trải nghiệm: chọn vai trò, không hiện email. */
+
+.trial-accounts {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-sm);
+}
+
+.trial-accounts summary {
+  min-height: 2.75rem;
+  padding-block: var(--space-2);
+  color: var(--color-teal-deep);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.trial-accounts[open] summary {
+  margin-bottom: var(--space-1);
+}
+
+.trial-accounts__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.trial-account {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-m);
+  background: var(--color-surface-2);
+  color: var(--color-teal-deep);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .trial-account:hover {
+    border-color: var(--color-teal);
+    background: var(--color-teal-soft);
+  }
+}

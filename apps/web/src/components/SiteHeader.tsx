@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { useMe } from '../features/auth/useAuth';
 import { ButtonLink } from './Button';
 
-/** Header dùng chung cho trang công khai; khi đã đăng nhập thì hiện "Mở ứng dụng". */
+/** Header công khai tối giản: logo và một điểm vào duy nhất. */
 export function SiteHeader() {
   const me = useMe();
-  const user = me.isSuccess ? me.data.user : null;
+  const user = me.data?.user ?? null;
 
   return (
     <header className="site-header">
@@ -15,18 +15,13 @@ export function SiteHeader() {
         </Link>
         <nav className="site-header__nav" aria-label="Điều hướng công khai">
           {user ? (
-            <ButtonLink to="/app" size="sm">
+            <ButtonLink to="/app" variant="secondary" size="sm">
               Mở ứng dụng
             </ButtonLink>
           ) : (
-            <>
-              <ButtonLink to="/login" variant="subtle" size="sm">
-                Đăng nhập
-              </ButtonLink>
-              <ButtonLink to="/register" size="sm">
-                Tạo tài khoản
-              </ButtonLink>
-            </>
+            <Link to="/login" className="site-header__login">
+              Đăng nhập
+            </Link>
           )}
         </nav>
       </div>

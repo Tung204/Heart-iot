@@ -72,8 +72,7 @@ export function InvitePage() {
                   Lời mời không hợp lệ
                 </h1>
                 <Alert tone="warning">
-                  Lời mời này không tồn tại, đã hết hạn hoặc đã được dùng. Hãy kiểm tra lại
-                  đường dẫn hoặc nhờ người mời gửi lời mời mới.
+                  Lời mời này không tồn tại hoặc đã hết hạn.
                 </Alert>
                 <p className="auth-footer">
                   <Link to="/">Về trang chủ</Link>
@@ -96,12 +95,6 @@ export function InvitePage() {
                 <strong>{invitation.data.subjectName}</strong>.
               </p>
               <div className="stack" style={{ gap: '0.75rem' }}>
-                <p>
-                  <strong>Hồ sơ:</strong> {invitation.data.subjectName}
-                </p>
-                <p>
-                  <strong>Người mời:</strong> {invitation.data.inviterName}
-                </p>
                 <p>
                   <strong>Quyền khi chấp nhận:</strong>{' '}
                   {describePermissions(invitation.data)}
@@ -135,8 +128,7 @@ export function InvitePage() {
                 ) : accept.isSuccess ? (
                   <>
                     <Alert tone="success" title="Đã tham gia">
-                      Bạn đã đồng ý lời mời. Quyền truy cập theo đúng phạm vi người mời cấp và
-                      có thể bị thu hồi bất kỳ lúc nào.
+                      Bạn đã đồng ý lời mời.
                     </Alert>
                     <div style={{ marginTop: '1rem' }}>
                       <ButtonLink to="/app">Mở ứng dụng</ButtonLink>
@@ -155,10 +147,7 @@ export function InvitePage() {
                   </div>
                 )}
               </div>
-              <p className="field__hint">
-                Dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Quyền truy cập do chủ hồ sơ
-                quyết định và có thể bị thu hồi bất kỳ lúc nào.
-              </p>
+              <p className="auth-note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
             </>
           ) : null}
         </section>

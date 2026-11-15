@@ -14,8 +14,7 @@ export function NotFoundPage() {
             Không tìm thấy trang
           </h1>
           <p className="auth-card__intro">
-            Đường dẫn bạn mở không tồn tại hoặc đã được chuyển đi. Nếu bạn mở một đường dẫn lời
-            mời, hãy kiểm tra lại xem có thiếu ký tự nào không.
+            Đường dẫn này không tồn tại hoặc đã được chuyển đi.
           </p>
           <ButtonLink to="/">Về trang chủ</ButtonLink>
         </section>

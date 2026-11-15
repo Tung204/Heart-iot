@@ -75,4 +75,36 @@ describe('LoginPage', () => {
       await screen.findByRole('link', { name: 'Tạo tài khoản mới' }),
     ).toHaveAttribute('href', '/register');
   });
+
+  it('giữ khung tối giản: một câu dẫn và đúng một dòng dữ liệu mô phỏng', async () => {
+    renderApp('/login', () => me401Response());
+
+    expect(
+      await screen.findByText('Xem tình hình người thân và cảnh báo.'),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Dữ liệu mô phỏng · không thay thế cấp cứu.')).toHaveLength(1);
+    expect(document.querySelectorAll('h1')).toHaveLength(1);
+  });
+
+  it('chọn vai trò ở “Tài khoản trải nghiệm” thì điền email/mật khẩu, nút không hiện email', async () => {
+    renderApp('/login', () => me401Response());
+    const user = userEvent.setup();
+
+    await screen.findByRole('heading', { level: 1, name: 'Đăng nhập' });
+    expect(screen.getByText('Tài khoản trải nghiệm')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Chủ hồ sơ' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Người thân' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Quản trị' })).toBeInTheDocument();
+    expect(screen.queryByText(/@demo\.annhien\.local/)).toBeNull();
+
+    // jsdom không tự mở <details> khi bấm summary: mở trực tiếp rồi bấm nút vai trò.
+    const details = screen.getByText('Tài khoản trải nghiệm').closest('details');
+    expect(details).not.toBeNull();
+    if (details) details.open = true;
+
+    await user.click(screen.getByRole('button', { name: 'Chủ hồ sơ' }));
+
+    expect(screen.getByLabelText(/^Email/)).toHaveValue('ba-an@demo.annhien.local');
+    expect(screen.getByLabelText(/^Mật khẩu/)).toHaveValue('demo-an-nhien-2026');
+  });
 });

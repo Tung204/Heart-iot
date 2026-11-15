@@ -11,7 +11,7 @@ import { loginSchema } from './api';
 import { useLogin, useMe } from './useAuth';
 import { AuthLayout } from './AuthLayout';
 
-const DEMO_ACCOUNTS = [
+const TRIAL_ACCOUNTS = [
   { role: 'Chủ hồ sơ', email: 'ba-an@demo.annhien.local', password: 'demo-an-nhien-2026' },
   { role: 'Người thân', email: 'minh@demo.annhien.local', password: 'demo-an-nhien-2026' },
   { role: 'Quản trị', email: 'admin@demo.annhien.local', password: 'demo-admin-2026' },
@@ -62,7 +62,7 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Đăng nhập"
-      intro="Đăng nhập để xem trạng thái người thân và nhận cảnh báo."
+      intro="Xem tình hình người thân và cảnh báo."
       footer={
         <p className="auth-footer">
           Chưa có tài khoản?{' '}
@@ -105,18 +105,14 @@ export function LoginPage() {
           {loginMutation.isPending ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </Button>
       </form>
-      <details className="demo-accounts">
-        <summary>Tài khoản mẫu</summary>
-        <p className="field__hint">
-          Chọn vai trò để điền nhanh email và mật khẩu của tài khoản mẫu dùng để trải nghiệm. Dữ
-          liệu hiển thị trong ứng dụng là dữ liệu mô phỏng.
-        </p>
-        <div className="demo-accounts__list">
-          {DEMO_ACCOUNTS.map((account) => (
+      <details className="trial-accounts">
+        <summary>Tài khoản trải nghiệm</summary>
+        <div className="trial-accounts__list">
+          {TRIAL_ACCOUNTS.map((account) => (
             <button
               key={account.email}
               type="button"
-              className="demo-account"
+              className="trial-account"
               onClick={() => {
                 setEmail(account.email);
                 setPassword(account.password);
@@ -124,8 +120,7 @@ export function LoginPage() {
                 setFormError(null);
               }}
             >
-              <span className="demo-account__role">{account.role}</span>
-              <span className="demo-account__email">{account.email}</span>
+              {account.role}
             </button>
           ))}
         </div>
