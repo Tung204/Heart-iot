@@ -941,13 +941,15 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       incidentRow.subjectId,
       undefined,
     );
+    // Ghi cảnh báo (acknowledge/resolve) cần **cả** quyền nhận cảnh báo và quyền
+    // hành động tương ứng: `canAcknowledge`/`canResolve` không suy ra
+    // `canReceiveAlerts` (packages/contracts). Kiểm ở đây, trước transaction, để
+    // request bị từ chối không kịp đổi state/version, ghi `alert_actions` hay tạo
+    // outbox rồi mới ném 403 ở `getAlert` sau commit.
+    this.access.assertAction(access, 'receive_alerts');
     if (action) {
-      // Thao tác cần quyền rõ ràng: thiếu quyền trả 403 để UI phân biệt chính sách.
+      // Thiếu quyền hành động cũng trả 403 để UI phân biệt chính sách.
       this.access.assertAction(access, action);
-    } else {
-      // Nhất quán với list: có link nhưng thiếu quyền nhận cảnh báo → 403;
-      // không có link thì requireSubject ở trên đã trả 404 (không lộ tồn tại).
-      this.access.assertAction(access, 'receive_alerts');
     }
     const startedBeforeShare =
       access.role !== 'owner' && incidentRow.detectedAt.getTime() < effectiveFrom.getTime();

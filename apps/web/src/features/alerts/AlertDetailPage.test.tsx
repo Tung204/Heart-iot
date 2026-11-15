@@ -14,12 +14,20 @@ import {
   USER,
 } from '../../test/utils';
 
-function renderDetail(handler: (url: string, init?: RequestInit) => Response) {
-  stubFetch((url, init) => handler(String(url), init));
+function renderDetail(
+  handler: (url: string, init?: RequestInit) => Response,
+  subject: typeof SUBJECT = SUBJECT,
+) {
+  // Cố định hồ sơ cho các test quyền; handler chỉ cần lo endpoint cảnh báo.
+  const fetchMock = stubFetch((url, init) => {
+    const target = String(url);
+    if (target.endsWith('/subjects')) return mockResponse({ items: [subject] });
+    return handler(target, init);
+  });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
+  const utils = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[`/app/alerts/${INCIDENT.id}`]}>
         <Routes>
@@ -28,6 +36,7 @@ function renderDetail(handler: (url: string, init?: RequestInit) => Response) {
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  return { ...utils, fetchMock };
 }
 
 // FR-13 / chi tiết cảnh báo — xác nhận 409 → thông báo cạnh tranh + nút tải lại.
@@ -160,5 +169,74 @@ describe('AlertDetailPage — cấp heading', () => {
       .map((heading) => Number(heading.tagName.slice(1)));
     expect(levels.slice(0, 2)).toEqual([1, 2]);
     expect(screen.getByRole('heading', { level: 2, name: 'Diễn biến sự kiện' })).toBeInTheDocument();
+  });
+});
+
+// P1-2 / quyền ghi cảnh báo: cần cả canReceiveAlerts lẫn quyền hành động.
+function caregiverSubject(permissions: Partial<typeof SUBJECT.permissions>) {
+  return {
+    ...SUBJECT,
+    role: 'caregiver',
+    permissions: { ...SUBJECT.permissions, ...permissions },
+  };
+}
+
+describe('AlertDetailPage — quyền ghi cảnh báo', () => {
+  it('thiếu canReceiveAlerts dù canAcknowledge/canResolve=true → ẩn nút và nêu lý do', async () => {
+    renderDetail(
+      detailHandler(),
+      caregiverSubject({ canReceiveAlerts: false, canAcknowledge: true, canResolve: true }),
+    );
+
+    expect(await screen.findByText(/không chia sẻ quyền nhận cảnh báo/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tôi đang hỗ trợ' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Đóng cảnh báo' })).not.toBeInTheDocument();
+    // Không hiện lời mời xác nhận/đóng chỉ vì cờ action = true.
+    expect(
+      screen.queryByText('Bạn không có quyền xác nhận cảnh báo này (do chủ hồ sơ cài đặt).'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Bạn không có quyền đóng cảnh báo — hãy liên hệ chủ hồ sơ.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('đủ canReceiveAlerts + canAcknowledge + canResolve → nút hiện và thao tác được', async () => {
+    const { fetchMock } = renderDetail(
+      (url, init) => {
+        if (url.includes(`/alerts/${INCIDENT.id}/acknowledge`) && init?.method === 'POST') {
+          return mockResponse({
+            ...DETAIL,
+            state: 'acknowledged',
+            version: 3,
+            acknowledgedBy: { userId: USER.id, displayName: 'Trần Thị An' },
+          });
+        }
+        if (url.includes(`/alerts/${INCIDENT.id}`)) return mockResponse(DETAIL);
+        return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+      },
+      caregiverSubject({ canReceiveAlerts: true, canAcknowledge: true, canResolve: true }),
+    );
+    const user = userEvent.setup();
+
+    const resolveToggle = await screen.findByRole('button', { name: 'Đóng cảnh báo' });
+    expect(resolveToggle).toBeEnabled();
+    await user.click(resolveToggle);
+    expect(screen.getByLabelText(/Lý do đóng cảnh báo/)).toBeInTheDocument();
+
+    const acknowledgeButton = screen.getByRole('button', { name: 'Tôi đang hỗ trợ' });
+    expect(acknowledgeButton).toBeEnabled();
+    await user.click(acknowledgeButton);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Đang có người hỗ trợ' }),
+    ).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(true);
+    expect(screen.queryByText(/không chia sẻ quyền nhận cảnh báo/)).not.toBeInTheDocument();
   });
 });

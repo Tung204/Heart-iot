@@ -93,6 +93,12 @@ export function AlertsPage() {
   }
 
   const items = alerts.data?.pages.flatMap((page) => page?.items ?? []) ?? [];
+  // Xác nhận nhanh cần cả quyền nhận cảnh báo lẫn `canAcknowledge`: quyền hành
+  // động không suy ra quyền nhận, và API trả 403 nếu thiếu một trong hai.
+  const viewerPermissions = activeSubject?.permissions ?? null;
+  const canReceiveAlerts = viewerPermissions?.canReceiveAlerts ?? false;
+  const canAcknowledge =
+    canReceiveAlerts && (viewerPermissions?.canAcknowledge ?? false);
   const conflictAcknowledgedBy = conflictAlertId
     ? (items.find((item) => item.id === conflictAlertId)?.acknowledgedBy ?? null)
     : null;
@@ -243,6 +249,17 @@ export function AlertsPage() {
                       Bắt đầu trước khi bạn được chia sẻ quyền — vẫn đang mở
                     </p>
                   ) : null}
+                  {viewerPermissions &&
+                  isActionableState(item.state) &&
+                  item.state === 'open' &&
+                  !item.acknowledgedBy &&
+                  !canAcknowledge ? (
+                    <p className="field__hint">
+                      {canReceiveAlerts
+                        ? 'Bạn không có quyền xác nhận cảnh báo này.'
+                        : 'Chủ hồ sơ không chia sẻ quyền nhận cảnh báo với bạn, nên bạn không thể xác nhận cảnh báo.'}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="alert-row__side">
                   <StatusPill
@@ -259,7 +276,8 @@ export function AlertsPage() {
                   <div className="alert-row__actions">
                     {isActionableState(item.state) &&
                     item.state === 'open' &&
-                    !item.acknowledgedBy ? (
+                    !item.acknowledgedBy &&
+                    canAcknowledge ? (
                       <Button
                         variant="secondary"
                         size="sm"

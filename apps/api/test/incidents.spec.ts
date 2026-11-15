@@ -150,6 +150,32 @@ async function createAlertFixture(ctx: TestContext): Promise<AlertFixture> {
   };
 }
 
+/**
+ * Thêm một người thân với bộ quyền cụ thể trên cùng hồ sơ fixture.
+ * Dùng cho ca "có quyền hành động nhưng thiếu quyền nhận cảnh báo" (P1-2).
+ */
+async function addCaregiver(
+  ctx: TestContext,
+  fx: AlertFixture,
+  permissions: CarePermissions,
+): Promise<TestUser> {
+  const db = ctx.app.get<AppDb>(DB);
+  const caregiver = await registerUser(ctx.app, {
+    displayName: `Người thân quyền riêng ${crypto.randomUUID().slice(0, 8)}`,
+  });
+  await db.insert(careLinks).values({
+    subjectId: fx.subjectId,
+    caregiverUserId: caregiver.session.user.id,
+    invitedByUserId: fx.ownerId,
+    permissions,
+    status: 'active',
+    // Cùng mốc chia sẻ với fixture chính để không bị chặn bởi cửa sổ lịch sử.
+    sharedFrom: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+    acceptedAt: new Date(),
+  });
+  return caregiver;
+}
+
 function makeEnvelope(fx: AlertFixture, overrides: Partial<IncidentEnvelope> = {}): IncidentEnvelope {
   sequenceCounter += 1;
   return {
@@ -728,6 +754,155 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
 
     const incidentRows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
     expect(incidentRows[0]!.state).toBe('open');
+  });
+
+  it('T8a: caregiver có canAcknowledge nhưng thiếu canReceiveAlerts → 403 trước khi ghi; state/version/alert_actions/outbox không đổi (P1-2, FR-07)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const { incidentId } = await openIncident(ctx, fx, 'incident-t8a');
+    const ackOnly = await addCaregiver(ctx, fx, {
+      ...NO_ALERT_PERMISSIONS,
+      canReceiveAlerts: false,
+      canAcknowledge: true,
+    });
+
+    const outboxBefore = await db
+      .select({ dedupeKey: notificationOutbox.dedupeKey })
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+
+    const denied = await ackOnly.agent
+      .post(`/api/v1/alerts/${incidentId}/acknowledge`)
+      .send({ expectedVersion: 2 });
+    expect(denied.status).toBe(403);
+    expect(denied.body.code).toBe('FORBIDDEN');
+
+    const incidentRow = (await db.select().from(incidents).where(eq(incidents.id, incidentId)))[0]!;
+    expect(incidentRow.state).toBe('open');
+    expect(incidentRow.version).toBe(2);
+    // Không có action nào được ghi, kể cả outcome conflict: request bị chặn trước transaction.
+    const actions = await db
+      .select()
+      .from(alertActions)
+      .where(eq(alertActions.incidentId, incidentId));
+    expect(actions).toHaveLength(0);
+    const outboxAfter = await db
+      .select({ dedupeKey: notificationOutbox.dedupeKey })
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+    expect(outboxAfter.map((row) => row.dedupeKey).sort()).toEqual(
+      outboxBefore.map((row) => row.dedupeKey).sort(),
+    );
+
+    const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(detail.status).toBe(200);
+    expect(detail.body).toMatchObject({ state: 'open', version: 2 });
+    expect(detail.body.actions).toHaveLength(0);
+  });
+
+  it('T8b: caregiver có canResolve nhưng thiếu canReceiveAlerts → 403 trước khi ghi; state/version/alert_actions/outbox không đổi (P1-2, FR-07)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const { incidentId } = await openIncident(ctx, fx, 'incident-t8b');
+    const resolveOnly = await addCaregiver(ctx, fx, {
+      ...NO_ALERT_PERMISSIONS,
+      canReceiveAlerts: false,
+      canResolve: true,
+    });
+
+    const outboxBefore = await db
+      .select({ dedupeKey: notificationOutbox.dedupeKey })
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+
+    const denied = await resolveOnly.agent
+      .post(`/api/v1/alerts/${incidentId}/resolve`)
+      .send({
+        expectedVersion: 2,
+        reason: 'Người không nhận cảnh báo không được đóng',
+        outcome: 'false_alarm',
+      });
+    expect(denied.status).toBe(403);
+    expect(denied.body.code).toBe('FORBIDDEN');
+
+    const incidentRow = (await db.select().from(incidents).where(eq(incidents.id, incidentId)))[0]!;
+    expect(incidentRow.state).toBe('open');
+    expect(incidentRow.version).toBe(2);
+    expect(incidentRow.resolvedAt).toBeNull();
+    expect(incidentRow.resolutionReason).toBeNull();
+    expect(incidentRow.resolutionOutcome).toBeNull();
+    const actions = await db
+      .select()
+      .from(alertActions)
+      .where(eq(alertActions.incidentId, incidentId));
+    expect(actions).toHaveLength(0);
+    const outboxAfter = await db
+      .select({ dedupeKey: notificationOutbox.dedupeKey })
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+    expect(outboxAfter.map((row) => row.dedupeKey).sort()).toEqual(
+      outboxBefore.map((row) => row.dedupeKey).sort(),
+    );
+
+    const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(detail.status).toBe(200);
+    expect(detail.body).toMatchObject({ state: 'open', version: 2 });
+    expect(detail.body.actions).toHaveLength(0);
+  });
+
+  it('T8c: caregiver đủ canReceiveAlerts + canAcknowledge → ack 200 + detail sau ghi, không còn 403 sau commit (P1-2, FR-07)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const { incidentId } = await openIncident(ctx, fx, 'incident-t8c');
+    const allowed = await addCaregiver(ctx, fx, {
+      ...NO_ALERT_PERMISSIONS,
+      canReceiveAlerts: true,
+      canAcknowledge: true,
+    });
+
+    const ok = await allowed.agent
+      .post(`/api/v1/alerts/${incidentId}/acknowledge`)
+      .send({ expectedVersion: 2 });
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ state: 'acknowledged', version: 3 });
+    expect(ok.body.acknowledgedBy).toMatchObject({ userId: allowed.session.user.id });
+    // Response là detail đầy đủ, không phải lỗi 403 sau khi đã commit.
+    expect(Array.isArray(ok.body.events)).toBe(true);
+    expect(ok.body.actions).toEqual([
+      expect.objectContaining({ action: 'acknowledge', outcome: 'applied' }),
+    ]);
+
+    const incidentRow = (await db.select().from(incidents).where(eq(incidents.id, incidentId)))[0]!;
+    expect(incidentRow.state).toBe('acknowledged');
+    expect(incidentRow.version).toBe(3);
+  });
+
+  it('T8d: caregiver đủ canReceiveAlerts + canResolve → resolve 200 + state resolved (không đòi canAcknowledge) (P1-2, FR-07)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const { incidentId } = await openIncident(ctx, fx, 'incident-t8d');
+    const allowed = await addCaregiver(ctx, fx, {
+      ...NO_ALERT_PERMISSIONS,
+      canReceiveAlerts: true,
+      canAcknowledge: false,
+      canResolve: true,
+    });
+
+    const ok = await allowed.agent.post(`/api/v1/alerts/${incidentId}/resolve`).send({
+      expectedVersion: 2,
+      reason: 'Đã gọi kiểm tra, người dùng an toàn',
+      outcome: 'supported',
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({
+      state: 'resolved',
+      version: 3,
+      resolutionOutcome: 'supported',
+      resolutionReason: 'Đã gọi kiểm tra, người dùng an toàn',
+    });
+    expect(ok.body.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ action: 'resolve', outcome: 'applied' })]),
+    );
+
+    const incidentRow = (await db.select().from(incidents).where(eq(incidents.id, incidentId)))[0]!;
+    expect(incidentRow.state).toBe('resolved');
+    expect(incidentRow.version).toBe(3);
   });
 
   it('T9: resolve cần reason hợp lệ (422); thành công đóng + supersede pending; lần hai 409; audit (FR-07, R-01)', async () => {
