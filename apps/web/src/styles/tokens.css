@@ -17,7 +17,7 @@
   /* Mực */
   --color-ink: #16304d;          /* mực xanh đậm — chữ chính */
   --color-ink-soft: #44596d;     /* chữ phụ */
-  --color-ink-muted: #5b6f81;    /* chữ ghi chú / disabled */
+  --color-ink-muted: #4c5f70;    /* chữ ghi chú / disabled — 5.52:1 trên paper-deep */
 
   /* Tín hiệu */
   --color-teal: #0c6e63;         /* bình thường / hành động chính */
@@ -74,6 +74,10 @@
 
 html {
   font-size: 106.25%; /* 17px mặc định — body 1rem = 17px */
+  /* Chừa chỗ cho thanh điều hướng dưới (cố định) khi trình duyệt cuộn tới
+     phần tử được focus, ví dụ vùng cuộn biểu đồ. 6rem = 102px ở cỡ mặc định,
+     120px ở chế độ chữ lớn; nav cao tối đa ~105px (đo ở 390px, chữ lớn). */
+  scroll-padding-bottom: 6rem;
 }
 
 /* Chế độ "chữ lớn" — bật qua nút trong ứng dụng, lưu localStorage */

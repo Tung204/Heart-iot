@@ -6,7 +6,6 @@ import { resolveAlertSchema, type ResolveAlert } from '@annhien/contracts/incide
 import { RESOLUTION_OUTCOMES } from '@annhien/contracts/incidents';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
-import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
@@ -216,10 +215,15 @@ export function AlertDetailPage() {
       ) : null}
 
       {isActionableState(alert.state) ? (
-        <Card
-          className="alert-detail__action-card"
-          title={alert.state === 'acknowledged' ? 'Đang có người hỗ trợ' : 'Cảnh báo cần hành động'}
+        <section
+          className="card alert-detail__action-card"
+          aria-labelledby="alert-action-heading"
         >
+          <h2 id="alert-action-heading" className="card__title">
+            {alert.state === 'acknowledged'
+              ? 'Đang có người hỗ trợ'
+              : 'Cảnh báo cần hành động'}
+          </h2>
           {alert.acknowledgedBy ? (
             <p>
               <strong>{alert.acknowledgedBy.displayName}</strong> đã xác nhận đang hỗ trợ.
@@ -229,11 +233,11 @@ export function AlertDetailPage() {
             <p>Chưa có người xác nhận hỗ trợ.</p>
           )}
           <div className="alert-detail__actions">
-            {!alert.acknowledgedBy && canAcknowledge ? (
+            {!alert.acknowledgedBy && alert.state === 'open' && canAcknowledge ? (
               <Button onClick={() => acknowledge.mutate()} disabled={acknowledge.isPending}>
                 {acknowledge.isPending ? 'Đang gửi…' : 'Tôi đang hỗ trợ'}
               </Button>
-            ) : !alert.acknowledgedBy ? (
+            ) : !alert.acknowledgedBy && alert.state === 'open' ? (
               <p className="field__hint">
                 Bạn không có quyền xác nhận cảnh báo này (do chủ hồ sơ cài đặt).
               </p>
@@ -249,7 +253,17 @@ export function AlertDetailPage() {
             )}
           </div>
           {acknowledge.isError && !isConflictError(acknowledge.error) ? (
-            <Alert tone="error">{getApiErrorMessage(acknowledge.error)}</Alert>
+            <Alert tone="error" title="Chưa gửi được xác nhận">
+              {getApiErrorMessage(acknowledge.error)} Cảnh báo vẫn giữ nguyên trạng thái.{' '}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => acknowledge.mutate()}
+                disabled={acknowledge.isPending}
+              >
+                Thử lại
+              </Button>
+            </Alert>
           ) : null}
           {resolve.isError && !isConflictError(resolve.error) ? (
             <Alert tone="error">{getApiErrorMessage(resolve.error)}</Alert>
@@ -323,15 +337,18 @@ export function AlertDetailPage() {
             Cảnh báo trong bản demo chỉ là mô phỏng. Khi có người thân gặp nạn thật, hãy gọi
             cấp cứu theo số khẩn cấp địa phương — ứng dụng không tự gọi.
           </p>
-        </Card>
+        </section>
       ) : (
-        <Card title="Cảnh báo đã kết thúc">
+        <section className="card" aria-labelledby="alert-ended-heading">
+          <h2 id="alert-ended-heading" className="card__title">
+            Cảnh báo đã kết thúc
+          </h2>
           <p>
             Trạng thái: {ALERT_STATE_LABELS[alert.state]}
             {alert.cancelledAt ? ` · hủy lúc ${formatDateTime(alert.cancelledAt)}` : ''}
             {alert.resolvedAt ? ` · đóng lúc ${formatDateTime(alert.resolvedAt)}` : ''}
           </p>
-        </Card>
+        </section>
       )}
 
       {/*

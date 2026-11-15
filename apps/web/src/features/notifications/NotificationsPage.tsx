@@ -94,7 +94,10 @@ export function NotificationsPage() {
               <div className="notification-item__main">
                 <p className="notification-item__title">
                   {item.readAt === null ? (
-                    <span className="notification-item__dot" aria-label="Chưa đọc" />
+                    <>
+                      <span className="notification-item__dot" aria-hidden="true" />
+                      <span className="visually-hidden">Chưa đọc</span>
+                    </>
                   ) : null}
                   {ALERT_TYPE_LABELS[item.incidentType]} — {item.subjectName}
                 </p>
