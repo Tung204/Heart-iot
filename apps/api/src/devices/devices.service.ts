@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gt, isNotNull, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { UserSummary } from '@annhien/contracts';
 import type {
   ClaimResult,
@@ -19,7 +19,7 @@ import {
   type DeviceRow,
   type TelemetryRow,
 } from '../database/schema';
-import { AccessService } from '../access/access.service';
+import { AccessService, type SubjectAccess } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
 import { createOpaqueToken, sha256 } from '../auth/password';
@@ -229,15 +229,26 @@ export class DevicesService {
   }
 
   async listSubjectDevices(user: UserSummary, subjectId: string): Promise<DeviceStatus[]> {
-    const access = await this.access.requireSubject(user.id, subjectId);
-    return this.loadSubjectDevices(access.subject.id);
+    // `requireHistory(..., undefined)` không từ chối khoảng thời gian; nó chỉ tính
+    // mốc hiệu lực `max(now - historyDays, sharedFrom)` dùng chung với lịch sử.
+    const { access, effectiveFrom } = await this.access.requireHistory(
+      user.id,
+      subjectId,
+      undefined,
+    );
+    return this.loadSubjectDevices(access.subject.id, this.statusVisibleFrom(access, effectiveFrom));
   }
 
   async getSubjectStatus(user: UserSummary, subjectId: string): Promise<SubjectStatusResponse> {
-    const access = await this.access.requireSubject(user.id, subjectId);
+    const { access, effectiveFrom } = await this.access.requireHistory(
+      user.id,
+      subjectId,
+      undefined,
+    );
+    const visibleFrom = this.statusVisibleFrom(access, effectiveFrom);
     const [policy, devicesStatus] = await Promise.all([
       this.policy.getActive(),
-      this.loadSubjectDevices(access.subject.id),
+      this.loadSubjectDevices(access.subject.id, visibleFrom),
     ]);
     return { devices: devicesStatus, policy, asOf: new Date().toISOString() };
   }
@@ -300,8 +311,23 @@ export class DevicesService {
     return device;
   }
 
-  /** Thiết bị đang gán cho hồ sơ + trạng thái online/freshness theo policy active. */
-  private async loadSubjectDevices(subjectId: string): Promise<DeviceStatus[]> {
+  /**
+   * Mốc sớm nhất được phép dùng cho trạng thái thiết bị. Chủ hồ sơ giữ nguyên hành vi cũ
+   * (thấy cả mẫu trước mốc chia sẻ); người thân dùng đúng cửa sổ hiệu lực của lịch sử:
+   * `max(now - permissions.historyDays, sharedFrom)`.
+   */
+  private statusVisibleFrom(access: SubjectAccess, effectiveFrom: Date): Date | null {
+    return access.role === 'owner' ? null : effectiveFrom;
+  }
+
+  /**
+   * Thiết bị đang gán cho hồ sơ + trạng thái online/freshness theo policy active.
+   * `visibleFrom = null` nghĩa là không giới hạn (chủ hồ sơ).
+   */
+  private async loadSubjectDevices(
+    subjectId: string,
+    visibleFrom: Date | null,
+  ): Promise<DeviceStatus[]> {
     const policy = await this.policy.getActive();
     const rows = await this.db
       .select({ device: devices, assignment: deviceAssignments })
@@ -312,8 +338,10 @@ export class DevicesService {
 
     const result: DeviceStatus[] = [];
     for (const row of rows) {
-      const lastRow = await this.loadLastTelemetry(row.device.id, row.assignment.id);
-      result.push(computeDeviceStatus(row.device, subjectId, policy.value, lastRow));
+      const lastRow = await this.loadLastTelemetry(row.device.id, row.assignment.id, visibleFrom);
+      result.push(
+        computeDeviceStatus(row.device, subjectId, policy.value, lastRow, new Date(), visibleFrom),
+      );
     }
     return result;
   }
@@ -322,8 +350,14 @@ export class DevicesService {
    * Bản đo mới nhất theo giờ đo của mẫu đã đồng bộ giờ và không bị cách ly.
    * Sắp `measured_at desc nulls last, received_at desc, id desc` để mẫu đến trễ
    * không thay thế mẫu mới hơn. Bỏ mẫu thiếu `measured_at` vì không có mốc đo tin cậy.
+   * `visibleFrom` giới hạn mẫu được phép dùng (`measured_at >= visibleFrom`) cho người thân;
+   * không có mẫu trong cửa sổ thì trả `null` thay vì lấy mẫu trước mốc chia sẻ.
    */
-  private async loadLastTelemetry(deviceId: string, assignmentId: string): Promise<LastTelemetryView> {
+  private async loadLastTelemetry(
+    deviceId: string,
+    assignmentId: string,
+    visibleFrom: Date | null,
+  ): Promise<LastTelemetryView> {
     const rows = await this.db
       .select({
         measuredAt: telemetry.measuredAt,
@@ -341,6 +375,7 @@ export class DevicesService {
           eq(telemetry.clockStatus, 'synced'),
           eq(telemetry.isQuarantined, false),
           isNotNull(telemetry.measuredAt),
+          visibleFrom ? gte(telemetry.measuredAt, visibleFrom) : undefined,
         ),
       )
       .orderBy(

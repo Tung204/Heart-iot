@@ -10,7 +10,14 @@ import { IngestModule } from '../src/ingest/ingest.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
 import { PolicyModule } from '../src/policy/policy.module';
 import { DB } from '../src/database/database';
-import { careLinks, devices, subjects, telemetry, users } from '../src/database/schema';
+import {
+  careLinks,
+  deviceAssignments,
+  devices,
+  subjects,
+  telemetry,
+  users,
+} from '../src/database/schema';
 import {
   createAdmin,
   createModuleTestApp,
@@ -420,6 +427,153 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
       lastMeasuredAt: newerMeasuredAt,
       clockStatus: 'synced',
     });
+  });
+
+  it('người thân chỉ thấy mẫu sau sharedFrom: ẩn HR/pin/lastSeen trước mốc; owner giữ mẫu cũ; link mới không lộ', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    // Mốc chia sẻ ở giữa ngày (1 giờ trước); mẫu cũ hơn nằm trước mốc 1 giờ.
+    const now = Date.now();
+    const sharedFrom = new Date(now - 60 * 60 * 1000);
+    const beforeShare = new Date(now - 2 * 60 * 60 * 1000);
+    const beforeShareIso = beforeShare.toISOString();
+
+    // Assignment phải bắt đầu trước mẫu cũ, nếu không ingest sẽ cách ly
+    // `before_first_assignment` (đúng docs/03) và test không còn mẫu để kiểm.
+    await ctx.db
+      .update(deviceAssignments)
+      .set({ startedAt: new Date(beforeShare.getTime() - 60_000) })
+      .where(eq(deviceAssignments.id, claimed.body.assignmentId));
+
+    const oldSample = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        measured_at: beforeShareIso,
+        metrics: { heart_rate_bpm: 58, steps_since_boot: 40 },
+        battery_percent: 40,
+      }),
+    );
+    expect(oldSample.status).toBe(202);
+    expect(oldSample.body.status).toBe('accepted');
+    // Thiết bị im lặng từ trước mốc chia sẻ: mốc nhận cuối cũng trước sharedFrom.
+    await ctx.db
+      .update(devices)
+      .set({ lastSeenAt: beforeShare })
+      .where(eq(devices.id, created.device.id));
+
+    const caregiver = await registerUser(ctx.app, { displayName: 'Người thân' });
+    await ctx.db.insert(careLinks).values({
+      subjectId: subject.id,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: { ...DEFAULT_CARE_PERMISSIONS, historyDays: 7 },
+      status: 'active',
+      sharedFrom,
+    });
+
+    // Chủ hồ sơ giữ nguyên hành vi: vẫn thấy mẫu trước mốc chia sẻ.
+    const ownerStatus = await owner.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(ownerStatus.status).toBe(200);
+    expect(ownerStatus.body.devices[0]).toMatchObject({
+      lastHeartRateBpm: 58,
+      lastHeartRateQuality: 'valid',
+      batteryPercent: 40,
+      lastMeasuredAt: beforeShareIso,
+      lastSeenAt: beforeShareIso,
+      clockStatus: 'synced',
+      online: false,
+      freshness: 'offline',
+    });
+
+    // Người thân: mẫu mới nhất trước sharedFrom → không trả HR/pin/giờ đo/lastSeen.
+    const before = await caregiver.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(before.status).toBe(200);
+    expect(before.body.devices[0]).toMatchObject({
+      lastHeartRateBpm: null,
+      lastHeartRateQuality: null,
+      lastMeasuredAt: null,
+      batteryPercent: null,
+      lastSeenAt: null,
+      clockStatus: 'unknown',
+      freshness: 'offline',
+    });
+    expect(JSON.stringify(before.body)).not.toContain(beforeShareIso);
+
+    // Cùng ranh giới áp cho danh sách thiết bị, không chỉ /status.
+    const beforeDevices = await caregiver.agent.get(`/api/v1/subjects/${subject.id}/devices`);
+    expect(beforeDevices.status).toBe(200);
+    expect(beforeDevices.body.items[0]).toMatchObject({
+      lastHeartRateBpm: null,
+      batteryPercent: null,
+      lastMeasuredAt: null,
+      lastSeenAt: null,
+      clockStatus: 'unknown',
+    });
+
+    // Mẫu sau mốc chia sẻ → người thân thấy đúng mẫu mới nhất này.
+    const afterShare = new Date(Date.now() - 5_000);
+    const afterShareIso = afterShare.toISOString();
+    const newSample = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        sequence: 1,
+        measured_at: afterShareIso,
+        metrics: { heart_rate_bpm: 71, steps_since_boot: 55 },
+        battery_percent: 77,
+      }),
+    );
+    expect(newSample.status).toBe(202);
+    expect(newSample.body.status).toBe('accepted');
+
+    const after = await caregiver.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(after.status).toBe(200);
+    expect(after.body.devices[0]).toMatchObject({
+      lastHeartRateBpm: 71,
+      lastHeartRateQuality: 'valid',
+      batteryPercent: 77,
+      lastMeasuredAt: afterShareIso,
+      clockStatus: 'synced',
+      online: true,
+      freshness: 'live',
+    });
+    expect(after.body.devices[0].lastSeenAt).toBeTruthy();
+
+    // Link mới accept sau khi đã có dữ liệu: không lộ HR/pin/lastSeen của mẫu cũ.
+    await ctx.db
+      .update(devices)
+      .set({ lastSeenAt: afterShare })
+      .where(eq(devices.id, created.device.id));
+    const newcomer = await registerUser(ctx.app, { displayName: 'Người thân mới' });
+    await ctx.db.insert(careLinks).values({
+      subjectId: subject.id,
+      caregiverUserId: newcomer.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: DEFAULT_CARE_PERMISSIONS,
+      status: 'active',
+      sharedFrom: new Date(afterShare.getTime() + 1_000),
+    });
+
+    const newcomerStatus = await newcomer.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(newcomerStatus.status).toBe(200);
+    expect(newcomerStatus.body.devices[0]).toMatchObject({
+      lastHeartRateBpm: null,
+      lastMeasuredAt: null,
+      batteryPercent: null,
+      lastSeenAt: null,
+      clockStatus: 'unknown',
+      // Vẫn giữ cờ kết nối hiện tại, nhưng không kèm mốc nhận/mẫu cũ.
+      online: true,
+      freshness: 'stale',
+    });
+    expect(JSON.stringify(newcomerStatus.body)).not.toContain(beforeShareIso);
+    expect(JSON.stringify(newcomerStatus.body)).not.toContain(afterShareIso);
   });
 
   it('không có mẫu synced hợp lệ: trả null/stale, không lấy giờ nhận làm giờ đo', async () => {
