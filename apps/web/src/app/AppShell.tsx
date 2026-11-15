@@ -275,6 +275,9 @@ export function AppShell() {
         >
           <NavIcon name="more" />
           <span>Thêm</span>
+          {notifications.unreadCount > 0 ? (
+            <span className="shell__more-dot" aria-hidden="true" />
+          ) : null}
         </button>
         {moreOpen ? (
           <div className="shell__more-menu">

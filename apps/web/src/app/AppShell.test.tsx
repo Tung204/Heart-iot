@@ -345,6 +345,8 @@ describe('AppShell — badge thông báo chưa đọc', () => {
     expect(
       document.querySelector('.shell__bottomnav a[href="/app/notifications"] .shell__nav-badge'),
     ).not.toBeNull();
+    // Nút “Thêm” đang đóng vẫn có chấm báo để không mất tín hiệu trên mobile.
+    expect(document.querySelector('.shell__more-toggle .shell__more-dot')).not.toBeNull();
   });
 
   it('0 chưa đọc → không có badge nhưng vẫn giữ liên kết Thông báo', async () => {

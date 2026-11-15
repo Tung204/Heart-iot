@@ -1613,6 +1613,7 @@
 }
 .shell__more-toggle {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1631,6 +1632,16 @@
 }
 .shell__more-toggle[aria-expanded='true'] {
   color: var(--color-teal-deep);
+}
+.shell__bottomnav .shell__more-dot {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 24px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-brick);
+  border: 2px solid var(--color-paper);
 }
 .shell__bottomnav .shell__more-menu {
   position: absolute;
