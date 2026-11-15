@@ -1419,7 +1419,10 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       .get(`/api/v1/workspace-views/${createdBody.id}/data`)
       .set('Origin', TEST_ORIGIN);
     expect(denied.status).toBe(403);
-    expect(JSON.stringify(denied.body)).not.toContain('77');
+    // Không khẳng định chuỗi '77' (có thể xuất hiện trong requestId/timestamp);
+    // chỉ khẳng định không có trường số đo bị rò.
+    expect(denied.body).not.toHaveProperty('data');
+    expect(JSON.stringify(denied.body)).not.toMatch(/"heartRateBpm"\s*:\s*77/);
 
     const ownerData = await owner.agent
       .get(`/api/v1/workspace-views/${createdBody.id}/data`)
