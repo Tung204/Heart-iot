@@ -83,9 +83,9 @@ export class MeasurementsService {
     query: { from?: string; to?: string; limit: number; cursor?: string },
   ): Promise<MeasurementsResponse> {
     const requestedFrom = query.from ? new Date(query.from) : null;
-    // Cửa sổ mặc định được kẹp theo mốc chia sẻ (không 403 khi caregiver vừa được accept);
-    // còn `from` chỉ định sớm hơn quyền vẫn bị từ chối trong requireHistory.
-    const { effectiveFrom } = await this.access.requireHistory(
+    // Thiếu quyền xem số đo → 403 nghiệp vụ; cửa sổ mặc định kẹp theo mốc chia sẻ
+    // (không 403 khi caregiver vừa được accept) còn `from` chỉ định sớm hơn quyền vẫn bị từ chối.
+    const { effectiveFrom } = await this.access.requireMeasurementsHistory(
       userId,
       subjectId,
       requestedFrom ?? undefined,
@@ -163,13 +163,16 @@ export class MeasurementsService {
   // ---------------------------------------------------------------------------
 
   async dailySummary(userId: string, subjectId: string, date: string): Promise<DailySummary> {
-    const access = await this.access.requireSubject(userId, subjectId);
+    const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
+      userId,
+      subjectId,
+      undefined,
+    );
     const now = new Date();
     const { from, to } = zonedDayToUtcRange(date, access.subject.timezone);
     if (from.getTime() > now.getTime()) {
       throw AppError.validation('Ngày yêu cầu nằm trong tương lai.');
     }
-    const { effectiveFrom } = await this.access.requireHistory(userId, subjectId, undefined);
     if (to.getTime() <= effectiveFrom.getTime()) {
       throw AppError.forbidden('Ngày yêu cầu nằm trước mốc chia sẻ dữ liệu.', {
         effectiveFrom: effectiveFrom.toISOString(),
@@ -244,8 +247,9 @@ export class MeasurementsService {
    * Xu hướng 7..30 ngày (FR-05). Một query telemetry + một query incidents cho cả
    * cửa sổ; không gọi dailySummary nhiều lần.
    *
-   * Quyền: `requireHistory` không truyền `from` nên cửa sổ sớm hơn mốc chia sẻ bị
-   * **cắt** thay vì 403; ngày hoàn toàn trước mốc chia sẻ vẫn trả về dạng rỗng.
+   * Quyền: `requireMeasurementsHistory` chặn hẳn caregiver không được xem số đo (403),
+   * và không truyền `from` nên cửa sổ sớm hơn mốc chia sẻ bị **cắt** thay vì 403;
+   * ngày hoàn toàn trước mốc chia sẻ vẫn trả về dạng rỗng.
    * Ngày đang diễn ra chỉ tính tới hiện tại.
    */
   async insights(
@@ -254,7 +258,11 @@ export class MeasurementsService {
     query: InsightsQuery,
   ): Promise<InsightsResponse> {
     const now = new Date();
-    const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
+    const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
+      userId,
+      subjectId,
+      null,
+    );
     const timezone = access.subject.timezone;
     const windows = buildInsightDayWindows(query.days, now, timezone);
     const firstWindow = windows[0];
@@ -335,7 +343,7 @@ export class MeasurementsService {
     query: { from?: string; to?: string },
   ): Promise<{ csv: string; filename: string }> {
     const { from, to } = resolveWindow(query.from, query.to);
-    await this.access.requireHistory(userId, subjectId, from);
+    await this.access.requireMeasurementsHistory(userId, subjectId, from);
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
     // CSV cũng là đường đọc: không xuất mẫu cách ly hoặc mẫu tương lai.
     const windowTo = to.getTime() > Date.now() ? new Date() : to;

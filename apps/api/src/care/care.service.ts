@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import type { SubjectRole, UserSummary } from '@annhien/contracts';
+import { normalizeCarePermissions } from '@annhien/contracts';
 import {
   careLinkListSchema,
   careLinkSummarySchema,
@@ -41,7 +42,7 @@ function toInvitationSummary(row: InvitationRow, now = new Date()): InvitationSu
     id: row.id,
     subjectId: row.subjectId,
     email: row.email,
-    permissions: row.permissions,
+    permissions: normalizeCarePermissions(row.permissions),
     status: invitationStatus(row, now),
     createdAt: row.createdAt.toISOString(),
     expiresAt: row.expiresAt.toISOString(),
@@ -55,7 +56,7 @@ function toCareLinkSummary(link: CareLinkRow, caregiver: UserSummary): CareLinkS
     id: link.id,
     subjectId: link.subjectId,
     caregiver,
-    permissions: link.permissions,
+    permissions: normalizeCarePermissions(link.permissions),
     status: link.status,
     sharedFrom: link.sharedFrom.toISOString(),
     acceptedAt: link.acceptedAt ? link.acceptedAt.toISOString() : null,
@@ -199,7 +200,7 @@ export class CareService {
     return publicInvitationSchema.parse({
       subjectName,
       inviterName,
-      permissions: invitation.permissions,
+      permissions: normalizeCarePermissions(invitation.permissions),
       expiresAt: invitation.expiresAt.toISOString(),
       status,
     });
@@ -271,7 +272,9 @@ export class CareService {
             subjectId: invitation.subjectId,
             caregiverUserId: user.id,
             invitedByUserId: invitation.createdByUserId,
-            permissions: invitation.permissions,
+            // Lời mời cũ có thể thiếu `canViewMeasurements`: chuẩn hóa khi tạo link
+            // để mọi care link mới lưu đủ trường với mặc định `true`.
+            permissions: normalizeCarePermissions(invitation.permissions),
             status: 'active',
             sharedFrom: now,
             acceptedAt: now,

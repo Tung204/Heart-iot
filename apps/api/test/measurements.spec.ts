@@ -6,6 +6,7 @@ import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
+import { IncidentsModule } from '../src/incidents/incidents.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
 import { CSV_HEADER } from '../src/measurements/measurements.service';
 import { localDateKey } from '../src/measurements/insights';
@@ -113,7 +114,7 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
 
   beforeAll(async () => {
     delete process.env.MQTT_URL;
-    ctx = await createModuleTestApp([DevicesModule, IngestModule, MeasurementsModule, PolicyModule, TestFiltersModule]);
+    ctx = await createModuleTestApp([DevicesModule, IngestModule, IncidentsModule, MeasurementsModule, PolicyModule, TestFiltersModule]);
     admin = await createAdmin(ctx.app);
     owner = await registerUser(ctx.app, { displayName: 'Chủ hồ sơ' });
   });
@@ -245,6 +246,110 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
       `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(new Date(Date.now() - 23 * 3600 * 1000).toISOString())}`,
     );
     expect(allowed.status).toBe(200);
+  });
+
+  it('caregiver thiếu canViewMeasurements: measurements/daily/export/insights 403 rõ nghĩa; cảnh báo vẫn 200; owner không đổi', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ tắt quyền số đo');
+    await send(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        measured_at: new Date(Date.now() - 60_000).toISOString(),
+        metrics: { heart_rate_bpm: 81, steps_since_boot: 120 },
+      }),
+    );
+
+    const caregiver = await registerUser(ctx.app);
+    await ctx.db.insert(careLinks).values({
+      subjectId: fixture.subjectId,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: {
+        historyDays: 7,
+        canReceiveAlerts: true,
+        canAcknowledge: false,
+        canResolve: false,
+        canViewAi: false,
+        canViewMeasurements: false,
+      },
+      status: 'active',
+      sharedFrom: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    });
+
+    const from = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const to = new Date().toISOString();
+    const endpoints = [
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2026-11-13`,
+      `/api/v1/subjects/${fixture.subjectId}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+      `/api/v1/subjects/${fixture.subjectId}/insights?days=7`,
+    ];
+    for (const path of endpoints) {
+      const denied = await caregiver.agent.get(path);
+      expect(denied.status).toBe(403);
+      expect(denied.body.code).toBe('FORBIDDEN');
+      // 403 nghiệp vụ, không phải 404 giả như thể hồ sơ không tồn tại.
+      expect(denied.body.message).toBe('Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.');
+      expect(denied.body.details).toMatchObject({ reason: 'measurements_not_shared' });
+    }
+
+    // Cảnh báo và trạng thái thiết bị vẫn theo quyền cũ, không bị chặn bởi quyền số đo.
+    const alerts = await caregiver.agent.get(`/api/v1/subjects/${fixture.subjectId}/alerts`);
+    expect(alerts.status).toBe(200);
+    expect(alerts.body.items).toEqual([]);
+
+    // Chủ hồ sơ không bị ảnh hưởng.
+    const ownerList = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(ownerList.status).toBe(200);
+    expect(ownerList.body.items).toHaveLength(1);
+    expect(ownerList.body.items[0].heartRateBpm).toBe(81);
+    const ownerSummary = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(ownerSummary.status).toBe(200);
+    const ownerInsights = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/insights?days=7`,
+    );
+    expect(ownerInsights.status).toBe(200);
+  });
+
+  it('link cũ thiếu canViewMeasurements vẫn xem được số đo (mặc định true, không migration)', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ link cũ');
+    await send(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        measured_at: new Date(Date.now() - 60_000).toISOString(),
+      }),
+    );
+    const caregiver = await registerUser(ctx.app);
+    await ctx.db.insert(careLinks).values({
+      subjectId: fixture.subjectId,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      // Không có `canViewMeasurements`: hành vi cũ là được xem số đo.
+      permissions: {
+        historyDays: 7,
+        canReceiveAlerts: false,
+        canAcknowledge: false,
+        canResolve: false,
+        canViewAi: false,
+      },
+      status: 'active',
+      sharedFrom: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    });
+
+    const list = await caregiver.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(new Date(Date.now() - 60 * 60 * 1000).toISOString())}`,
+    );
+    expect(list.status).toBe(200);
+    expect(list.body.items).toHaveLength(1);
+    const insights = await caregiver.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/insights?days=7`,
+    );
+    expect(insights.status).toBe(200);
   });
 
   it('daily-summary: HR chỉ mẫu valid, steps delta trong boot, incidents và coverage', async () => {

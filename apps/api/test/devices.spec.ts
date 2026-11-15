@@ -576,6 +576,88 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
     expect(JSON.stringify(newcomerStatus.body)).not.toContain(afterShareIso);
   });
 
+  it('người thân thiếu quyền xem số đo: status redacted healthDataVisible=false, owner không đổi', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    // Mẫu cũ hơn ngưỡng freshness (policy demo: 30s) nhưng thiết bị vẫn vừa gửi dữ liệu.
+    // Lùi mốc assignment để mẫu lịch sử không bị cách ly `before_first_assignment`.
+    await ctx.db
+      .update(deviceAssignments)
+      .set({ startedAt: new Date(Date.now() - 10 * 60 * 1000) })
+      .where(eq(deviceAssignments.id, claimed.body.assignmentId));
+    const measuredAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const sample = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        measured_at: measuredAt,
+        metrics: { heart_rate_bpm: 88, steps_since_boot: 30 },
+        battery_percent: 64,
+      }),
+    );
+    expect(sample.status).toBe(202);
+    expect(sample.body.status).toBe('accepted');
+
+    const caregiver = await registerUser(ctx.app, { displayName: 'Người thân chỉ cảnh báo' });
+    await ctx.db.insert(careLinks).values({
+      subjectId: subject.id,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: {
+        ...DEFAULT_CARE_PERMISSIONS,
+        canReceiveAlerts: true,
+        canViewMeasurements: false,
+      },
+      status: 'active',
+      sharedFrom: new Date(Date.now() - 60 * 60 * 1000),
+    });
+
+    const status = await caregiver.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(status.status).toBe(200);
+    expect(status.body.devices[0]).toMatchObject({
+      healthDataVisible: false,
+      // Pin và cờ kết nối được phép giữ, nhưng không kèm số đo/giờ đo/clockStatus.
+      online: true,
+      batteryPercent: 64,
+      lastHeartRateBpm: null,
+      lastHeartRateQuality: null,
+      lastMeasuredAt: null,
+      clockStatus: 'unknown',
+      // Freshness suy từ kết nối hiện tại, không từ mẫu cũ bị ẩn (mẫu 5 phút → nếu
+      // dùng mẫu sẽ là 'stale'; thiết bị vừa gửi nên kết nối là 'live').
+      freshness: 'live',
+    });
+    expect(status.body.devices[0].lastSeenAt).toBeTruthy();
+
+    // Cùng ranh giới cho danh sách thiết bị (dùng chung DeviceStatus).
+    const devicesRes = await caregiver.agent.get(`/api/v1/subjects/${subject.id}/devices`);
+    expect(devicesRes.status).toBe(200);
+    expect(devicesRes.body.items[0]).toMatchObject({
+      healthDataVisible: false,
+      lastHeartRateBpm: null,
+      lastHeartRateQuality: null,
+      lastMeasuredAt: null,
+      clockStatus: 'unknown',
+    });
+
+    // Chủ hồ sơ không bị ảnh hưởng.
+    const ownerStatus = await owner.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(ownerStatus.status).toBe(200);
+    expect(ownerStatus.body.devices[0]).toMatchObject({
+      healthDataVisible: true,
+      lastHeartRateBpm: 88,
+      lastHeartRateQuality: 'valid',
+      lastMeasuredAt: measuredAt,
+      batteryPercent: 64,
+      clockStatus: 'synced',
+      freshness: 'stale',
+    });
+  });
+
   it('không có mẫu synced hợp lệ: trả null/stale, không lấy giờ nhận làm giờ đo', async () => {
     const subject = await createSubject(ctx, owner.session.user.id);
     const created = await adminCreateDevice(ctx, admin);

@@ -1,9 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, isNull } from 'drizzle-orm';
 import {
+  canViewMeasurements,
   hasCarePermission,
+  normalizeCarePermissions,
   OWNER_PERMISSIONS,
-  type CarePermissions,
+  type ResolvedCarePermissions,
   type SubjectRole,
   type UserSummary,
 } from '@annhien/contracts';
@@ -14,7 +16,7 @@ import { AppError } from '../common/app-error';
 export type SubjectAccess = {
   subject: SubjectRow;
   role: SubjectRole;
-  permissions: CarePermissions;
+  permissions: ResolvedCarePermissions;
   careLinkId: string | null;
   sharedFrom: Date | null;
 };
@@ -22,6 +24,11 @@ export type SubjectAccess = {
 export type AccessAction = 'receive_alerts' | 'acknowledge' | 'resolve' | 'view_ai';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Thông điệp dùng chung cho mọi đường đọc số đo khi chủ hồ sơ đã tắt quyền. */
+export const MEASUREMENTS_NOT_SHARED_MESSAGE =
+  'Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.';
+const MEASUREMENTS_NOT_SHARED_DETAILS = { reason: 'measurements_not_shared' };
 
 @Injectable()
 export class AccessService {
@@ -64,7 +71,7 @@ export class AccessService {
     return {
       subject,
       role: 'caregiver',
-      permissions: link.permissions,
+      permissions: normalizeCarePermissions(link.permissions),
       careLinkId: link.id,
       sharedFrom: link.sharedFrom,
     };
@@ -91,6 +98,44 @@ export class AccessService {
   }
 
   /**
+   * Quyền xem số đo/lịch sử/CSV. Chủ hồ sơ luôn được; người thân phụ thuộc
+   * `canViewMeasurements` (thiếu trường trong link cũ = `true`).
+   */
+  canViewMeasurements(access: SubjectAccess): boolean {
+    if (access.role === 'owner') return true;
+    return canViewMeasurements(access.permissions);
+  }
+
+  /**
+   * Cổng đọc dữ liệu sức khỏe. Khác `requireHistory` (chỉ giới hạn khoảng thời gian):
+   * thiếu quyền xem số đo trả 403 với thông điệp nghiệp vụ rõ ràng, **không** 404,
+   * vì người thân vẫn là người có quyền truy cập hồ sơ (còn nhận cảnh báo).
+   */
+  async requireMeasurements(
+    userId: string,
+    subjectId: string,
+  ): Promise<SubjectAccess> {
+    const access = await this.requireSubject(userId, subjectId);
+    this.assertMeasurements(access);
+    return access;
+  }
+
+  assertMeasurements(access: SubjectAccess): void {
+    if (this.canViewMeasurements(access)) return;
+    throw AppError.forbidden(MEASUREMENTS_NOT_SHARED_MESSAGE, MEASUREMENTS_NOT_SHARED_DETAILS);
+  }
+
+  /** Cổng số đo + cửa sổ lịch sử trong một lần resolve quyền. */
+  async requireMeasurementsHistory(
+    userId: string,
+    subjectId: string,
+    from: Date | null | undefined,
+  ): Promise<{ access: SubjectAccess; effectiveFrom: Date }> {
+    const access = await this.requireMeasurements(userId, subjectId);
+    return { access, effectiveFrom: this.historyWindow(access, from) };
+  }
+
+  /**
    * Giới hạn khoảng lịch sử theo quyền chia sẻ và thời điểm bắt đầu chia sẻ.
    * `from` sớm hơn mốc hiệu lực bị từ chối thay vì âm thầm cắt, để caller biết dữ liệu không được phép.
    */
@@ -100,6 +145,10 @@ export class AccessService {
     from: Date | null | undefined,
   ): Promise<{ access: SubjectAccess; effectiveFrom: Date }> {
     const access = await this.requireSubject(userId, subjectId);
+    return { access, effectiveFrom: this.historyWindow(access, from) };
+  }
+
+  private historyWindow(access: SubjectAccess, from: Date | null | undefined): Date {
     const now = new Date();
     const permissionStart = new Date(now.getTime() - access.permissions.historyDays * DAY_MS);
     const sharedStart = access.sharedFrom ?? permissionStart;
@@ -109,7 +158,7 @@ export class AccessService {
         effectiveFrom: effectiveFrom.toISOString(),
       });
     }
-    return { access, effectiveFrom };
+    return effectiveFrom;
   }
 
   async listAccessibleSubjects(userId: string): Promise<SubjectAccess[]> {
@@ -141,7 +190,7 @@ export class AccessService {
       result.push({
         subject: row.subject,
         role: 'caregiver',
-        permissions: row.link.permissions,
+        permissions: normalizeCarePermissions(row.link.permissions),
         careLinkId: row.link.id,
         sharedFrom: row.link.sharedFrom,
       });

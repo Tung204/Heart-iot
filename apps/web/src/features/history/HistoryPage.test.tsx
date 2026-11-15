@@ -319,3 +319,52 @@ describe('HistoryPage — không reset mỗi phút và giới hạn số dòng h
     expect(screen.getAllByRole('listitem')).toHaveLength(20);
   });
 });
+
+// P1-2/P2-6 — quyền xem số đo tách khỏi quyền nhận cảnh báo: thiếu quyền là
+// trạng thái nghiệp vụ, không hiện lỗi kỹ thuật và không gọi API dữ liệu.
+describe('HistoryPage — thiếu quyền xem số đo', () => {
+  const caregiverWithoutMeasurements = {
+    ...SUBJECT,
+    role: 'caregiver',
+    sharedFrom: '2026-11-12T00:00:00.000Z',
+    permissions: { ...SUBJECT.permissions, canViewMeasurements: false },
+  };
+
+  it('hồ sơ báo không chia sẻ số đo → thông báo quyền, không gọi measurements, không có CSV', async () => {
+    const requested: string[] = [];
+    renderPage(<HistoryPage />, (url) => {
+      const u = String(url);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [caregiverWithoutMeasurements] });
+      if (u.includes('/measurements')) requested.push(u);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText('Chủ hồ sơ không chia sẻ số đo')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Không tải được dữ liệu đo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tải CSV' })).not.toBeInTheDocument();
+    expect(requested).toHaveLength(0);
+  });
+
+  it('API trả 403 (quyền vừa bị tắt) → cùng thông báo quyền, không hiện lỗi kỹ thuật', async () => {
+    renderPage(<HistoryPage />, (url) => {
+      const u = String(url);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [SUBJECT] });
+      if (u.includes('/measurements')) {
+        return mockResponse(
+          errorEnvelope('Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.', 'FORBIDDEN'),
+          403,
+        );
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByText('Chủ hồ sơ không chia sẻ số đo', {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Không tải được dữ liệu đo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tải CSV' })).not.toBeInTheDocument();
+  });
+});

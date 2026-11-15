@@ -121,4 +121,47 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
     expect(screen.getByText('Không có cảnh báo')).toBeInTheDocument();
     expect(screen.queryByText(/\d+ cần chú ý/)).not.toBeInTheDocument();
   });
+
+  it('chủ hồ sơ không chia sẻ số đo: summary 403 + status healthDataVisible=false → thông báo quyền, cảnh báo vẫn hiển thị', async () => {
+    const forbidden = () =>
+      mockResponse(
+        errorEnvelope('Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.', 'FORBIDDEN'),
+        403,
+      );
+    const redactedStatus = {
+      ...SUBJECT_STATUS,
+      devices: [
+        {
+          ...SUBJECT_STATUS.devices[0],
+          healthDataVisible: false,
+          lastHeartRateBpm: null,
+          lastHeartRateQuality: null,
+          lastMeasuredAt: null,
+          batteryPercent: null,
+          clockStatus: 'unknown',
+          freshness: 'live',
+        },
+      ],
+    };
+    renderApp(
+      '/app',
+      dashboardHandler({ status: () => mockResponse(redactedStatus), summary: forbidden }),
+    );
+
+    // Cảnh báo là thông tin an toàn: vẫn hiển thị dù vùng số đo bị chặn.
+    expect(
+      await screen.findByRole('link', { name: /Nghi ngã — cần chú ý/ }, SLOW),
+    ).toBeInTheDocument();
+
+    // Hai vùng (tổng hợp + thiết bị) báo trạng thái quyền bằng câu nghiệp vụ,
+    // không hiện lỗi kỹ thuật và không vẽ số 0 mạo nhận dữ liệu.
+    expect(
+      (await screen.findAllByText('Chủ hồ sơ không chia sẻ số đo', {}, SLOW)).length,
+    ).toBeGreaterThan(0);
+    expect(screen.queryByText('Không tải được dữ liệu tổng quan')).not.toBeInTheDocument();
+    expect(screen.queryByText(/1234 bước/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/73 bpm/)).not.toBeInTheDocument();
+    expect(screen.queryByText('chưa có mẫu hợp lệ')).not.toBeInTheDocument();
+    expect(screen.queryByText('Lần đo gần nhất')).not.toBeInTheDocument();
+  });
 });

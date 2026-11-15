@@ -12,7 +12,7 @@ import { AuthModule } from '../src/auth/auth.module';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { sha256 } from '../src/auth/password';
 import { DB, type AppDb } from '../src/database/database';
-import { auditLogs, invitations, realtimeEvents } from '../src/database/schema';
+import { auditLogs, careLinks, invitations, realtimeEvents } from '../src/database/schema';
 
 /**
  * `createModuleTestApp` không đăng ký APP_GUARD/APP_FILTER (chỉ có trong AppModule).
@@ -78,6 +78,7 @@ describe('Care — mời, chấp nhận, thu hồi chia sẻ (FR-02, NFR-01, NFR
       canAcknowledge: true,
       canResolve: false,
       canViewAi: false,
+      canViewMeasurements: true,
     };
 
     const invite = await owner.agent
@@ -331,6 +332,58 @@ describe('Care — mời, chấp nhận, thu hồi chia sẻ (FR-02, NFR-01, NFR
     expect(adminView.status).toBe(404);
     const adminList = await admin.agent.get('/api/v1/subjects');
     expect(adminList.body.items).toHaveLength(0);
+  });
+
+  it('link/lời mời cũ thiếu canViewMeasurements được đọc là true (tương thích, không migration)', async () => {
+    const owner = await registerUser(ctx.app);
+    const subject = await createSubject(owner, 'Bà Tư');
+    const caregiver = await registerUser(ctx.app);
+    const db = ctx.app.get<AppDb>(DB);
+    // Quyền của bản ghi tạo trước khi có trường `canViewMeasurements`.
+    const legacyPermissions = {
+      historyDays: 7,
+      canReceiveAlerts: true,
+      canAcknowledge: true,
+      canResolve: false,
+      canViewAi: false,
+    };
+
+    await db.insert(careLinks).values({
+      subjectId: subject.id,
+      caregiverUserId: caregiver.session.user.id,
+      invitedByUserId: owner.session.user.id,
+      permissions: legacyPermissions,
+      status: 'active',
+      sharedFrom: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    });
+
+    // Đọc qua `GET /subjects` và `GET .../care-links`: luôn có trường với giá trị true.
+    const list = await caregiver.agent.get('/api/v1/subjects');
+    expect(list.status).toBe(200);
+    expect(list.body.items[0].permissions).toEqual({
+      ...legacyPermissions,
+      canViewMeasurements: true,
+    });
+    const links = await owner.agent.get(`/api/v1/subjects/${subject.id}/care-links`);
+    expect(links.status).toBe(200);
+    expect(links.body.items[0].permissions.canViewMeasurements).toBe(true);
+
+    // Lời mời gửi thiếu trường: schema điền true và lưu đủ trường vào jsonb.
+    const invited = await registerUser(ctx.app);
+    const created = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/invitations`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ email: invited.email, permissions: legacyPermissions });
+    expect(created.status).toBe(201);
+    expect(created.body.invitation.permissions).toEqual({
+      ...legacyPermissions,
+      canViewMeasurements: true,
+    });
+    const rows = await db
+      .select()
+      .from(invitations)
+      .where(eq(invitations.id, created.body.invitation.id));
+    expect(rows[0]?.permissions.canViewMeasurements).toBe(true);
   });
 
   it('không có phiên → 401 cho invitation/care-links; token sai → 404 (public)', async () => {

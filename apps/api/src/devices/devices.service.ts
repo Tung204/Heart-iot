@@ -236,7 +236,11 @@ export class DevicesService {
       subjectId,
       undefined,
     );
-    return this.loadSubjectDevices(access.subject.id, this.statusVisibleFrom(access, effectiveFrom));
+    return this.loadSubjectDevices(
+      access.subject.id,
+      this.statusVisibleFrom(access, effectiveFrom),
+      this.access.canViewMeasurements(access),
+    );
   }
 
   async getSubjectStatus(user: UserSummary, subjectId: string): Promise<SubjectStatusResponse> {
@@ -246,9 +250,12 @@ export class DevicesService {
       undefined,
     );
     const visibleFrom = this.statusVisibleFrom(access, effectiveFrom);
+    // Người thân không có quyền xem số đo vẫn nhận được trạng thái kết nối/pin,
+    // nhưng mọi trường số đo bị làm rỗng (`healthDataVisible=false`). Chủ hồ sơ luôn `true`.
+    const healthDataVisible = this.access.canViewMeasurements(access);
     const [policy, devicesStatus] = await Promise.all([
       this.policy.getActive(),
-      this.loadSubjectDevices(access.subject.id, visibleFrom),
+      this.loadSubjectDevices(access.subject.id, visibleFrom, healthDataVisible),
     ]);
     return { devices: devicesStatus, policy, asOf: new Date().toISOString() };
   }
@@ -327,6 +334,7 @@ export class DevicesService {
   private async loadSubjectDevices(
     subjectId: string,
     visibleFrom: Date | null,
+    healthDataVisible = true,
   ): Promise<DeviceStatus[]> {
     const policy = await this.policy.getActive();
     const rows = await this.db
@@ -340,7 +348,15 @@ export class DevicesService {
     for (const row of rows) {
       const lastRow = await this.loadLastTelemetry(row.device.id, row.assignment.id, visibleFrom);
       result.push(
-        computeDeviceStatus(row.device, subjectId, policy.value, lastRow, new Date(), visibleFrom),
+        computeDeviceStatus(
+          row.device,
+          subjectId,
+          policy.value,
+          lastRow,
+          new Date(),
+          visibleFrom,
+          healthDataVisible,
+        ),
       );
     }
     return result;

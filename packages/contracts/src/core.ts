@@ -61,24 +61,57 @@ export const carePermissionsSchema = z
     canAcknowledge: z.boolean(),
     canResolve: z.boolean(),
     canViewAi: z.boolean(),
+    /**
+     * Quyền đọc số đo, lịch sử đo và tệp CSV của hồ sơ.
+     * Bản ghi `care_links`/`invitations` cũ chưa có khóa này: schema điền `true`
+     * để không thu hẹp quyền đã cấp; helper `canViewMeasurements` cũng coi thiếu = true.
+     */
+    canViewMeasurements: z.boolean().default(true),
   })
   .strict();
-export type CarePermissions = z.infer<typeof carePermissionsSchema>;
+/**
+ * Quyền lưu trong `care_links.permissions`/`invitations.permissions`.
+ * Bản ghi cũ có thể thiếu `canViewMeasurements` (xem `z.input`); khi đọc qua
+ * `normalizeCarePermissions`/`carePermissionsSchema` giá trị luôn được điền.
+ * Dùng `ResolvedCarePermissions` cho giá trị đã chuẩn hóa.
+ */
+export type CarePermissions = z.input<typeof carePermissionsSchema>;
+export type ResolvedCarePermissions = z.output<typeof carePermissionsSchema>;
 
-export const DEFAULT_CARE_PERMISSIONS: CarePermissions = {
+/**
+ * Chuẩn hóa quyền đọc từ jsonb (DB cũ có thể thiếu `canViewMeasurements`).
+ * Dùng ở biên đọc/ghi để mọi giá trị trả ra hợp đồng đều có đủ trường.
+ */
+export function normalizeCarePermissions(input: unknown): ResolvedCarePermissions {
+  return carePermissionsSchema.parse(input);
+}
+
+/**
+ * Quyền xem số đo/lịch sử. Thiếu trường (link cũ) được hiểu là `true`
+ * để tương thích; chỉ `false` tường minh mới chặn dữ liệu sức khỏe.
+ */
+export function canViewMeasurements(
+  permissions: Pick<CarePermissions, 'canViewMeasurements'> | null | undefined,
+): boolean {
+  return permissions?.canViewMeasurements !== false;
+}
+
+export const DEFAULT_CARE_PERMISSIONS: ResolvedCarePermissions = {
   historyDays: 30,
   canReceiveAlerts: true,
   canAcknowledge: true,
   canResolve: false,
   canViewAi: false,
+  canViewMeasurements: true,
 };
 
-export const OWNER_PERMISSIONS: CarePermissions = {
+export const OWNER_PERMISSIONS: ResolvedCarePermissions = {
   historyDays: 3650,
   canReceiveAlerts: true,
   canAcknowledge: true,
   canResolve: true,
   canViewAi: true,
+  canViewMeasurements: true,
 };
 
 export function hasCarePermission(
