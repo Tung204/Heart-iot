@@ -41,6 +41,6 @@ Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần m�
 
 Một số con số được đặt làm **tham số demo/đích thử nghiệm đề xuất**. Chúng không phải ngưỡng y khoa, số liệu thực nghiệm hoặc cam kết vận hành.
 
-Số test, lệnh kiểm và lỗi còn lại được ghi theo lần chạy ngày **15/11/2026** tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md) và [chương 8](08-kiem-thu-va-danh-gia.md). Tài liệu không thay cho việc chạy lại; repo chưa có CI và web production build hiện chưa đạt.
+Số test, lệnh kiểm và lỗi còn lại được ghi theo lần chạy ngày **15/11/2026** tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md) và [chương 8](08-kiem-thu-va-danh-gia.md). Tài liệu không thay cho việc chạy lại; repo chưa có CI, còn web production build đã pass trên máy dev.
 
 [Quay lại trang dự án](../README.md).
