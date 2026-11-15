@@ -5,7 +5,7 @@
 - **Nền:** HEAD `c796f2e` (chứa `8434d66` — code-split/error boundary/alert 403-404 — và `0d669a1` — nền schema v2).
 - **Ngày:** 15/11/2026.
 - **Trạng thái:** sửa xong P1-1…P1-5 và 7/8 P2 trong phạm vi tài liệu; P2-4 phần comment trong code/test chưa làm (ngoài phạm vi được phép).
-- **Commit:** `0862736` (nhánh `fix-docs-truth`).
+- **Commit:** `aafebd3` chứa toàn bộ thay đổi nội dung; commit ngay sau đó chỉ sửa dòng hash này (xem `git log --oneline -3`).
 
 ## Phạm vi và file đã sửa
 
