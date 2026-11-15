@@ -114,7 +114,9 @@ test('lịch sử giữ nguyên trang đã tải sau 60 giây, không refetch', 
   await page.getByRole('button', { name: 'Tải thêm từ máy chủ' }).click();
   await expect(table).toContainText('Đang hiển thị 20/1000 dòng');
   const callsBefore = counters.measurements;
-  expect(callsBefore).toBe(2);
+  // Dev + StrictMode có thể gửi lặp request đầu tiên (unmount/remount), nên chỉ
+  // cần trang đã tải xong; điều cốt lõi là sau 60 giây không tăng thêm request.
+  expect(callsBefore).toBeGreaterThanOrEqual(2);
 
   await page.clock.fastForward(61_000);
 
