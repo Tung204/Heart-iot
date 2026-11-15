@@ -1,12 +1,18 @@
 import {
   authSessionSchema,
+  changePasswordSchema,
   loginSchema,
   meSchema,
   registerSchema,
+  sessionListSchema,
+  updateProfileSchema,
   type AuthSession,
+  type ChangePasswordInput,
   type LoginInput,
   type Me,
   type RegisterInput,
+  type SessionSummary,
+  type UpdateProfileInput,
 } from '@annhien/contracts/auth';
 import { apiRequest, parseResponse } from '../../lib/api';
 
@@ -33,5 +39,32 @@ export async function logout(): Promise<void> {
   await apiRequest<void>('/auth/logout', { method: 'POST' });
 }
 
-export { loginSchema, registerSchema };
-export type { LoginInput, RegisterInput };
+/** PATCH /me — đổi tên hiển thị của chính mình; trả lại user sau khi lưu. */
+export async function updateProfile(input: UpdateProfileInput): Promise<Me> {
+  const data = await apiRequest<unknown>('/me', { method: 'PATCH', body: input });
+  return parseResponse(meSchema, data);
+}
+
+/** POST /me/password — server giữ phiên hiện tại và thu hồi các phiên khác. */
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+  await apiRequest<void>('/me/password', { method: 'POST', body: input });
+}
+
+/** GET /me/sessions — phiên còn hiệu lực của chính mình, mới nhất trước. */
+export async function fetchSessions(signal?: AbortSignal): Promise<SessionSummary[]> {
+  const data = await apiRequest<unknown>('/me/sessions', { signal });
+  return parseResponse(sessionListSchema, data).items;
+}
+
+/** DELETE /me/sessions/:id — thu hồi một phiên khác của chính mình. */
+export async function revokeSession(sessionId: string): Promise<void> {
+  await apiRequest<void>(`/me/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+}
+
+/** POST /me/sessions/revoke-others — thu hồi tất cả trừ phiên hiện tại. */
+export async function revokeOtherSessions(): Promise<void> {
+  await apiRequest<void>('/me/sessions/revoke-others', { method: 'POST' });
+}
+
+export { changePasswordSchema, loginSchema, registerSchema, updateProfileSchema };
+export type { ChangePasswordInput, LoginInput, RegisterInput, UpdateProfileInput };
