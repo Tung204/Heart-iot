@@ -145,6 +145,8 @@ type TelemetryInput = {
   isQuarantined?: boolean;
   /** Dữ liệu cũ `clock_status='unsynced'` có thể còn `measured_at`; không phải mốc tin cậy. */
   clockStatus?: 'synced' | 'unsynced';
+  /** Nguồn mẫu: 'test' (mặc định), 'simulator' hoặc 'synthetic' để kiểm nhãn mô phỏng. */
+  source?: string;
 };
 
 async function insertTelemetry(
@@ -173,7 +175,7 @@ async function insertTelemetry(
     isLate: false,
     isQuarantined: input.isQuarantined ?? false,
     payloadHash: 'hash-test',
-    source: 'test',
+    source: input.source ?? 'test',
   });
 }
 
@@ -264,7 +266,9 @@ class FakeAdapter implements AssistantAiAdapter {
       .join('\n');
     if (userText.includes('Câu hỏi:')) {
       return {
-        content: JSON.stringify({ answer: `Trong khoảng có ${this.answerSamples} mẫu đo.` }),
+        content: JSON.stringify({
+          answer: `Trong khoảng có ${this.answerSamples} mẫu đo, tình trạng bình thường.`,
+        }),
         provider: 'openai-compatible',
         model: this.model,
       };
@@ -303,6 +307,15 @@ function aggregateFromPrompt(messages: AssistantChatMessage[]): {
   heartRate: { validSamples: number; min: number; avg: number; max: number } | null;
   batteryPercent: number | null;
   steps: number | null;
+  dataQuality: {
+    coveragePercent: number;
+    observedCount: number;
+    expectedCount: number;
+    gaps: { count: number; reasons: string[] };
+    lastSeenAt: string | null;
+    synthetic: boolean;
+    limitations: string[];
+  };
 } {
   const content = messages
     .filter((message) => message.role === 'user')
@@ -344,6 +357,15 @@ function aggregateFromPrompt(messages: AssistantChatMessage[]): {
     heartRate: { validSamples: number; min: number; avg: number; max: number } | null;
     batteryPercent: number | null;
     steps: number | null;
+    dataQuality: {
+      coveragePercent: number;
+      observedCount: number;
+      expectedCount: number;
+      gaps: { count: number; reasons: string[] };
+      lastSeenAt: string | null;
+      synthetic: boolean;
+      limitations: string[];
+    };
   };
 }
 
@@ -635,6 +657,154 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
     expect(aggregate.steps).toBeNull();
   });
 
+  it('coverage 0 + không có mẫu → dataQuality 0%, 1 khoảng thiếu; câu chữ nêu rõ độ phủ', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Không Mẫu');
+    const to = new Date(Date.now() - 60_000);
+    const from = new Date(to.getTime() - 60 * 60 * 1000);
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.dataQuality).toMatchObject({
+      coveragePercent: 0,
+      observedCount: 0,
+      expectedCount: 240,
+      gaps: { count: 1, reasons: ['no_data'] },
+      lastSeenAt: null,
+      synthetic: false,
+    });
+    expect(response.body.dataQuality.limitations.length).toBeGreaterThan(0);
+    expect(response.body.headline).toMatch(/Chỉ từ 0 mẫu, độ phủ 0%, 1 khoảng thiếu dữ liệu/);
+    expect(response.body.headline).not.toMatch(/bình thường/i);
+
+    const measurementSection = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    expect(measurementSection.body).toContain('Không có mẫu đo nào');
+    expect(measurementSection.body).toContain('khoảng thiếu dữ liệu');
+    const factByLabel = new Map(
+      measurementSection.facts.map((fact: { label: string; value: unknown }) => [fact.label, fact.value]),
+    );
+    expect(factByLabel.get('Độ phủ dữ liệu')).toBe(0);
+    expect(factByLabel.get('Số khoảng thiếu dữ liệu')).toBe(1);
+    expect(factByLabel.get('Lần nhận cuối')).toBe('Không có');
+    expect(factByLabel.get('Nguồn dữ liệu')).toBe('Dữ liệu thiết bị');
+    expect(factByLabel.get('Số mẫu đo')).toBe(0);
+  });
+
+  it('coverage thấp + 3 khoảng thiếu + nguồn mô phỏng → dataQuality và câu chữ đúng', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Mô Phỏng');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    const to = new Date(Date.now() - 60_000);
+    const from = new Date(to.getTime() - 60 * 60 * 1000);
+    const firstAt = new Date(from.getTime() + 10 * 60 * 1000);
+    const secondAt = new Date(from.getTime() + 20 * 60 * 1000);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: firstAt,
+      sequence: 1,
+      heartRateBpm: 60,
+      stepsSinceBoot: 100,
+      source: 'simulator',
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: secondAt,
+      sequence: 2,
+      heartRateBpm: 64,
+      stepsSinceBoot: 110,
+      source: 'simulator',
+    });
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.dataQuality).toMatchObject({
+      coveragePercent: 0.8,
+      observedCount: 2,
+      expectedCount: 240,
+      gaps: { count: 3, reasons: ['no_data'] },
+      lastSeenAt: secondAt.toISOString(),
+      synthetic: true,
+    });
+    expect(response.body.dataQuality.limitations).toEqual(
+      expect.arrayContaining([expect.stringContaining('mô phỏng')]),
+    );
+    expect(response.body.headline).toMatch(/Chỉ từ 2 mẫu, độ phủ 0.8%, 3 khoảng thiếu dữ liệu/);
+    expect(response.body.headline).toContain('Dữ liệu mô phỏng');
+    expect(response.body.headline).not.toMatch(/bình thường/i);
+
+    const measurementSection = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    expect(measurementSection.body).toContain('mô phỏng');
+    expect(measurementSection.body).toContain('Khoảng thiếu');
+    const factByLabel = new Map(
+      measurementSection.facts.map((fact: { label: string; value: unknown }) => [fact.label, fact.value]),
+    );
+    expect(factByLabel.get('Độ phủ dữ liệu')).toBe(0.8);
+    expect(factByLabel.get('Số khoảng thiếu dữ liệu')).toBe(3);
+    expect(factByLabel.get('Lần nhận cuối')).toBe(secondAt.toISOString());
+    expect(factByLabel.get('Nguồn dữ liệu')).toBe('Dữ liệu mô phỏng');
+  });
+
+  it('dữ liệu đầy đủ (1/1 mẫu, không gap) → dataQuality 100%, không thêm cảnh báo bịa', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Đầy Đủ');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    const from = new Date(Date.now() - 60_000);
+    const measuredAt = new Date(from.getTime() + 1000);
+    const to = new Date(from.getTime() + 10_000);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt,
+      sequence: 1,
+      heartRateBpm: 72,
+      stepsSinceBoot: 10,
+    });
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.dataQuality).toMatchObject({
+      coveragePercent: 100,
+      observedCount: 1,
+      expectedCount: 1,
+      gaps: { count: 0, reasons: [] },
+      lastSeenAt: measuredAt.toISOString(),
+      synthetic: false,
+      limitations: [],
+    });
+    expect(response.body.headline).not.toMatch(/Chỉ từ|khoảng thiếu|mô phỏng/i);
+    const measurementSection = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    expect(measurementSection.body).not.toMatch(/Chỉ từ|khoảng thiếu/i);
+    expect(measurementSection.body).toContain('trung bình 72 bpm');
+    expect(measurementSection.body).toContain('độ phủ 100%');
+  });
+
+  it('chỉ có mẫu chưa đồng bộ giờ → gap lý do clock_unsynced, không dùng mẫu', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Chưa Đồng Bộ');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() - 60_000),
+      sequence: 1,
+      heartRateBpm: 70,
+      stepsSinceBoot: 5,
+      clockStatus: 'unsynced',
+    });
+
+    const response = await owner.agent.get(`/api/v1/subjects/${subject.id}/assistant/summary`);
+    expect(response.status).toBe(200);
+    expect(response.body.dataQuality).toMatchObject({
+      observedCount: 0,
+      gaps: { count: 1, reasons: ['clock_unsynced'] },
+      synthetic: false,
+    });
+    expect(response.body.dataQuality.limitations.join(' ')).toContain('đồng hồ chưa đồng bộ');
+    expect(response.body.headline).toContain('Chỉ từ 0 mẫu, độ phủ 0%');
+  });
+
   it('không cấu hình AI → không gọi adapter (không mạng), template + degraded', async () => {
     const adapter = ctx.app.get<AssistantAiAdapter>(ASSISTANT_AI_ADAPTER);
     const spy = jest.spyOn(adapter, 'complete');
@@ -735,6 +905,12 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
     expect(response.body.status).toBe('degraded');
     expect(response.body.provider).toBe('template');
     expect(response.body.answer).toContain('Chưa có dữ liệu');
+    expect(response.body.answer).toMatch(/Chỉ từ 0 mẫu, độ phủ 0%/);
+    expect(response.body.dataQuality).toMatchObject({
+      observedCount: 0,
+      coveragePercent: 0,
+      synthetic: false,
+    });
     expect(response.body.degradedReason).toContain('Chưa có dữ liệu');
     expect(response.body.answer).not.toMatch(/bpm|nhịp tim trung bình là/i);
 
@@ -896,6 +1072,15 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
       degradedReason: null,
     });
     expect(response.body.headline).toContain('Tóm tắt');
+    // Dữ liệu thiếu → câu chất lượng xác định được thêm vào trước câu của model.
+    expect(response.body.headline).toMatch(/^Chỉ từ 1 mẫu, độ phủ 0%, /);
+    expect(response.body.headline).toContain('chưa đủ dữ liệu để kết luận');
+    expect(response.body.headline).not.toMatch(/bình thường/i);
+    expect(response.body.dataQuality).toMatchObject({
+      observedCount: 1,
+      synthetic: false,
+    });
+    expect(response.body.dataQuality.gaps.count).toBeGreaterThan(0);
     expect(response.body.sections).toHaveLength(2);
 
     expect(fake.calls).toHaveLength(1);
@@ -906,6 +1091,13 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
     expect(sentToModel).toContain('samples');
     expect(sentToModel).toContain('heartRate');
     expect(sentToModel).toContain('byState');
+    // Prompt provider phải mang khối chất lượng dữ liệu và quy tắc diễn đạt.
+    expect(sentToModel).toContain('dataQuality');
+    expect(sentToModel).toContain('coveragePercent');
+    expect(sentToModel).toContain('gaps');
+    expect(sentToModel).toContain('lastSeenAt');
+    expect(sentToModel).toContain('synthetic');
+    expect(sentToModel).toContain('chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu');
 
     const stored = await ctx.db.select().from(aiSummaries).where(eq(aiSummaries.subjectId, subjectId));
     expect(stored).toHaveLength(1);
@@ -927,7 +1119,40 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
       disclaimer: ASSISTANT_DISCLAIMER,
     });
     expect(response.body.answer).toContain('mẫu đo');
+    // Câu trả lời cũng mang khối chất lượng dữ liệu; dữ liệu thiếu → câu cảnh báo đứng trước.
+    expect(response.body.dataQuality).toMatchObject({ observedCount: 1, synthetic: false });
+    expect(response.body.answer).toMatch(/^Chỉ từ 1 mẫu, độ phủ 0%, /);
+    expect(response.body.answer).toContain('chưa đủ dữ liệu để kết luận');
+    expect(response.body.answer).not.toMatch(/bình thường/i);
     expect(fake.calls.length).toBe(before + 1);
+    const askSentToModel = JSON.stringify(fake.calls[fake.calls.length - 1]);
+    expect(askSentToModel).toContain('dataQuality');
+    expect(askSentToModel).toContain('coveragePercent');
+    expect(askSentToModel).toContain('chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu');
+  });
+
+  it('summary nguồn mô phỏng qua adapter: headline/dataQuality ghi rõ dữ liệu mô phỏng', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Mô Phỏng AI');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() - 3600 * 1000),
+      sequence: 1,
+      heartRateBpm: 70,
+      stepsSinceBoot: 15,
+      source: 'simulator',
+    });
+
+    const response = await owner.agent.get(`/api/v1/subjects/${subject.id}/assistant/summary`);
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('ready');
+    expect(response.body.dataQuality.synthetic).toBe(true);
+    expect(response.body.headline).toContain('Dữ liệu mô phỏng');
+    expect(response.body.headline).toContain('Chỉ từ 1 mẫu');
+    expect(response.body.dataQuality.limitations.join(' ')).toContain('mô phỏng');
+    const measurements = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    expect(measurements.body).toContain('Dữ liệu mô phỏng');
   });
 
   it('câu hỏi chẩn đoán với AI sẵn sàng vẫn bị từ chối trước khi gọi adapter', async () => {
