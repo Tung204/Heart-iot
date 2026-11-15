@@ -16,7 +16,7 @@ import { useEmergencyContacts } from '../contacts/useEmergencyContacts';
 import { useMe } from '../auth/useAuth';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
-import { SubjectSwitcher } from '../subjects/SubjectSwitcher';
+import { SubjectContextLine } from '../subjects/SubjectSwitcher';
 import { askAssistant, assistantAskSchema } from './api';
 
 /** Cùng cỡ danh sách với badge điều hướng để hai nơi dùng chung một lần tải. */
@@ -128,7 +128,7 @@ type TodayStatus = {
 
 /**
  * `/app` — Hôm nay: màn mặc định, chỉ trả lời bốn câu hỏi.
- * - Ai: tên hồ sơ đang xem (SubjectSwitcher).
+ * - Ai: một dòng tên hồ sơ đang xem ngay dưới H1 (select nhỏ khi có nhiều hồ sơ).
  * - Hôm nay thế nào: một thẻ trạng thái ngắn từ status + cảnh báo đang mở.
  * - Cần làm gì: hành động chính ngay trong thẻ (xem cảnh báo, kiểm tra thiết bị).
  * - Hỏi ở đâu: ô hỏi trợ lý; hội thoại chỉ xuất hiện sau câu hỏi đầu tiên.
@@ -186,7 +186,7 @@ export function AssistantPage() {
     fields: {},
     general: [],
   });
-  // Hội thoại thuộc về đúng một hồ sơ. SubjectSwitcher đổi hồ sơ mà không đổi
+  // Hội thoại thuộc về đúng một hồ sơ. Dòng ngữ cảnh đổi hồ sơ mà không đổi
   // pathname, nên phải reset ngay trong render để không lộ câu trả lời của hồ sơ
   // cũ dưới hồ sơ mới (kể cả trước khi effect chạy).
   const [threadSubjectId, setThreadSubjectId] = useState(subjectId);
@@ -444,9 +444,8 @@ export function AssistantPage() {
     <div className="stack today">
       <header className="today__header">
         <h1 className="page-title">Hôm nay</h1>
+        <SubjectContextLine />
       </header>
-
-      <SubjectSwitcher />
 
       {!activeSubject ? null : (
         <>
@@ -463,9 +462,20 @@ export function AssistantPage() {
             ) : null}
           </section>
 
+          {/* Link phụ và dòng giới hạn đứng ngay dưới khối trạng thái, trên ô hỏi:
+              không bị hội thoại dài đẩy xuống đáy trang. */}
+          <div className="today-meta">
+            <nav className="today-links" aria-label="Xem thêm">
+              <Link className="today-links__item" to="/app/overview">
+                Sức khỏe 7 ngày →
+              </Link>
+            </nav>
+            <p className="today__note">{TODAY_LIMIT_NOTE}</p>
+          </div>
+
           <section className="today-ask" aria-labelledby="today-ask-heading">
             <h2 id="today-ask-heading" className="visually-hidden">
-              Hỏi về hồ sơ đang xem
+              Hỏi trợ lý về hồ sơ này
             </h2>
             <form className="today-ask__form" onSubmit={handleAsk} noValidate>
               <label className="visually-hidden" htmlFor="assistant-question">
@@ -576,16 +586,11 @@ export function AssistantPage() {
               </div>
             ) : null}
           </section>
-
-          <nav className="today-links" aria-label="Xem thêm">
-            <Link className="today-links__item" to="/app/overview">
-              Sức khỏe 7 ngày →
-            </Link>
-          </nav>
         </>
       )}
 
-      <p className="today__note">{TODAY_LIMIT_NOTE}</p>
+      {/* Khi chưa có hồ sơ vẫn giữ dòng giới hạn, nhưng không đặt sau ô hỏi. */}
+      {activeSubject ? null : <p className="today__note">{TODAY_LIMIT_NOTE}</p>}
     </div>
   );
 }

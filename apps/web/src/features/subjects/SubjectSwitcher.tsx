@@ -1,110 +1,102 @@
 import { Link } from 'react-router-dom';
-import { Alert } from '../../components/Alert';
-import { Button, ButtonLink } from '../../components/Button';
-import { EmptyState } from '../../components/EmptyState';
 import { isNotFoundError } from '../../lib/api';
-import { useActiveSubjectId } from './selection';
-import { setActiveSubjectId } from './selection';
+import { setActiveSubjectId, useActiveSubjectId } from './selection';
 import { useSubjects } from './useSubjects';
 
 /**
- * Bộ chuyển hồ sơ trong khung ứng dụng.
- * - Lựa chọn dùng chung qua store (localStorage) để mọi trang nghiệp vụ
- *   biết hồ sơ đang xem.
- * - Danh sách rỗng → EmptyState + CTA tạo hồ sơ.
- * - Lỗi → Alert kèm nút thử lại, không hiển thị lỗi thô.
+ * Dòng ngữ cảnh hồ sơ cho Hôm nay — thay card "Hồ sơ đang xem" full-width.
+ *
+ * - Một hồ sơ: chỉ tên; hồ sơ được chia sẻ thêm vai trò nhỏ "Người thân".
+ * - Nhiều hồ sơ: select nhỏ cùng hàng; chọn xong ghi lựa chọn dùng chung.
+ * - Không nhãn "Hồ sơ đang xem", không link "Quản lý và chia sẻ" (đã có mục
+ *   Người thân trong điều hướng).
+ * - Giữ trạng thái đang tải/lỗi/rỗng bằng một câu ngắn để không mất ngữ cảnh.
  */
-export function SubjectSwitcher() {
+export function SubjectContextLine() {
   const subjects = useSubjects();
   const selectedId = useActiveSubjectId();
 
   if (subjects.isPending) {
     return (
-      <div className="subject-switcher" role="status" aria-busy="true">
-        <p className="subject-switcher__label">Hồ sơ đang xem</p>
-        <p className="subject-switcher__hint">Đang tải danh sách hồ sơ…</p>
-      </div>
+      <p className="subject-context subject-context--muted" role="status" aria-busy="true">
+        Đang tải hồ sơ…
+      </p>
     );
   }
 
   if (subjects.isError) {
+    // 404 là API hồ sơ chưa khả dụng, không phải lỗi mạng: không mời thử lại vô ích.
     if (isNotFoundError(subjects.error)) {
       return (
-        <Alert tone="info" title="Chưa kết nối được dữ liệu hồ sơ">
-          API hồ sơ chưa khả dụng. Kiểm tra máy chủ đang chạy và thử lại.
-        </Alert>
+        <p className="subject-context subject-context--muted">
+          Chưa kết nối được dữ liệu hồ sơ.
+        </p>
       );
     }
     return (
-      <Alert tone="error" title="Không tải được danh sách hồ sơ">
-        Kiểm tra kết nối với máy chủ và thử lại.
-        <div style={{ marginTop: '0.75rem' }}>
-          <Button variant="secondary" size="sm" onClick={() => void subjects.refetch()}>
-            Thử lại
-          </Button>
-        </div>
-      </Alert>
+      <p className="subject-context subject-context--muted">
+        Không tải được danh sách hồ sơ.{' '}
+        <button
+          type="button"
+          className="subject-context__retry"
+          onClick={() => void subjects.refetch()}
+        >
+          Thử lại
+        </button>
+      </p>
     );
   }
 
   const items = subjects.data;
   if (items.length === 0) {
     return (
-      <EmptyState
-        title="Chưa có hồ sơ nào"
-        description="Tạo hồ sơ cho người cần theo dõi để bắt đầu nhận dữ liệu và mời người thân cùng xem."
-        action={<ButtonLink to="/app/subjects">Tạo hồ sơ</ButtonLink>}
-      />
+      <p className="subject-context subject-context--muted">
+        Chưa có hồ sơ nào.{' '}
+        <Link className="subject-context__link" to="/app/subjects">
+          Tạo hồ sơ
+        </Link>
+      </p>
     );
   }
 
-  // Không có lựa chọn (hoặc lựa chọn cũ không còn quyền) thì hiển thị hồ sơ đầu tiên,
-  // đúng với hồ sơ mà các trang đang dùng qua useActiveSubject.
-  const effectiveSelected = items.some((item) => item.id === selectedId)
-    ? selectedId
-    : (items[0]?.id ?? null);
+  // Lựa chọn cũ không còn quyền → hiệu lực là hồ sơ đầu, giống useActiveSubject.
+  const selected = items.find((item) => item.id === selectedId) ?? items[0]!;
 
-  const handleChange = (value: string) => {
-    setActiveSubjectId(value === '' ? null : value);
-  };
-
-  const selected = items.find((item) => item.id === effectiveSelected) ?? items[0];
-  const initial = selected?.displayName.trim().split(/\s+/).at(-1)?.charAt(0).toUpperCase() ?? '?';
+  if (items.length === 1) {
+    return (
+      <p className="subject-context">
+        <span className="subject-context__name">{selected.displayName}</span>
+        {selected.role === 'caregiver' ? (
+          <span className="subject-context__role">Người thân</span>
+        ) : null}
+      </p>
+    );
+  }
 
   return (
-    <div className="subject-switcher">
-      <div className="subject-switcher__identity">
-        <span className="subject-switcher__avatar" aria-hidden="true">
-          {initial}
-        </span>
-        <div className="subject-switcher__field">
-          <p className="subject-switcher__label" id="subject-switch-label">
-            Hồ sơ đang xem
-            {selected ? (
-              <span className="subject-switcher__role">
-                {' '}· {selected.role === 'owner' ? 'Chủ hồ sơ' : 'Người thân'}
-              </span>
-            ) : null}
-          </p>
-          <select
-            id="subject-switch"
-            className="subject-switcher__select"
-            aria-labelledby="subject-switch-label"
-            value={effectiveSelected ?? ''}
-            onChange={(event) => handleChange(event.target.value)}
-          >
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.displayName}
-                {item.role === 'caregiver' ? ' (người thân)' : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <Link className="subject-switcher__manage" to="/app/subjects">
-        {selected?.role === 'owner' ? 'Quản lý và chia sẻ' : 'Danh sách hồ sơ'}
-      </Link>
-    </div>
+    <p className="subject-context">
+      <select
+        className="subject-context__select"
+        aria-label="Chọn hồ sơ"
+        value={selected.id}
+        onChange={(event) => setActiveSubjectId(event.target.value)}
+      >
+        {items.map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.displayName}
+            {item.role === 'caregiver' ? ' · người thân' : ''}
+          </option>
+        ))}
+      </select>
+    </p>
   );
+}
+
+/**
+ * Tên cũ mà AppShell (base `08fd3b5`) còn gọi ở các trang khác; nhánh `v6-shell`
+ * bỏ lời gọi này. Giữ export để nhánh app tự build/đứng riêng, nhưng không
+ * render card hồ sơ ở trang nào nữa — Hôm nay dùng `SubjectContextLine`.
+ */
+export function SubjectSwitcher() {
+  return null;
 }

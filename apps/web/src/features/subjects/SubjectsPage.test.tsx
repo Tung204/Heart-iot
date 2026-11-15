@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Route, Routes } from 'react-router-dom';
 import { SubjectsPage } from './SubjectsPage';
 import { setActiveSubjectId } from './selection';
 import { errorEnvelope, mockResponse, renderPage, type FetchHandler } from '../../test/utils';
@@ -266,5 +267,84 @@ describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', 
     expect(
       screen.queryByRole('button', { name: 'Yêu cầu xóa dữ liệu' }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('SubjectsPage — hàng gọn, thêm người và chọn hồ sơ', () => {
+  const listOnly = (items: unknown[]) => (url: string) => {
+    if (url.endsWith('/subjects')) return mockResponse({ items });
+    return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+  };
+
+  it('Xem sức khỏe đặt đúng hồ sơ làm hồ sơ đang xem trước khi điều hướng', async () => {
+    setActiveSubjectId(OWNER_SUBJECT.id);
+    renderPage(
+      <>
+        <SubjectsPage />
+        <Routes>
+          <Route path="/app/overview" element={<p>Trang Sức khỏe</p>} />
+        </Routes>
+      </>,
+      listOnly([OWNER_SUBJECT, SECOND_SUBJECT]),
+    );
+    const user = userEvent.setup();
+
+    await screen.findByText('Ông Bình', { exact: true });
+    await user.click(
+      within(subjectRow('Ông Bình')).getByRole('link', { name: 'Xem sức khỏe' }),
+    );
+
+    expect(await screen.findByText('Trang Sức khỏe')).toBeInTheDocument();
+    expect(window.localStorage.getItem('an:active-subject-id')).toBe(SECOND_SUBJECT.id);
+  });
+
+  it('Thiết bị cũng đặt đúng hồ sơ làm hồ sơ đang xem', async () => {
+    setActiveSubjectId(OWNER_SUBJECT.id);
+    renderPage(
+      <>
+        <SubjectsPage />
+        <Routes>
+          <Route path="/app/devices" element={<p>Trang Thiết bị</p>} />
+        </Routes>
+      </>,
+      listOnly([OWNER_SUBJECT, SECOND_SUBJECT]),
+    );
+    const user = userEvent.setup();
+
+    await screen.findByText('Ông Bình', { exact: true });
+    await user.click(within(subjectRow('Ông Bình')).getByRole('link', { name: 'Thiết bị' }));
+
+    expect(await screen.findByText('Trang Thiết bị')).toBeInTheDocument();
+    expect(window.localStorage.getItem('an:active-subject-id')).toBe(SECOND_SUBJECT.id);
+  });
+
+  it('form thêm người chỉ mở khi bấm nút, đóng lại được; không còn section tạo tách rời', async () => {
+    renderPage(<SubjectsPage />, listOnly([OWNER_SUBJECT]));
+    const user = userEvent.setup();
+
+    await screen.findByText('Bà Năm', { exact: true });
+    expect(screen.queryByLabelText(/^Tên hiển thị/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Thêm người' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Thêm người' }));
+    expect(await screen.findByLabelText(/^Tên hiển thị/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    await waitFor(() =>
+      expect(screen.queryByLabelText(/^Tên hiển thị/)).not.toBeInTheDocument(),
+    );
+  });
+
+  it('chưa có hồ sơ → câu gợi ý ngắn, vẫn mở được form thêm người', async () => {
+    renderPage(<SubjectsPage />, listOnly([]));
+    const user = userEvent.setup();
+
+    expect(await screen.findByText(/Chưa có hồ sơ nào/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Thêm người' }));
+    expect(await screen.findByLabelText(/^Tên hiển thị/)).toBeInTheDocument();
   });
 });
