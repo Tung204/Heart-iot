@@ -43,3 +43,36 @@ export const subjectDetailSchema = subjectSummarySchema.extend({
   archivedAt: isoDateTimeSchema.nullable(),
 });
 export type SubjectDetail = z.infer<typeof subjectDetailSchema>;
+
+/**
+ * Lưu trữ hồ sơ (không xóa dữ liệu). `confirmationName` phải khớp tên hiển thị
+ * (trim, không phân biệt hoa/thường) — server kiểm lại, sai trả 400.
+ */
+export const archiveSubjectSchema = z
+  .object({
+    reason: z.string().trim().min(3).max(500),
+    confirmationName: z.string().trim().min(1).max(120),
+  })
+  .strict();
+export type ArchiveSubjectInput = z.infer<typeof archiveSubjectSchema>;
+
+/**
+ * Ghi nhận yêu cầu xóa dữ liệu (thủ công, chưa xóa ngay). `confirmationName`
+ * phải khớp tên hiển thị như thao tác lưu trữ.
+ */
+export const deletionRequestSchema = z
+  .object({
+    reason: z.string().trim().min(10).max(1000),
+    confirmationName: z.string().trim().min(1).max(120),
+  })
+  .strict();
+export type DeletionRequestInput = z.infer<typeof deletionRequestSchema>;
+
+/** Phản hồi 202 khi yêu cầu xóa đã được ghi nhận — dữ liệu chưa bị xóa. */
+export const deletionRequestRecordedSchema = z.object({
+  id: idSchema,
+  status: z.literal('recorded'),
+  recordedAt: isoDateTimeSchema,
+  note: z.string().min(1),
+});
+export type DeletionRequestRecorded = z.infer<typeof deletionRequestRecordedSchema>;

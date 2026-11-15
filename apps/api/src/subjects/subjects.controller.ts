@@ -1,9 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
 import { idSchema, type UserSummary } from '@annhien/contracts';
 import {
+  archiveSubjectSchema,
   createSubjectSchema,
+  deletionRequestSchema,
   updateSubjectSchema,
+  type ArchiveSubjectInput,
   type CreateSubjectInput,
+  type DeletionRequestInput,
   type UpdateSubjectInput,
 } from '@annhien/contracts/subjects';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
@@ -39,5 +43,30 @@ export class SubjectsController {
     @Body(new ZodValidationPipe(updateSubjectSchema)) body: UpdateSubjectInput,
   ) {
     return this.service.update(user, id, body);
+  }
+
+  /** POST /subjects/:id/archive — chỉ chủ hồ sơ; 204, không xóa dữ liệu. */
+  @Post(':id/archive')
+  @HttpCode(204)
+  archive(
+    @CurrentUser() user: UserSummary,
+    @Param('id', new ZodValidationPipe(idSchema)) id: string,
+    @Body(new ZodValidationPipe(archiveSubjectSchema)) body: ArchiveSubjectInput,
+  ) {
+    return this.service.archive(user, id, body);
+  }
+
+  /**
+   * POST /subjects/:id/deletion-requests — chỉ chủ hồ sơ; 202 ghi nhận thủ công.
+   * Không xóa dữ liệu; response `note` nói rõ điều đó.
+   */
+  @Post(':id/deletion-requests')
+  @HttpCode(202)
+  requestDeletion(
+    @CurrentUser() user: UserSummary,
+    @Param('id', new ZodValidationPipe(idSchema)) id: string,
+    @Body(new ZodValidationPipe(deletionRequestSchema)) body: DeletionRequestInput,
+  ) {
+    return this.service.recordDeletionRequest(user, id, body);
   }
 }
