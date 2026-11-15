@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom';
-import { ButtonLink } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { SiteFooter } from '../components/SiteFooter';
 import { SiteHeader } from '../components/SiteHeader';
 import { SkipLink } from '../components/SkipLink';
 import { useMe } from '../features/auth/useAuth';
 import { isUnauthorizedError } from '../lib/api';
+
+/**
+ * Dòng an toàn ngay dưới CTA. Phải giữ đủ bốn ý: dữ liệu mô phỏng, cảnh báo chỉ
+ * có khi web đang kết nối, không tự gọi cấp cứu và không thay thế cấp cứu.
+ */
+export const HERO_SAFETY_NOTE =
+  'Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.';
 
 const CAPABILITIES = [
   {
@@ -101,8 +107,8 @@ export function LandingPage() {
   const user = me.data?.user ?? null;
   // Chưa biết phiên (đang tải) hoặc lỗi máy chủ: không hiện CTA khách để tránh
   // người đã đăng nhập bấm nhầm "Tạo tài khoản".
-  const sessionUnclear = me.isPending || (me.isError && !isUnauthorizedError(me.error));
-  const guest = !sessionUnclear && !user;
+  const sessionFailed = me.isError && !isUnauthorizedError(me.error);
+  const guest = !user && !me.isPending && !sessionFailed;
 
   return (
     <div className="public">
@@ -119,6 +125,13 @@ export function LandingPage() {
                 An Nhiên ghi nhịp tim và vận động từ thiết bị đeo của người thân, rồi báo
                 bạn khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
               </p>
+              {me.isPending ? (
+                // Đang kiểm phiên: chỉ báo tải, không render CTA để CTA không nhấp nháy.
+                <p className="hero__session hero__loading" role="status" aria-busy="true">
+                  <span className="hero__spinner" aria-hidden="true" />
+                  Đang kiểm tra phiên đăng nhập…
+                </p>
+              ) : null}
               <div className="hero__actions">
                 {user ? <ButtonLink to="/app">Mở ứng dụng</ButtonLink> : null}
                 {guest ? (
@@ -130,14 +143,33 @@ export function LandingPage() {
                   </>
                 ) : null}
               </div>
-              {me.isError && !isUnauthorizedError(me.error) ? (
-                <p className="hero__session" role="status">
-                  Không kiểm tra được phiên đăng nhập. <Link to="/login">Đăng nhập</Link>
-                </p>
+              {sessionFailed ? (
+                // Không kiểm tra được phiên ≠ khách: giữ đường vào và cho thử lại.
+                // Nếu đã có người dùng trong bộ đệm thì không mời đăng nhập/đăng ký lại.
+                <div className="hero__session">
+                  <p role="status">Không kiểm tra được phiên đăng nhập.</p>
+                  <div className="hero__session-actions">
+                    {!user ? (
+                      <>
+                        <ButtonLink to="/login" variant="secondary">
+                          Đăng nhập
+                        </ButtonLink>
+                        <ButtonLink to="/register" variant="secondary">
+                          Tạo tài khoản
+                        </ButtonLink>
+                      </>
+                    ) : null}
+                    <Button
+                      variant="subtle"
+                      onClick={() => void me.refetch()}
+                      disabled={me.isFetching}
+                    >
+                      {me.isFetching ? 'Đang thử lại…' : 'Thử lại'}
+                    </Button>
+                  </div>
+                </div>
               ) : null}
-              <p className="hero__note">
-                Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web mở · không tự gọi cấp cứu.
-              </p>
+              <p className="hero__note">{HERO_SAFETY_NOTE}</p>
             </div>
             <HeroArt />
           </div>

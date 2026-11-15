@@ -46,6 +46,30 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Email hoặc mật khẩu không đúng.')).toBeInTheDocument();
   });
 
+  it('lỗi API khi đăng nhập: focus vào hộp lỗi, không rơi về BODY', async () => {
+    renderApp('/login', (url) => {
+      if (String(url).endsWith('/me')) return me401Response();
+      return mockResponse(
+        errorEnvelope('Email hoặc mật khẩu không đúng.', 'UNAUTHENTICATED'),
+        401,
+      );
+    });
+    const user = userEvent.setup();
+
+    await screen.findByRole('heading', { level: 1, name: 'Đăng nhập' });
+    await user.type(screen.getByLabelText(/^Email/), 'con@example.com');
+    await user.type(screen.getByLabelText(/^Mật khẩu/), 'sai-mat-khau');
+    await user.click(screen.getByRole('button', { name: 'Đăng nhập' }));
+
+    // Giữ role=alert và đưa focus vào chính hộp lỗi (R-05).
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Email hoặc mật khẩu không đúng.');
+    const active = document.activeElement as HTMLElement | null;
+    expect(active).not.toBeNull();
+    expect(active).not.toBe(document.body);
+    expect(active).toContainElement(alert);
+  });
+
   it('đăng nhập thành công thì điều hướng /app và hiển thị tên người dùng trong shell', async () => {
     let meCount = 0;
     renderApp('/login', (url) => {

@@ -10,7 +10,7 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { registerSchema } from './api';
 import { useMe, useRegister } from './useAuth';
 import { AuthLayout } from './AuthLayout';
-import { useFocusFirstError } from './useFocusFirstError';
+import { useFocusErrorAlert, useFocusFirstError } from './useFocusFirstError';
 
 const FIELD_ORDER = [
   ['displayName', 'register-name'],
@@ -33,6 +33,10 @@ export function RegisterPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   useFocusFirstError(fieldErrors, FIELD_ORDER);
+  // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
+  const formErrorRef = useFocusErrorAlert(
+    formError && Object.keys(fieldErrors).length === 0 ? formError : null,
+  );
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;
@@ -85,7 +89,7 @@ export function RegisterPage() {
     >
       <form onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error">
+          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không tạo được tài khoản">
               {formError}
             </Alert>

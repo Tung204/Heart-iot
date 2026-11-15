@@ -10,7 +10,7 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { loginSchema } from './api';
 import { useLogin, useMe } from './useAuth';
 import { AuthLayout } from './AuthLayout';
-import { useFocusFirstError } from './useFocusFirstError';
+import { useFocusErrorAlert, useFocusFirstError } from './useFocusFirstError';
 
 const FIELD_ORDER = [
   ['email', 'login-email'],
@@ -29,6 +29,10 @@ export function LoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   useFocusFirstError(fieldErrors, FIELD_ORDER);
+  // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
+  const formErrorRef = useFocusErrorAlert(
+    formError && Object.keys(fieldErrors).length === 0 ? formError : null,
+  );
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;
@@ -76,7 +80,7 @@ export function LoginPage() {
     >
       <form onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error">
+          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không đăng nhập được">
               {formError}
             </Alert>
