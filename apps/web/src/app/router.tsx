@@ -1,5 +1,5 @@
 import { lazy, Suspense, type ReactNode } from 'react';
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import { PageLoader } from '../components/PageLoader';
 import { LoginPage } from '../features/auth/LoginPage';
 import { RegisterPage } from '../features/auth/RegisterPage';
@@ -36,9 +36,6 @@ const DevicesPage = lazy(() =>
 const HistoryPage = lazy(() =>
   import('../features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })),
 );
-const NotificationsPage = lazy(() =>
-  import('../features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
-);
 const SharePage = lazy(() =>
   import('../features/share/SharePage').then((m) => ({ default: m.SharePage })),
 );
@@ -68,8 +65,9 @@ function page(element: ReactNode): ReactNode {
  * - Công khai: / (landing), /login, /register, /invite/:token, * (404).
  * - Bảo vệ (/app): `/app` mở không gian trợ lý (trung tâm), tổng quan chi tiết
  *   ở `/app/overview`; sau đó là lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
- *   thiết bị, thông báo, trợ lý (giữ đường dẫn cũ), công việc, cài đặt, Studio,
- *   quản trị. Route lạ → 404 trong khung.
+ *   thiết bị, trợ lý (giữ đường dẫn cũ), công việc, cài đặt, Studio, quản trị.
+ *   `/app/notifications` chuyển sang `/app/alerts` vì thông báo đã gộp vào cảnh báo.
+ *   Route lạ → 404 trong khung.
  */
 export const appRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
@@ -91,7 +89,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'subjects', element: page(<SubjectsPage />) },
           { path: 'subjects/:id/share', element: page(<SharePage />) },
           { path: 'devices', element: page(<DevicesPage />) },
-          { path: 'notifications', element: page(<NotificationsPage />) },
+          { path: 'notifications', element: <Navigate to="/app/alerts" replace /> },
           { path: 'assistant', element: page(<AssistantPage />) },
           { path: 'tasks', element: page(<TasksPage />) },
           { path: 'settings', element: page(<SettingsPage />) },

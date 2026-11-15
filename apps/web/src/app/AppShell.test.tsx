@@ -136,6 +136,8 @@ interface ShellOptions {
   notifications?: NotificationPayload | (() => NotificationPayload);
   /** Số cảnh báo đang mở trả cho badge điều hướng. */
   openAlerts?: unknown[];
+  /** Trang bắt đầu; mặc định /app. */
+  initialEntries?: string[];
 }
 
 /** EventSource giả: kiểm tra onopen/onerror/listener SSE mà không cần máy chủ. */
@@ -201,7 +203,7 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
   });
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/app']}>
+      <MemoryRouter initialEntries={options.initialEntries ?? ['/app']}>
         <Routes>
           <Route path="/app" element={<AppShell />}>
             <Route
@@ -213,9 +215,12 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
                 </div>
               }
             />
+            <Route path="overview" element={<p>trang sức khỏe</p>} />
             <Route path="history" element={<p>trang lịch sử</p>} />
             <Route path="alerts" element={<p>trang cảnh báo</p>} />
-            <Route path="notifications" element={<p>trang thông báo</p>} />
+            <Route path="settings" element={<p>trang tài khoản</p>} />
+            <Route path="studio" element={<p>trang studio</p>} />
+            <Route path="admin" element={<p>trang quản trị</p>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -224,93 +229,98 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
   return { queryClient, fetchMock };
 }
 
-async function openMoreMenu(user: ReturnType<typeof userEvent.setup>) {
-  const toggles = await screen.findAllByRole('button', { name: 'Thêm' });
-  await user.click(toggles[0]!);
+async function openAccountMenu(user: ReturnType<typeof userEvent.setup>) {
+  const trigger = await screen.findByRole('button', { name: /^Tài khoản của / });
+  await user.click(trigger);
+  return trigger;
 }
 
-// v4 — điều hướng bốn mục: Hôm nay, Cảnh báo, Người thân, Thêm. Tổng quan và
-// Lịch sử không nằm ở nav chính; chúng mở từ liên kết trong Hôm nay/Sức khỏe.
+function accountMenu(): HTMLElement {
+  const menu = document.querySelector<HTMLElement>('.shell__account-menu');
+  if (!menu) throw new Error('Menu tài khoản chưa mở');
+  return menu;
+}
+
+// v6 — điều hướng bốn mục: Hôm nay, Cảnh báo, Sức khỏe, Người thân.
+// Tài khoản nằm trong menu ở avatar; không còn mục “Thêm” hay mục thứ năm.
 describe('AppShell — điều hướng bốn mục', () => {
   function mainNavLinks(): HTMLAnchorElement[] {
     const nav = document.querySelector('.shell__sidebar .shell__nav');
     return Array.from(nav?.querySelectorAll('a') ?? []) as HTMLAnchorElement[];
   }
 
-  it('admin có hồ sơ → nav chính Hôm nay/Cảnh báo/Người thân; Thêm có đủ mục phụ', async () => {
+  it('admin có hồ sơ → nav đúng bốn mục; menu tài khoản có Quản trị/Studio/Tài khoản', async () => {
     renderShell({ user: ADMIN }, SUBJECTS);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
     expect(screen.getAllByRole('link', { name: 'Hôm nay' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Cảnh báo' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Sức khỏe' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Người thân' }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Tổng quan' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Lịch sử' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument();
 
-    await openMoreMenu(user);
-    expect(screen.getAllByRole('menuitem', { name: 'Quản trị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Công việc' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Studio' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Thông báo' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
+    await openAccountMenu(user);
+    const menu = accountMenu();
+    expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toHaveAttribute(
+      'href',
+      '/app/settings',
+    );
+    expect(within(menu).getByRole('menuitem', { name: 'Quản trị' })).toHaveAttribute(
+      'href',
+      '/app/admin',
+    );
+    expect(within(menu).getByRole('menuitem', { name: 'Studio' })).toHaveAttribute(
+      'href',
+      '/app/studio',
+    );
+    expect(within(menu).queryByRole('menuitem', { name: 'Thông báo' })).not.toBeInTheDocument();
   });
 
-  it('chủ hồ sơ → nav chính có Hôm nay; menu phụ có Công việc, Studio nhưng KHÔNG có Quản trị', async () => {
+  it('chủ hồ sơ → menu có Studio nhưng KHÔNG có Quản trị', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
-    expect(screen.getAllByRole('link', { name: 'Hôm nay' }).length).toBeGreaterThan(0);
-    await openMoreMenu(user);
-
-    expect(screen.getAllByRole('menuitem', { name: 'Công việc' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Studio' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('menuitem', { name: 'Quản trị' })).not.toBeInTheDocument();
+    await openAccountMenu(user);
+    const menu = accountMenu();
+    expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Studio' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Quản trị' })).not.toBeInTheDocument();
   });
 
-  it('caregiver không có canViewAi/canReceiveAlerts → menu phụ chỉ Thiết bị/Thông báo/Cài đặt', async () => {
+  it('caregiver không phải chủ hồ sơ → menu chỉ còn Tài khoản', async () => {
     renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
-    // Hôm nay luôn có lối vào; trang tự báo khi hồ sơ thiếu quyền AI.
-    expect(screen.getAllByRole('link', { name: 'Hôm nay' }).length).toBeGreaterThan(0);
-    await openMoreMenu(user);
-
-    const menus = document.querySelectorAll('.shell__more-menu');
-    expect(menus).toHaveLength(1);
-    const moreMenu = menus[0];
-    expect(moreMenu?.querySelector('a[href="/app/assistant"]')).toBeNull();
-    expect(screen.getAllByRole('menuitem', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Thông báo' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('menuitem', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('menuitem', { name: 'Công việc' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
+    await openAccountMenu(user);
+    const menu = accountMenu();
+    expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Quản trị' })).not.toBeInTheDocument();
   });
 
-  it('desktop: ba liên kết đầu đúng thứ tự/route, mục thứ tư là nút Thêm', async () => {
+  it('desktop: bốn liên kết đúng thứ tự/route, không có nút Thêm', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     await screen.findByText('nội dung trang');
 
     const links = mainNavLinks();
-    expect(links).toHaveLength(3);
+    expect(links).toHaveLength(4);
     expect(links[0]).toHaveTextContent('Hôm nay');
     expect(links[0]).toHaveAttribute('href', '/app');
     expect(links[1]).toHaveTextContent('Cảnh báo');
     expect(links[1]).toHaveAttribute('href', '/app/alerts');
-    expect(links[2]).toHaveTextContent('Người thân');
-    expect(links[2]).toHaveAttribute('href', '/app/subjects');
+    expect(links[2]).toHaveTextContent('Sức khỏe');
+    expect(links[2]).toHaveAttribute('href', '/app/overview');
+    expect(links[3]).toHaveTextContent('Người thân');
+    expect(links[3]).toHaveAttribute('href', '/app/subjects');
 
-    const nav = document.querySelector('.shell__sidebar .shell__nav');
-    expect(nav?.querySelectorAll('a')).toHaveLength(3);
-    // jsdom không có matchMedia → chế độ mobile: chỉ một nút Thêm, nằm ở bottom-nav.
-    const toggles = document.querySelectorAll('.shell__more-toggle');
-    expect(toggles).toHaveLength(1);
-    expect(toggles[0]).toHaveTextContent('Thêm');
-    expect(document.querySelector('.shell__bottomnav .shell__more-toggle')).not.toBeNull();
-    expect(nav?.querySelector('.shell__more-toggle')).toBeNull();
+    expect(document.querySelector('.shell__more')).toBeNull();
+    expect(document.querySelector('.shell__more-toggle')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument();
   });
 
   it('bottom-nav có đúng bốn mục, không nhét Tổng quan/Lịch sử/Trợ lý vào nav chính', async () => {
@@ -319,61 +329,66 @@ describe('AppShell — điều hướng bốn mục', () => {
 
     const bottomNav = document.querySelector('.shell__bottomnav');
     expect(bottomNav).not.toBeNull();
-    expect(bottomNav?.querySelectorAll(':scope > a')).toHaveLength(3);
-    expect(bottomNav?.querySelector(':scope > .shell__more')).not.toBeNull();
-    expect(bottomNav?.querySelectorAll(':scope > a, :scope > .shell__more')).toHaveLength(4);
+    expect(bottomNav?.querySelectorAll(':scope > a')).toHaveLength(4);
+    expect(bottomNav?.querySelector('.shell__more')).toBeNull();
+    expect(bottomNav?.querySelectorAll(':scope > a')).toHaveLength(4);
     expect(screen.queryByRole('link', { name: 'Tổng quan' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Lịch sử' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Trợ lý' })).not.toBeInTheDocument();
   });
 
-  it('khu người dùng: tên + vai trò, không hiện email thô', async () => {
+  it('khu tài khoản: tên + vai trò trong menu, không hiện email thô', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
+    const user = userEvent.setup();
     await screen.findByText('nội dung trang');
-    await waitFor(() =>
-      expect(document.querySelector('.shell__user-name')).toHaveTextContent('Bà An'),
-    );
+    await openAccountMenu(user);
 
-    const user = document.querySelector('.shell__user');
-    expect(user).toHaveTextContent('Bà An');
-    expect(user).toHaveTextContent('Chủ hồ sơ');
+    const menu = accountMenu();
+    expect(within(menu).getByText('Bà An')).toBeInTheDocument();
+    expect(within(menu).getByText('Chủ hồ sơ')).toBeInTheDocument();
     expect(screen.queryByText(OWNER_USER.email)).not.toBeInTheDocument();
     expect(document.querySelector('.shell__user-email')).toBeNull();
   });
 
   it('caregiver → vai trò “Người thân”', async () => {
     renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
+    const user = userEvent.setup();
     await screen.findByText('nội dung trang');
-    await waitFor(() =>
-      expect(document.querySelector('.shell__user-role')).toHaveTextContent('Người thân'),
-    );
+    await openAccountMenu(user);
+
+    expect(within(accountMenu()).getByText('Người thân')).toBeInTheDocument();
   });
 
   it('admin → vai trò “Quản trị”', async () => {
     renderShell({ user: ADMIN }, SUBJECTS);
+    const user = userEvent.setup();
     await screen.findByText('nội dung trang');
-    await waitFor(() =>
-      expect(document.querySelector('.shell__user-role')).toHaveTextContent('Quản trị'),
-    );
+    await openAccountMenu(user);
+
+    expect(within(accountMenu()).getByText('Quản trị', { selector: '.shell__account-role' })).toBeInTheDocument();
   });
 
-  it('admin không có hồ sơ → chỉ Quản trị + Cài đặt, logo dẫn /app', async () => {
+  it('admin không có hồ sơ → nav chỉ Quản trị, Tài khoản trong menu, không hiện mục rỗng', async () => {
     renderShell({ user: ADMIN }, []);
+    const user = userEvent.setup();
     await screen.findByText('nội dung trang');
-    await waitFor(() =>
-      expect(document.querySelector('.shell__user-role')).toHaveTextContent('Quản trị'),
-    );
+    await waitFor(() => expect(mainNavLinks()).toHaveLength(1));
 
     const links = mainNavLinks();
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(1);
     expect(links[0]).toHaveTextContent('Quản trị');
     expect(links[0]).toHaveAttribute('href', '/app/admin');
-    expect(links[1]).toHaveTextContent('Cài đặt');
-    expect(links[1]).toHaveAttribute('href', '/app/settings');
     expect(screen.queryByRole('link', { name: 'Hôm nay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Cảnh báo' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Người thân' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Thêm' })).not.toBeInTheDocument();
     expect(document.querySelector('.shell__sidebar .brand')).toHaveAttribute('href', '/app');
     expect(screen.queryByText(ADMIN.email)).not.toBeInTheDocument();
+
+    await openAccountMenu(user);
+    expect(
+      within(accountMenu()).getByRole('menuitem', { name: 'Tài khoản' }),
+    ).toHaveAttribute('href', '/app/settings');
   });
 
   it('badge Cảnh báo hiện số đang mở ở cả sidebar lẫn bottom-nav', async () => {
@@ -383,7 +398,7 @@ describe('AppShell — điều hướng bốn mục', () => {
     await screen.findByText('nội dung trang');
 
     const links = await screen.findAllByRole('link', { name: /2 cảnh báo đang mở/ });
-    expect(links.length).toBeGreaterThanOrEqual(2);
+    expect(links).toHaveLength(2);
     for (const link of links) {
       expect(link).toHaveAttribute('href', '/app/alerts');
       expect(link.querySelector('.shell__nav-badge')).not.toBeNull();
@@ -393,9 +408,6 @@ describe('AppShell — điều hướng bốn mục', () => {
   it('caregiver thiếu canReceiveAlerts → không tải cảnh báo, không có badge', async () => {
     const { fetchMock } = renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
     await screen.findByText('nội dung trang');
-    await waitFor(() =>
-      expect(document.querySelector('.shell__user-role')).toHaveTextContent('Người thân'),
-    );
 
     expect(document.querySelector('.shell__nav-badge')).toBeNull();
     expect(
@@ -404,9 +416,9 @@ describe('AppShell — điều hướng bốn mục', () => {
   });
 });
 
-// F09/F11 — menu Thêm chỉ một bản trong DOM, đóng được bằng Escape/click ngoài,
-// aria-haspopup khớp role=menu và không bị nhân đôi theo hai thanh điều hướng.
-describe('AppShell — menu Thêm một bản, đóng được', () => {
+// F09/F11 — menu tài khoản chỉ một bản trong DOM, đóng được bằng Escape/click ngoài,
+// aria-expanded khớp trạng thái và focus trả về trigger.
+describe('AppShell — menu tài khoản một bản, đóng được', () => {
   afterEach(() => {
     delete (window as { matchMedia?: unknown }).matchMedia;
   });
@@ -428,24 +440,28 @@ describe('AppShell — menu Thêm một bản, đóng được', () => {
     });
   }
 
-  it('mở menu → đúng một .shell__more-menu, aria-haspopup="menu", Escape đóng và trả focus', async () => {
+  it('mở menu → đúng một .shell__account-menu, aria-expanded, focus mục đầu; Escape đóng và trả focus', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     await screen.findByText('nội dung trang');
     const user = userEvent.setup();
 
-    const toggle = screen.getByRole('button', { name: 'Thêm' });
-    expect(toggle).toHaveAttribute('aria-haspopup', 'menu');
-    await user.click(toggle);
+    const trigger = await screen.findByRole('button', { name: 'Tài khoản của Bà An' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'menu');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await user.click(trigger);
 
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(document.querySelectorAll('.shell__more-menu')).toHaveLength(1);
-    const menu = screen.getByRole('menu', { name: 'Mục khác' });
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(document.querySelectorAll('.shell__account-menu')).toHaveLength(1);
+    const menu = screen.getByRole('menu', { name: 'Tài khoản' });
     expect(within(menu).getAllByRole('menuitem').length).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toHaveFocus(),
+    );
 
     await user.keyboard('{Escape}');
-    expect(document.querySelector('.shell__more-menu')).toBeNull();
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(toggle).toHaveFocus();
+    expect(document.querySelector('.shell__account-menu')).toBeNull();
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it('bấm ra ngoài đóng menu', async () => {
@@ -453,11 +469,33 @@ describe('AppShell — menu Thêm một bản, đóng được', () => {
     await screen.findByText('nội dung trang');
     const user = userEvent.setup();
 
-    await openMoreMenu(user);
-    expect(document.querySelector('.shell__more-menu')).not.toBeNull();
+    await openAccountMenu(user);
+    expect(document.querySelector('.shell__account-menu')).not.toBeNull();
 
     await user.click(document.body);
-    expect(document.querySelector('.shell__more-menu')).toBeNull();
+    expect(document.querySelector('.shell__account-menu')).toBeNull();
+  });
+
+  it('mũi tên/Home/End di chuyển focus trong menu', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    await openAccountMenu(user);
+    const menu = accountMenu();
+    const account = within(menu).getByRole('menuitem', { name: 'Tài khoản' });
+    const studio = within(menu).getByRole('menuitem', { name: 'Studio' });
+    const logout = within(menu).getByRole('menuitem', { name: 'Đăng xuất' });
+
+    await waitFor(() => expect(account).toHaveFocus());
+    await user.keyboard('{ArrowDown}');
+    expect(studio).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    expect(account).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(logout).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(account).toHaveFocus();
   });
 
   it('desktop ≥1024px → menu nằm trong sidebar, bottom-nav không có bản thứ hai', async () => {
@@ -466,11 +504,45 @@ describe('AppShell — menu Thêm một bản, đóng được', () => {
     await screen.findByText('nội dung trang');
     const user = userEvent.setup();
 
-    await openMoreMenu(user);
+    await openAccountMenu(user);
 
-    expect(document.querySelector('.shell__sidebar .shell__more-menu')).not.toBeNull();
-    expect(document.querySelector('.shell__bottomnav .shell__more')).toBeNull();
-    expect(document.querySelectorAll('.shell__more-menu')).toHaveLength(1);
+    expect(document.querySelector('.shell__sidebar .shell__account-menu')).not.toBeNull();
+    expect(document.querySelector('.shell__bottomnav .shell__account')).toBeNull();
+    expect(document.querySelectorAll('.shell__account')).toHaveLength(1);
+    expect(document.querySelectorAll('.shell__account-menu')).toHaveLength(1);
+  });
+
+  it('đổi trang → menu đóng, không dính lại trên màn mới', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    await openAccountMenu(user);
+    await user.click(within(accountMenu()).getByRole('menuitem', { name: 'Tài khoản' }));
+
+    expect(await screen.findByText('trang tài khoản')).toBeInTheDocument();
+    expect(document.querySelector('.shell__account-menu')).toBeNull();
+  });
+
+  it('Aa chữ lớn nằm trong menu, không phải nút trần ở sidebar/topbar', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    expect(document.querySelector('.shell__sidebar > .text-size-toggle')).toBeNull();
+    expect(document.querySelector('.shell__topbar > .text-size-toggle')).toBeNull();
+
+    await openAccountMenu(user);
+    const menu = accountMenu();
+    const toggle = within(menu).getByRole('button', { name: 'Bật chữ lớn' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(toggle);
+    expect(document.documentElement).toHaveAttribute('data-text-size', 'large');
+    expect(within(menu).getByRole('button', { name: 'Tắt chữ lớn' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
 
@@ -480,48 +552,28 @@ describe('AppShell — đăng xuất hỏi lại', () => {
     return fetchMock.mock.calls.filter(([input]) => String(input).includes('/auth/logout'));
   }
 
-  it('lần bấm đầu chỉ hỏi lại; Hủy giữ phiên; xác nhận mới gọi API', async () => {
+  it('lần bấm đầu chỉ hỏi lại; Hủy giữ phiên và trả focus; xác nhận mới gọi API', async () => {
     const { fetchMock } = renderShell({ user: OWNER_USER }, SUBJECTS);
     await screen.findByText('nội dung trang');
     const user = userEvent.setup();
 
-    await user.click(screen.getAllByRole('button', { name: 'Đăng xuất' })[0]!);
+    await openAccountMenu(user);
+    await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }));
     expect(screen.getByText('Đăng xuất khỏi tài khoản?')).toBeInTheDocument();
     expect(logoutCalls(fetchMock)).toHaveLength(0);
 
     await user.click(screen.getByRole('button', { name: 'Hủy' }));
     expect(screen.queryByText('Đăng xuất khỏi tài khoản?')).not.toBeInTheDocument();
     expect(logoutCalls(fetchMock)).toHaveLength(0);
+    await waitFor(() =>
+      expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toHaveFocus(),
+    );
 
-    await user.click(screen.getAllByRole('button', { name: 'Đăng xuất' })[0]!);
+    await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }));
     const group = screen.getByRole('group', { name: 'Xác nhận đăng xuất' });
     await user.click(within(group).getByRole('button', { name: 'Đăng xuất' }));
 
     await waitFor(() => expect(logoutCalls(fetchMock).length).toBeGreaterThan(0));
-  });
-
-  it('topbar mobile: hộp xác nhận là hàng riêng full-width ngoài topbar-row, Hủy đóng được', async () => {
-    renderShell({ user: OWNER_USER }, SUBJECTS);
-    await screen.findByText('nội dung trang');
-    const user = userEvent.setup();
-
-    const topbar = document.querySelector<HTMLElement>('.shell__topbar');
-    expect(topbar).not.toBeNull();
-    // DOM: sidebar (index 0) rồi topbar (index 1); jsdom render cả hai.
-    await user.click(within(topbar as HTMLElement).getByRole('button', { name: 'Đăng xuất' }));
-
-    const group = within(topbar as HTMLElement).getByRole('group', {
-      name: 'Xác nhận đăng xuất',
-    });
-    expect(group).toHaveClass('shell__logout-confirm--topbar');
-    expect(group.parentElement).toBe(topbar);
-    expect(topbar!.querySelector('.shell__topbar-row')!.contains(group)).toBe(false);
-    expect(within(group).getByRole('button', { name: 'Hủy' })).toBeInTheDocument();
-
-    await user.click(within(group).getByRole('button', { name: 'Hủy' }));
-    expect(
-      within(topbar as HTMLElement).queryByRole('group', { name: 'Xác nhận đăng xuất' }),
-    ).not.toBeInTheDocument();
   });
 });
 
@@ -617,89 +669,47 @@ describe('AppShell — không lặp câu giới hạn cảnh báo', () => {
   });
 });
 
-// P1-4 (product gaps v2) — tín hiệu thông báo toàn tài khoản: badge số chưa đọc
-// và banner khi thông báo mới tới lúc đang ở trang khác.
-describe('AppShell — badge thông báo chưa đọc', () => {
+// v6 — brand trung tính, bỏ card “Hồ sơ đang xem” khỏi mọi trang.
+describe('AppShell — brand trung tính, bỏ bộ chọn hồ sơ khỏi khung', () => {
+  it('brand “Theo dõi sức khỏe” dẫn /app, không còn “An Nhiên” trong khung', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+
+    const brands = screen.getAllByRole('link', { name: 'Theo dõi sức khỏe' });
+    expect(brands).toHaveLength(2);
+    for (const brand of brands) {
+      expect(brand).toHaveAttribute('href', '/app');
+    }
+    expect(screen.queryByText('An Nhiên')).not.toBeInTheDocument();
+  });
+
+  it('không còn card “Hồ sơ đang xem” (SubjectSwitcher) trên khung', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+
+    expect(document.querySelector('.subject-switcher')).toBeNull();
+    expect(screen.queryByText(/hồ sơ đang xem/i)).not.toBeInTheDocument();
+  });
+});
+
+// P1-4 (product gaps v2) — tín hiệu thông báo toàn tài khoản vẫn còn banner;
+// thông báo đã gộp vào Cảnh báo nên không còn mục nav/menu riêng.
+describe('AppShell — thông báo gộp vào Cảnh báo', () => {
   beforeEach(resetFakeEventSource);
 
-  it('2 chưa đọc → badge ở sidebar và bottom-nav, tên đầy đủ cho trình đọc màn hình', async () => {
-    const items = [
-      notification(),
-      notification({
-        id: '6f7d8a9b-0c1d-4e2f-8a3b-4c5d6e7f8a9b',
-        createdAt: '2026-11-15T03:00:00.000Z',
-      }),
-    ];
-    renderShell({ user: OWNER_USER }, SUBJECTS, { notifications: { items, unreadCount: 2 } });
-    await screen.findByText('nội dung trang');
-
-    const user = userEvent.setup();
-    await openMoreMenu(user);
-    const links = await screen.findAllByRole('menuitem', { name: /2 thông báo chưa đọc/ });
-    expect(links).toHaveLength(1);
-    for (const link of links) {
-      expect(link).toHaveAccessibleName(/Thông báo/);
-      expect(link).toHaveTextContent('2 thông báo chưa đọc');
-      expect(link.querySelector('.shell__nav-badge')).not.toBeNull();
-    }
-
-    // Menu Thêm chỉ render một bản (mobile trong jsdom) và badge nằm trong đó.
-    expect(
-      document.querySelector('.shell__more-menu a[href="/app/notifications"] .shell__nav-badge'),
-    ).not.toBeNull();
-    // Nút “Thêm” đang đóng vẫn có chấm báo để không mất tín hiệu trên mobile.
-    expect(document.querySelector('.shell__more-toggle .shell__more-dot')).not.toBeNull();
-  });
-
-  it('0 chưa đọc → không có badge nhưng vẫn giữ liên kết Thông báo', async () => {
-    renderShell({ user: OWNER_USER }, SUBJECTS, {
-      notifications: {
-        items: [notification({ readAt: '2026-11-15T04:00:00.000Z' })],
-        unreadCount: 0,
-      },
-    });
-    await screen.findByText('nội dung trang');
-
-    const user = userEvent.setup();
-    await openMoreMenu(user);
-    expect((await screen.findAllByRole('menuitem', { name: 'Thông báo' })).length).toBeGreaterThanOrEqual(
-      1,
-    );
-    expect(document.querySelector('.shell__nav-badge')).toBeNull();
-  });
-
-  it('menu “Thêm” (mobile) có badge ở mục Thông báo; tên nút vẫn là “Thêm”', async () => {
-    const user = userEvent.setup();
+  it('không còn mục Thông báo trong nav hay menu tài khoản', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS, {
       notifications: { items: [notification()], unreadCount: 1 },
     });
     await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
 
-    const toggles = await screen.findAllByRole('button', { name: 'Thêm' });
-    expect(toggles[0]).toHaveAccessibleName('Thêm');
-
-    await openMoreMenu(user);
-    const menuLinks = screen
-      .getAllByRole('menuitem', { name: /1 thông báo chưa đọc/ })
-      .filter((link) => link.closest('.shell__more-menu'));
-    expect(menuLinks.length).toBeGreaterThan(0);
+    expect(screen.queryByRole('link', { name: 'Thông báo' })).not.toBeInTheDocument();
+    await openAccountMenu(user);
+    expect(
+      within(accountMenu()).queryByRole('menuitem', { name: /Thông báo/ }),
+    ).not.toBeInTheDocument();
   });
-});
-
-// P1-6 (UX v2) — banner thông báo mới + trạng thái mất SSE.
-describe('AppShell — banner thông báo mới và mất SSE', () => {
-  beforeEach(resetFakeEventSource);
-
-  function refetchNotifications(queryClient: QueryClient) {
-    return act(async () => {
-      await queryClient.refetchQueries({ queryKey: ['notifications'] });
-    });
-  }
-
-  /** Chờ lần tải đầu hoàn tất để hook lập mốc trước khi thêm thông báo mới. */
-  async function waitForNotificationsLoaded(queryClient: QueryClient) {
-    await waitFor(() => expect(queryClient.getQueryData(['notifications'])).toBeDefined());
-  }
 
   it('thông báo mới khi ở trang khác → banner role=status, không chi tiết sức khỏe, không tự điều hướng, đóng được', async () => {
     let payload: NotificationPayload = { items: [], unreadCount: 0 };
@@ -707,10 +717,12 @@ describe('AppShell — banner thông báo mới và mất SSE', () => {
       notifications: () => payload,
     });
     await screen.findByText('nội dung trang');
-    await waitForNotificationsLoaded(queryClient);
+    await waitFor(() => expect(queryClient.getQueryData(['notifications'])).toBeDefined());
 
     payload = { items: [notification()], unreadCount: 1 };
-    await refetchNotifications(queryClient);
+    await act(async () => {
+      await queryClient.refetchQueries({ queryKey: ['notifications'] });
+    });
 
     const text = await screen.findByText(/Có thông báo mới cho hồ sơ/);
     const banner = text.closest('[role="status"]');
@@ -720,7 +732,7 @@ describe('AppShell — banner thông báo mới và mất SSE', () => {
     expect(banner).not.toHaveTextContent(/sos|té ngã|nhịp tim|spo2|huyết áp/i);
     // Không tự điều hướng.
     expect(screen.getByText('nội dung trang')).toBeInTheDocument();
-    expect(screen.queryByText('trang thông báo')).not.toBeInTheDocument();
+    expect(screen.queryByText('trang cảnh báo')).not.toBeInTheDocument();
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Đóng thông báo mới' }));
     await waitFor(() =>
@@ -728,45 +740,47 @@ describe('AppShell — banner thông báo mới và mất SSE', () => {
     );
 
     // Tải lại cùng dữ liệu → không bật banner lặp vô hạn cho một thông báo.
-    await refetchNotifications(queryClient);
+    await act(async () => {
+      await queryClient.refetchQueries({ queryKey: ['notifications'] });
+    });
     expect(screen.queryByText(/Có thông báo mới cho hồ sơ/)).not.toBeInTheDocument();
   });
 
-  it('bấm “Xem thông báo” → mở hộp thư, banner biến mất', async () => {
+  it('bấm “Xem thông báo” → mở Cảnh báo, banner biến mất', async () => {
     let payload: NotificationPayload = { items: [], unreadCount: 0 };
     const { queryClient } = renderShell({ user: OWNER_USER }, SUBJECTS, {
       notifications: () => payload,
     });
     await screen.findByText('nội dung trang');
-    await waitForNotificationsLoaded(queryClient);
+    await waitFor(() => expect(queryClient.getQueryData(['notifications'])).toBeDefined());
 
     payload = { items: [notification()], unreadCount: 1 };
-    await refetchNotifications(queryClient);
+    await act(async () => {
+      await queryClient.refetchQueries({ queryKey: ['notifications'] });
+    });
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('link', { name: 'Xem thông báo' }));
+    const link = await screen.findByRole('link', { name: 'Xem thông báo' });
+    expect(link).toHaveAttribute('href', '/app/alerts');
+    await user.click(link);
 
-    expect(await screen.findByText('trang thông báo')).toBeInTheDocument();
+    expect(await screen.findByText('trang cảnh báo')).toBeInTheDocument();
     expect(screen.queryByText(/Có thông báo mới cho hồ sơ/)).not.toBeInTheDocument();
   });
 
-  it('SSE notification.sent → badge và banner cập nhật ngay, không chờ 20 giây', async () => {
+  it('SSE notification.sent → banner cập nhật ngay, không chờ 20 giây', async () => {
     vi.stubGlobal('EventSource', FakeEventSource);
     let payload: NotificationPayload = { items: [], unreadCount: 0 };
     const { queryClient } = renderShell({ user: OWNER_USER }, SUBJECTS, {
       notifications: () => payload,
     });
     await screen.findByText('nội dung trang');
-    await waitForNotificationsLoaded(queryClient);
+    await waitFor(() => expect(queryClient.getQueryData(['notifications'])).toBeDefined());
     await waitFor(() => expect(FakeEventSource.instances.length).toBeGreaterThan(0));
 
     payload = { items: [notification()], unreadCount: 1 };
     act(() => FakeEventSource.instances[0]!.emit('notification.sent', { revision: 1 }, '7'));
 
     expect(await screen.findByText(/Có thông báo mới cho hồ sơ/)).toBeInTheDocument();
-    await openMoreMenu(userEvent.setup());
-    expect(
-      screen.getAllByRole('menuitem', { name: /1 thông báo chưa đọc/ }).length,
-    ).toBeGreaterThan(0);
   });
 
   it('mất SSE → banner “Mất cập nhật trực tiếp — đang thử lại”; nối lại → ẩn', async () => {
@@ -874,6 +888,7 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     // Khối riêng cho thành phần mới: tắt hẳn thay vì rút ngắn.
     expect(layout).toContain('.shell__route--enter');
     expect(layout).toContain('.shell__banner--notice');
+    expect(layout).toContain('.shell__account-trigger');
     expect(layout).toMatch(/animation:\s*none/);
   });
 
@@ -883,7 +898,8 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     for (const selector of [
       '.button:hover:not(:disabled)',
       '.shell__nav-link:hover',
-      '.shell__more-toggle:hover',
+      '.shell__account-trigger:hover',
+      '.shell__account-item:hover',
     ]) {
       expect(hover).toContain(selector);
       // Không còn bản hover nào ngoài khối @media (hover: hover).

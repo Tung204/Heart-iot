@@ -1,12 +1,7 @@
 /* Giao diện ứng dụng tối giản — Hôm nay là màn mặc định, nav bốn mục.
    Chỉ thêm phần giao diện mới; hành vi và quyền vẫn do component/API quyết định. */
 
-/* ---------- Khung: tên + vai trò, không email ---------- */
-
-.shell__user-role {
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
+/* ---------- Khung: menu tài khoản gọn, không email ---------- */
 
 .shell__safety-note {
   border: 0;
@@ -243,33 +238,15 @@
   min-height: 44px;
 }
 
-/* F09 — mục Thêm chiếm đúng một phần tư bottom-nav, chạm >= 44px, không sát mép. */
-.shell__bottomnav > .shell__more {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.shell__bottomnav .shell__more-toggle {
-  width: 100%;
-  min-width: 44px;
-  min-height: 44px;
-  padding-inline: var(--space-1);
-}
-
-/* F11 — popup một bản; đảm bảo không tràn ngang ở màn 360px. */
-.shell__more-menu {
-  max-width: min(16rem, calc(100vw - 1.5rem));
-}
-
-/* F15/R-09 — hỏi lại trước khi đăng xuất, cả sidebar lẫn topbar.
-   Bản topbar là một hàng riêng full-width dưới topbar-row, không nằm trong
-   cụm actions nên không đẩy mép phải ra ngoài màn 360/390. */
+/* F15 — hỏi lại trước khi đăng xuất, đặt trong menu tài khoản. */
 .shell__logout-confirm {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-2) 0;
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-line);
 }
 
 .shell__logout-confirm-text {
@@ -286,14 +263,7 @@
   gap: var(--space-2);
 }
 
-.shell__logout-confirm--topbar {
-  flex: 1 1 100%;
-  width: 100%;
-  border-top: 1px solid var(--color-line);
-  padding-top: var(--space-2);
-}
-
-.shell__logout-confirm--topbar .shell__logout-confirm-actions .button {
+.shell__account-menu .shell__logout-confirm-actions .button {
   flex: 1 1 7rem;
   min-height: 44px;
 }
