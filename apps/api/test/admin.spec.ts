@@ -99,6 +99,13 @@ describe('Admin (wave 3 be-admin)', () => {
     await ctx.close();
   });
 
+  // Policy động là state toàn cục; reset trước mỗi test để T4/T5/T5b/T5c/T7
+  // không phụ thuộc test nào đã publish trước đó.
+  beforeEach(async () => {
+    await ctx.db.delete(policyConfigs);
+    await ctx.db.delete(auditLogs).where(eq(auditLogs.action, 'policy.publish'));
+  });
+
   // ---------------------------------------------------------------------------
   // Người dùng
   // ---------------------------------------------------------------------------
@@ -643,8 +650,10 @@ describe('Admin (wave 3 be-admin)', () => {
         dedupeKey: nextKey(),
       },
     ]);
+    // User riêng cho fixture overview: T2 sở hữu `toDisable` và có thể chạy trước/sau.
+    const overviewDisabled = await registerUser(ctx.app, { displayName: 'Tài khoản khóa cho overview' });
     await admin.agent
-      .patch(`/api/v1/admin/users/${toDisable.session.user.id}/status`)
+      .patch(`/api/v1/admin/users/${overviewDisabled.session.user.id}/status`)
       .set('Origin', TEST_ORIGIN)
       .send({ status: 'disabled', reason: 'Fixture overview.' });
 
@@ -653,8 +662,8 @@ describe('Admin (wave 3 be-admin)', () => {
 
     const res = await admin.agent.get('/api/v1/admin/overview').set('Origin', TEST_ORIGIN);
     expect(res.status).toBe(200);
-    // Người dùng active tại thời điểm này: admin, regular1, regular2 (toDisable đã bị khóa).
-    expect(res.body.users).toEqual({ active: 3, disabled: 1 });
+    // Active: admin, regular1, regular2, toDisable; disabled: user riêng của fixture này.
+    expect(res.body.users).toEqual({ active: 4, disabled: 1 });
     expect(res.body.subjects).toEqual({ total: 1 });
     expect(res.body.devices).toEqual({ online: 1, offline: 1 });
     expect(res.body.alerts).toEqual({ open: 1 });

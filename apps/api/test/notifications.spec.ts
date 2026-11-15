@@ -6,6 +6,7 @@
 import request from 'supertest';
 import { and, eq } from 'drizzle-orm';
 import type { IncidentEnvelope } from '@annhien/contracts/telemetry';
+import { AccessService } from '../src/access/access.service';
 import { DB, type AppDb } from '../src/database/database';
 import {
   careLinks,
@@ -218,6 +219,17 @@ describe('Notifications: outbox worker + API trong ứng dụng (R-01, NFR-06)',
 
   afterAll(async () => {
     await ctx.close();
+  });
+
+  // Outbox là state toàn cục; worker xử lý mọi hàng pending nên phải dọn trước
+  // mỗi test để test retry/backoff không kéo hàng của test khác vào kết quả.
+  beforeEach(async () => {
+    await db.delete(notificationOutbox);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('N1: worker gửi thành công ghi sentAt + realtime; recipient mất quyền → superseded, không sent (R-01)', async () => {
@@ -506,4 +518,175 @@ describe('Notifications: outbox worker + API trong ứng dụng (R-01, NFR-06)',
     const otherRead = await admin.agent.post(`/api/v1/notifications/${ownerNotificationId}/read`);
     expect(otherRead.status).toBe(404);
   });
+
+  // ---------------------------------------------------------------------------
+  // T-07: retry/backoff/restart và incident đóng giữa vòng retry
+  // ---------------------------------------------------------------------------
+
+  it('N11 (T-07): retry + backoff 1s/5s/30s, restart nhặt lại pending, failed sau 5 lần', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-t07-retry');
+    const base = new Date();
+
+    // Chỉ fake Date để backoff xác định; timer/socket thật cho PGlite/supertest.
+    jest.useFakeTimers({
+      now: base,
+      doNotFake: [
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'setImmediate',
+        'clearImmediate',
+        'nextTick',
+        'queueMicrotask',
+      ],
+    });
+    const deliverSpy = jest
+      .spyOn(
+        NotificationService.prototype as unknown as {
+          deliverInApp: (row: typeof notificationOutbox.$inferSelect) => Promise<void>;
+        },
+        'deliverInApp',
+      )
+      .mockRejectedValue(new Error('in_app delivery failed'));
+
+    const rowsForIncident = () =>
+      db.select().from(notificationOutbox).where(eq(notificationOutbox.incidentId, incidentId));
+
+    try {
+      const first = await service.processPending(20);
+      expect(first).toMatchObject({ processed: 2, sent: 0, superseded: 0, failed: 2 });
+      let rows = await rowsForIncident();
+      expect(rows).toHaveLength(2);
+      for (const row of rows) {
+        expect(row).toMatchObject({
+          status: 'pending',
+          attempts: 1,
+          sentAt: null,
+          lastError: 'in_app delivery failed',
+        });
+        expect(row.nextAttemptAt.getTime() - base.getTime()).toBe(1000);
+        expect(row.lastError).not.toContain(fx.deviceKey);
+        expect(row.lastError).not.toContain(fx.owner.email);
+        expect(row.lastError).not.toMatch(/heart_rate|bpm/i);
+      }
+
+      // "Restart" worker: instance mới trên cùng DB nhặt lại hàng pending đúng hạn.
+      jest.setSystemTime(new Date(base.getTime() + 1000));
+      const restarted = new NotificationService(db, ctx.app.get(AccessService));
+      const second = await restarted.processPending(20);
+      expect(second).toMatchObject({ processed: 2, sent: 0, superseded: 0, failed: 2 });
+      rows = await rowsForIncident();
+      for (const row of rows) {
+        expect(row.attempts).toBe(2);
+        expect(row.nextAttemptAt.getTime() - (base.getTime() + 1000)).toBe(5000);
+      }
+
+      jest.setSystemTime(new Date(base.getTime() + 6000));
+      const third = await service.processPending(20);
+      expect(third.failed).toBe(2);
+      rows = await rowsForIncident();
+      for (const row of rows) {
+        expect(row.attempts).toBe(3);
+        expect(row.nextAttemptAt.getTime() - (base.getTime() + 6000)).toBe(30000);
+      }
+
+      jest.setSystemTime(new Date(base.getTime() + 36_000));
+      const fourth = await service.processPending(20);
+      expect(fourth.failed).toBe(2);
+      rows = await rowsForIncident();
+      for (const row of rows) {
+        expect(row.attempts).toBe(4);
+        expect(row.nextAttemptAt.getTime() - (base.getTime() + 36_000)).toBe(30000);
+      }
+
+      jest.setSystemTime(new Date(base.getTime() + 66_000));
+      const fifth = await service.processPending(20);
+      expect(fifth).toMatchObject({ processed: 2, sent: 0, superseded: 0, failed: 2 });
+      rows = await rowsForIncident();
+      for (const row of rows) {
+        expect(row).toMatchObject({
+          status: 'failed',
+          attempts: 5,
+          sentAt: null,
+          lastError: 'in_app delivery failed',
+        });
+      }
+
+      // Đã failed thì không bị nhặt/gửi lại nữa, kể cả sau restart.
+      jest.setSystemTime(new Date(base.getTime() + 24 * 60 * 60 * 1000));
+      const afterFailed = await new NotificationService(db, ctx.app.get(AccessService)).processPending(20);
+      expect(afterFailed.processed).toBe(0);
+    } finally {
+      deliverSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('N12 (T-07): incident đóng giữa retry → alert pending thành superseded, không gửi', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-t07-close');
+    const base = new Date();
+
+    jest.useFakeTimers({
+      now: base,
+      doNotFake: [
+        'setTimeout',
+        'clearTimeout',
+        'setInterval',
+        'clearInterval',
+        'setImmediate',
+        'clearImmediate',
+        'nextTick',
+        'queueMicrotask',
+      ],
+    });
+    const deliverSpy = jest
+      .spyOn(
+        NotificationService.prototype as unknown as {
+          deliverInApp: (row: typeof notificationOutbox.$inferSelect) => Promise<void>;
+        },
+        'deliverInApp',
+      )
+      .mockRejectedValue(new Error('in_app delivery failed'));
+
+    try {
+      const first = await service.processPending(20);
+      expect(first).toMatchObject({ processed: 2, sent: 0, failed: 2 });
+
+      // Đóng incident sau lần thử đầu, trước khi hàng pending tới hạn retry.
+      await db
+        .update(incidents)
+        .set({ state: 'resolved', resolvedAt: new Date(base.getTime() + 500), updatedAt: new Date() })
+        .where(eq(incidents.id, incidentId));
+
+      jest.setSystemTime(new Date(base.getTime() + 1000));
+      const second = await service.processPending(20);
+      expect(second).toMatchObject({ processed: 2, sent: 0, superseded: 2, failed: 0 });
+
+      const rows = await db
+        .select()
+        .from(notificationOutbox)
+        .where(eq(notificationOutbox.incidentId, incidentId));
+      expect(rows).toHaveLength(2);
+      for (const row of rows) {
+        expect(row.status).toBe('superseded');
+        expect(row.sentAt).toBeNull();
+        expect(row.supersededAt).not.toBeNull();
+      }
+    } finally {
+      deliverSpy.mockRestore();
+      jest.useRealTimers();
+    }
+  });
+
+  it('N13 (T-07): outbox timer không chạy trong test; destroy an toàn', () => {
+    const idle = new NotificationService(db, ctx.app.get(AccessService));
+    idle.onModuleInit();
+    expect((idle as unknown as { timer: NodeJS.Timeout | null }).timer).toBeNull();
+    idle.onModuleDestroy();
+    expect((idle as unknown as { timer: NodeJS.Timeout | null }).timer).toBeNull();
+  });
+
 });

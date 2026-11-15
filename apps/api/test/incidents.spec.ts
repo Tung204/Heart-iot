@@ -710,12 +710,24 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     const auditRows = await db
       .select()
       .from(auditLogs)
-      .where(and(eq(auditLogs.action, 'incident.resolve'), eq(auditLogs.outcome, 'success')));
+      .where(
+        and(
+          eq(auditLogs.action, 'incident.resolve'),
+          eq(auditLogs.outcome, 'success'),
+          eq(auditLogs.targetId, incidentId),
+        ),
+      );
     expect(auditRows).toHaveLength(1);
     const conflictAudit = await db
       .select()
       .from(auditLogs)
-      .where(and(eq(auditLogs.action, 'incident.resolve'), eq(auditLogs.outcome, 'conflict')));
+      .where(
+        and(
+          eq(auditLogs.action, 'incident.resolve'),
+          eq(auditLogs.outcome, 'conflict'),
+          eq(auditLogs.targetId, incidentId),
+        ),
+      );
     expect(conflictAudit.length).toBeGreaterThan(0);
   });
 
@@ -1092,6 +1104,14 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     const incidentId = candidate.body.incidentId as string;
     await backdateIncident(db, incidentId, 30);
     await service.expireSuspectedAlerts();
+
+    // Fixture mặc định sharedFrom=now; nới mốc chia sẻ để incident 30 phút trước
+    // nằm trong cửa sổ lịch sử của caregiver (T16 kiểm quyền, không kiểm mốc share).
+    const sharedFrom = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await db
+      .update(careLinks)
+      .set({ sharedFrom })
+      .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.status, 'active')));
 
     const ownerList = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
     expect(ownerList.status).toBe(200);

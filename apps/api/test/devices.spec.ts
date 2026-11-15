@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS, type UserSummary } from '@annhien/contracts';
+import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
 import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DevicesModule } from '../src/devices/devices.module';
@@ -626,16 +626,18 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
   });
 
   it('tài khoản admin bị thu hồi quyền không dùng được route admin', async () => {
+    // Admin riêng cho test thu hồi: không đổi role fixture dùng chung của suite.
+    const revocableAdmin = await createAdmin(ctx.app);
     const adminUserRow = await ctx.db
       .select()
       .from(users)
-      .where(eq(users.id, (admin.session.user as UserSummary).id))
+      .where(eq(users.id, revocableAdmin.session.user.id))
       .limit(1);
     const row = adminUserRow[0];
     expect(row).toBeTruthy();
     await ctx.db.update(users).set({ role: 'user' }).where(eq(users.id, row!.id));
 
-    const denied = await admin.agent
+    const denied = await revocableAdmin.agent
       .post('/api/v1/admin/devices')
       .set('Origin', TEST_ORIGIN)
       .send({ serial: nextSerial(), label: 'Sau khi thu hồi' });

@@ -3,6 +3,8 @@ module.exports = {
   rootDir: '.',
   testEnvironment: 'node',
   testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/**/*.spec.ts'],
+  setupFiles: ['<rootDir>/test/setup-test-env.ts'],
+  globalTeardown: '<rootDir>/test/global-teardown.cjs',
   transform: {
     '^.+\\.ts$': [
       '@swc/jest',
@@ -17,6 +19,8 @@ module.exports = {
     ],
   },
   moduleNameMapper: {
+    // Test không đọc .env thật, kể cả khi repo có file .env của môi trường dev.
+    '^dotenv$': '<rootDir>/test/stubs/dotenv.cjs',
     '^@annhien/contracts$': '<rootDir>/../../packages/contracts/src/core.ts',
     '^@annhien/contracts/(.*)$': '<rootDir>/../../packages/contracts/src/$1.ts',
   },
