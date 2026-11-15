@@ -18,5 +18,10 @@ Người dùng chấm bản trước 0/100 và nêu: tên thương hiệu tự �
 ## Cấm
 
 - Không sửa file code, không commit; chỉ ghi `reports/qa/v6-review.md` (có thể commit report? **không**, để lead tự commit).
-- Không viết “đạt/pass/ổn”; không báo “không có lỗi”. Nếu ít nhất phải nêu 15 mục; nếu màn nào thực sự không có lỗi, ghi rõ “không thấy lỗi trong phạm vi đã kiểm” nhưng vẫn phải có 15 mục toàn bộ.
+- Không lấy test xanh làm kết luận giao diện. Không bắt buộc số lượng lỗi: chỉ ghi finding có bằng chứng; không bịa/tách vụn cho đủ quota. Nếu không thấy lỗi, ghi rõ phạm vi đã kiểm và phần chưa kiểm.
+- Kiểm cả diff test v6: assertion bị xóa/nới, hành vi chưa có test hồi quy; đề xuất thứ tự sửa dựa trên finding thật, không sửa code.
 - Không dùng dữ liệu thật/credentials ngoài demo; không tạo dữ liệu.
+
+## Khôi phục 15/11/2026 22:09 (UTC+7)
+
+Người dùng chỉ định **provider `dola`, model `gpt-6.1-sol`**, thay provider cũ. Dispatch đầu `ctx_3d4c3e1fe38e` lỗi HTTP 403 và đã stop có xác nhận. Retry cùng Task `task_eb6d7a5f3688`: dispatch `ctx_f264ee10055a`, worktree cũ `v6-review`, terminal mới đã xác minh footer `(dola) gpt-6.1-sol`. Báo cáo chưa có tại thời điểm khôi phục. Không tự ghi Obsidian ngoài workspace; lead tổng hợp khi có quyền ghi.
