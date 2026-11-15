@@ -4,7 +4,7 @@
  * Yêu cầu: FR-06, FR-07, FR-09, NFR-01, NFR-02; findings R-01, R-02.
  */
 import request from 'supertest';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import type { IncidentEnvelope } from '@annhien/contracts/telemetry';
 import { DB, type AppDb } from '../src/database/database';
 import {
@@ -16,11 +16,14 @@ import {
   incidentEvents,
   incidents,
   notificationOutbox,
+  realtimeEvents,
   subjects,
 } from '../src/database/schema';
 import { sha256 } from '../src/auth/password';
+import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
 import { DeviceAuthModule } from '../src/devices/device-auth.module';
 import { IncidentsModule } from '../src/incidents/incidents.module';
+import { IncidentsService } from '../src/incidents/incidents.service';
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { RealtimeModule } from '../src/realtime/realtime.module';
 import {
@@ -195,6 +198,15 @@ async function openIncident(ctx: TestContext, fx: AlertFixture, localId: string)
   expect(confirmed.status).toBe(202);
   expect(confirmed.body.status).toBe('accepted');
   return { incidentId: confirmed.body.incidentId as string };
+}
+
+/** Đẩy mốc nhận sự kiện cuối về quá khứ để mô phỏng "ứng viên quá hạn chờ kết quả cuối". */
+async function backdateIncident(db: AppDb, incidentId: string, minutesAgo: number): Promise<void> {
+  const at = new Date(Date.now() - minutesAgo * 60_000);
+  await db
+    .update(incidents)
+    .set({ detectedAt: at, lastEventAt: at })
+    .where(eq(incidents.id, incidentId));
 }
 
 describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-01/R-02)', () => {
@@ -767,5 +779,287 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
       .from(auditLogs)
       .where(and(eq(auditLogs.action, 'incident.ingest'), eq(auditLogs.outcome, 'denied')));
     expect(auditRows.length).toBeGreaterThan(0);
+  });
+
+  it('T13: suspected quá hạn → unconfirmed; hiện ở closed + detail; không event/SSE/outbox; quét lại idempotent (FR-06, docs/03)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const service = ctx.app.get(IncidentsService);
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: 'incident-t13', event_type: 'fall.candidate', event_revision: 1 }),
+    );
+    expect(candidate.body.status).toBe('accepted');
+    const incidentId = candidate.body.incidentId as string;
+
+    // Chưa quá hạn: chưa có gì trong open/closed, chưa phát realtime.
+    const before = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(before.body.items).toHaveLength(0);
+    expect(await db.select().from(realtimeEvents).where(eq(realtimeEvents.entityId, incidentId))).toHaveLength(0);
+
+    await backdateIncident(db, incidentId, 11);
+    const sweep = await service.expireSuspectedAlerts();
+    expect(sweep.transitioned).toBeGreaterThanOrEqual(1);
+
+    const rows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(rows[0]!.state).toBe('unconfirmed');
+    expect(rows[0]!.version).toBe(2);
+    expect(rows[0]!.resolvedAt).toBeNull();
+    expect(rows[0]!.cancelledAt).toBeNull();
+
+    // Không bịa incident event mới: enum event type không có loại timeout.
+    const eventRows = await db
+      .select()
+      .from(incidentEvents)
+      .where(eq(incidentEvents.incidentId, incidentId));
+    expect(eventRows).toHaveLength(1);
+    expect(eventRows[0]!.eventType).toBe('fall.candidate');
+
+    // Không SSE, không outbox: đây là bản ghi thiếu kết quả cuối, không phải cảnh báo mới.
+    expect(await db.select().from(realtimeEvents).where(eq(realtimeEvents.entityId, incidentId))).toHaveLength(0);
+    expect(
+      await db.select().from(notificationOutbox).where(eq(notificationOutbox.incidentId, incidentId)),
+    ).toHaveLength(0);
+
+    // Dấu vết hệ thống nằm ở audit_logs.
+    const timeoutAudits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.suspected_timeout'), eq(auditLogs.targetId, incidentId)));
+    expect(timeoutAudits).toHaveLength(1);
+    expect(timeoutAudits[0]!.actorKind).toBe('system');
+    expect(timeoutAudits[0]!.outcome).toBe('success');
+    expect(timeoutAudits[0]!.metadata).toMatchObject({
+      stateBefore: 'suspected',
+      stateAfter: 'unconfirmed',
+      versionBefore: 1,
+      versionAfter: 2,
+      timeoutMinutes: 10,
+    });
+
+    // state=closed bao gồm unconfirmed; state=open không.
+    const closed = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(closed.status).toBe(200);
+    expect(closed.body.items).toHaveLength(1);
+    expect(closed.body.items[0]).toMatchObject({ id: incidentId, state: 'unconfirmed' });
+    const open = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
+    expect(open.body.items).toHaveLength(0);
+
+    // Chi tiết mở được, không 404, giữ lịch sử kỹ thuật.
+    const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(detail.status).toBe(200);
+    expect(detail.body).toMatchObject({ id: incidentId, state: 'unconfirmed', version: 2 });
+    expect(detail.body.events).toHaveLength(1);
+    expect(detail.body.actions).toHaveLength(0);
+
+    // Quét lại: idempotent, không tăng version, không thêm audit.
+    const again = await service.expireSuspectedAlerts();
+    expect(again).toEqual({ scanned: 0, transitioned: 0 });
+    const after = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(after[0]!.version).toBe(2);
+    expect(
+      await db
+        .select()
+        .from(auditLogs)
+        .where(and(eq(auditLogs.action, 'incident.suspected_timeout'), eq(auditLogs.targetId, incidentId))),
+    ).toHaveLength(1);
+  });
+
+  it('T14: suspected mới chưa quá hạn vẫn suspected, không thấy trong list/detail; job nền tắt khi test (FR-06)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const service = ctx.app.get(IncidentsService);
+
+    // Test không chạy interval nền và dùng ngưỡng mặc định 10 phút.
+    expect(service.isSweepScheduled()).toBe(false);
+    expect(service.suspectedTimeoutMs()).toBe(10 * 60_000);
+
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: 'incident-t14', event_type: 'fall.candidate', event_revision: 1 }),
+    );
+    const incidentId = candidate.body.incidentId as string;
+
+    const sweep = await service.expireSuspectedAlerts();
+    expect(sweep.transitioned).toBe(0);
+
+    const rows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(rows[0]!.state).toBe('suspected');
+    expect(rows[0]!.version).toBe(1);
+
+    const open = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
+    expect(open.body.items).toHaveLength(0);
+    const closed = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(closed.body.items).toHaveLength(0);
+    const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(detail.status).toBe(404);
+    expect(detail.body.code).toBe('NOT_FOUND');
+    expect(await db.select().from(realtimeEvents).where(eq(realtimeEvents.entityId, incidentId))).toHaveLength(0);
+  });
+
+  it('T15: quét không đổi incident đã confirmed/acknowledged/resolved/cancelled (FR-06)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const service = ctx.app.get(IncidentsService);
+
+    const { incidentId: acknowledgedId } = await openIncident(ctx, fx, 'incident-t15-ack');
+    const ack = await fx.owner.agent
+      .post(`/api/v1/alerts/${acknowledgedId}/acknowledge`)
+      .send({ expectedVersion: 2 });
+    expect(ack.status).toBe(200);
+    expect(ack.body.state).toBe('acknowledged');
+
+    const { incidentId: resolvedId } = await openIncident(ctx, fx, 'incident-t15-resolved');
+    const resolved = await fx.owner.agent
+      .post(`/api/v1/alerts/${resolvedId}/resolve`)
+      .send({ expectedVersion: 2, reason: 'Đã kiểm tra, người dùng an toàn', outcome: 'supported' });
+    expect(resolved.status).toBe(200);
+
+    const cancelledCandidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: 'incident-t15-cancel', event_type: 'fall.candidate', event_revision: 1 }),
+    );
+    const cancelledId = cancelledCandidate.body.incidentId as string;
+    await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: 'incident-t15-cancel', event_type: 'fall.cancelled', event_revision: 2 }),
+    );
+
+    for (const id of [acknowledgedId, resolvedId, cancelledId]) {
+      await backdateIncident(db, id, 45);
+    }
+
+    const sweep = await service.expireSuspectedAlerts();
+    expect(sweep.transitioned).toBe(0);
+
+    const rows = await db
+      .select()
+      .from(incidents)
+      .where(and(eq(incidents.subjectId, fx.subjectId), inArray(incidents.id, [acknowledgedId, resolvedId, cancelledId])));
+    const stateById = new Map(rows.map((row) => [row.id, row.state]));
+    expect(stateById.get(acknowledgedId)).toBe('acknowledged');
+    expect(stateById.get(resolvedId)).toBe('resolved');
+    expect(stateById.get(cancelledId)).toBe('cancelled');
+
+    const versions = new Map(rows.map((row) => [row.id, row.version]));
+    expect(versions.get(acknowledgedId)).toBe(3);
+    expect(versions.get(resolvedId)).toBe(3);
+    expect(versions.get(cancelledId)).toBe(2);
+  });
+
+  it('T16: unconfirmed giữ nguyên ranh giới quyền và không cho xác nhận/đóng (NFR-01)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const service = ctx.app.get(IncidentsService);
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: 'incident-t16', event_type: 'fall.candidate', event_revision: 1 }),
+    );
+    const incidentId = candidate.body.incidentId as string;
+    await backdateIncident(db, incidentId, 30);
+    await service.expireSuspectedAlerts();
+
+    const ownerList = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(ownerList.status).toBe(200);
+    expect(ownerList.body.items).toHaveLength(1);
+
+    // Người thân có canReceiveAlerts vẫn xem được lịch sử kỹ thuật.
+    const caregiverList = await fx.caregiver.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(caregiverList.status).toBe(200);
+    expect(caregiverList.body.items).toHaveLength(1);
+    const caregiverDetail = await fx.caregiver.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(caregiverDetail.status).toBe(200);
+    expect(caregiverDetail.body.state).toBe('unconfirmed');
+
+    // Có link nhưng thiếu canReceiveAlerts → 403; không có link → 404.
+    const limitedList = await fx.limited.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(limitedList.status).toBe(403);
+    const limitedDetail = await fx.limited.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(limitedDetail.status).toBe(403);
+    const outsiderDetail = await fx.outsider.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(outsiderDetail.status).toBe(404);
+    const admin = await createAdmin(ctx.app);
+    expect((await admin.agent.get(`/api/v1/alerts/${incidentId}`)).status).toBe(404);
+
+    // unconfirmed không phải trạng thái cần xử lý: ack/resolve trả 409, không đổi state.
+    const ack = await fx.owner.agent
+      .post(`/api/v1/alerts/${incidentId}/acknowledge`)
+      .send({ expectedVersion: 2 });
+    expect(ack.status).toBe(409);
+    const resolve = await fx.owner.agent
+      .post(`/api/v1/alerts/${incidentId}/resolve`)
+      .send({ expectedVersion: 2, reason: 'Đóng ca chưa xác định', outcome: 'other' });
+    expect(resolve.status).toBe(409);
+    const after = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(after[0]!.state).toBe('unconfirmed');
+    expect(after[0]!.version).toBe(2);
+  });
+
+  it('T17: confirmed đến sau khi đã unconfirmed vẫn mở cảnh báo, không âm thầm bỏ (docs/03)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const service = ctx.app.get(IncidentsService);
+    const localId = 'incident-t17';
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: localId, event_type: 'fall.candidate', event_revision: 1 }),
+    );
+    const incidentId = candidate.body.incidentId as string;
+    await backdateIncident(db, incidentId, 20);
+    await service.expireSuspectedAlerts();
+
+    const confirmed = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, { incident_id: localId, event_type: 'fall.confirmed', event_revision: 2 }),
+    );
+    expect(confirmed.status).toBe(202);
+    expect(confirmed.body.status).toBe('accepted');
+
+    const rows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(rows[0]!.state).toBe('open');
+    expect(rows[0]!.version).toBe(3);
+
+    const open = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
+    expect(open.body.items).toHaveLength(1);
+    expect(open.body.items[0]).toMatchObject({ id: incidentId, state: 'open' });
+    const closed = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts?state=closed`);
+    expect(closed.body.items).toHaveLength(0);
+
+    const outboxRows = await db
+      .select()
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+    expect(outboxRows).toHaveLength(2);
+    expect(outboxRows.every((row) => row.dedupeKey.endsWith(':alert'))).toBe(true);
+  });
+
+  it('T18: SUSPECTED_TIMEOUT_MINUTES ngoài 1..120 bị từ chối khi đọc cấu hình', () => {
+    const previous = process.env.SUSPECTED_TIMEOUT_MINUTES;
+    try {
+      process.env.SUSPECTED_TIMEOUT_MINUTES = '121';
+      resetEnvCacheForTests();
+      expect(() => loadEnv()).toThrow(/SUSPECTED_TIMEOUT_MINUTES/);
+
+      process.env.SUSPECTED_TIMEOUT_MINUTES = '0';
+      resetEnvCacheForTests();
+      expect(() => loadEnv()).toThrow(/SUSPECTED_TIMEOUT_MINUTES/);
+
+      process.env.SUSPECTED_TIMEOUT_MINUTES = '30';
+      resetEnvCacheForTests();
+      expect(loadEnv().SUSPECTED_TIMEOUT_MINUTES).toBe(30);
+    } finally {
+      if (previous === undefined) delete process.env.SUSPECTED_TIMEOUT_MINUTES;
+      else process.env.SUSPECTED_TIMEOUT_MINUTES = previous;
+      resetEnvCacheForTests();
+    }
   });
 });

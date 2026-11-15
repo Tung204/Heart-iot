@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from 'drizzle-orm';
+import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { and, asc, desc, eq, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm';
 import {
   LATE_EVENT_MINUTES,
   alertUpdatedEventSchema,
@@ -40,12 +40,23 @@ import { isUniqueViolation } from '../database/errors';
 import { sha256 } from '../auth/password';
 import { decodeCursor, encodeCursor } from '../common/pagination';
 import { currentRequestId } from '../common/request-context';
+import { ENV, type AppEnv } from '../config/env';
 
 /** Kiểu executor giao dịch: chấp nhận cả DB chính lẫn transaction. */
 export type DbExecutor = Parameters<Parameters<AppDb['transaction']>[0]>[0];
 
 export const CANCEL_REQUESTED_REASON = 'Thiết bị yêu cầu hủy sau khi đã xác nhận';
 export const CANCEL_REQUESTED_OUTCOME = 'cancelled_by_user';
+
+/**
+ * Nhịp quét nền incident `suspected` quá hạn. Cố định (không cấu hình env) vì
+ * đây chỉ là tần suất nội bộ, không phải chính sách nghiệp vụ; ngưỡng nghiệp vụ
+ * là `SUSPECTED_TIMEOUT_MINUTES`.
+ */
+export const SUSPECTED_SWEEP_INTERVAL_MS = 60_000;
+
+/** Kết quả một vòng quét suspected → unconfirmed (test + log vận hành). */
+export type ExpireSuspectedResult = { scanned: number; transitioned: number };
 
 export type AppliedTransition = {
   state: IncidentState;
@@ -67,6 +78,9 @@ export function applyTransition(state: IncidentState, eventType: IncidentEventTy
       return { state, applied: false, conflictReason: 'candidate_on_existing' };
     case 'fall.cancelled':
       if (state === 'suspected') return { state: 'cancelled', applied: true, conflictReason: null };
+      // Đã quá hạn chờ kết quả cuối: giữ bản ghi "chưa xác định" (không tự đổi
+      // sang "đã hủy" khi thiết bị gửi hủy muộn).
+      if (state === 'unconfirmed') return { state, applied: false, conflictReason: 'already_unconfirmed' };
       if (state === 'open' || state === 'acknowledged') {
         return { state, applied: false, conflictReason: 'already_confirmed' };
       }
@@ -74,12 +88,16 @@ export function applyTransition(state: IncidentState, eventType: IncidentEventTy
     case 'fall.confirmed':
     case 'sos.confirmed':
       if (state === 'suspected') return { state: 'open', applied: true, conflictReason: null };
+      // Kết quả cuối đến sau ngưỡng timeout vẫn phải mở cảnh báo: không được
+      // âm thầm bỏ một ca ngã đã được thiết bị xác nhận (docs/03).
+      if (state === 'unconfirmed') return { state: 'open', applied: true, conflictReason: null };
       if (state === 'open' || state === 'acknowledged') {
         return { state, applied: true, conflictReason: null };
       }
       return { state, applied: false, conflictReason: 'terminal_state' };
     case 'user.cancel_requested':
       if (state === 'suspected') return { state: 'cancelled', applied: true, conflictReason: null };
+      if (state === 'unconfirmed') return { state, applied: false, conflictReason: 'already_unconfirmed' };
       if (state === 'open' || state === 'acknowledged') {
         return {
           state: 'resolved',
@@ -159,12 +177,126 @@ export function outboxKind(dedupeKey: string): 'alert' | 'update' {
 }
 
 @Injectable()
-export class IncidentsService {
+export class IncidentsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(IncidentsService.name);
+  private timer: NodeJS.Timeout | null = null;
+  private sweeping = false;
+
   constructor(
     @Inject(DB) private readonly db: AppDb,
     private readonly access: AccessService,
     private readonly audit: AuditService,
+    @Inject(ENV) private readonly env: AppEnv,
   ) {}
+
+  // ---------------------------------------------------------------------------
+  // Vòng đời suspected → unconfirmed (candidate không có kết quả cuối)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Bật quét nền khi chạy thật. Trong test luôn tắt (NODE_ENV=test); test gọi
+   * `expireSuspectedAlerts()` thủ công để không phụ thuộc thời gian/interval.
+   */
+  onModuleInit(): void {
+    if (process.env.NODE_ENV === 'test') return;
+    this.timer = setInterval(() => {
+      void this.expireSuspectedAlerts().catch((error: unknown) => {
+        this.logger.error(
+          'Lỗi quét incident suspected quá hạn',
+          error instanceof Error ? error.stack : String(error),
+        );
+      });
+    }, SUSPECTED_SWEEP_INTERVAL_MS);
+    // Không giữ tiến trình sống chỉ vì job nền (shutdown hooks vẫn clear).
+    this.timer.unref?.();
+  }
+
+  onModuleDestroy(): void {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
+  }
+
+  /** Quan sát/test: job nền có đang bật không (luôn false khi NODE_ENV=test). */
+  isSweepScheduled(): boolean {
+    return this.timer !== null;
+  }
+
+  /** Ngưỡng chờ kết quả cuối, đọc từ env (1..120 phút). */
+  suspectedTimeoutMs(): number {
+    return this.env.SUSPECTED_TIMEOUT_MINUTES * 60_000;
+  }
+
+  /**
+   * Chuyển `suspected` quá hạn sang `unconfirmed` (docs/03 "Candidate không có
+   * kết quả cuối", docs/06 "Chưa xác định").
+   *
+   * - Mốc so sánh là `lastEventAt` (giờ nhận phía server), không dùng
+   *   `detectedAt` vì `measured_at` của thiết bị có thể trễ hoặc sai tương lai.
+   * - Chỉ đụng incident còn `suspected`: confirmed/cancelled/resolved không đổi.
+   * - Idempotent: khóa dòng + điều kiện `state='suspected'` ngay trong UPDATE;
+   *   chạy lại (hoặc hai instance cùng chạy) không tạo thay đổi thứ hai.
+   * - Không ghi `incident_events` (enum `incident_event_type` không có loại
+   *   timeout; thêm sẽ phải migration), không phát SSE, không tạo outbox: đây là
+   *   bản ghi "thiếu kết quả cuối", không phải cảnh báo mới cần xác nhận. Dấu
+   *   vết nằm ở `audit_logs` (actorKind=system).
+   */
+  async expireSuspectedAlerts(now = new Date(), limit = 200): Promise<ExpireSuspectedResult> {
+    if (this.sweeping) return { scanned: 0, transitioned: 0 };
+    this.sweeping = true;
+    try {
+      const cutoff = new Date(now.getTime() - this.suspectedTimeoutMs());
+      const rows = await this.db
+        .select({ id: incidents.id })
+        .from(incidents)
+        .where(and(eq(incidents.state, 'suspected'), lte(incidents.lastEventAt, cutoff)))
+        .orderBy(asc(incidents.lastEventAt))
+        .limit(limit);
+
+      let transitioned = 0;
+      for (const row of rows) {
+        const changed = await this.db.transaction(async (tx) => {
+          const locked = (
+            await tx.select().from(incidents).where(eq(incidents.id, row.id)).for('update').limit(1)
+          )[0];
+          // Đọc lại trong transaction: incident có thể vừa được confirmed/cancelled
+          // hoặc vừa nhận sự kiện mới sau truy vấn chọn phía trên.
+          if (!locked || locked.state !== 'suspected') return false;
+          if (locked.lastEventAt.getTime() > cutoff.getTime()) return false;
+
+          const updatedAt = new Date();
+          const newVersion = locked.version + 1;
+          await tx
+            .update(incidents)
+            .set({ state: 'unconfirmed', version: newVersion, updatedAt })
+            .where(and(eq(incidents.id, locked.id), eq(incidents.state, 'suspected')));
+          await this.audit.record(
+            {
+              actorKind: 'system',
+              action: 'incident.suspected_timeout',
+              targetType: 'incident',
+              targetId: locked.id,
+              outcome: 'success',
+              metadata: {
+                stateBefore: 'suspected',
+                stateAfter: 'unconfirmed',
+                versionBefore: locked.version,
+                versionAfter: newVersion,
+                timeoutMinutes: this.env.SUSPECTED_TIMEOUT_MINUTES,
+                lastEventAt: locked.lastEventAt.toISOString(),
+                cutoff: cutoff.toISOString(),
+              },
+            },
+            tx,
+          );
+          return true;
+        });
+        if (changed) transitioned += 1;
+      }
+      return { scanned: rows.length, transitioned };
+    } finally {
+      this.sweeping = false;
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Ingest sự kiện thiết bị
@@ -685,7 +817,7 @@ export class IncidentsService {
     return this.buildDetail(incidentRow);
   }
 
-  /** 404 khi không tồn tại hoặc đang suspected. */
+  /** 404 khi không tồn tại hoặc đang suspected; `unconfirmed` vẫn xem được (lịch sử kỹ thuật). */
   private async loadVisibleIncident(
     userId: string,
     alertId: string,

@@ -23,6 +23,12 @@ const envSchema = z.object({
   AI_MODEL: z.string().optional(),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
   SESSION_TTL_HOURS: z.coerce.number().int().positive().default(168),
+  /**
+   * Cửa sổ chờ kết quả cuối của ứng viên ngã (docs/03, docs/06): incident còn
+   * `suspected` quá số phút này sẽ chuyển `unconfirmed` ("chưa xác định").
+   * Chính sách demo 10 phút — CHƯA CHỐT, phải đánh giá lại trước dữ liệu thật.
+   */
+  SUSPECTED_TIMEOUT_MINUTES: z.coerce.number().int().min(1).max(120).default(10),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
