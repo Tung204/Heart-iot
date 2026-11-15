@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen } from '@testing-library/react';
 import { errorEnvelope, mockResponse, renderApp } from '../../test/utils';
-import { USER } from '../../test/utils';
+import { SUBJECT, USER } from '../../test/utils';
 
 function meOk() {
   return mockResponse({ user: USER });
@@ -29,6 +29,23 @@ describe('SubjectSwitcher (trong /app)', () => {
     }
     // Không có chữ "0" giả mạo dữ liệu.
     expect(screen.queryByText(/\b0\b/)).not.toBeInTheDocument();
+  });
+
+  it('người thân chỉ thấy lối "Danh sách hồ sơ", không thấy "Quản lý và chia sẻ"', async () => {
+    renderApp('/app', (url) => {
+      const u = String(url);
+      if (u.endsWith('/me')) return meOk();
+      if (u.endsWith('/subjects')) {
+        return mockResponse({ items: [{ ...SUBJECT, role: 'caregiver' }] });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByRole('link', { name: 'Danh sách hồ sơ' })).toHaveAttribute(
+      'href',
+      '/app/subjects',
+    );
+    expect(screen.queryByRole('link', { name: 'Quản lý và chia sẻ' })).not.toBeInTheDocument();
   });
 
   it('API /subjects chưa có (404) → trạng thái "chưa kết nối được dữ liệu hồ sơ", không lỗi thô', async () => {

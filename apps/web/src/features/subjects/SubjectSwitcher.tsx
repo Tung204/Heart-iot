@@ -103,7 +103,7 @@ export function SubjectSwitcher() {
         </div>
       </div>
       <Link className="subject-switcher__manage" to="/app/subjects">
-        Quản lý và chia sẻ
+        {selected?.role === 'owner' ? 'Quản lý và chia sẻ' : 'Danh sách hồ sơ'}
       </Link>
     </div>
   );
