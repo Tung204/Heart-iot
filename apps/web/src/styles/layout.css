@@ -741,12 +741,71 @@
   flex: none;
 }
 .shell__nav-badge {
+  flex: none;
+  margin-inline-start: auto;
+  min-width: 1.4rem;
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.4;
   background: var(--color-sand-soft);
   color: var(--color-sand-ink);
+  border: 1px solid var(--color-line-strong);
   border-radius: 999px;
-  padding: 0 var(--space-2);
+  padding: 0 var(--space-1);
+}
+
+/* Badge ở bottom-nav: neo góc phải mục nav, không đè icon và không tăng
+   chiều cao thanh điều hướng (360/390/chữ lớn vẫn vừa). */
+.shell__bottomnav > a:has(.shell__nav-badge) {
+  position: relative;
+}
+.shell__bottomnav > a > .shell__nav-badge {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.3rem;
+  margin: 0;
+}
+
+/* Banner ngắn toàn cục: thông báo mới + mất cập nhật trực tiếp.
+   Không chứa chi tiết sức khỏe; chữ là tín hiệu chính, màu chỉ hỗ trợ. */
+.shell__banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-m);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+}
+.shell__banner-text {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.shell__banner-hint {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+.shell__banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+.shell__banner--notice {
+  border-color: var(--color-teal);
+  background: var(--color-teal-soft);
+}
+.shell__banner--warning {
+  border-color: var(--color-sand-ink);
+  background: var(--color-sand-soft);
 }
 
 .shell__user {
