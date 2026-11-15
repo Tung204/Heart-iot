@@ -1,0 +1,193 @@
+/* ============================================================
+   Liên hệ khẩn cấp — CSS riêng của feature (v2)
+   Dùng design tokens từ styles/tokens.css; không tạo hệ CSS mới.
+   Mục tiêu: đọc/gọi nhanh trên điện thoại 360–390px và chế độ chữ lớn.
+   ============================================================ */
+
+.ec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ec-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.ec-list__main {
+  flex: 1 1 14rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ec-list__name {
+  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+/* Tên dài phải xuống dòng, không chạy xuống dưới badge "Chính". */
+.ec-list__name-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ec-list__name .pill {
+  flex: 0 0 auto;
+}
+
+.ec-list__meta {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* Số điện thoại là liên kết gọi được: đủ lớn để bấm trên điện thoại. */
+.ec-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-teal-deep);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  overflow-wrap: anywhere;
+}
+
+.ec-phone:hover {
+  color: var(--color-teal);
+}
+
+.ec-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.ec-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.ec-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+
+.ec-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.ec-limit {
+  margin-top: var(--space-4);
+}
+
+.ec-empty-actions {
+  margin-top: var(--space-3);
+}
+
+/* ---------- Card read-only trên chi tiết cảnh báo ---------- */
+
+.ec-card__primary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--color-teal-soft);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+}
+
+.ec-card__primary-main {
+  flex: 1 1 14rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ec-card__label {
+  font-size: var(--text-sm);
+  color: var(--color-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ec-card__name {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ec-call {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+}
+
+.ec-more {
+  margin-top: var(--space-3);
+}
+
+.ec-more summary {
+  cursor: pointer;
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.ec-more[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.ec-more .ec-list__item {
+  box-shadow: none;
+}
+
+@media (max-width: 26rem) {
+  .ec-list__actions {
+    width: 100%;
+  }
+
+  .ec-card__primary {
+    flex-direction: column;
+  }
+
+  /* Ở hướng cột, `flex-basis` tính theo chiều cao — bỏ để khối không bị kéo cao. */
+  .ec-card__primary-main {
+    flex: 1 1 auto;
+  }
+}

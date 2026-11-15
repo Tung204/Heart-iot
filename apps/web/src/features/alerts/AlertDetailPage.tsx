@@ -24,6 +24,7 @@ import {
   isActionableState,
 } from './labels';
 import { useSubjects } from '../subjects/useSubjects';
+import { EmergencyContactCard } from '../contacts/EmergencyContactCard';
 
 /** resolutionOutcome là string tự do trong hợp đồng — tra theo nhãn đã biết, fallback giá trị gốc. */
 const OUTCOME_LABELS: Record<string, string> = {
@@ -326,6 +327,19 @@ export function AlertDetailPage() {
           </p>
         </Card>
       )}
+
+      {/*
+        Liên hệ khẩn cấp: chỉ tải khi người xem là chủ hồ sơ hoặc có quyền nhận cảnh báo.
+        Card tự ẩn khi lỗi tải để không chặn nội dung cảnh báo.
+      */}
+      {alertSubject &&
+      viewerPermissions &&
+      (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
+        <EmergencyContactCard
+          subjectId={alert.subjectId}
+          isOwner={alertSubject.role === 'owner'}
+        />
+      ) : null}
 
       <section aria-labelledby="timeline-heading">
         <h2 id="timeline-heading" className="section-title">
