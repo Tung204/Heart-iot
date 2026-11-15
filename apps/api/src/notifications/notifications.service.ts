@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
-import { and, asc, desc, eq, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, lte } from 'drizzle-orm';
 import { notificationListSchema, type NotificationList } from '@annhien/contracts/notifications';
 import { DB, type AppDb } from '../database/database';
 import {
@@ -10,6 +10,7 @@ import {
   subjects,
 } from '../database/schema';
 import { AppError } from '../common/app-error';
+import { AccessService } from '../access/access.service';
 import type { DbExecutor } from '../incidents/incidents.service';
 import { outboxKind } from '../incidents/incidents.service';
 
@@ -33,7 +34,10 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   private timer: NodeJS.Timeout | null = null;
   private running = false;
 
-  constructor(@Inject(DB) private readonly db: AppDb) {}
+  constructor(
+    @Inject(DB) private readonly db: AppDb,
+    private readonly access: AccessService,
+  ) {}
 
   onModuleInit(): void {
     if (process.env.NODE_ENV !== 'test') {
@@ -181,12 +185,48 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     return message.slice(0, 500);
   }
 
+  /**
+   * Cửa sổ chia sẻ **hiện tại** của user cho từng hồ sơ (NFR-01).
+   * - Không có key: không còn quyền xem thông báo của hồ sơ đó.
+   * - `null`: chủ hồ sơ, không giới hạn lịch sử.
+   * - `Date`: mốc sớm nhất được xem, cùng công thức với measurements/daily-summary
+   *   (`max(now - historyDays, sharedFrom)`) nhờ AccessService.requireHistory.
+   */
+  private async visibleWindows(
+    userId: string,
+    subjectIds: Iterable<string>,
+  ): Promise<Map<string, Date | null>> {
+    const windows = new Map<string, Date | null>();
+    for (const subjectId of subjectIds) {
+      if (windows.has(subjectId)) continue;
+      try {
+        const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
+        // Thông báo là kênh cảnh báo: người thân phải còn quyền nhận cảnh báo.
+        if (access.role !== 'owner' && !access.permissions.canReceiveAlerts) continue;
+        windows.set(subjectId, access.role === 'owner' ? null : effectiveFrom);
+      } catch (error) {
+        // Không có link active / hồ sơ đã lưu trữ: coi như không thấy, không lộ sự tồn tại.
+        if (error instanceof AppError && error.status === 404) continue;
+        throw error;
+      }
+    }
+    return windows;
+  }
+
+  /** Incident xảy ra trước mốc chia sẻ hoặc ngoài historyDays thì không được trả/đánh dấu đọc. */
+  private isVisibleInWindow(window: Date | null | undefined, detectedAt: Date): boolean {
+    if (window === undefined) return false;
+    if (window === null) return true;
+    return detectedAt.getTime() >= window.getTime();
+  }
+
   async listNotifications(userId: string): Promise<NotificationList> {
     const rows = await this.db
       .select({
         outbox: notificationOutbox,
         incidentId: incidents.id,
         subjectId: incidents.subjectId,
+        detectedAt: incidents.detectedAt,
         incidentType: incidents.type,
         state: incidents.state,
         subjectName: subjects.displayName,
@@ -195,23 +235,20 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       .innerJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
       .innerJoin(subjects, eq(subjects.id, incidents.subjectId))
       .where(and(eq(notificationOutbox.recipientUserId, userId), eq(notificationOutbox.status, 'sent')))
-      .orderBy(desc(notificationOutbox.createdAt))
-      .limit(200);
+      .orderBy(desc(notificationOutbox.createdAt));
 
-    const unreadRows = await this.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(notificationOutbox)
-      .where(
-        and(
-          eq(notificationOutbox.recipientUserId, userId),
-          eq(notificationOutbox.status, 'sent'),
-          isNull(notificationOutbox.readAt),
-        ),
-      );
-    const unreadCount = Number(unreadRows[0]?.count ?? 0);
+    // Lọc quyền trước khi đếm/chặn 200: unreadCount phải khớp đúng tập người dùng thấy được.
+    const windows = await this.visibleWindows(
+      userId,
+      new Set(rows.map((row) => row.subjectId)),
+    );
+    const visibleRows = rows.filter((row) =>
+      this.isVisibleInWindow(windows.get(row.subjectId), row.detectedAt),
+    );
+    const unreadCount = visibleRows.filter((row) => row.outbox.readAt === null).length;
 
     return notificationListSchema.parse({
-      items: rows.map((row) => ({
+      items: visibleRows.slice(0, 200).map((row) => ({
         id: row.outbox.id,
         incidentId: row.incidentId,
         subjectId: row.subjectId,
@@ -230,8 +267,14 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
   async markRead(userId: string, notificationId: string): Promise<void> {
     const rows = await this.db
-      .update(notificationOutbox)
-      .set({ readAt: new Date(), updatedAt: new Date() })
+      .select({
+        id: notificationOutbox.id,
+        subjectId: incidents.subjectId,
+        detectedAt: incidents.detectedAt,
+        readAt: notificationOutbox.readAt,
+      })
+      .from(notificationOutbox)
+      .innerJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
       .where(
         and(
           eq(notificationOutbox.id, notificationId),
@@ -239,10 +282,29 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
           eq(notificationOutbox.status, 'sent'),
         ),
       )
-      .returning({ id: notificationOutbox.id });
-    if (rows.length === 0) {
+      .limit(1);
+    const row = rows[0];
+    if (!row) throw AppError.notFound('Không tìm thấy thông báo.');
+
+    // Kiểm lại quyền + ranh giới chia sẻ tại thời điểm đọc; mọi trường hợp đều 404.
+    const windows = await this.visibleWindows(userId, [row.subjectId]);
+    if (!this.isVisibleInWindow(windows.get(row.subjectId), row.detectedAt)) {
       throw AppError.notFound('Không tìm thấy thông báo.');
     }
+
+    // Idempotent: giữ mốc đọc lần đầu, không ghi đè readAt đã có.
+    if (row.readAt) return;
+    await this.db
+      .update(notificationOutbox)
+      .set({ readAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(notificationOutbox.id, notificationId),
+          eq(notificationOutbox.recipientUserId, userId),
+          eq(notificationOutbox.status, 'sent'),
+          isNull(notificationOutbox.readAt),
+        ),
+      );
   }
 
   /** Dùng trong test/handoff: đếm trạng thái outbox của một incident. */
