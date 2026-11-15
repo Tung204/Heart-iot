@@ -3,11 +3,12 @@ import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } fr
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
 import { AppErrorBoundary } from '../components/AppErrorBoundary';
-import { Button } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { SkipLink } from '../components/SkipLink';
 import { StatusPill } from '../components/StatusPill';
 import { TextSizeToggle } from '../components/TextSizeToggle';
 import { useLogout, useMe } from '../features/auth/useAuth';
+import { useUnreadNotifications } from '../features/notifications/useUnreadNotifications';
 import { useSubjectEvents } from '../features/realtime/useSubjectEvents';
 import { getActiveSubjectId, setActiveSubjectId, useActiveSubject } from '../features/subjects/selection';
 import { useSubjects } from '../features/subjects/useSubjects';
@@ -103,10 +104,30 @@ function NavIcon({ name }: { name: NavIconName }) {
 }
 
 /**
+ * Badge số chưa đọc trên mục “Thông báo”.
+ * Con số chỉ là phần nhìn (aria-hidden); trình đọc màn hình đọc câu đầy đủ
+ * “N thông báo chưa đọc” nên không phụ thuộc màu sắc.
+ */
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <>
+      <span className="shell__nav-badge" aria-hidden="true">
+        {count > 99 ? '99+' : count}
+      </span>
+      <span className="visually-hidden">{count} thông báo chưa đọc</span>
+    </>
+  );
+}
+
+/**
  * Khung ứng dụng /app:
  * - Mobile (<1024px): topbar + nav dưới.
  * - Desktop (≥1024px): sidebar bên trái.
  * - Mở SSE cho hồ sơ đang xem (cảnh báo cập nhật ngay cả khi ở màn hình khác).
+ * - Badge số thông báo chưa đọc (mọi hồ sơ) + banner “Có thông báo mới…” khi
+ *   người dùng đang ở trang khác; tải lại 20 giây hoặc ngay khi SSE báo.
+ * - Mất SSE → banner “Mất cập nhật trực tiếp — đang thử lại” cho tới khi nối lại.
  * - Bị thu hồi quyền (`revoked`) → thông báo rõ + điều hướng về /app an toàn.
  */
 export function AppShell() {
@@ -121,8 +142,29 @@ export function AppShell() {
 
   const subjects = useSubjects();
   const activeSubject = useActiveSubject(subjects.data);
+  const user = me.data?.user;
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  useSubjectEvents(activeSubject?.id ?? null, {
+  const isAdmin = user?.role === 'admin';
+  const subjectsData = subjects.data ?? [];
+  // Admin không có hồ sơ chỉ thấy Quản trị; tránh các trang sức khỏe sẽ 404.
+  const adminOnly = isAdmin && subjectsData.length === 0;
+
+  // Badge/banner thông báo toàn tài khoản: tải 20 giây/lần (tab ẩn thì dừng)
+  // hoặc ngay khi SSE `notification.sent` invalidate cùng query key.
+  const notifications = useUnreadNotifications(
+    me.isSuccess && subjects.isSuccess && !adminOnly,
+  );
+  // Đang ở hộp thư thì danh sách đã hiển thị thông báo — không cần banner.
+  const onNotificationsPage = location.pathname.startsWith('/app/notifications');
+  const dismissNewNotification = notifications.dismiss;
+  useEffect(() => {
+    // Xóa ngay khi đang ở hộp thư (kể cả thông báo tới lúc đang mở trang đó)
+    // để không hiện lại banner cũ khi người dùng rời trang.
+    if (onNotificationsPage) dismissNewNotification();
+  }, [onNotificationsPage, notifications.newNotification, dismissNewNotification]);
+
+  const subjectEvents = useSubjectEvents(activeSubject?.id ?? null, {
     onRevoked: (subjectId) => {
       const name =
         subjects.data?.find((item) => item.id === subjectId)?.displayName ??
@@ -134,16 +176,14 @@ export function AppShell() {
       navigate('/app', { replace: true });
     },
   });
-
-  const user = me.data?.user;
-  const [moreOpen, setMoreOpen] = useState(false);
+  // Còn lần thử lại > 0 nghĩa là stream đã mất kết nối và chưa mở lại được;
+  // giữ banner trong lúc chờ (status “connecting”) tới khi onopen reset về 0.
+  const realtimeLost = subjectEvents.retryAttempt > 0 && subjectEvents.status !== 'revoked';
 
   // Quyền hiển thị mục nav phụ (backend vẫn là nơi kiểm quyền thật):
   // Trợ lý: chủ hồ sơ hoặc caregiver có canViewAi. Công việc: chủ/caregiver có
   // canReceiveAlerts, hoặc admin (thấy task không gắn hồ sơ). Studio: chủ hồ sơ/admin.
   // Quản trị: chỉ admin.
-  const isAdmin = user?.role === 'admin';
-  const subjectsData = subjects.data ?? [];
   const hasAiPermission = subjectsData.some(
     (subject) => subject.role === 'owner' || subject.permissions.canViewAi,
   );
@@ -166,8 +206,6 @@ export function AppShell() {
     `shell__nav-link${isActive ? ' is-active' : ''}`;
 
   // Bottom-nav trên mobile không quá 6 mục: 6 mục chính + menu phụ "Thêm".
-  // Admin không có hồ sơ chỉ thấy Quản trị; tránh các trang sức khỏe sẽ 404.
-  const adminOnly = isAdmin && subjectsData.length === 0;
   const navItems = adminOnly ? (
     <>
       <NavLink to="/app/admin" className={navLinkClass}>
@@ -200,6 +238,7 @@ export function AppShell() {
       <NavLink to="/app/notifications" className={({ isActive }) => `${navLinkClass({ isActive })} shell__nav-optional`}>
         <NavIcon name="bell" />
         <span>Thông báo</span>
+        <UnreadBadge count={notifications.unreadCount} />
       </NavLink>
       <NavLink to="/app/subjects" className={navLinkClass}>
         <NavIcon name="person" />
@@ -208,10 +247,15 @@ export function AppShell() {
     </>
   );
 
-  const moreItems: { to: string; label: string; mobileOnly?: boolean }[] = [];
+  const moreItems: { to: string; label: string; mobileOnly?: boolean; badge?: number }[] = [];
   if (!adminOnly) {
     moreItems.push({ to: '/app/devices', label: 'Thiết bị', mobileOnly: true });
-    moreItems.push({ to: '/app/notifications', label: 'Thông báo', mobileOnly: true });
+    moreItems.push({
+      to: '/app/notifications',
+      label: 'Thông báo',
+      mobileOnly: true,
+      badge: notifications.unreadCount,
+    });
   }
   if (hasAiPermission) moreItems.push({ to: '/app/assistant', label: 'Trợ lý' });
   if (hasTasksPermission) moreItems.push({ to: '/app/tasks', label: 'Công việc' });
@@ -244,6 +288,7 @@ export function AppShell() {
                 onClick={() => setMoreOpen(false)}
               >
                 {item.label}
+                <UnreadBadge count={item.badge ?? 0} />
               </NavLink>
             ))}
           </div>
@@ -338,6 +383,36 @@ export function AppShell() {
                   </Button>
                 </div>
               </Alert>
+            ) : null}
+            {notifications.newNotification && !onNotificationsPage ? (
+              <div className="shell__banner shell__banner--notice" role="status">
+                <p className="shell__banner-text">
+                  Có thông báo mới cho hồ sơ <strong>{notifications.newNotification.subjectName}</strong>
+                </p>
+                <div className="shell__banner-actions">
+                  <ButtonLink to="/app/notifications" variant="secondary" size="sm">
+                    Xem thông báo
+                  </ButtonLink>
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    aria-label="Đóng thông báo mới"
+                    onClick={dismissNewNotification}
+                  >
+                    Đóng
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+            {realtimeLost ? (
+              <div className="shell__banner shell__banner--warning" role="status">
+                <p className="shell__banner-text">
+                  Mất cập nhật trực tiếp — đang thử lại
+                  <span className="shell__banner-hint">
+                    Cảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.
+                  </span>
+                </p>
+              </div>
             ) : null}
             {adminOnly ? null : <SubjectSwitcher />}
             {/* Key theo pathname để lỗi của trang trước không dính sang trang mới. */}
