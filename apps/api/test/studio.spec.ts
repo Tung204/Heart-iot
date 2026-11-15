@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
 import type { ViewConfig } from '@annhien/contracts/studio';
 import {
@@ -782,7 +782,12 @@ describe('Studio workspace views — draft → preview → publish → rollback 
     const auditRows = await ctx.db
       .select()
       .from(auditLogs)
-      .where(eq(auditLogs.action, 'workspace_view.rollback'));
+      .where(
+        and(
+          eq(auditLogs.action, 'workspace_view.rollback'),
+          eq(auditLogs.targetId, viewId),
+        ),
+      );
     expect(auditRows.length).toBe(1);
 
     // Rollback tới publication đang active → 409.
