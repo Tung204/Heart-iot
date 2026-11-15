@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router-dom';
 import { AdminPage } from './AdminPage';
-import { errorEnvelope, mockResponse, renderPage } from '../../test/utils';
+import { errorEnvelope, mockResponse, renderPage, stubFetch } from '../../test/utils';
 import type { FetchHandler } from '../../test/utils';
 
 const ADMIN = {
@@ -126,6 +128,33 @@ const ROTATED_KEY = { deviceKey: 'devkey_test_abcdefghijklmnop' };
 
 type DeviceCall = { url: string; method: string };
 
+/** Một bản ghi nhật ký mẫu — chỉ dùng dữ liệu tổng hợp. */
+function auditEntry(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1,
+    actorUserId: ADMIN.id,
+    actorKind: 'user',
+    action: 'auth.login',
+    targetType: 'session',
+    targetId: null,
+    outcome: 'success',
+    requestId: null,
+    metadata: {},
+    createdAt: '2026-11-14T09:30:00.000Z',
+    ...overrides,
+  };
+}
+
+/** Handler cho tab Nhật ký: /me + danh sách actor + audit items. */
+function auditHandler(items: ReturnType<typeof auditEntry>[]): FetchHandler {
+  return (url) => {
+    if (url.endsWith('/me')) return mockResponse({ user: ADMIN });
+    if (url.includes('/admin/users?')) return mockResponse({ items: [ADMIN], nextCursor: null });
+    if (url.includes('/admin/audit')) return mockResponse({ items, nextCursor: null });
+    return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+  };
+}
+
 /** Handler cho tab Thiết bị: mặc định trả danh sách + policy + mã/khóa thành công. */
 function deviceHandler(options: {
   devicesResponse?: () => Response;
@@ -155,9 +184,42 @@ function deviceHandler(options: {
 
 async function openDevicesTab() {
   const user = userEvent.setup();
-  await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+  await user.click(await screen.findByRole('tab', { name: 'Thiết bị' }));
   const list = await screen.findByRole('list', { name: 'Danh sách thiết bị' });
   return { user, list, firstItem: within(list).getAllByRole('listitem')[0] as HTMLElement };
+}
+
+/** Vị trí URL hiện tại — dùng cho test deep link ?tab=...&view=... */
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location">{`${location.pathname}${location.search}`}</output>;
+}
+
+/** Render /app/admin tại một URL cụ thể (kiểm tra tab/subtab lưu trong query string). */
+function renderAdminAt(entry: string, handler: FetchHandler) {
+  stubFetch(handler);
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/app/admin',
+        element: (
+          <>
+            <AdminPage />
+            <LocationProbe />
+          </>
+        ),
+      },
+    ],
+    { initialEntries: [entry] },
+  );
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
 
 // Wave 4 — admin: chặn non-admin, tổng quan, policy preview/publish CAS.
@@ -199,15 +261,66 @@ describe('AdminPage', () => {
     expect(screen.getByText('0')).toBeInTheDocument();
 
     expect(screen.getByRole('heading', { name: 'Cần chú ý' })).toBeInTheDocument();
+    // Cần chú ý không lặp KPI khi còn tín hiệu vận hành chưa có ô riêng:
+    // outbox.pending và tasks.open đứng trước cảnh báo/ngoại tuyến.
+    expect(screen.getByText('6 thông báo đang chờ gửi')).toBeInTheDocument();
+    expect(screen.getByText('4 công việc đang mở')).toBeInTheDocument();
     expect(screen.getByText('1 cảnh báo đang mở')).toBeInTheDocument();
-    expect(screen.getByText('3 thiết bị ngoại tuyến')).toBeInTheDocument();
-    expect(screen.queryByText(/thông báo gửi lỗi/)).not.toBeInTheDocument();
 
     // Không còn 9 nhóm số cũ.
     expect(screen.queryByText('Hồ sơ')).not.toBeInTheDocument();
     expect(screen.queryByText('Công việc đang mở')).not.toBeInTheDocument();
     expect(screen.queryByText('Thông báo đang chờ gửi')).not.toBeInTheDocument();
     expect(screen.queryByText('Người dùng đã khóa')).not.toBeInTheDocument();
+  });
+
+  it('tổng quan: Cần chú ý tối đa 3 dòng và ưu tiên tín hiệu chưa có KPI', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) {
+        return mockResponse({
+          ...OVERVIEW,
+          users: { active: 3, disabled: 0 },
+          alerts: { open: 2 },
+          devices: { online: 0, offline: 4 },
+          tasks: { open: 1 },
+          outbox: { pending: 5, failed: 0 },
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Cần chú ý' })).toBeInTheDocument();
+    const list = screen.getByRole('heading', { name: 'Cần chú ý' }).parentElement?.querySelector('ul');
+    expect(list).not.toBeNull();
+    const lines = within(list as HTMLElement).getAllByRole('listitem');
+    expect(lines).toHaveLength(3);
+    expect(lines.map((line) => line.textContent)).toEqual([
+      '5 thông báo đang chờ gửi',
+      '1 công việc đang mở',
+      '2 cảnh báo đang mở',
+    ]);
+  });
+
+  it('tổng quan: outbox.failed > 0 hiện dòng thông báo gửi lỗi và thiết bị ngoại tuyến vẫn có chỗ', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) {
+        return mockResponse({
+          ...OVERVIEW,
+          alerts: { open: 0 },
+          tasks: { open: 0 },
+          outbox: { pending: 0, failed: 1 },
+          devices: { online: 2, offline: 3 },
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText('1 thông báo gửi lỗi')).toBeInTheDocument();
+    expect(screen.getByText('3 thiết bị ngoại tuyến')).toBeInTheDocument();
   });
 
   it('tổng quan: không có bất thường thì không hiện Cần chú ý', async () => {
@@ -219,6 +332,7 @@ describe('AdminPage', () => {
           ...OVERVIEW,
           devices: { online: 4, offline: 0 },
           alerts: { open: 0 },
+          tasks: { open: 0 },
           outbox: { pending: 0, failed: 0 },
         });
       }
@@ -251,7 +365,7 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Người dùng' }));
+    await user.click(await screen.findByRole('tab', { name: 'Người dùng' }));
     await user.click(await screen.findByRole('button', { name: 'Tạm khóa' }));
     await user.click(screen.getByRole('button', { name: 'Xác nhận tạm khóa' }));
 
@@ -268,13 +382,55 @@ describe('AdminPage', () => {
       status: 'disabled',
       reason: 'Vi phạm quy định sử dụng',
     });
-    expect(
-      await screen.findByText('Đã tạm khóa tài khoản Ngọc.'),
-    ).toBeInTheDocument();
+    // Thông báo thành công nằm ngay dòng vừa đổi (gần hành động), không ở đầu tab.
+    const notice = await screen.findByText('Đã tạm khóa tài khoản Ngọc.');
+    const noticeRow = notice.closest('tr');
+    expect(noticeRow).not.toBeNull();
+    expect(notice).toHaveAttribute('role', 'status');
     // Bảng tải lại với trạng thái mới và nút đổi thành Kích hoạt.
     const table = screen.getByRole('table');
     await waitFor(() => expect(within(table).getByText('Đã khóa')).toBeInTheDocument());
-    expect(within(table).getByRole('button', { name: 'Kích hoạt' })).toBeInTheDocument();
+    expect(
+      within(noticeRow as HTMLElement).getByRole('button', { name: 'Kích hoạt' }),
+    ).toBeInTheDocument();
+  });
+
+  it('người dùng: mở form focus ô lý do, hủy trả focus về nút, lý do bắt buộc + mô tả lỗi', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/users?')) {
+        return mockResponse({ items: [ADMIN, PLAIN_USER], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Người dùng' }));
+    const trigger = await screen.findByRole('button', { name: 'Tạm khóa' });
+    await user.click(trigger);
+
+    const reason = screen.getByLabelText(/Lý do/);
+    expect(reason).toHaveFocus();
+    expect(reason).toBeRequired();
+    expect(reason).toHaveAttribute('aria-required', 'true');
+    expect(reason).toHaveAttribute('aria-describedby', expect.stringContaining('status-reason-hint'));
+
+    await user.click(screen.getByRole('button', { name: 'Hủy' }));
+    expect(screen.getByRole('button', { name: 'Tạm khóa' })).toHaveFocus();
+    expect(screen.queryByLabelText(/Lý do/)).not.toBeInTheDocument();
+
+    // Lỗi lý do được mô tả bằng aria-describedby và giới hạn 500 ký tự (không phải 600).
+    await user.click(screen.getByRole('button', { name: 'Tạm khóa' }));
+    await user.click(screen.getByRole('button', { name: 'Xác nhận tạm khóa' }));
+    const errorText = await screen.findByText('Vui lòng nhập lý do thay đổi trạng thái.');
+    const textarea = screen.getByLabelText(/Lý do/);
+    expect(textarea).toHaveAttribute('aria-invalid', 'true');
+    expect(textarea).toHaveAttribute(
+      'aria-describedby',
+      expect.stringContaining(errorText.id),
+    );
+    expect(textarea).toHaveAttribute('maxLength', '500');
   });
 
   it('khung trang: bốn tab chính và hai mục Nâng cao', async () => {
@@ -282,22 +438,87 @@ describe('AdminPage', () => {
       const u = url;
       if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
       if (u.includes('/admin/overview')) return mockResponse(OVERVIEW);
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
       return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
     });
     const user = userEvent.setup();
 
     expect(await screen.findByRole('heading', { name: 'Quản trị', level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Theo dõi hệ thống và xử lý tài khoản.')).toBeInTheDocument();
-    for (const label of ['Tổng quan', 'Người dùng', 'Thiết bị', 'Nâng cao']) {
-      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
-    }
+    const tablist = screen.getByRole('tablist', { name: 'Các mục quản trị' });
+    expect(within(tablist).getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Tổng quan',
+      'Người dùng',
+      'Thiết bị',
+      'Nâng cao',
+    ]);
+    expect(screen.getByRole('tab', { name: 'Tổng quan' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'adm-tab-overview');
+    // Mỗi màn có H2 (heading ẩn cho screen reader khi màn không có H2 hiển thị).
+    expect(screen.getByRole('heading', { name: 'Tổng quan', level: 2 })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Nâng cao' }));
-    expect(screen.getByRole('button', { name: 'Chính sách' })).toHaveAttribute(
-      'aria-pressed',
+    await user.click(screen.getByRole('tab', { name: 'Nâng cao' }));
+    expect(screen.getByRole('tab', { name: 'Chính sách' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Nhật ký' })).toBeInTheDocument();
+    expect(screen.getByRole('tabpanel', { name: 'Chính sách' })).toHaveAttribute(
+      'aria-labelledby',
+      'adm-subtab-policy',
+    );
+    expect(screen.getByRole('heading', { name: 'Chính sách thiết bị', level: 2 })).toBeInTheDocument();
+  });
+
+  it('khung trang: ArrowRight đổi tab và focus theo tab mới', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) return mockResponse(OVERVIEW);
+      if (u.includes('/admin/users?')) {
+        return mockResponse({ items: [ADMIN, PLAIN_USER], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    const overviewTab = await screen.findByRole('tab', { name: 'Tổng quan' });
+    overviewTab.focus();
+    await user.keyboard('{ArrowRight}');
+
+    const usersTab = screen.getByRole('tab', { name: 'Người dùng' });
+    expect(usersTab).toHaveAttribute('aria-selected', 'true');
+    expect(usersTab).toHaveFocus();
+    expect(screen.getByRole('tab', { name: 'Tổng quan' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', 'adm-tab-users');
+
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('tab', { name: 'Tổng quan' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('khung trang: tab và mục con lưu trong URL, mở lại link không mất', async () => {
+    const handler: FetchHandler = (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) return mockResponse(OVERVIEW);
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      if (u.includes('/admin/users?')) return mockResponse({ items: [], nextCursor: null });
+      if (u.includes('/admin/audit')) return mockResponse({ items: [], nextCursor: null });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    };
+    const first = renderAdminAt('/app/admin', handler);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/admin?tab=advanced');
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/app/admin?tab=advanced&view=audit');
+    first.unmount();
+
+    // Mở lại đúng URL (tương đương reload) → vẫn ở đúng tab con.
+    renderAdminAt('/app/admin?tab=advanced&view=audit', handler);
+    expect(await screen.findByRole('tab', { name: 'Nhật ký' })).toHaveAttribute(
+      'aria-selected',
       'true',
     );
-    expect(screen.getByRole('button', { name: 'Nhật ký' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Nhật ký hoạt động', level: 2 })).toBeInTheDocument();
   });
 
   it('policy: Xem trước hiện warnings + diff; Phát hành gửi expectedVersion + note', async () => {
@@ -321,12 +542,12 @@ describe('AdminPage', () => {
     const user = userEvent.setup();
 
     // Chuyển tab policy rồi đợi form nạp giá trị active.
-    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
-    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
     expect(await screen.findByDisplayValue('15')).toBeInTheDocument();
 
-    await user.clear(screen.getByLabelText('Chu kỳ nhịp tim (giây)'));
-    await user.type(screen.getByLabelText('Chu kỳ nhịp tim (giây)'), '20');
+    await user.clear(screen.getByLabelText('Gửi nhịp tim mỗi (giây)'));
+    await user.type(screen.getByLabelText('Gửi nhịp tim mỗi (giây)'), '20');
     await user.type(screen.getByLabelText('Ghi chú phát hành'), 'Điều chỉnh chu kỳ gửi');
 
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
@@ -380,8 +601,8 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
-    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
     // Phải preview trước — nút Phát hành bị khóa nếu chưa có preview đúng nội dung.
@@ -419,8 +640,8 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
-    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
     // Publish không preview → bị khóa, không gọi API.
@@ -430,7 +651,7 @@ describe('AdminPage', () => {
     expect(publishBodies).toHaveLength(0);
     expect(previewBodies).toHaveLength(0);
 
-    const heartbeatField = screen.getByLabelText('Chu kỳ nhịp tim (giây)');
+    const heartbeatField = screen.getByLabelText('Gửi nhịp tim mỗi (giây)');
     await user.clear(heartbeatField);
     await user.type(heartbeatField, '20');
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
@@ -480,11 +701,11 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
-    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
-    const heartbeatField = screen.getByLabelText('Chu kỳ nhịp tim (giây)');
+    const heartbeatField = screen.getByLabelText('Gửi nhịp tim mỗi (giây)');
     await user.clear(heartbeatField);
     await user.type(heartbeatField, '20');
     await user.type(screen.getByLabelText('Ghi chú phát hành'), 'Điều chỉnh chu kỳ gửi');
@@ -521,40 +742,294 @@ describe('AdminPage', () => {
     });
   });
 
-  it('audit: hiển thị bản ghi với metadata trong details (text)', async () => {
+  it('policy: lỗi field → focus ô sai đầu tiên và summary lỗi ngay cạnh nút', async () => {
+    let previewCalls = 0;
     renderPage(<AdminPage />, (url) => {
       const u = url;
       if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
-      if (u.includes('/admin/users?')) return mockResponse({ items: [], nextCursor: null });
-      if (u.includes('/admin/audit')) {
-        return mockResponse({
-          items: [
-            {
-              id: 1,
-              actorUserId: ADMIN.id,
-              actorKind: 'user',
-              action: 'admin.user.disable',
-              targetType: 'user',
-              targetId: '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b',
-              outcome: 'success',
-              requestId: null,
-              metadata: { reason: 'Tài khoản spam' },
-              createdAt: '2026-11-14T09:30:00.000Z',
-            },
-          ],
-          nextCursor: null,
-        });
+      if (u.includes('/admin/policies/device_runtime/previews')) {
+        previewCalls += 1;
+        return mockResponse(POLICY_PREVIEW);
+      }
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
+    await screen.findByDisplayValue('15');
+
+    const heartbeat = screen.getByLabelText('Gửi nhịp tim mỗi (giây)');
+    await user.clear(heartbeat);
+    await user.type(heartbeat, '0');
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+
+    // Không gọi API khi dữ liệu sai; focus + cuộn tới ô lỗi đầu tiên.
+    expect(previewCalls).toBe(0);
+    expect(heartbeat).toHaveFocus();
+    expect(heartbeat).toHaveAttribute('aria-invalid', 'true');
+
+    const summary = document.querySelector('.adm-policy-errors');
+    expect(summary).not.toBeNull();
+    expect(summary).toHaveAttribute('role', 'alert');
+    expect(summary?.textContent).toContain('giá trị chưa hợp lệ');
+    // Summary nằm ngay sau hàng nút (cạnh chỗ vừa bấm), không ở đầu panel.
+    const actions = screen
+      .getByRole('button', { name: 'Xem trước' })
+      .closest('.adm-policy-actions');
+    expect(actions?.nextElementSibling).toBe(summary);
+    // Liên kết trong summary focus lại đúng ô.
+    const link = within(summary as HTMLElement).getByRole('link');
+    expect(link.textContent).toContain('Gửi nhịp tim mỗi (giây)');
+    await user.click(link);
+    expect(heartbeat).toHaveFocus();
+  });
+
+  it('policy: preview hiện bằng chứng version nền, digest ngắn và “không ghi dữ liệu”', async () => {
+    renderPage(<AdminPage />, (url, init) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/policies/device_runtime/previews')) {
+        return mockResponse(POLICY_PREVIEW);
+      }
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
+    await screen.findByDisplayValue('15');
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+    await screen.findByText(/Giá trị hợp lệ/);
+
+    const evidence = document.querySelector('.adm-policy-preview__evidence');
+    expect(evidence).not.toBeNull();
+    expect(evidence?.textContent).toContain('Bản xem trước cho v2');
+    expect(evidence?.textContent).toContain(PREVIEW_DIGEST.slice(0, 12));
+    expect(evidence?.textContent).toContain('không ghi dữ liệu');
+  });
+
+  it('policy: lịch sử có bản phát hành thì nhãn là “Giá trị mặc định”, không nói “Chưa có bản phát hành:”', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Chính sách' }));
+    await screen.findByDisplayValue('15');
+
+    await user.click(screen.getByText('Lịch sử phiên bản (2)'));
+    expect(
+      screen.getByText('Giá trị mặc định (dùng khi chưa có bản phát hành)'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Chưa có bản phát hành:/)).not.toBeInTheDocument();
+    expect(screen.getByText('v2 · đang hoạt động')).toBeInTheDocument();
+    expect(screen.getByText('v1 · đã thay thế')).toBeInTheDocument();
+  });
+
+  it('audit: hiển thị bản ghi với metadata trong details (text)', async () => {
+    renderPage(
+      <AdminPage />,
+      auditHandler([
+        auditEntry({
+          id: 1,
+          action: 'admin.user.disable',
+          targetType: 'user',
+          targetId: PLAIN_USER.id,
+          metadata: { reason: 'Tài khoản spam' },
+        }),
+      ]),
+    );
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    const table = await screen.findByRole('table');
+    expect(within(table).getByText('Khóa tài khoản')).toHaveAttribute(
+      'title',
+      'admin.user.disable',
+    );
+    expect(screen.getByText('Thành công')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Xem chi tiết' }));
+    expect(screen.getByText(/"reason": "Tài khoản spam"/)).toBeInTheDocument();
+  });
+
+  it('audit: Xem chi tiết mở dòng full-width (colSpan=5), JSON không bị bóp trong ô', async () => {
+    renderPage(
+      <AdminPage />,
+      auditHandler([
+        auditEntry({ id: 1, action: 'assistant.summary', targetType: 'subject', targetId: ASSIGNED_SUBJECT_ID, metadata: { status: 'degraded', provider: 'demo' } }),
+      ]),
+    );
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    const toggle = await screen.findByRole('button', { name: 'Xem chi tiết' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await user.click(toggle);
+
+    const cell = document.getElementById('audit-details-1');
+    expect(cell).not.toBeNull();
+    // Ô chi tiết phải trải hết 5 cột, không nhồi JSON vào ô 121px.
+    expect(cell).toHaveAttribute('colspan', '5');
+    expect(cell?.closest('tr')).toHaveClass('adm-audit-details-row');
+    expect(cell?.querySelector('.adm-audit-details__meta')?.textContent).toContain(
+      'assistant.summary',
+    );
+    const pre = cell?.querySelector('pre');
+    expect(pre).not.toBeNull();
+    expect(pre?.textContent).toContain('"status": "degraded"');
+    expect(pre?.textContent).toContain('"provider": "demo"');
+    expect(screen.getByRole('button', { name: 'Ẩn chi tiết' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Ẩn chi tiết' }));
+    expect(document.getElementById('audit-details-1')).toBeNull();
+  });
+
+  it('audit: nhãn tiếng Việt cho action phổ biến, actor và target dễ đọc', async () => {
+    renderPage(
+      <AdminPage />,
+      auditHandler([
+        auditEntry({ id: 1, action: 'auth.login' }),
+        auditEntry({
+          id: 2,
+          action: 'assistant.summary',
+          actorKind: 'ai',
+          actorUserId: null,
+          targetType: 'subject',
+          targetId: ASSIGNED_SUBJECT_ID,
+        }),
+        auditEntry({
+          id: 3,
+          action: 'incident.acknowledge',
+          actorKind: 'device',
+          actorUserId: null,
+          targetType: 'incident',
+          targetId: 'ffffffff-1111-4111-8111-111111111111',
+        }),
+        auditEntry({
+          id: 4,
+          action: 'admin.user.disable',
+          actorKind: 'system',
+          actorUserId: null,
+          targetType: 'user',
+          targetId: PLAIN_USER.id,
+        }),
+        auditEntry({
+          id: 5,
+          action: 'custom.unknown',
+          actorUserId: '99999999-1111-4111-8111-111111111111',
+          targetType: 'session',
+          targetId: null,
+        }),
+      ]),
+    );
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    const table = await screen.findByRole('table');
+
+    // Nhãn người đọc + mã gốc trong title.
+    expect(within(table).getByText('Đăng nhập')).toHaveAttribute('title', 'auth.login');
+    expect(within(table).getByText('Tóm tắt bằng trợ lý')).toHaveAttribute(
+      'title',
+      'assistant.summary',
+    );
+    expect(within(table).getByText('Xác nhận cảnh báo')).toBeInTheDocument();
+    expect(within(table).getByText('Khóa tài khoản')).toBeInTheDocument();
+    // Actor theo loại.
+    expect(within(table).getByText('Trợ lý')).toBeInTheDocument();
+    expect(within(table).getByText('Thiết bị')).toBeInTheDocument();
+    expect(within(table).getByText('Hệ thống')).toBeInTheDocument();
+    // Target có nhãn loại, id ngắn hiển thị và id đầy đủ trong title.
+    const subjectTarget = within(table).getByText(`Hồ sơ ${ASSIGNED_SUBJECT_ID.slice(0, 8)}`);
+    expect(subjectTarget).toHaveAttribute('title', ASSIGNED_SUBJECT_ID);
+    expect(within(table).getByText('Cảnh báo ffffffff')).toHaveAttribute(
+      'title',
+      'ffffffff-1111-4111-8111-111111111111',
+    );
+    expect(within(table).getByText(`Tài khoản ${PLAIN_USER.id.slice(0, 8)}`)).toBeInTheDocument();
+    // Action lạ vẫn hiện mã gốc; actor lạ fallback id ngắn.
+    expect(within(table).getByText('custom.unknown')).toBeInTheDocument();
+    expect(within(table).getByText('Người dùng 99999999')).toBeInTheDocument();
+  });
+
+  it('audit: bảng rộng hơn khung thì hiện hint cuộn ngang', async () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(782);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(335);
+    renderPage(<AdminPage />, auditHandler([auditEntry({ id: 1 })]));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    expect(await screen.findByText(/Bảng rộng hơn khung/)).toBeInTheDocument();
+  });
+
+  it('audit: bảng vừa khung thì không có hint', async () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(335);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(335);
+    renderPage(<AdminPage />, auditHandler([auditEntry({ id: 1 })]));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    expect(screen.queryByText(/Bảng rộng hơn khung/)).not.toBeInTheDocument();
+  });
+
+  it('audit: nhãn cột mobile là aria-hidden trong cell, không dùng pseudo-element data-label', async () => {
+    renderPage(<AdminPage />, auditHandler([auditEntry({ id: 1 })]));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('tab', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('tab', { name: 'Nhật ký' }));
+    const table = await screen.findByRole('table');
+    const row = within(table).getAllByRole('row')[1] as HTMLElement;
+
+    for (const label of ['Hành động', 'Người thực hiện', 'Kết quả', 'Thời gian', 'Chi tiết']) {
+      const element = within(row).getByText(label);
+      expect(element).toHaveClass('adm-cell-label');
+      expect(element).toHaveAttribute('aria-hidden', 'true');
+    }
+    // Không còn nhãn lặp qua data-label/::before.
+    expect(row.querySelector('[data-label]')).toBeNull();
+  });
+
+  it('người dùng: thẻ mobile dùng nhãn aria-hidden, giữ ngày tạo và hint tìm/lọc', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/users?')) {
+        return mockResponse({ items: [ADMIN, PLAIN_USER], nextCursor: null });
       }
       return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
-    await user.click(screen.getByRole('button', { name: 'Nhật ký' }));
-    expect(await screen.findByText('admin.user.disable')).toBeInTheDocument();
-    expect(screen.getByText('Thành công')).toBeInTheDocument();
-    await user.click(screen.getByText('Xem chi tiết'));
-    expect(screen.getByText(/"reason": "Tài khoản spam"/)).toBeInTheDocument();
+    await user.click(await screen.findByRole('tab', { name: 'Người dùng' }));
+    const name = await screen.findByText('Ngọc');
+    const row = name.closest('tr') as HTMLElement;
+
+    expect(row.querySelector('[data-label]')).toBeNull();
+    const roleLabel = within(row).getByText('Vai trò');
+    expect(roleLabel).toHaveClass('adm-cell-label');
+    expect(roleLabel).toHaveAttribute('aria-hidden', 'true');
+    // Ngày tạo vẫn hiện thay vì bị bỏ hẳn.
+    expect(within(row).getByText(/^Tạo /)).toBeInTheDocument();
+    // Hint ngắn cho tìm kiếm/lọc.
+    expect(screen.getByText('Tìm theo email hoặc tên hiển thị.')).toBeInTheDocument();
+    expect(screen.getByText('“Tất cả” gồm cả tài khoản đã khóa.')).toBeInTheDocument();
   });
 
   it('tab Thiết bị: tải GET /admin/devices, hiển thị serial/hồ sơ/firmware/lần thấy cuối, không có dữ liệu sức khỏe', async () => {
@@ -562,14 +1037,18 @@ describe('AdminPage', () => {
     renderPage(<AdminPage />, deviceHandler({ calls }));
 
     // Bốn tab chính vẫn còn, tab mặc định vẫn là Tổng quan.
-    expect(await screen.findByRole('button', { name: 'Tổng quan' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Người dùng' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Nâng cao' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: 'Tổng quan' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Người dùng' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Nâng cao' })).toBeInTheDocument();
 
     const { list, firstItem } = await openDevicesTab();
     expect(await within(firstItem).findByText('SN-ADMIN-001')).toBeInTheDocument();
     expect(within(firstItem).getByText('Vòng tay Bà Năm')).toBeInTheDocument();
-    expect(within(firstItem).getByText(ASSIGNED_SUBJECT_ID)).toBeInTheDocument();
+    // Không in UUID trần: hiện “Mã hồ sơ” + id ngắn, id đầy đủ trong title.
+    const subject = within(firstItem).getByTitle(ASSIGNED_SUBJECT_ID);
+    expect(subject.textContent).toContain('Mã hồ sơ');
+    expect(subject.textContent).toContain(ASSIGNED_SUBJECT_ID.slice(0, 8));
+    expect(within(firstItem).queryByText(ASSIGNED_SUBJECT_ID)).not.toBeInTheDocument();
     expect(within(firstItem).getByText('1.4.2')).toBeInTheDocument();
     expect(within(firstItem).getAllByText(/Chưa có thông tin pin/).length).toBeGreaterThan(0);
     expect(within(firstItem).getByText('Trực tuyến')).toBeInTheDocument();
@@ -660,7 +1139,7 @@ describe('AdminPage', () => {
       }),
     );
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+    await user.click(await screen.findByRole('tab', { name: 'Thiết bị' }));
 
     expect(await screen.findByText('Không tải được danh sách thiết bị')).toBeInTheDocument();
     expect(screen.getByText('Máy chủ quản trị đang lỗi.')).toBeInTheDocument();
@@ -789,7 +1268,7 @@ describe('AdminPage', () => {
       }),
     );
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+    await user.click(await screen.findByRole('tab', { name: 'Thiết bị' }));
 
     expect(await screen.findByText('Chưa có thiết bị nào')).toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Danh sách thiết bị' })).not.toBeInTheDocument();

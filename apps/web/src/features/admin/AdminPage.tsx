@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AdminUserSummary, AuditEntry, PolicyState } from '@annhien/contracts/admin';
 import { policyValueSchema } from '@annhien/contracts/policies';
@@ -10,7 +11,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import { TextField } from '../../components/Field';
-import { formatDateTime } from '../../lib/format';
+import { formatDate, formatDateTime } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { useMe } from '../auth/useAuth';
@@ -41,12 +42,72 @@ const AUDIT_OUTCOME_TONES: Record<keyof typeof AUDIT_OUTCOME_LABELS, 'teal' | 'b
   conflict: 'neutral',
 };
 
+/**
+ * Nhãn người đọc cho các action phổ biến. Mã gốc vẫn giữ trong `title` của
+ * nhãn và trong phần chi tiết để đối chiếu log/API khi cần.
+ */
+const AUDIT_ACTION_LABELS: Record<string, string> = {
+  'auth.login': 'Đăng nhập',
+  'auth.register': 'Đăng ký tài khoản',
+  'auth.profile_update': 'Cập nhật hồ sơ cá nhân',
+  'auth.password_change': 'Đổi mật khẩu',
+  'auth.session_revoke': 'Thu hồi phiên đăng nhập',
+  'auth.sessions_revoke_others': 'Thu hồi các phiên khác',
+  'assistant.ask': 'Hỏi trợ lý',
+  'assistant.summary': 'Tóm tắt bằng trợ lý',
+  'incident.acknowledge': 'Xác nhận cảnh báo',
+  'incident.resolve': 'Kết thúc cảnh báo',
+  'incident.ingest': 'Nhận sự kiện cảnh báo',
+  'incident.quarantined': 'Cảnh báo bị cách ly',
+  'admin.user.disable': 'Khóa tài khoản',
+  'admin.user.enable': 'Kích hoạt tài khoản',
+  'policy.publish': 'Phát hành chính sách',
+  'device.create': 'Đăng ký thiết bị',
+  'device.claim': 'Gắn thiết bị vào hồ sơ',
+  'device.release': 'Gỡ thiết bị khỏi hồ sơ',
+  'subject.create': 'Tạo hồ sơ',
+  'subject.update': 'Cập nhật hồ sơ',
+  'subject.archive': 'Lưu trữ hồ sơ',
+  'invitation.create': 'Tạo lời mời',
+  'invitation.accept': 'Nhận lời mời',
+  'measurement.export': 'Xuất dữ liệu đo',
+  'telemetry.quarantined': 'Dữ liệu telemetry bị cách ly',
+};
+
+/** Gợi ý mã hành động cho bộ lọc Nhật ký (datalist, không gọi API mới). */
+const AUDIT_ACTION_SUGGESTIONS = [
+  'auth.login',
+  'assistant.summary',
+  'incident.acknowledge',
+  'admin.user.disable',
+  'policy.publish',
+  'device.claim',
+] as const;
+
+const AUDIT_TARGET_LABELS: Record<string, string> = {
+  user: 'Tài khoản',
+  subject: 'Hồ sơ',
+  incident: 'Cảnh báo',
+  device: 'Thiết bị',
+  policy: 'Chính sách',
+  invitation: 'Lời mời',
+  session: 'Phiên',
+};
+
+function auditActionLabel(action: string): string {
+  return AUDIT_ACTION_LABELS[action] ?? action;
+}
+
+function auditTargetLabel(targetType: string): string {
+  return AUDIT_TARGET_LABELS[targetType] ?? targetType;
+}
+
 const POLICY_FIELDS = [
-  { key: 'heartbeatIntervalSeconds', label: 'Chu kỳ nhịp tim (giây)' },
-  { key: 'offlineAfterSeconds', label: 'Ngoại tuyến sau (giây)' },
-  { key: 'dataFreshAfterSeconds', label: 'Dữ liệu tươi (giây)' },
-  { key: 'lateEventMinutes', label: 'Sự kiện trễ (phút)' },
-  { key: 'maxTelemetryPerMinute', label: 'Telemetry tối đa/phút' },
+  { key: 'heartbeatIntervalSeconds', label: 'Gửi nhịp tim mỗi (giây)' },
+  { key: 'offlineAfterSeconds', label: 'Ngoại tuyến khi không nhận dữ liệu (giây)' },
+  { key: 'dataFreshAfterSeconds', label: 'Dữ liệu được coi là mới trong (giây)' },
+  { key: 'lateEventMinutes', label: 'Nhận sự kiện trễ trong (phút)' },
+  { key: 'maxTelemetryPerMinute', label: 'Giới hạn telemetry mỗi phút' },
 ] as const;
 
 type PolicyValue = Record<(typeof POLICY_FIELDS)[number]['key'], number>;
@@ -66,6 +127,37 @@ const TABS: { value: Tab; label: string }[] = [
   { value: 'devices', label: 'Thiết bị' },
   { value: 'advanced', label: 'Nâng cao' },
 ];
+
+const ADVANCED_VIEWS: { value: AdvancedView; label: string }[] = [
+  { value: 'policy', label: 'Chính sách' },
+  { value: 'audit', label: 'Nhật ký' },
+];
+
+/** Điều hướng tab bằng ArrowLeft/ArrowRight/Home/End (roving tabindex). */
+function keyboardTabIndex(event: KeyboardEvent<HTMLElement>, index: number, count: number): number | null {
+  switch (event.key) {
+    case 'ArrowRight':
+      return index === count - 1 ? 0 : index + 1;
+    case 'ArrowLeft':
+      return index === 0 ? count - 1 : index - 1;
+    case 'Home':
+      return 0;
+    case 'End':
+      return count - 1;
+    default:
+      return null;
+  }
+}
+
+/** Focus + cuộn phần tử vào tầm nhìn (jsdom không có scrollIntoView). */
+function focusById(id: string): void {
+  const element = document.getElementById(id);
+  if (!element) return;
+  element.focus();
+  if (typeof element.scrollIntoView === 'function') {
+    element.scrollIntoView({ block: 'center' });
+  }
+}
 
 function OverviewTab() {
   const overview = useQuery({
@@ -91,11 +183,17 @@ function OverviewTab() {
     { label: 'Cảnh báo đang mở', value: data.alerts.open },
     { label: 'Thông báo lỗi', value: data.outbox.failed },
   ];
+  // Tín hiệu không có ô số riêng được ưu tiên trước; hai dòng cuối đã có KPI
+  // cùng màn nên chỉ giữ khi còn chỗ (tối đa 3 dòng).
   const attention = [
+    data.outbox.failed > 0 ? `${data.outbox.failed} thông báo gửi lỗi` : null,
+    data.outbox.pending > 0 ? `${data.outbox.pending} thông báo đang chờ gửi` : null,
+    data.tasks.open > 0 ? `${data.tasks.open} công việc đang mở` : null,
     data.alerts.open > 0 ? `${data.alerts.open} cảnh báo đang mở` : null,
     data.devices.offline > 0 ? `${data.devices.offline} thiết bị ngoại tuyến` : null,
-    data.outbox.failed > 0 ? `${data.outbox.failed} thông báo gửi lỗi` : null,
-  ].filter((line): line is string => line !== null);
+  ]
+    .filter((line): line is string => line !== null)
+    .slice(0, 3);
 
   return (
     <div className="stack adm-overview">
@@ -132,7 +230,11 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
   const [target, setTarget] = useState<AdminUserSummary | null>(null);
   const [reason, setReason] = useState('');
   const [reasonError, setReasonError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ userId: string; message: string } | null>(null);
+  const reasonRef = useRef<HTMLTextAreaElement | null>(null);
+  const actionButtonRefs = useRef(new Map<string, HTMLButtonElement>());
+  // Hành động vừa đóng form: focus trả về đúng nút trong dòng, không phải BODY.
+  const restoreFocusTo = useRef<string | null>(null);
 
   const users = useInfiniteQuery({
     queryKey: adminQueryKeys.users(appliedSearch, statusFilter || null),
@@ -157,9 +259,12 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
       return updateUserStatus(target.id, { status: nextStatus, reason: reason.trim() });
     },
     onSuccess: (updated) => {
-      setNotice(
-        `Đã ${updated.status === 'disabled' ? 'tạm khóa' : 'kích hoạt'} tài khoản ${updated.displayName}.`,
-      );
+      // Thông báo nằm ngay dòng vừa đổi (gần hành động), không ở đầu tab.
+      setNotice({
+        userId: updated.id,
+        message: `Đã ${updated.status === 'disabled' ? 'tạm khóa' : 'kích hoạt'} tài khoản ${updated.displayName}.`,
+      });
+      restoreFocusTo.current = updated.id;
       setTarget(null);
       setReason('');
       setReasonError(null);
@@ -170,6 +275,20 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
     },
   });
 
+  // Mở form xác nhận → focus vào ô lý do để gõ được ngay.
+  useEffect(() => {
+    if (target) reasonRef.current?.focus();
+  }, [target]);
+
+  // Đóng form (hủy hoặc xong) → trả focus về nút đã bấm trong dòng đó.
+  useEffect(() => {
+    if (target) return;
+    const id = restoreFocusTo.current;
+    if (!id) return;
+    restoreFocusTo.current = null;
+    actionButtonRefs.current.get(id)?.focus();
+  }, [target]);
+
   const pages = users.data?.pages ?? [];
   const items = pages.flatMap((page) => page?.items ?? []);
   const nextCursor = pages.at(-1)?.nextCursor ?? null;
@@ -178,10 +297,12 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
     event.preventDefault();
     if (reason.trim() === '') {
       setReasonError('Vui lòng nhập lý do thay đổi trạng thái.');
+      reasonRef.current?.focus();
       return;
     }
     if (reason.trim().length > 500) {
       setReasonError('Lý do quá dài (tối đa 500 ký tự).');
+      reasonRef.current?.focus();
       return;
     }
     setReasonError(null);
@@ -190,13 +311,6 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
 
   return (
     <div className="stack">
-      {notice ? <Alert tone="success">{notice}</Alert> : null}
-      {updateStatus.isError ? (
-        <Alert tone="error" title="Không đổi được trạng thái">
-          {getApiErrorMessage(updateStatus.error)}
-        </Alert>
-      ) : null}
-
       <form
         className="adm-filter-form"
         onSubmit={(event) => {
@@ -207,6 +321,7 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
         <TextField
           id="admin-user-search"
           label="Tìm người dùng"
+          hint="Tìm theo email hoặc tên hiển thị."
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           maxLength={120}
@@ -219,12 +334,16 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
             id="admin-user-status"
             className="field__input"
             value={statusFilter}
+            aria-describedby="admin-user-status-hint"
             onChange={(event) => setStatusFilter(event.target.value)}
           >
             <option value="">Tất cả</option>
             <option value="active">Hoạt động</option>
             <option value="disabled">Đã khóa</option>
           </select>
+          <p className="field__hint" id="admin-user-status-hint">
+            “Tất cả” gồm cả tài khoản đã khóa.
+          </p>
         </div>
         <Button type="submit" variant="secondary">
           Lọc
@@ -256,17 +375,37 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
             <tbody>
               {items.map((user) => (
                 <tr key={user.id}>
-                  <td data-label="Người dùng">
+                  <td>
                     <span className="adm-user-name">{user.displayName}</span>
                     <span className="adm-user-email">{user.email}</span>
+                    <span className="adm-user-created">Tạo {formatDate(user.createdAt)}</span>
                   </td>
-                  <td data-label="Vai trò">{USER_ROLE_LABELS[user.role]}</td>
-                  <td data-label="Trạng thái">
-                    <StatusPill tone={user.status === 'active' ? 'teal' : 'brick'}>
-                      {USER_STATUS_LABELS[user.status]}
-                    </StatusPill>
+                  <td>
+                    <span className="adm-cell-label" aria-hidden="true">
+                      Vai trò
+                    </span>
+                    <span className="adm-cell-value">{USER_ROLE_LABELS[user.role]}</span>
                   </td>
-                  <td data-label="Hành động">
+                  <td>
+                    <span className="adm-cell-label" aria-hidden="true">
+                      Trạng thái
+                    </span>
+                    <span className="adm-cell-value">
+                      <StatusPill tone={user.status === 'active' ? 'teal' : 'brick'}>
+                        {USER_STATUS_LABELS[user.status]}
+                      </StatusPill>
+                    </span>
+                  </td>
+                  <td>
+                    <span className="adm-cell-label" aria-hidden="true">
+                      Hành động
+                    </span>
+                    <div className="adm-cell-value">
+                    {notice?.userId === user.id ? (
+                      <p className="adm-user-notice" role="status">
+                        {notice.message}
+                      </p>
+                    ) : null}
                     {target?.id === user.id ? (
                       <form className="adm-confirm" onSubmit={handleStatusSubmit} noValidate>
                         <div className="field">
@@ -274,16 +413,31 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
                             Lý do <span className="field__required" aria-hidden="true"> *</span>
                           </label>
                           <textarea
+                            ref={reasonRef}
                             id={`status-reason-${user.id}`}
                             className={`field__input${reasonError ? ' field__input--error' : ''}`}
+                            required
+                            aria-required="true"
                             aria-invalid={reasonError ? true : undefined}
+                            aria-describedby={
+                              reasonError
+                                ? `status-reason-error-${user.id} status-reason-hint-${user.id}`
+                                : `status-reason-hint-${user.id}`
+                            }
                             rows={2}
                             value={reason}
                             onChange={(event) => setReason(event.target.value)}
-                            maxLength={600}
+                            maxLength={500}
                           />
+                          <p className="field__hint" id={`status-reason-hint-${user.id}`}>
+                            Bắt buộc, tối đa 500 ký tự.
+                          </p>
                           {reasonError ? (
-                            <p className="field__error" role="alert">
+                            <p
+                              className="field__error"
+                              id={`status-reason-error-${user.id}`}
+                              role="alert"
+                            >
                               {reasonError}
                             </p>
                           ) : null}
@@ -304,21 +458,34 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
                             variant="subtle"
                             disabled={updateStatus.isPending}
                             onClick={() => {
+                              restoreFocusTo.current = target.id;
                               setTarget(null);
                               setReason('');
                               setReasonError(null);
+                              updateStatus.reset();
                             }}
                           >
                             Hủy
                           </Button>
                         </div>
+                        {updateStatus.isError ? (
+                          <Alert tone="error" title="Không đổi được trạng thái">
+                            {getApiErrorMessage(updateStatus.error)}
+                          </Alert>
+                        ) : null}
                       </form>
                     ) : user.id === currentUserId ? (
                       <span className="adm-table__note">Không thể tự khóa chính mình</span>
                     ) : (
                       <Button
+                        ref={(element) => {
+                          if (element) actionButtonRefs.current.set(user.id, element);
+                          else actionButtonRefs.current.delete(user.id);
+                        }}
                         variant={user.status === 'active' ? 'danger-quiet' : 'secondary'}
                         onClick={() => {
+                          setNotice(null);
+                          updateStatus.reset();
                           setTarget(user);
                           setReason('');
                           setReasonError(null);
@@ -327,6 +494,7 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
                         {user.status === 'active' ? 'Tạm khóa' : 'Kích hoạt'}
                       </Button>
                     )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -375,6 +543,7 @@ function PolicyTab() {
   const [staleInfo, setStaleInfo] = useState<{ kind: 'version' | 'content'; message: string } | null>(
     null,
   );
+  const statusRef = useRef<HTMLDivElement | null>(null);
 
   const active = policy.data?.active;
 
@@ -467,6 +636,18 @@ function PolicyTab() {
     },
   });
 
+  // Lỗi 409: cuộn + focus cảnh báo (đặt ngay dưới nút vừa bấm) để người dùng
+  // thấy ngay, không phải tự cuộn lên đầu panel.
+  useEffect(() => {
+    if (!staleInfo) return;
+    const node = statusRef.current;
+    if (!node) return;
+    node.focus();
+    if (typeof node.scrollIntoView === 'function') {
+      node.scrollIntoView({ block: 'center' });
+    }
+  }, [staleInfo]);
+
   const validateValue = (): boolean => {
     if (!value) return false;
     const parsed = policyValueSchema.safeParse(value);
@@ -479,7 +660,15 @@ function PolicyTab() {
             acc[field.key] = (issue) => {
               const min = 'minimum' in issue ? issue.minimum : undefined;
               const max = 'maximum' in issue ? issue.maximum : undefined;
-              return `${field.label}: ${typeof min === 'number' && typeof max === 'number' ? `từ ${min} đến ${max}` : 'giá trị không hợp lệ'}.`;
+              const range =
+                typeof min === 'number' && typeof max === 'number'
+                  ? `từ ${min} đến ${max}`
+                  : typeof min === 'number'
+                    ? `tối thiểu ${min}`
+                    : typeof max === 'number'
+                      ? `tối đa ${max}`
+                      : 'giá trị không hợp lệ';
+              return `${field.label}: ${range}.`;
             };
             return acc;
           },
@@ -487,6 +676,8 @@ function PolicyTab() {
         ),
       );
       setFieldErrors(mapped.fields);
+      const firstInvalid = POLICY_FIELDS.find((field) => mapped.fields[field.key]);
+      if (firstInvalid) focusById(`policy-${firstInvalid.key}`);
       return false;
     }
     setFieldErrors({});
@@ -546,6 +737,10 @@ function PolicyTab() {
         policyData.active.updatedBy ? ` · ${policyData.active.updatedBy.displayName}` : ''
       }`
     : 'bản mặc định';
+  const errorEntries = POLICY_FIELDS.flatMap((field) => {
+    const message = fieldErrors[field.key];
+    return message ? [{ key: field.key, message }] : [];
+  });
 
   return (
     <div className="stack">
@@ -558,27 +753,6 @@ function PolicyTab() {
             Phiên bản {policyData.active.version} · {updatedMeta}
           </p>
         </div>
-
-        {staleInfo ? (
-          <Alert
-            tone="warning"
-            title={
-              staleInfo.kind === 'version'
-                ? 'Chính sách đã thay đổi'
-                : 'Nội dung chưa khớp bản xem trước'
-            }
-          >
-            {staleInfo.message}
-            {staleInfo.kind === 'version' ? (
-              <div className="adm-policy-inline-action">
-                <Button variant="secondary" onClick={handleReload}>
-                  Tải lại
-                </Button>
-              </div>
-            ) : null}
-          </Alert>
-        ) : null}
-        {publishNotice ? <Alert tone="success">{publishNotice}</Alert> : null}
 
         <form className="adm-policy-form" onSubmit={(event) => event.preventDefault()} noValidate>
           {POLICY_FIELDS.map((field) => (
@@ -614,60 +788,112 @@ function PolicyTab() {
               {publish.isPending ? 'Đang phát hành…' : 'Phát hành'}
             </Button>
           </div>
+          {errorEntries.length > 0 ? (
+            <div className="adm-policy-errors" role="alert">
+              <p className="adm-policy-errors__title">
+                {errorEntries.length} giá trị chưa hợp lệ. Sửa ô được đánh dấu rồi xem trước lại.
+              </p>
+              <ul>
+                {errorEntries.map((entry) => (
+                  <li key={entry.key}>
+                    <a
+                      href={`#policy-${entry.key}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        focusById(`policy-${entry.key}`);
+                      }}
+                    >
+                      {entry.message}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {!canPublish ? <p className="adm-policy-hint">Xem trước để bật Phát hành.</p> : null}
-        </form>
 
-        {preview.isError && !staleInfo ? (
-          <Alert tone="error" title="Không kiểm tra được">
-            {getApiErrorMessage(preview.error)}
-          </Alert>
-        ) : null}
-        {previewResult ? (
-          <div className="adm-policy-preview">
-            {previewResult.valid ? (
-              <Alert tone="success" title="Giá trị hợp lệ">
-                Có thể phát hành bản này.
-              </Alert>
-            ) : (
-              <Alert tone="error" title="Giá trị không hợp lệ">
-                Giá trị nhập chưa đạt điều kiện kiểm tra.
-              </Alert>
-            )}
-            {previewResult.warnings.length > 0 ? (
-              <Alert tone="warning" title="Cảnh báo khi áp dụng">
-                <ul>
-                  {previewResult.warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
-                  ))}
-                </ul>
+          {/*
+            Cảnh báo 409 / kết quả preview nằm ngay dưới nút vừa bấm để luôn ở
+            trong tầm nhìn, thay vì ở đầu panel (ngoài màn hình trên mobile).
+          */}
+          <div className="adm-policy-status" ref={statusRef} tabIndex={-1}>
+            {staleInfo ? (
+              <Alert
+                tone="warning"
+                title={
+                  staleInfo.kind === 'version'
+                    ? 'Chính sách đã thay đổi'
+                    : 'Nội dung chưa khớp bản xem trước'
+                }
+              >
+                {staleInfo.message}
+                {staleInfo.kind === 'version' ? (
+                  <div className="adm-policy-inline-action">
+                    <Button variant="secondary" onClick={handleReload}>
+                      Tải lại
+                    </Button>
+                  </div>
+                ) : null}
               </Alert>
             ) : null}
-            {previewResult.diff.length > 0 ? (
-              <div className="adm-policy-diff">
-                <p className="adm-policy-diff__title">Thay đổi so với bản đang hoạt động</p>
-                <ul>
-                  {previewResult.diff.map((entry) => (
-                    <li key={entry.field}>
-                      <code>{entry.field}</code>: {String(entry.from)} → {String(entry.to)}
-                    </li>
-                  ))}
-                </ul>
+            {publishNotice ? <Alert tone="success">{publishNotice}</Alert> : null}
+            {preview.isError && !staleInfo ? (
+              <Alert tone="error" title="Không kiểm tra được">
+                {getApiErrorMessage(preview.error)}
+              </Alert>
+            ) : null}
+            {publish.isError && !staleInfo ? (
+              <Alert tone="error" title="Không phát hành được">
+                {getApiErrorMessage(publish.error)}
+              </Alert>
+            ) : null}
+            {previewResult ? (
+              <div className="adm-policy-preview">
+                {previewResult.valid ? (
+                  <Alert tone="success" title="Giá trị hợp lệ">
+                    Có thể phát hành bản này.
+                  </Alert>
+                ) : (
+                  <Alert tone="error" title="Giá trị không hợp lệ">
+                    Giá trị nhập chưa đạt điều kiện kiểm tra.
+                  </Alert>
+                )}
+                <p className="adm-policy-preview__evidence">
+                  Bản xem trước cho v{previewResult.expectedVersion} · digest{' '}
+                  <code>{previewResult.digest.slice(0, 12)}</code> · không ghi dữ liệu
+                </p>
+                {previewResult.warnings.length > 0 ? (
+                  <Alert tone="warning" title="Cảnh báo khi áp dụng">
+                    <ul>
+                      {previewResult.warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  </Alert>
+                ) : null}
+                {previewResult.diff.length > 0 ? (
+                  <div className="adm-policy-diff">
+                    <p className="adm-policy-diff__title">Thay đổi so với bản đang hoạt động</p>
+                    <ul>
+                      {previewResult.diff.map((entry) => (
+                        <li key={entry.field}>
+                          <code>{entry.field}</code>: {String(entry.from)} → {String(entry.to)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>
-        ) : null}
-        {publish.isError && !staleInfo ? (
-          <Alert tone="error" title="Không phát hành được">
-            {getApiErrorMessage(publish.error)}
-          </Alert>
-        ) : null}
+        </form>
       </section>
 
       <details className="adm-policy-history">
         <summary>Lịch sử phiên bản ({policyData.history.length})</summary>
         <div className="adm-policy-history__body">
           <p className="adm-policy-history__default">
-            Chưa có bản phát hành:{' '}
+            <span>Giá trị mặc định (dùng khi chưa có bản phát hành)</span>
             <Button
               variant="subtle"
               onClick={() => {
@@ -705,6 +931,9 @@ function AuditTab() {
   const [action, setAction] = useState('');
   const [appliedAction, setAppliedAction] = useState('');
   const [actorUserId, setActorUserId] = useState('');
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const tableWrapRef = useRef<HTMLDivElement | null>(null);
+  const [tableOverflows, setTableOverflows] = useState(false);
 
   // Danh sách người dùng cho bộ lọc actor (chỉ tải trong tab audit).
   const actorOptions = useQuery({
@@ -734,6 +963,22 @@ function AuditTab() {
   const nextCursor = pages.at(-1)?.nextCursor ?? null;
   const actorNames = new Map((actorOptions.data?.items ?? []).map((user) => [user.id, user.displayName]));
 
+  // Hint chỉ hiện khi bảng thật sự rộng hơn khung (768–1024px cũng có thể tràn
+  // vì sidebar), không phụ thuộc riêng breakpoint 767px.
+  useEffect(() => {
+    const element = tableWrapRef.current;
+    if (!element) {
+      setTableOverflows(false);
+      return;
+    }
+    const measure = () => setTableOverflows(element.scrollWidth - element.clientWidth > 1);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [items.length]);
+
   const actorLabel = (entry: AuditEntry): string => {
     if (entry.actorKind !== 'user') {
       return entry.actorKind === 'device'
@@ -750,20 +995,31 @@ function AuditTab() {
 
   return (
     <div className="stack">
+      <h2 className="section-title">Nhật ký hoạt động</h2>
       <form
         className="adm-filter-form"
         onSubmit={(event) => {
           event.preventDefault();
+          setExpandedId(null);
           setAppliedAction(action.trim());
         }}
       >
         <TextField
           id="audit-action"
           label="Hành động"
+          hint="Mã hành động, ví dụ auth.login hoặc assistant.summary."
+          list="audit-action-suggestions"
           value={action}
           onChange={(event) => setAction(event.target.value)}
           maxLength={120}
         />
+        <datalist id="audit-action-suggestions">
+          {AUDIT_ACTION_SUGGESTIONS.map((code) => (
+            <option key={code} value={code}>
+              {auditActionLabel(code)}
+            </option>
+          ))}
+        </datalist>
         <div className="field">
           <label className="field__label" htmlFor="audit-actor">
             Người thực hiện
@@ -799,8 +1055,10 @@ function AuditTab() {
         <EmptyState title="Không có bản ghi nhật ký" description="Thử bộ lọc khác." />
       ) : (
         <>
-          <p className="adm-table-hint">Vuốt ngang để xem đủ cột.</p>
-          <div className="adm-table-wrap">
+          {tableOverflows ? (
+            <p className="adm-table-hint">Bảng rộng hơn khung — vuốt ngang để xem đủ cột.</p>
+          ) : null}
+          <div className="adm-table-wrap" ref={tableWrapRef}>
             <table className="adm-table adm-table--audit">
               <caption className="visually-hidden">Nhật ký hoạt động</caption>
               <thead>
@@ -813,37 +1071,87 @@ function AuditTab() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((entry) => (
-                  <tr key={entry.id}>
-                    <td>
-                      <code className="adm-audit-action">{entry.action}</code>
-                    </td>
-                    <td>
-                      <span>{actorLabel(entry)}</span>
-                      {entry.targetId && entry.targetId !== entry.actorUserId ? (
-                        <span className="adm-audit-target">
-                          {entry.targetType} {entry.targetId.slice(0, 8)}
-                        </span>
+                {items.map((entry) => {
+                  const hasMetadata = Object.keys(entry.metadata).length > 0;
+                  const expanded = expandedId === entry.id;
+                  return (
+                    <Fragment key={entry.id}>
+                      <tr>
+                        <td>
+                          <span className="adm-cell-label" aria-hidden="true">
+                            Hành động
+                          </span>
+                          <span className="adm-cell-value">
+                            <code className="adm-audit-action" title={entry.action}>
+                              {auditActionLabel(entry.action)}
+                            </code>
+                          </span>
+                        </td>
+                        <td>
+                          <span className="adm-cell-label" aria-hidden="true">
+                            Người thực hiện
+                          </span>
+                          <span className="adm-cell-value">
+                            <span>{actorLabel(entry)}</span>
+                            {entry.targetId && entry.targetId !== entry.actorUserId ? (
+                              <span className="adm-audit-target" title={entry.targetId}>
+                                {auditTargetLabel(entry.targetType)} {entry.targetId.slice(0, 8)}
+                              </span>
+                            ) : null}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="adm-cell-label" aria-hidden="true">
+                            Kết quả
+                          </span>
+                          <span className="adm-cell-value">
+                            <StatusPill tone={AUDIT_OUTCOME_TONES[entry.outcome]}>
+                              {AUDIT_OUTCOME_LABELS[entry.outcome]}
+                            </StatusPill>
+                          </span>
+                        </td>
+                        <td>
+                          <span className="adm-cell-label" aria-hidden="true">
+                            Thời gian
+                          </span>
+                          <span className="adm-cell-value">{formatDateTime(entry.createdAt)}</span>
+                        </td>
+                        <td>
+                          <span className="adm-cell-label" aria-hidden="true">
+                            Chi tiết
+                          </span>
+                          <span className="adm-cell-value">
+                            {hasMetadata ? (
+                              <button
+                                type="button"
+                                className="button button--subtle button--sm adm-audit-toggle"
+                                aria-expanded={expanded}
+                                aria-controls={`audit-details-${entry.id}`}
+                                onClick={() => setExpandedId(expanded ? null : entry.id)}
+                              >
+                                {expanded ? 'Ẩn chi tiết' : 'Xem chi tiết'}
+                              </button>
+                            ) : (
+                              <span className="adm-table__note">—</span>
+                            )}
+                          </span>
+                        </td>
+                      </tr>
+                      {expanded && hasMetadata ? (
+                        <tr className="adm-audit-details-row">
+                          <td colSpan={5} id={`audit-details-${entry.id}`}>
+                            <div className="adm-audit-details">
+                              <p className="adm-audit-details__meta">
+                                Mã hành động <code>{entry.action}</code>
+                              </p>
+                              <pre>{JSON.stringify(entry.metadata, null, 2)}</pre>
+                            </div>
+                          </td>
+                        </tr>
                       ) : null}
-                    </td>
-                    <td>
-                      <StatusPill tone={AUDIT_OUTCOME_TONES[entry.outcome]}>
-                        {AUDIT_OUTCOME_LABELS[entry.outcome]}
-                      </StatusPill>
-                    </td>
-                    <td className="adm-table__nowrap">{formatDateTime(entry.createdAt)}</td>
-                    <td>
-                      {Object.keys(entry.metadata).length > 0 ? (
-                        <details className="adm-audit-details">
-                          <summary>Xem chi tiết</summary>
-                          <pre>{JSON.stringify(entry.metadata, null, 2)}</pre>
-                        </details>
-                      ) : (
-                        <span className="adm-table__note">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -865,28 +1173,48 @@ function AuditTab() {
   );
 }
 
-function AdvancedTab() {
-  const [view, setView] = useState<AdvancedView>('policy');
-
+function AdvancedTab({
+  view,
+  onViewChange,
+}: {
+  view: AdvancedView;
+  onViewChange: (next: AdvancedView) => void;
+}) {
   return (
     <div className="stack">
-      <div className="adm-subtabs" role="group" aria-label="Mục nâng cao">
-        <Button
-          variant={view === 'policy' ? 'primary' : 'subtle'}
-          aria-pressed={view === 'policy'}
-          onClick={() => setView('policy')}
-        >
-          Chính sách
-        </Button>
-        <Button
-          variant={view === 'audit' ? 'primary' : 'subtle'}
-          aria-pressed={view === 'audit'}
-          onClick={() => setView('audit')}
-        >
-          Nhật ký
-        </Button>
+      <div className="adm-subtabs" role="tablist" aria-label="Mục nâng cao">
+        {ADVANCED_VIEWS.map((option, index) => (
+          <Button
+            key={option.value}
+            role="tab"
+            id={`adm-subtab-${option.value}`}
+            aria-selected={view === option.value}
+            aria-controls={`adm-subpanel-${option.value}`}
+            tabIndex={view === option.value ? 0 : -1}
+            variant={view === option.value ? 'primary' : 'subtle'}
+            onKeyDown={(event) => {
+              const nextIndex = keyboardTabIndex(event, index, ADVANCED_VIEWS.length);
+              if (nextIndex === null) return;
+              event.preventDefault();
+              const next = ADVANCED_VIEWS[nextIndex];
+              if (!next) return;
+              onViewChange(next.value);
+              document.getElementById(`adm-subtab-${next.value}`)?.focus();
+            }}
+            onClick={() => onViewChange(option.value)}
+          >
+            {option.label}
+          </Button>
+        ))}
       </div>
-      {view === 'policy' ? <PolicyTab /> : <AuditTab />}
+      <div
+        className="stack"
+        role="tabpanel"
+        id={`adm-subpanel-${view}`}
+        aria-labelledby={`adm-subtab-${view}`}
+      >
+        {view === 'policy' ? <PolicyTab /> : <AuditTab />}
+      </div>
     </div>
   );
 }
@@ -895,10 +1223,33 @@ function AdvancedTab() {
  * /app/admin — quản trị (chỉ role admin).
  * Người không phải admin: thông báo "Không có quyền", KHÔNG gọi bất kỳ API admin nào
  * (mọi query trong các tab chỉ chạy khi đã xác nhận admin).
+ * Tab + mục con lưu trong URL (?tab=...&view=...) để reload/chia sẻ link không mất.
  */
 export function AdminPage() {
   const me = useMe();
-  const [tab, setTab] = useState<Tab>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tabParam = searchParams.get('tab');
+  const viewParam = searchParams.get('view');
+  const requestedTab = TABS.find((option) => option.value === tabParam)?.value ?? null;
+  const tab: Tab = requestedTab ?? (viewParam ? 'advanced' : 'overview');
+  const advancedView: AdvancedView = viewParam === 'audit' ? 'audit' : 'policy';
+
+  const selectTab = (next: Tab) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === 'overview') params.delete('tab');
+    else params.set('tab', next);
+    if (next !== 'advanced') params.delete('view');
+    setSearchParams(params);
+  };
+
+  const selectAdvancedView = (next: AdvancedView) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', 'advanced');
+    if (next === 'policy') params.delete('view');
+    else params.set('view', next);
+    setSearchParams(params);
+  };
 
   if (me.isPending) return <PageLoader label="Đang kiểm tra quyền…" />;
   if (me.isError) {
@@ -925,6 +1276,8 @@ export function AdminPage() {
     );
   }
 
+  const tabLabel = TABS.find((option) => option.value === tab)?.label ?? '';
+
   return (
     <div className="stack admin-page">
       <header className="admin-page__head">
@@ -932,23 +1285,46 @@ export function AdminPage() {
         <p className="page-lead">Theo dõi hệ thống và xử lý tài khoản.</p>
       </header>
 
-      <div className="adm-tabs" role="group" aria-label="Các mục quản trị">
-        {TABS.map((option) => (
+      <div className="adm-tabs" role="tablist" aria-label="Các mục quản trị">
+        {TABS.map((option, index) => (
           <Button
             key={option.value}
+            role="tab"
+            id={`adm-tab-${option.value}`}
+            aria-selected={tab === option.value}
+            aria-controls={`adm-panel-${option.value}`}
+            tabIndex={tab === option.value ? 0 : -1}
             variant={tab === option.value ? 'primary' : 'subtle'}
-            aria-pressed={tab === option.value}
-            onClick={() => setTab(option.value)}
+            onKeyDown={(event) => {
+              const nextIndex = keyboardTabIndex(event, index, TABS.length);
+              if (nextIndex === null) return;
+              event.preventDefault();
+              const next = TABS[nextIndex];
+              if (!next) return;
+              selectTab(next.value);
+              document.getElementById(`adm-tab-${next.value}`)?.focus();
+            }}
+            onClick={() => selectTab(option.value)}
           >
             {option.label}
           </Button>
         ))}
       </div>
 
-      {tab === 'overview' ? <OverviewTab /> : null}
-      {tab === 'users' ? <UsersTab currentUserId={user.id} /> : null}
-      {tab === 'devices' ? <AdminDevicesTab /> : null}
-      {tab === 'advanced' ? <AdvancedTab /> : null}
+      <div
+        className="stack"
+        role="tabpanel"
+        id={`adm-panel-${tab}`}
+        aria-labelledby={`adm-tab-${tab}`}
+      >
+        <h2 className="visually-hidden">{tabLabel}</h2>
+        {tab === 'overview' ? <OverviewTab /> : null}
+        {tab === 'users' ? <UsersTab currentUserId={user.id} /> : null}
+        {tab === 'devices' ? <AdminDevicesTab /> : null}
+        {tab === 'advanced' ? (
+          <AdvancedTab view={advancedView} onViewChange={selectAdvancedView} />
+        ) : null}
+      </div>
     </div>
   );
 }

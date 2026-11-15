@@ -185,10 +185,18 @@
 }
 
 .adm-table-hint {
-  display: none;
-  margin: 0;
+  margin: 0 0 var(--space-1);
   color: var(--color-ink-muted);
   font-size: var(--text-xs);
+}
+
+/* Nhãn cột chỉ hiện ở chế độ thẻ (mobile); desktop đã có <th>. */
+.adm-cell-label {
+  display: none;
+}
+
+.adm-cell-value {
+  min-width: 0;
 }
 
 .admin-page .adm-table--users {
@@ -197,6 +205,25 @@
 
 .admin-page .adm-table--users td:first-child {
   min-width: 13rem;
+}
+
+.adm-user-name {
+  display: block;
+  font-weight: 600;
+}
+
+.adm-user-created {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+  margin-top: 2px;
+}
+
+.adm-user-notice {
+  margin: 0 0 var(--space-2);
+  color: var(--color-teal-deep);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }
 
 /* ---------- Chính sách ---------- */
@@ -255,6 +282,63 @@
   margin-top: var(--space-2);
 }
 
+/* Summary lỗi đặt ngay dưới nút Xem trước/Phát hành (nơi vừa bấm). */
+.adm-policy-errors {
+  grid-column: 1 / -1;
+  border: 1px solid var(--color-brick);
+  border-radius: var(--radius-s);
+  background: var(--color-brick-soft);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.adm-policy-errors__title {
+  margin: 0 0 var(--space-1);
+  color: var(--color-brick-deep);
+  font-weight: 600;
+}
+
+.adm-policy-errors ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.adm-policy-errors a {
+  color: var(--color-brick-deep);
+}
+
+/* Kết quả preview/409 ở ngay dưới hành động, có thể nhận focus để đọc lại. */
+.adm-policy-status {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.adm-policy-status:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.adm-policy-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.adm-policy-preview__evidence {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.adm-policy-preview__evidence code {
+  font-size: var(--text-xs);
+}
+
 .adm-policy-history {
   border-top: 1px solid var(--color-line);
   padding-top: var(--space-2);
@@ -287,8 +371,33 @@
 
 /* ---------- Nhật ký ---------- */
 
+/*
+  Bảng cố định bề rộng cột để ô chi tiết (colSpan) luôn rộng bằng cả bảng:
+  metadata JSON dài không thể kéo bảng rộng ra ngoài khung.
+*/
 .admin-page .adm-table--audit {
   min-width: 46rem;
+  table-layout: fixed;
+}
+
+.admin-page .adm-table--audit th:nth-child(1) {
+  width: 23%;
+}
+
+.admin-page .adm-table--audit th:nth-child(2) {
+  width: 22%;
+}
+
+.admin-page .adm-table--audit th:nth-child(3) {
+  width: 14%;
+}
+
+.admin-page .adm-table--audit th:nth-child(4) {
+  width: 24%;
+}
+
+.admin-page .adm-table--audit th:nth-child(5) {
+  width: 17%;
 }
 
 .adm-audit-action {
@@ -302,12 +411,50 @@
   overflow-wrap: anywhere;
 }
 
-.admin-page .adm-table__nowrap {
+.admin-page .adm-audit-toggle {
+  padding-inline: var(--space-2);
   white-space: nowrap;
 }
 
+/* Ô chi tiết full-width: JSON không bẻ từ, cuộn ngang trong ô. */
+.admin-page .adm-audit-details-row > td {
+  padding: 0 0 var(--space-3);
+  max-width: 100%;
+}
+
+.admin-page .adm-audit-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 100%;
+  padding: var(--space-3);
+  background: var(--color-paper-deep);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-s);
+}
+
+.admin-page .adm-audit-details__meta {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
 .admin-page .adm-audit-details pre {
-  max-width: 22rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  font-size: var(--text-xs);
+}
+
+.admin-page .adm-table__nowrap {
+  white-space: nowrap;
 }
 
 /* ---------- Thiết bị ---------- */
@@ -350,20 +497,27 @@
   }
 
   .adm-table-hint {
-    display: block;
     margin-bottom: var(--space-1);
   }
 
-  /* Bảng người dùng thành thẻ có nhãn cột, không phải cuộn ngang. */
+  /*
+    Bảng người dùng và Nhật ký thành thẻ có nhãn cột. Nhãn là <span
+    aria-hidden> trong ô (không dùng ::before) nên screen reader không đọc lặp.
+  */
   .admin-page .adm-table--users,
   .admin-page .adm-table--users tbody,
   .admin-page .adm-table--users tr,
-  .admin-page .adm-table--users td {
+  .admin-page .adm-table--users td,
+  .admin-page .adm-table--audit,
+  .admin-page .adm-table--audit tbody,
+  .admin-page .adm-table--audit tr,
+  .admin-page .adm-table--audit td {
     display: block;
     width: 100%;
   }
 
-  .admin-page .adm-table--users thead {
+  .admin-page .adm-table--users thead,
+  .admin-page .adm-table--audit thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -375,7 +529,12 @@
     border: 0;
   }
 
-  .admin-page .adm-table--users tr {
+  .admin-page .adm-table--audit {
+    min-width: 0;
+  }
+
+  .admin-page .adm-table--users tr,
+  .admin-page .adm-table--audit tr {
     margin-bottom: var(--space-2);
     padding: var(--space-3);
     background: var(--color-surface);
@@ -383,11 +542,13 @@
     border-radius: var(--radius-m);
   }
 
-  .admin-page .adm-table--users tr:last-child {
+  .admin-page .adm-table--users tr:last-child,
+  .admin-page .adm-table--audit tr:last-child {
     margin-bottom: 0;
   }
 
-  .admin-page .adm-table--users td {
+  .admin-page .adm-table--users td,
+  .admin-page .adm-table--audit td {
     border: 0;
     padding: var(--space-1) 0;
     text-align: left;
@@ -398,21 +559,24 @@
     padding-top: 0;
   }
 
-  .admin-page .adm-table--users td:not(:first-child) {
+  .admin-page .adm-table--users td:not(:first-child),
+  .admin-page .adm-table--audit td {
     display: grid;
     grid-template-columns: 6.5rem minmax(0, 1fr);
     align-items: start;
     gap: var(--space-2);
   }
 
-  .admin-page .adm-table--users td:not(:first-child)::before {
-    content: attr(data-label);
+  .admin-page .adm-table--users .adm-cell-label,
+  .admin-page .adm-table--audit .adm-cell-label {
+    display: block;
     color: var(--color-ink-soft);
     font-size: var(--text-sm);
     font-weight: 600;
   }
 
-  .admin-page .adm-table--users td:last-child {
+  .admin-page .adm-table--users td:last-child,
+  .admin-page .adm-table--audit td:last-child {
     padding-bottom: 0;
   }
 
@@ -422,6 +586,19 @@
 
   .admin-page .adm-table--users .adm-confirm {
     min-width: 0;
+  }
+
+  /* Ô chi tiết chiếm trọn thẻ, không lặp nhãn. */
+  .admin-page .adm-table--audit .adm-audit-details-row {
+    margin-top: calc(-1 * var(--space-2));
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .admin-page .adm-table--audit .adm-audit-details-row > td {
+    display: block;
+    padding: 0 0 var(--space-2);
   }
 }
 

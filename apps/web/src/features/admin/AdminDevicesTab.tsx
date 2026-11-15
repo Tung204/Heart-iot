@@ -317,6 +317,17 @@ export function AdminDevicesTab() {
                       <StatusPill tone={CONNECTION_TONES[connection]}>
                         {CONNECTION_LABELS[connection]}
                       </StatusPill>
+                      {connection === 'offline' && offlineAfterSeconds !== undefined ? (
+                        <span className="adm-device__connection-hint">
+                          Không nhận dữ liệu hơn {offlineAfterSeconds} giây nên được coi là ngoại
+                          tuyến.
+                        </span>
+                      ) : null}
+                      {connection === 'unknown' ? (
+                        <span className="adm-device__connection-hint">
+                          Chưa rõ vì chưa tải được ngưỡng ngoại tuyến từ chính sách.
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
@@ -325,9 +336,12 @@ export function AdminDevicesTab() {
                       <dt>Hồ sơ đang gắn</dt>
                       <dd>
                         {device.assignedSubjectId ? (
-                          <code className="adm-device__id" title={device.assignedSubjectId}>
-                            {device.assignedSubjectId}
-                          </code>
+                          <span className="adm-device__subject" title={device.assignedSubjectId}>
+                            Mã hồ sơ{' '}
+                            <code className="adm-device__id">
+                              {device.assignedSubjectId.slice(0, 8)}
+                            </code>
+                          </span>
                         ) : (
                           'Chưa gắn hồ sơ'
                         )}
