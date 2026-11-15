@@ -817,6 +817,9 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
     const subject = await createSubject(ctx, owner.session.user.id, 'Bà Quyền');
     const caregiverNoAi = await registerUser(ctx.app, { displayName: 'Người thân không AI' });
     const caregiverAi = await registerUser(ctx.app, { displayName: 'Người thân có AI' });
+    const caregiverNoMeasurements = await registerUser(ctx.app, {
+      displayName: 'Người thân có AI nhưng không xem số đo',
+    });
     const stranger = await registerUser(ctx.app, { displayName: 'Người lạ' });
 
     const now = Date.now();
@@ -833,8 +836,24 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
       new Date(now - 2 * 3600 * 1000),
     );
 
+    await insertCareLink(
+      ctx,
+      subject.id,
+      caregiverNoMeasurements.session.user.id,
+      owner.session.user.id,
+      { ...DEFAULT_CARE_PERMISSIONS, canViewAi: true, canViewMeasurements: false },
+      new Date(now - 2 * 3600 * 1000),
+    );
+
     const noAi = await caregiverNoAi.agent.get(`/api/v1/subjects/${subject.id}/assistant/summary`);
     expect(noAi.status).toBe(403);
+
+    // AI không phải cửa sau để đọc số đo khi chủ hồ sơ đã tắt quyền xem số đo.
+    const noMeasurements = await caregiverNoMeasurements.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary`,
+    );
+    expect(noMeasurements.status).toBe(403);
+    expect(noMeasurements.body.message).toMatch(/không chia sẻ số đo/i);
 
     const outsider = await stranger.agent.get(`/api/v1/subjects/${subject.id}/assistant/summary`);
     expect(outsider.status).toBe(404);
@@ -861,6 +880,10 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
       .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
       .send({ question: 'Nhịp tim trung bình là bao nhiêu?' });
     expect(askNoAi.status).toBe(403);
+    const askNoMeasurements = await caregiverNoMeasurements.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
+      .send({ question: 'Nhịp tim trung bình là bao nhiêu?' });
+    expect(askNoMeasurements.status).toBe(403);
     const askOutsider = await stranger.agent
       .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
       .send({ question: 'Nhịp tim trung bình là bao nhiêu?' });

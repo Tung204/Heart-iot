@@ -449,7 +449,7 @@ export class AssistantService {
 
     // Kiểm quyền trước khi đọc dữ liệu: người ngoài → 404; from ngoài lịch sử
     // được chia sẻ → 403; caregiver thiếu view_ai → 403.
-    const { access, effectiveFrom } = await this.access.requireHistory(
+    const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
       userId,
       subjectId,
       requestedFrom,
@@ -522,7 +522,7 @@ export class AssistantService {
     const now = new Date();
     // Cửa sổ 7 ngày nhưng không bắt đầu trước mốc chia sẻ: link vừa accept vẫn hỏi được
     // (cửa sổ ngắn hơn), không trả 403 chỉ vì sharedFrom mới.
-    const { access, effectiveFrom } = await this.access.requireHistory(
+    const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
       userId,
       subjectId,
       undefined,
