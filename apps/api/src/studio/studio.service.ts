@@ -207,9 +207,15 @@ export class StudioService {
   /**
    * Người không phải editor chỉ thấy publication active: draftRevision/draftDigest
    * được che về baseRevision/null để không lộ bản nháp.
+   * `activeOverride` cho phép caller đã đọc publication active dùng đúng bản đó
+   * (tránh hai truy vấn lệch nhau khi có publish xen giữa).
    */
-  private async buildViewSummary(view: WorkspaceViewRow, editor: boolean): Promise<ViewSummary> {
-    const active = await this.activePublication(view.id);
+  private async buildViewSummary(
+    view: WorkspaceViewRow,
+    editor: boolean,
+    activeOverride?: PublicationRow | null,
+  ): Promise<ViewSummary> {
+    const active = activeOverride === undefined ? await this.activePublication(view.id) : activeOverride;
     return {
       id: view.id,
       key: view.key,
@@ -869,6 +875,14 @@ export class StudioService {
     return { items };
   }
 
+  /**
+   * GET /workspace-views/:id/data — chỉ render **bản công bố đang hoạt động**.
+   * - Owner/admin/viewer dùng chung một nhánh: config + digest lấy từ publication
+   *   active, không bao giờ dùng `draftConfig` (kể cả khi draft mới hơn sau rollback).
+   * - Chưa có publication active → 404, không trả bản nháp.
+   * - `view` trong response dựng như người xem (không lộ draftRevision/draftDigest)
+   *   để endpoint này chỉ mô tả một bản công bố; draft xem qua POST /previews.
+   */
   async data(user: UserSummary, id: string, query: ViewDataQuery): Promise<ViewData> {
     const view = await this.getViewOr404(id);
     const kind = await this.resolveAccess(user, view);
@@ -876,20 +890,15 @@ export class StudioService {
       throw AppError.notFound('Không tìm thấy view hoặc bạn không có quyền truy cập.');
     }
 
-    let config: ViewConfig;
-    let editor = false;
-    if (kind === 'owner' || kind === 'admin') {
-      editor = true;
-      config = view.draftConfig;
-    } else {
-      if (view.status !== 'published') {
-        throw AppError.notFound('Không tìm thấy view hoặc bạn không có quyền truy cập.');
-      }
-      const active = await this.activePublication(id);
-      if (!active) {
-        throw AppError.notFound('View chưa có bản công bố.');
-      }
-      config = active.config;
+    // Người xem chỉ thấy view đã công bố; owner/admin giữ nguyên quyền xem view
+    // của mình nhưng vẫn cần một publication active để render dữ liệu.
+    const editor = kind === 'owner' || kind === 'admin';
+    if (!editor && view.status !== 'published') {
+      throw AppError.notFound('Không tìm thấy view hoặc bạn không có quyền truy cập.');
+    }
+    const active = await this.activePublication(id);
+    if (!active) {
+      throw AppError.notFound('View chưa có bản công bố.');
     }
 
     const subjectId = query.subjectId ?? view.subjectId;
@@ -900,9 +909,9 @@ export class StudioService {
     const data = await this.renderSubjectData(user.id, subjectId);
 
     return {
-      view: await this.buildViewSummary(view, editor),
-      config,
-      digest: this.computeDigest(config),
+      view: await this.buildViewSummary(view, false, active),
+      config: active.config,
+      digest: active.digest,
       data,
       checkedAt: new Date().toISOString(),
     };
