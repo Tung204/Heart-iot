@@ -92,43 +92,22 @@ describe('LoginPage', () => {
     expect(document.querySelectorAll('h1')).toHaveLength(1);
   });
 
-  it('chọn vai trò ở “Tài khoản trải nghiệm” thì điền email/mật khẩu, nút không hiện email', async () => {
+  it('không còn khối “Tài khoản trải nghiệm” hay nút tự điền tài khoản', async () => {
     renderApp('/login', () => me401Response());
-    const user = userEvent.setup();
 
     await screen.findByRole('heading', { level: 1, name: 'Đăng nhập' });
-    expect(screen.getByText('Tài khoản trải nghiệm')).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Chủ hồ sơ' })).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Người thân' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Quản trị' })).toBeInTheDocument();
-    expect(screen.queryByText(/@demo\.annhien\.local/)).toBeNull();
 
-    // jsdom không tự mở <details> khi bấm summary: mở trực tiếp rồi bấm nút vai trò.
-    const details = screen.getByText('Tài khoản trải nghiệm').closest('details');
-    expect(details).not.toBeNull();
-    if (details) details.open = true;
+    expect(screen.queryByText('Tài khoản trải nghiệm')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Chủ hồ sơ' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Người thân' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Quản trị' })).toBeNull();
+    expect(document.querySelector('details')).toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Chủ hồ sơ' }));
-
-    expect(screen.getByLabelText(/^Email/)).toHaveValue('ba-an@demo.annhien.local');
-    expect(screen.getByLabelText(/^Mật khẩu/)).toHaveValue('demo-an-nhien-2026');
-  });
-
-  it('Escape đóng “Tài khoản trải nghiệm” và trả focus về summary', async () => {
-    renderApp('/login', () => me401Response());
-    const user = userEvent.setup();
-
-    await screen.findByRole('heading', { level: 1, name: 'Đăng nhập' });
-    const summary = screen.getByText('Tài khoản trải nghiệm');
-    const details = summary.closest('details');
-    expect(details).not.toBeNull();
-    if (!details) return;
-    details.open = true;
-    summary.focus();
-
-    await user.keyboard('{Escape}');
-
-    expect(details.open).toBe(false);
-    expect(summary).toHaveFocus();
+    // Không có nút tự điền, và form công khai bắt đầu trống.
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+    expect(screen.getByLabelText(/^Email/)).toHaveValue('');
+    expect(screen.getByLabelText(/^Mật khẩu/)).toHaveValue('');
+    expect(screen.queryByDisplayValue(/@demo\.annhien\.local/)).toBeNull();
+    expect(document.body.textContent).not.toContain('demo-admin-2026');
   });
 });

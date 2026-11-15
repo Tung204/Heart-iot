@@ -60,6 +60,10 @@ test('điều hướng tới trang đăng nhập từ landing', async ({ page })
   await page.getByRole('link', { name: 'Đăng nhập' }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Đăng nhập' })).toBeVisible();
+  // P1-5: trang đăng nhập công khai không còn khối tự điền tài khoản.
+  await expect(page.getByText('Tài khoản trải nghiệm')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Quản trị' })).toHaveCount(0);
+  await expect(page.getByLabel(/^Email/)).toHaveValue('');
 });
 
 test.describe('landing 390×844', () => {
