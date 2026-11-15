@@ -287,7 +287,7 @@ export function SharePage() {
                 Gửi đường dẫn dưới đây cho <strong>{created.invitation.email}</strong>:
               </p>
               <p className="invite-result__url">{created.acceptUrl}</p>
-              <p className="field__hint">
+              <p className="field__hint invite-result__token">
                 Mã lời mời (chỉ hiển thị lần này): {created.token}
               </p>
               <div className="invite-result__actions">

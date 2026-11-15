@@ -1,11 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, Navigate } from 'react-router-dom';
 import { Alert } from '../../components/Alert';
-import { ButtonLink } from '../../components/Button';
+import { Button, ButtonLink } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
-import { ErrorState } from '../../components/ErrorState';
-import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import { formatDateTime, formatRelativeTime, todayInTimeZone } from '../../lib/format';
 import { getApiErrorMessage } from '../../lib/api';
@@ -37,9 +35,43 @@ const HR_QUALITY_LABELS = {
   sensor_error: 'lỗi cảm biến',
 } as const;
 
+/** Loading cục bộ của một vùng: không chiếm cả trang, không ghi số khi chưa có dữ liệu. */
+function RegionLoading({ label }: { label: string }) {
+  return (
+    <p className="dashboard-region__loading" role="status" aria-busy="true">
+      <span className="dashboard-region__spinner" aria-hidden="true" />
+      <span>{label}</span>
+    </p>
+  );
+}
+
+/** Lỗi cục bộ của một vùng: vùng khác (đặc biệt cảnh báo) vẫn hiển thị bình thường. */
+function RegionError({
+  title,
+  error,
+  onRetry,
+}: {
+  title: string;
+  error: unknown;
+  onRetry: () => void;
+}) {
+  return (
+    <Alert tone="error" title={title}>
+      <p>{getApiErrorMessage(error)} Kiểm tra kết nối và thử lại.</p>
+      <div className="dashboard-region__action">
+        <Button variant="secondary" size="sm" onClick={onRetry}>
+          Thử lại
+        </Button>
+      </div>
+    </Alert>
+  );
+}
+
 /**
  * /app — tổng quan hồ sơ đang xem:
  * cảnh báo đang mở là ưu tiên số một, sau đó là tổng hợp hôm nay và trạng thái thiết bị.
+ * - Ba vùng tải độc lập: cảnh báo (an toàn) hiển thị ngay cả khi status/daily-summary
+ *   đang tải hoặc lỗi; mỗi vùng có loading/error riêng, không dùng loader toàn trang.
  * - Không hiện số 0 giả: thiếu dữ liệu ghi rõ "chưa có".
  * - HR chỉ hiển thị khi có mẫu hợp lệ.
  * - Nguồn mô phỏng luôn được ghi nhãn.
@@ -93,8 +125,7 @@ export function DashboardPage() {
     );
   }
 
-  const anyError = status.isError || summary.isError || openAlerts.isError;
-  const anyPending = status.isPending || summary.isPending || openAlerts.isPending;
+  const alertItems = openAlerts.data?.items ?? [];
 
   return (
     <div className="stack dashboard">
@@ -123,234 +154,241 @@ export function DashboardPage() {
         </div>
       </header>
 
-      {anyPending ? <PageLoader label="Đang tải dữ liệu tổng quan…" /> : null}
-      {anyError ? (
-        <ErrorState
-          title="Không tải được dữ liệu tổng quan"
-          message={
-            getApiErrorMessage(status.error ?? summary.error ?? openAlerts.error) +
-            ' Kiểm tra kết nối và thử lại.'
-          }
-          onRetry={() => {
-            void status.refetch();
-            void summary.refetch();
-            void openAlerts.refetch();
-          }}
-        />
-      ) : null}
-
-      {!anyPending && !anyError ? (
-        <>
-          <section className="dashboard-alerts" aria-labelledby="open-alerts-heading">
-            <div className="dashboard-section-head">
-              <h2 id="open-alerts-heading" className="section-title">
-                Cảnh báo đang mở
-              </h2>
-              {openAlerts.data && openAlerts.data.items.length > 0 ? (
-                <StatusPill tone="brick">
-                  {openAlerts.data.items.length} cần chú ý
-                </StatusPill>
-              ) : (
-                <StatusPill tone="teal">Không có cảnh báo</StatusPill>
-              )}
-            </div>
-            {openAlerts.data && openAlerts.data.items.length > 0 ? (
-              <ul className="alert-list">
-                {openAlerts.data.items.map((item) => (
-                  <li key={item.id} className="alert-row alert-row--high">
-                    <div className="alert-row__main">
-                      <p className="alert-row__title">
-                        <Link to={`/app/alerts/${item.id}`}>
-                          {item.type === 'sos' ? 'Yêu cầu trợ giúp' : 'Nghi ngã'} — cần chú ý
-                        </Link>
-                      </p>
-                      <p className="alert-row__meta">
-                        Phát hiện {formatDateTime(item.detectedAt)} ·{' '}
-                        {item.acknowledgedBy
-                          ? `đã xác nhận bởi ${item.acknowledgedBy.displayName}`
-                          : 'chưa có người xác nhận'}
-                      </p>
-                    </div>
-                    <StatusPill tone="brick">
-                      {item.state === 'acknowledged' ? 'Đã xác nhận' : 'Đang mở'}
-                    </StatusPill>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="dashboard-empty-note">
-                Không có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang đang
-                mở.
-              </p>
-            )}
-            <p className="dashboard-alerts__more">
-              <Link to="/app/alerts">Xem tất cả cảnh báo →</Link>
-            </p>
-          </section>
-
-          <div className="dashboard__grid">
-            <section aria-labelledby="daily-summary-heading" className="dashboard__primary">
-              <div className="dashboard-section-head">
-                <h2 id="daily-summary-heading" className="section-title">
-                  Tổng hợp hôm nay
-                </h2>
-              </div>
-              {summary.data ? (
-                <Card>
-                  {summary.data.source === 'synthetic' ? (
-                    <p className="demo-notice">
-                      <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
-                    </p>
-                  ) : null}
-                  <div className="metric-grid">
-                    <div className="metric">
-                      <p className="metric__label">Nhịp tim</p>
-                      {summary.data.heartRate ? (
-                        <p className="metric__value">
-                          {Math.round(summary.data.heartRate.avg)} bpm
-                          <span className="metric__sub">
-                            thấp {Math.round(summary.data.heartRate.min)} – cao{' '}
-                            {Math.round(summary.data.heartRate.max)} ·{' '}
-                            {summary.data.heartRate.validSamples} mẫu hợp lệ
-                          </span>
-                        </p>
-                      ) : (
-                        <p className="metric__value">Chưa có mẫu nhịp tim hợp lệ hôm nay</p>
-                      )}
-                    </div>
-                    <div className="metric">
-                      <p className="metric__label">Vận động</p>
-                      <p className="metric__value">
-                        {summary.data.steps.total} bước
-                        <span className="metric__sub">
-                          {summary.data.steps.completeness === 'complete'
-                            ? 'đủ dữ liệu'
-                            : summary.data.steps.completeness === 'partial'
-                              ? 'dữ liệu một phần'
-                              : 'chưa đủ dữ liệu'}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="metric">
-                      <p className="metric__label">Pin</p>
-                      <p className="metric__value">
-                        {summary.data.batteryPercent !== null
-                          ? `${summary.data.batteryPercent}%`
-                          : 'Chưa có thông tin pin'}
-                      </p>
-                    </div>
-                    <div className="metric">
-                      <p className="metric__label">Độ phủ dữ liệu</p>
-                      <p className="metric__value">
-                        {summary.data.coverage.percent}%
-                        <span className="metric__sub">
-                          {summary.data.coverage.observedCount} mẫu đã nhận
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="dashboard-summary__footer">
-                    <p className="metric-line">
-                      Cảnh báo hôm nay: {summary.data.incidents.total} (đã đóng{' '}
-                      {summary.data.incidents.resolved}) ·{' '}
-                      {summary.data.lastSeenAt
-                        ? `dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
-                        : 'chưa nhận dữ liệu từ thiết bị'}
-                      {summary.data.gaps.length > 0
-                        ? ` · ${summary.data.gaps.length} khoảng thiếu dữ liệu`
-                        : ''}
-                    </p>
-                    <Link to="/app/history">Xem lịch sử và biểu đồ →</Link>
-                  </div>
-                </Card>
-              ) : null}
-            </section>
-
-            <aside className="dashboard__aside" aria-labelledby="device-status-heading">
-              <div className="dashboard-section-head">
-                <h2 id="device-status-heading" className="section-title">
-                  Thiết bị
-                </h2>
-                <Link to="/app/devices" className="dashboard-section-head__link">
-                  Quản lý
-                </Link>
-              </div>
-              {status.data?.devices.length ? (
-                status.data.devices.map((device) => (
-                  <Card key={device.deviceId} className="device-status-card">
-                    <div className="device-status-card__head">
-                      <p className="device-status-card__name">{device.label || device.serial}</p>
-                      <StatusPill tone={FRESHNESS_TONES[device.freshness]}>
-                        {FRESHNESS_LABELS[device.freshness]}
-                      </StatusPill>
-                    </div>
-                    <dl className="status-list">
-                      <div>
-                        <dt>Kết nối</dt>
-                        <dd>
-                          {device.lastSeenAt
-                            ? `lần nhận cuối ${formatRelativeTime(device.lastSeenAt)}`
-                            : 'chưa từng kết nối'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Nhịp tim gần nhất</dt>
-                        <dd>
-                          {device.lastHeartRateBpm !== null &&
-                          device.lastHeartRateQuality === 'valid' ? (
-                            <strong>{device.lastHeartRateBpm} bpm</strong>
-                          ) : (
-                            'chưa có mẫu hợp lệ'
-                          )}
-                          {device.lastHeartRateQuality &&
-                          device.lastHeartRateQuality !== 'valid' ? (
-                            <span className="metric-line__note">
-                              {' '}
-                              (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
-                            </span>
-                          ) : null}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Pin</dt>
-                        <dd>
-                          {device.batteryPercent !== null
-                            ? `${device.batteryPercent}%`
-                            : 'chưa có thông tin'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Lần đo gần nhất</dt>
-                        <dd>
-                          {device.lastMeasuredAt
-                            ? formatDateTime(device.lastMeasuredAt)
-                            : 'chưa có dữ liệu'}
-                        </dd>
-                      </div>
-                    </dl>
-                  </Card>
-                ))
-              ) : (
-                <Card>
-                  <p>
-                    Chưa gắn thiết bị nào cho hồ sơ này.{' '}
-                    <Link to="/app/devices">Gắn thiết bị</Link> để bắt đầu nhận dữ liệu.
+      {/*
+        Vùng cảnh báo KHÔNG phụ thuộc status/daily-summary: đây là thông tin an toàn,
+        phải hiện ngay khi API alerts trả dữ liệu, kể cả khi vùng khác đang tải/lỗi.
+      */}
+      <section className="dashboard-alerts" aria-labelledby="open-alerts-heading">
+        <div className="dashboard-section-head">
+          <h2 id="open-alerts-heading" className="section-title">
+            Cảnh báo đang mở
+          </h2>
+          {alertItems.length > 0 ? (
+            <StatusPill tone="brick">{alertItems.length} cần chú ý</StatusPill>
+          ) : openAlerts.isSuccess ? (
+            <StatusPill tone="teal">Không có cảnh báo</StatusPill>
+          ) : null}
+        </div>
+        {openAlerts.isPending ? <RegionLoading label="Đang tải cảnh báo đang mở…" /> : null}
+        {openAlerts.isError ? (
+          <RegionError
+            title="Không tải được cảnh báo đang mở"
+            error={openAlerts.error}
+            onRetry={() => void openAlerts.refetch()}
+          />
+        ) : null}
+        {alertItems.length > 0 ? (
+          <ul className="alert-list">
+            {alertItems.map((item) => (
+              <li key={item.id} className="alert-row alert-row--high">
+                <div className="alert-row__main">
+                  <p className="alert-row__title">
+                    <Link to={`/app/alerts/${item.id}`}>
+                      {item.type === 'sos' ? 'Yêu cầu trợ giúp' : 'Nghi ngã'} — cần chú ý
+                    </Link>
                   </p>
-                </Card>
-              )}
-            </aside>
+                  <p className="alert-row__meta">
+                    Phát hiện {formatDateTime(item.detectedAt)} ·{' '}
+                    {item.acknowledgedBy
+                      ? `đã xác nhận bởi ${item.acknowledgedBy.displayName}`
+                      : 'chưa có người xác nhận'}
+                  </p>
+                </div>
+                <StatusPill tone="brick">
+                  {item.state === 'acknowledged' ? 'Đã xác nhận' : 'Đang mở'}
+                </StatusPill>
+              </li>
+            ))}
+          </ul>
+        ) : openAlerts.isSuccess ? (
+          <p className="dashboard-empty-note">
+            Không có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang đang mở.
+          </p>
+        ) : null}
+        <p className="dashboard-alerts__more">
+          <Link to="/app/alerts">Xem tất cả cảnh báo →</Link>
+        </p>
+      </section>
+
+      <div className="dashboard__grid">
+        <section aria-labelledby="daily-summary-heading" className="dashboard__primary">
+          <div className="dashboard-section-head">
+            <h2 id="daily-summary-heading" className="section-title">
+              Tổng hợp hôm nay
+            </h2>
           </div>
+          {summary.isPending ? <RegionLoading label="Đang tải dữ liệu tổng quan…" /> : null}
+          {summary.isError ? (
+            <RegionError
+              title="Không tải được dữ liệu tổng quan"
+              error={summary.error}
+              onRetry={() => void summary.refetch()}
+            />
+          ) : null}
+          {summary.data ? (
+            <Card>
+              {summary.data.source === 'synthetic' ? (
+                <p className="demo-notice">
+                  <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
+                </p>
+              ) : null}
+              <div className="metric-grid">
+                <div className="metric">
+                  <p className="metric__label">Nhịp tim</p>
+                  {summary.data.heartRate ? (
+                    <p className="metric__value">
+                      {Math.round(summary.data.heartRate.avg)} bpm
+                      <span className="metric__sub">
+                        thấp {Math.round(summary.data.heartRate.min)} – cao{' '}
+                        {Math.round(summary.data.heartRate.max)} ·{' '}
+                        {summary.data.heartRate.validSamples} mẫu hợp lệ
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="metric__value">Chưa có mẫu nhịp tim hợp lệ hôm nay</p>
+                  )}
+                </div>
+                <div className="metric">
+                  <p className="metric__label">Vận động</p>
+                  <p className="metric__value">
+                    {summary.data.steps.total} bước
+                    <span className="metric__sub">
+                      {summary.data.steps.completeness === 'complete'
+                        ? 'đủ dữ liệu'
+                        : summary.data.steps.completeness === 'partial'
+                          ? 'dữ liệu một phần'
+                          : 'chưa đủ dữ liệu'}
+                    </span>
+                  </p>
+                </div>
+                <div className="metric">
+                  <p className="metric__label">Pin</p>
+                  <p className="metric__value">
+                    {summary.data.batteryPercent !== null
+                      ? `${summary.data.batteryPercent}%`
+                      : 'Chưa có thông tin pin'}
+                  </p>
+                </div>
+                <div className="metric">
+                  <p className="metric__label">Độ phủ dữ liệu</p>
+                  <p className="metric__value">
+                    {summary.data.coverage.percent}%
+                    <span className="metric__sub">
+                      {summary.data.coverage.observedCount} mẫu đã nhận
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <div className="dashboard-summary__footer">
+                <p className="metric-line">
+                  Cảnh báo hôm nay: {summary.data.incidents.total} (đã đóng{' '}
+                  {summary.data.incidents.resolved}) ·{' '}
+                  {summary.data.lastSeenAt
+                    ? `dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
+                    : 'chưa nhận dữ liệu từ thiết bị'}
+                  {summary.data.gaps.length > 0
+                    ? ` · ${summary.data.gaps.length} khoảng thiếu dữ liệu`
+                    : ''}
+                </p>
+                <Link to="/app/history">Xem lịch sử và biểu đồ →</Link>
+              </div>
+            </Card>
+          ) : null}
+        </section>
 
-          <RecentInsightsCard subjectId={subjectId} />
+        <aside className="dashboard__aside" aria-labelledby="device-status-heading">
+          <div className="dashboard-section-head">
+            <h2 id="device-status-heading" className="section-title">
+              Thiết bị
+            </h2>
+            <Link to="/app/devices" className="dashboard-section-head__link">
+              Quản lý
+            </Link>
+          </div>
+          {status.isPending ? <RegionLoading label="Đang tải trạng thái thiết bị…" /> : null}
+          {status.isError ? (
+            <RegionError
+              title="Không tải được trạng thái thiết bị"
+              error={status.error}
+              onRetry={() => void status.refetch()}
+            />
+          ) : null}
+          {status.data ? (
+            status.data.devices.length ? (
+              status.data.devices.map((device) => (
+                <Card key={device.deviceId} className="device-status-card">
+                  <div className="device-status-card__head">
+                    <p className="device-status-card__name">{device.label || device.serial}</p>
+                    <StatusPill tone={FRESHNESS_TONES[device.freshness]}>
+                      {FRESHNESS_LABELS[device.freshness]}
+                    </StatusPill>
+                  </div>
+                  <dl className="status-list">
+                    <div>
+                      <dt>Kết nối</dt>
+                      <dd>
+                        {device.lastSeenAt
+                          ? `lần nhận cuối ${formatRelativeTime(device.lastSeenAt)}`
+                          : 'chưa từng kết nối'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Nhịp tim gần nhất</dt>
+                      <dd>
+                        {device.lastHeartRateBpm !== null &&
+                        device.lastHeartRateQuality === 'valid' ? (
+                          <strong>{device.lastHeartRateBpm} bpm</strong>
+                        ) : (
+                          'chưa có mẫu hợp lệ'
+                        )}
+                        {device.lastHeartRateQuality &&
+                        device.lastHeartRateQuality !== 'valid' ? (
+                          <span className="metric-line__note">
+                            {' '}
+                            (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
+                          </span>
+                        ) : null}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Pin</dt>
+                      <dd>
+                        {device.batteryPercent !== null
+                          ? `${device.batteryPercent}%`
+                          : 'chưa có thông tin'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Lần đo gần nhất</dt>
+                      <dd>
+                        {device.lastMeasuredAt
+                          ? formatDateTime(device.lastMeasuredAt)
+                          : 'chưa có dữ liệu'}
+                      </dd>
+                    </div>
+                  </dl>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <p>
+                  Chưa gắn thiết bị nào cho hồ sơ này.{' '}
+                  <Link to="/app/devices">Gắn thiết bị</Link> để bắt đầu nhận dữ liệu.
+                </p>
+              </Card>
+            )
+          ) : null}
+        </aside>
+      </div>
 
-          <Alert tone="info" title="Giới hạn của bản demo">
-            Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ. Bản demo không
-            gửi thông báo khi đóng trình duyệt, không tự gọi cấp cứu, và toàn bộ dữ liệu là dữ
-            liệu mô phỏng. Số liệu trên trang chỉ để kiểm thử, không dùng để chẩn đoán hay thay
-            lời khuyên y tế.
-          </Alert>
-        </>
-      ) : null}
+      <RecentInsightsCard subjectId={subjectId} />
+
+      <Alert tone="info" title="Giới hạn của bản demo">
+        Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ. Bản demo không gửi
+        thông báo khi đóng trình duyệt, không tự gọi cấp cứu, và toàn bộ dữ liệu là dữ liệu mô
+        phỏng. Số liệu trên trang chỉ để kiểm thử, không dùng để chẩn đoán hay thay lời khuyên y
+        tế.
+      </Alert>
     </div>
   );
 }
