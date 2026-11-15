@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
 import { AssistantPage } from './AssistantPage';
-import { errorEnvelope, mockResponse, renderPage } from '../../test/utils';
+import { errorEnvelope, INCIDENT, mockResponse, renderPage, SUBJECT_STATUS } from '../../test/utils';
+import { setActiveSubjectId } from '../subjects/selection';
 
 const OWNER_SUBJECT = {
   id: '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b',
@@ -81,8 +82,31 @@ const READY_ANSWER = {
   },
 };
 
+const SECOND_SUBJECT = {
+  ...OWNER_SUBJECT,
+  id: '3f4d5a6b-7c8d-4e9f-8a1b-2c3d4e5f6a7b',
+  displayName: 'Ông Bình',
+};
+
+/** Harness nhỏ mô phỏng SubjectSwitcher: đổi hồ sơ không đổi pathname. */
+function SwitchHarness() {
+  return (
+    <>
+      <button type="button" onClick={() => setActiveSubjectId(SECOND_SUBJECT.id)}>
+        Đổi hồ sơ
+      </button>
+      <AssistantPage />
+    </>
+  );
+}
+
 // Wave 4 — trợ lý: badge mẫu, disclaimer, form hỏi đáp, 429, chặn khi không có quyền.
 describe('AssistantPage', () => {
+  afterEach(() => {
+    setActiveSubjectId(null);
+  });
+
+
   it('summary degraded/template → badge "Tóm tắt theo mẫu" + degradedReason + disclaimer', async () => {
     renderPage(<AssistantPage />, (url) => {
       const u = url;
@@ -192,6 +216,173 @@ describe('AssistantPage', () => {
     expect(askBodies).toHaveLength(0);
   });
 
+  it('hai câu hỏi → hai câu trả lời nối tiếp trong cùng hội thoại, không thay thế câu trước', async () => {
+    let answerCount = 0;
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/assistant/ask')) {
+        answerCount += 1;
+        return mockResponse({ ...READY_ANSWER, answer: `Câu trả lời số ${answerCount}.` });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await screen.findByText('Tóm tắt theo mẫu');
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    expect(await screen.findByText('Câu trả lời số 1.')).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Pin thiết bị còn bao nhiêu?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    expect(await screen.findByText('Câu trả lời số 2.')).toBeInTheDocument();
+
+    // Cả hai lượt vẫn còn trong hội thoại — trợ lý không thay thế câu trả lời cũ.
+    expect(screen.getByText('Câu trả lời số 1.')).toBeInTheDocument();
+    expect(screen.getByText('Nhịp tim hôm nay thế nào?')).toBeInTheDocument();
+    expect(screen.getByText('Pin thiết bị còn bao nhiêu?')).toBeInTheDocument();
+    expect(screen.getAllByText('Bạn').length).toBe(2);
+  });
+
+  it('cột bối cảnh: cảnh báo đang mở, lần nhận cuối và liên kết tới các màn hình', async () => {
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/alerts')) return mockResponse({ items: [INCIDENT], nextCursor: null });
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Bối cảnh' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Cảnh báo đang mở' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('1 cảnh báo')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Xem tất cả cảnh báo' })).toHaveAttribute(
+      'href',
+      '/app/alerts',
+    );
+    expect(screen.getByRole('heading', { name: 'Lần nhận dữ liệu cuối' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Lịch sử đo' })).toHaveAttribute(
+      'href',
+      '/app/history',
+    );
+    expect(screen.getByRole('link', { name: 'Thiết bị' })).toHaveAttribute(
+      'href',
+      '/app/devices',
+    );
+    expect(
+      screen.getByText(/Trợ lý không tự xác nhận hay đóng cảnh báo/),
+    ).toBeInTheDocument();
+  });
+
+  it('thiếu quyền xem số đo → bối cảnh không hiện thời điểm nhận dữ liệu', async () => {
+    const noMeasurements = {
+      ...OWNER_SUBJECT,
+      permissions: { ...OWNER_SUBJECT.permissions, canViewMeasurements: false },
+    };
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [noMeasurements] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/alerts')) return mockResponse({ items: [], nextCursor: null });
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByText(/Chủ hồ sơ không chia sẻ số đo và thời điểm nhận dữ liệu/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Đang kiểm tra kết nối/)).not.toBeInTheDocument();
+  });
+
+  it('đổi hồ sơ → hội thoại cũ biến mất, không hiện câu trả lời của hồ sơ trước', async () => {
+    renderPage(<SwitchHarness />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT, SECOND_SUBJECT] });
+      if (u.includes('/assistant/summary')) {
+        if (u.includes(SECOND_SUBJECT.id)) {
+          return mockResponse({
+            ...DEGRADED_SUMMARY,
+            subjectId: SECOND_SUBJECT.id,
+            headline:
+              'Dữ liệu theo dõi 2026-11-07–2026-11-14: Bản tin của Ông Bình, 80 mẫu đo.',
+          });
+        }
+        return mockResponse(DEGRADED_SUMMARY);
+      }
+      if (u.includes('/assistant/ask')) {
+        return mockResponse({ ...READY_ANSWER, answer: 'Câu trả lời của hồ sơ đầu tiên.' });
+      }
+      if (u.includes('/alerts')) return mockResponse({ items: [], nextCursor: null });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await screen.findByText('Tóm tắt theo mẫu');
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    expect(await screen.findByText('Câu trả lời của hồ sơ đầu tiên.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Đổi hồ sơ' }));
+
+    expect(await screen.findByText(/Bản tin của Ông Bình/)).toBeInTheDocument();
+    expect(screen.queryByText('Câu trả lời của hồ sơ đầu tiên.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nhịp tim hôm nay thế nào?')).not.toBeInTheDocument();
+    expect((screen.getByLabelText(/^Câu hỏi/) as HTMLTextAreaElement).value).toBe('');
+    expect(screen.getAllByText('Ông Bình').length).toBeGreaterThan(0);
+  });
+
+  it('phản hồi về muộn của hồ sơ cũ không append vào hồ sơ mới', async () => {
+    let resolveAsk: ((response: Response) => void) | null = null;
+    renderPage(<SwitchHarness />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT, SECOND_SUBJECT] });
+      if (u.includes('/assistant/summary')) {
+        if (u.includes(SECOND_SUBJECT.id)) {
+          return mockResponse({
+            ...DEGRADED_SUMMARY,
+            subjectId: SECOND_SUBJECT.id,
+            headline:
+              'Dữ liệu theo dõi 2026-11-07–2026-11-14: Bản tin của Ông Bình, 80 mẫu đo.',
+          });
+        }
+        return mockResponse(DEGRADED_SUMMARY);
+      }
+      if (u.includes('/assistant/ask')) {
+        return new Promise<Response>((resolve) => {
+          resolveAsk = resolve;
+        });
+      }
+      if (u.includes('/alerts')) return mockResponse({ items: [], nextCursor: null });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await screen.findByText('Tóm tắt theo mẫu');
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Pin thiết bị còn bao nhiêu?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    await waitFor(() => expect(document.querySelector('.assistant-msg--pending')).not.toBeNull());
+
+    await user.click(screen.getByRole('button', { name: 'Đổi hồ sơ' }));
+    expect(await screen.findByText(/Bản tin của Ông Bình/)).toBeInTheDocument();
+    // Không còn loading/câu hỏi của hồ sơ cũ trong lúc chờ phản hồi.
+    expect(document.querySelector('.assistant-msg--pending')).toBeNull();
+    expect(screen.queryByText('Pin thiết bị còn bao nhiêu?')).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveAsk?.(
+        mockResponse({ ...READY_ANSWER, answer: 'Câu trả lời cũ không được hiện.' }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText('Câu trả lời cũ không được hiện.')).not.toBeInTheDocument();
+  });
+
   it('429 RATE_LIMITED → thông báo giới hạn tần suất', async () => {
     renderPage(<AssistantPage />, (url, init) => {
       const u = url;
@@ -231,5 +422,105 @@ describe('AssistantPage', () => {
 
     expect(await screen.findByText('Hồ sơ đang chọn chưa bật trợ lý AI')).toBeInTheDocument();
     expect(assistantCalls).toHaveLength(0);
+  });
+
+  it('summary 403 (thiếu quyền số đo) → thông báo quyền, không mời thử lại vô ích', async () => {
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) {
+        return mockResponse(
+          errorEnvelope('Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.', 'FORBIDDEN'),
+          403,
+        );
+      }
+      if (u.includes('/alerts')) return mockResponse({ items: [], nextCursor: null });
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText('Chủ hồ sơ không chia sẻ số đo')).toBeInTheDocument();
+    expect(
+      screen.getByText(/không chia sẻ số đo và lịch sử với bạn, nên trợ lý không có dữ liệu/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Làm mới' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeDisabled();
+    expect(
+      screen.getByText(/Trợ lý cần quyền xem số đo để trả lời/),
+    ).toBeInTheDocument();
+  });
+
+  it('ask 403 → thông báo quyền, không hướng dẫn "Hãy thử lại"', async () => {
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/assistant/ask')) {
+        return mockResponse(
+          errorEnvelope('Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn.', 'FORBIDDEN'),
+          403,
+        );
+      }
+      if (u.includes('/alerts')) return mockResponse({ items: [], nextCursor: null });
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await screen.findByText('Tóm tắt theo mẫu');
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+
+    expect(await screen.findByText('Chủ hồ sơ không chia sẻ số đo')).toBeInTheDocument();
+    expect(screen.queryByText(/Hãy thử lại/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeDisabled();
+  });
+
+  it('cảnh báo 403 → "Bạn không có quyền xem cảnh báo", không có nút tải lại', async () => {
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/alerts')) {
+        return mockResponse(
+          errorEnvelope('Bạn không có quyền xem cảnh báo.', 'FORBIDDEN'),
+          403,
+        );
+      }
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByText(/Bạn không có quyền xem cảnh báo của hồ sơ này/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Chưa tải được số cảnh báo đang mở.')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument();
+  });
+
+  it('caregiver thiếu canReceiveAlerts → không gọi API cảnh báo, hiện thông báo quyền', async () => {
+    const noAlerts = {
+      ...OWNER_SUBJECT,
+      role: 'caregiver',
+      permissions: { ...OWNER_SUBJECT.permissions, canReceiveAlerts: false },
+    };
+    let alertCalls = 0;
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [noAlerts] });
+      if (u.includes('/assistant/summary')) return mockResponse(DEGRADED_SUMMARY);
+      if (u.includes('/alerts')) {
+        alertCalls += 1;
+        return mockResponse({ items: [], nextCursor: null });
+      }
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByText(/Bạn không có quyền xem cảnh báo của hồ sơ này/),
+    ).toBeInTheDocument();
+    expect(alertCalls).toBe(0);
   });
 });

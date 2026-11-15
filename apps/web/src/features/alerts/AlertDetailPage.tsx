@@ -344,8 +344,8 @@ export function AlertDetailPage() {
             </form>
           ) : null}
           <p className="field__hint">
-            Cảnh báo trong bản demo chỉ là mô phỏng. Khi có người thân gặp nạn thật, hãy gọi
-            cấp cứu theo số khẩn cấp địa phương — ứng dụng không tự gọi.
+            Dữ liệu cảnh báo hiển thị là dữ liệu mô phỏng. Khi có người thân cần hỗ trợ khẩn cấp,
+            hãy gọi cấp cứu theo số khẩn cấp địa phương — ứng dụng không tự gọi.
           </p>
         </section>
       ) : (

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { DemoNotice } from '../../components/DemoNotice';
 import { SkipLink } from '../../components/SkipLink';
 
 interface AuthLayoutProps {
@@ -11,7 +10,7 @@ interface AuthLayoutProps {
   footer?: ReactNode;
 }
 
-/** Khung trang đăng nhập/đăng ký: thẻ giữa màn hình + nhãn demo. */
+/** Khung trang đăng nhập/đăng ký: thẻ giữa màn hình + giới hạn dữ liệu hiển thị. */
 export function AuthLayout({ title, intro, children, footer }: AuthLayoutProps) {
   return (
     <div className="public">
@@ -29,7 +28,10 @@ export function AuthLayout({ title, intro, children, footer }: AuthLayoutProps) 
           {intro ? <p className="auth-card__intro">{intro}</p> : null}
           {children}
         </section>
-        <DemoNotice />
+        <p className="demo-notice">
+          Dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Thông tin không dùng để chẩn đoán
+          hay thay lời khuyên y tế.
+        </p>
         {footer}
       </main>
     </div>

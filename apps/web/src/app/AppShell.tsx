@@ -5,7 +5,6 @@ import { Alert } from '../components/Alert';
 import { AppErrorBoundary } from '../components/AppErrorBoundary';
 import { Button, ButtonLink } from '../components/Button';
 import { SkipLink } from '../components/SkipLink';
-import { StatusPill } from '../components/StatusPill';
 import { TextSizeToggle } from '../components/TextSizeToggle';
 import { useLogout, useMe } from '../features/auth/useAuth';
 import { useUnreadNotifications } from '../features/notifications/useUnreadNotifications';
@@ -15,7 +14,16 @@ import { useSubjects } from '../features/subjects/useSubjects';
 import { SubjectSwitcher } from '../features/subjects/SubjectSwitcher';
 import { queryKeys } from '../lib/query';
 
-type NavIconName = 'home' | 'history' | 'alert' | 'device' | 'bell' | 'person' | 'more' | 'admin';
+type NavIconName =
+  | 'chat'
+  | 'home'
+  | 'history'
+  | 'alert'
+  | 'device'
+  | 'bell'
+  | 'person'
+  | 'more'
+  | 'admin';
 
 /**
  * Đưa người dùng về đầu nội dung khi đổi trang trong /app.
@@ -62,6 +70,12 @@ function useRouteTransition(pathname: string): { path: string; animate: boolean 
 
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, ReactNode> = {
+    chat: (
+      <>
+        <path d="M4 5.5h16v10.5H9.5L4 20z" />
+        <path d="M8 9h8M8 12.5h5" />
+      </>
+    ),
     home: <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />,
     history: (
       <>
@@ -149,7 +163,7 @@ function UnreadBadge({ count }: { count: number }) {
  * - Badge số thông báo chưa đọc (mọi hồ sơ) + banner “Có thông báo mới…” khi
  *   người dùng đang ở trang khác; tải lại 20 giây hoặc ngay khi SSE báo.
  * - Mất SSE → banner “Mất cập nhật trực tiếp — đang thử lại” cho tới khi nối lại.
- * - Bị thu hồi quyền (`revoked`) → thông báo rõ + điều hướng về /app an toàn.
+ * - Bị thu hồi quyền (`revoked`) → thông báo rõ + điều hướng về không gian trợ lý an toàn.
  */
 export function AppShell() {
   const me = useMe();
@@ -203,12 +217,10 @@ export function AppShell() {
   const realtimeLost = subjectEvents.retryAttempt > 0 && subjectEvents.status !== 'revoked';
 
   // Quyền hiển thị mục nav phụ (backend vẫn là nơi kiểm quyền thật):
-  // Trợ lý: chủ hồ sơ hoặc caregiver có canViewAi. Công việc: chủ/caregiver có
+  // Trợ lý nằm ở nav chính (trung tâm sản phẩm); trang tự giải thích khi hồ sơ
+  // đang chọn không có quyền xem AI. Công việc: chủ/caregiver có
   // canReceiveAlerts, hoặc admin (thấy task không gắn hồ sơ). Studio: chủ hồ sơ/admin.
   // Quản trị: chỉ admin.
-  const hasAiPermission = subjectsData.some(
-    (subject) => subject.role === 'owner' || subject.permissions.canViewAi,
-  );
   const hasTasksPermission =
     isAdmin ||
     subjectsData.some((subject) => subject.role === 'owner' || subject.permissions.canReceiveAlerts);
@@ -227,7 +239,8 @@ export function AppShell() {
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `shell__nav-link${isActive ? ' is-active' : ''}`;
 
-  // Bottom-nav trên mobile không quá 6 mục: 6 mục chính + menu phụ "Thêm".
+  // Bottom-nav trên mobile không quá 6 mục: 5 mục chính + menu phụ "Thêm".
+  // Trợ lý đứng đầu vì đây là không gian mặc định của sản phẩm; Tổng quan thứ hai.
   const navItems = adminOnly ? (
     <>
       <NavLink to="/app/admin" className={navLinkClass}>
@@ -242,6 +255,10 @@ export function AppShell() {
   ) : (
     <>
       <NavLink to="/app" end className={navLinkClass}>
+        <NavIcon name="chat" />
+        <span>Trợ lý</span>
+      </NavLink>
+      <NavLink to="/app/overview" className={navLinkClass}>
         <NavIcon name="home" />
         <span>Tổng quan</span>
       </NavLink>
@@ -279,7 +296,6 @@ export function AppShell() {
       badge: notifications.unreadCount,
     });
   }
-  if (hasAiPermission) moreItems.push({ to: '/app/assistant', label: 'Trợ lý' });
   if (hasTasksPermission) moreItems.push({ to: '/app/tasks', label: 'Công việc' });
   moreItems.push({ to: '/app/settings', label: 'Cài đặt tài khoản' });
   if (isStudioUser) moreItems.push({ to: '/app/studio', label: 'Studio' });
@@ -330,13 +346,10 @@ export function AppShell() {
           <Link to="/app" className="brand">
             An Nhiên
           </Link>
-          <p className="shell__tagline">Theo dõi người thân</p>
+          <p className="shell__tagline">Trợ lý theo dõi người thân</p>
         </div>
-        <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
-        {/* Đặt ở đầu sidebar để không bị cắt khi sidebar cao hơn màn hình. */}
-        <p className="shell__safety-note">
-          Cảnh báo chỉ hiển thị khi trang đang mở. Bản demo không tự gọi cấp cứu.
-        </p>
+        {/* Giới hạn thật, ngắn: không lặp nhãn "dữ liệu mô phỏng" ở mọi trang. */}
+        <p className="shell__safety-note">Cảnh báo chỉ cập nhật khi ứng dụng đang mở.</p>
         <nav className="shell__nav" aria-label="Điều hướng ứng dụng">
           {navItems}
           {moreMenu}
@@ -383,8 +396,7 @@ export function AppShell() {
               </Button>
             </div>
           </div>
-          {/* Nhãn demo luôn đọc được trên mobile, không chỉ logo “Bản demo”. */}
-          <p className="shell__mobile-demo">Bản demo · dữ liệu mô phỏng</p>
+          {/* Không còn nhãn lặp lại trên topbar; giới hạn an toàn nằm cuối nội dung. */}
           {logoutError ? (
             <p className="shell__error" role="alert">
               {logoutError}
@@ -450,10 +462,9 @@ export function AppShell() {
                 <Outlet />
               </AppErrorBoundary>
             </div>
-            {/* Mobile không có sidebar: nhắc giới hạn demo ở cuối nội dung, không bị ẩn. */}
+            {/* Mobile không có sidebar: nhắc giới hạn an toàn ở cuối nội dung, không bị ẩn. */}
             <p className="shell__mobile-safety-note">
-              Cảnh báo chỉ hiển thị khi trang đang mở và kết nối với máy chủ. Bản demo không tự
-              gọi cấp cứu.
+              Cảnh báo chỉ cập nhật khi ứng dụng đang mở.
             </p>
           </div>
         </main>

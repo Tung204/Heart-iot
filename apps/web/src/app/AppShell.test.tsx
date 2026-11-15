@@ -224,45 +224,64 @@ async function openMoreMenu(user: ReturnType<typeof userEvent.setup>) {
 }
 
 // Wave 4 — nav ẩn/hiện theo role và quyền hồ sơ (menu phụ "Thêm").
+// v3 — Trợ lý là không gian mặc định, nằm ở nav chính (không nằm trong "Thêm").
 describe('AppShell — menu điều hướng theo quyền', () => {
-  it('admin → menu phụ có Trợ lý, Công việc, Studio, Quản trị', async () => {
+  it('admin → nav chính có Trợ lý/Tổng quan; menu phụ có Công việc, Studio, Quản trị', async () => {
     renderShell({ user: ADMIN }, SUBJECTS);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
+    expect(screen.getAllByRole('link', { name: 'Trợ lý' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Tổng quan' }).length).toBeGreaterThan(0);
     await openMoreMenu(user);
 
     expect(screen.getAllByRole('link', { name: 'Quản trị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Trợ lý' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Công việc' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Studio' }).length).toBeGreaterThan(0);
   });
 
-  it('chủ hồ sơ → có Trợ lý, Công việc, Studio nhưng KHÔNG có Quản trị', async () => {
+  it('chủ hồ sơ → nav chính có Trợ lý; menu phụ có Công việc, Studio nhưng KHÔNG có Quản trị', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
+    expect(screen.getAllByRole('link', { name: 'Trợ lý' }).length).toBeGreaterThan(0);
     await openMoreMenu(user);
 
-    expect(screen.getAllByRole('link', { name: 'Trợ lý' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Công việc' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Studio' }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Quản trị' })).not.toBeInTheDocument();
   });
 
-  it('caregiver không có canViewAi/canReceiveAlerts → menu Thêm chỉ còn Thiết bị/Thông báo', async () => {
+  it('caregiver không có canViewAi/canReceiveAlerts → nav chính vẫn có Trợ lý, "Thêm" chỉ Thiết bị/Thông báo', async () => {
     renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
     const user = userEvent.setup();
 
     await screen.findByText('nội dung trang');
+    // Trợ lý là trung tâm: luôn có lối vào; trang tự báo khi hồ sơ thiếu quyền AI.
+    expect(screen.getAllByRole('link', { name: 'Trợ lý' }).length).toBeGreaterThan(0);
     await openMoreMenu(user);
 
+    const moreMenu = document.querySelector('.shell__sidebar .shell__more-menu');
+    expect(moreMenu).not.toBeNull();
+    expect(moreMenu?.querySelector('a[href="/app/assistant"]')).toBeNull();
     expect(screen.getAllByRole('link', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Thông báo' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('link', { name: 'Trợ lý' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Công việc' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Studio' })).not.toBeInTheDocument();
+  });
+
+  it('desktop: Trợ lý đứng đầu, Tổng quan thứ hai, đều trỏ đúng route', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+
+    const nav = document.querySelector('.shell__sidebar .shell__nav');
+    expect(nav).not.toBeNull();
+    const links = Array.from(nav?.querySelectorAll('a') ?? []);
+    expect(links[0]).toHaveTextContent('Trợ lý');
+    expect(links[0]).toHaveAttribute('href', '/app');
+    expect(links[1]).toHaveTextContent('Tổng quan');
+    expect(links[1]).toHaveAttribute('href', '/app/overview');
   });
 });
 
@@ -341,16 +360,17 @@ describe('AppShell — điều hướng đưa về đầu nội dung', () => {
   });
 });
 
-// P1-5 (review UX v2) — nhãn "dữ liệu mô phỏng" và giới hạn cảnh báo phải có
-// ở mọi breakpoint: sidebar (desktop), topbar + cuối nội dung (mobile).
-describe('AppShell — nhãn demo và giới hạn cảnh báo', () => {
-  it('luôn có nhãn mô phỏng và câu giới hạn cảnh báo cho mobile lẫn desktop', async () => {
+// P1-5 (review UX v2) — câu giới hạn cảnh báo phải có ở mọi breakpoint,
+// nhưng không lặp nhãn "Bản demo · dữ liệu mô phỏng" toàn trang (v3).
+describe('AppShell — giới hạn cảnh báo, không nhãn demo', () => {
+  it('giữ câu giới hạn cảnh báo cho mobile lẫn desktop và không còn nhãn demo', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     await screen.findByText('nội dung trang');
 
-    expect(screen.getAllByText('Bản demo · dữ liệu mô phỏng').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/bản demo/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/dữ liệu mô phỏng/i)).not.toBeInTheDocument();
 
-    const safetyNotes = screen.getAllByText(/Cảnh báo chỉ hiển thị khi trang đang mở/);
+    const safetyNotes = screen.getAllByText('Cảnh báo chỉ cập nhật khi ứng dụng đang mở.');
     expect(safetyNotes.length).toBeGreaterThanOrEqual(2);
     // Một bản nằm trong sidebar (desktop), một bản nằm cuối nội dung (mobile).
     expect(safetyNotes.some((note) => note.className.includes('shell__safety-note'))).toBe(true);

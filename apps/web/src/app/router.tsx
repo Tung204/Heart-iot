@@ -66,9 +66,10 @@ function page(element: ReactNode): ReactNode {
 /**
  * Sơ đồ route:
  * - Công khai: / (landing), /login, /register, /invite/:token, * (404).
- * - Bảo vệ (/app): tổng quan, lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
- *   thiết bị, thông báo, trợ lý, công việc, cài đặt, Studio, quản trị.
- *   Route lạ → 404 trong khung.
+ * - Bảo vệ (/app): `/app` mở không gian trợ lý (trung tâm), tổng quan chi tiết
+ *   ở `/app/overview`; sau đó là lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
+ *   thiết bị, thông báo, trợ lý (giữ đường dẫn cũ), công việc, cài đặt, Studio,
+ *   quản trị. Route lạ → 404 trong khung.
  */
 export const appRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
@@ -82,7 +83,8 @@ export const appRoutes: RouteObject[] = [
       {
         element: <AppShell />,
         children: [
-          { index: true, element: page(<DashboardPage />) },
+          { index: true, element: page(<AssistantPage />) },
+          { path: 'overview', element: page(<DashboardPage />) },
           { path: 'history', element: page(<HistoryPage />) },
           { path: 'alerts', element: page(<AlertsPage />) },
           { path: 'alerts/:id', element: page(<AlertDetailPage />) },

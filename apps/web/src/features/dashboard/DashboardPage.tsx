@@ -410,11 +410,10 @@ export function DashboardPage() {
 
       <RecentInsightsCard subjectId={subjectId} />
 
-      <Alert tone="info" title="Giới hạn của bản demo">
-        Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ. Bản demo không gửi
-        thông báo khi đóng trình duyệt, không tự gọi cấp cứu, và toàn bộ dữ liệu là dữ liệu mô
-        phỏng. Số liệu trên trang chỉ để kiểm thử, không dùng để chẩn đoán hay thay lời khuyên y
-        tế.
+      <Alert tone="info" title="Giới hạn cần biết">
+        Cảnh báo chỉ cập nhật khi trang web đang mở và còn kết nối với máy chủ. Hệ thống không gửi
+        thông báo khi đóng trình duyệt và không tự gọi cấp cứu. Dữ liệu hiển thị là dữ liệu mô
+        phỏng; số liệu trên trang không dùng để chẩn đoán hay thay lời khuyên y tế.
       </Alert>
     </div>
   );

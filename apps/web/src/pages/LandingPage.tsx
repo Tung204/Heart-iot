@@ -17,14 +17,32 @@ const STEPS = [
       'Thiết bị gửi dữ liệu về máy chủ An Nhiên. Hệ thống lưu lịch sử và phát hiện bất thường theo quy tắc đã cấu hình.',
   },
   {
-    title: 'Người thân nắm tình hình',
+    title: 'Trợ lý tóm tắt, người thân quyết định',
     description:
-      'Người thân được mời xem trạng thái hằng ngày và nhận cảnh báo trên trang web để phối hợp hỗ trợ kịp thời.',
+      'Người thân mở trợ lý để xem tóm tắt, hỏi về số liệu và nhận cảnh báo trên web. Cảnh báo vẫn do hệ thống tạo độc lập với trợ lý.',
+  },
+];
+
+const ASSISTANT_POINTS = [
+  {
+    title: 'Hỏi như đang trò chuyện',
+    description:
+      'Hỏi về nhịp tim, số mẫu, pin, cảnh báo đang mở hay lịch sử đo. Câu trả lời nối tiếp trong cùng cuộc hội thoại.',
+  },
+  {
+    title: 'Luôn kèm bối cảnh dữ liệu',
+    description:
+      'Mỗi câu trả lời nêu độ phủ, khoảng thiếu, nguồn dữ liệu mô phỏng và giới hạn — không biến dữ liệu thiếu thành kết luận.',
+  },
+  {
+    title: 'Cảnh báo không phụ thuộc AI',
+    description:
+      'Cảnh báo được tạo và cập nhật bởi hệ thống. Trợ lý không tự xác nhận, không tự đóng và không thay người thân xử lý.',
   },
 ];
 
 const BOUNDARIES = [
-  'Bản demo dùng dữ liệu tổng hợp từ thiết bị mô phỏng — không dùng cho quyết định y tế.',
+  'Dữ liệu hiển thị là dữ liệu mô phỏng từ thiết bị mô phỏng — không dùng cho quyết định y tế.',
   'Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ.',
   'Hệ thống không tự gọi cấp cứu và không gửi thông báo khi trình duyệt đã đóng.',
   'Phát hiện té ngã là phần đang hoàn thiện; độ chính xác chưa được đo trên dữ liệu thật.',
@@ -39,22 +57,23 @@ export function LandingPage() {
         <section className="hero" aria-labelledby="hero-title">
           <div className="container hero__inner">
             <div className="hero__copy">
-              <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
+              <StatusPill tone="teal">Trợ lý theo dõi người thân</StatusPill>
               <h1 id="hero-title" className="hero__title">
                 Người thân ở nhà, mình vẫn an tâm
               </h1>
               <p className="hero__lead">
-                An Nhiên theo dõi nhịp tim, vận động và gửi cảnh báo khi có dấu hiệu bất thường —
-                để người thân biết tình hình mà không cần gọi hỏi liên tục.
+                An Nhiên theo dõi nhịp tim, vận động và gửi cảnh báo khi có dấu hiệu bất thường.
+                Trợ lý trong ứng dụng tổng hợp số liệu đã kiểm quyền để người thân biết tình hình
+                và việc gì cần xử lý — không cần gọi hỏi liên tục.
               </p>
               <div className="hero__actions">
-                <ButtonLink to="/login">Đăng nhập</ButtonLink>
+                <ButtonLink to="/app">Mở trợ lý</ButtonLink>
                 <ButtonLink to="/register" variant="secondary">
                   Tạo tài khoản
                 </ButtonLink>
               </div>
               <p className="hero__note">
-                Miễn phí dùng thử trong bản demo. Không thay thế thiết bị y tế hoặc cấp cứu.
+                Dữ liệu hiển thị là dữ liệu mô phỏng. Không thay thế thiết bị y tế hoặc cấp cứu.
               </p>
             </div>
             <div className="hero-preview" aria-hidden="true">
@@ -92,9 +111,7 @@ export function LandingPage() {
                   </li>
                 </ul>
               </div>
-              <p className="hero-preview__foot">
-                Hình minh hoạ · không phải số đo thật
-              </p>
+              <p className="hero-preview__foot">Hình minh hoạ · không phải số đo thật</p>
             </div>
           </div>
         </section>
@@ -105,9 +122,10 @@ export function LandingPage() {
               Vì sao An Nhiên?
             </h2>
             <p className="section__lead">
-              Người lớn tuổi thường ở nhà một mình trong lúc con cháu đi làm. Một cú ngã hoặc
-              một dấu hiệu sức khỏe bất thường có thể không được phát hiện kịp. An Nhiên kết nối
-              thiết bị đeo với trang web để người thân nắm được tình hình hằng ngày.
+              Người lớn tuổi thường ở nhà một mình trong lúc con cháu đi làm. Một cú ngã hoặc một
+              dấu hiệu sức khỏe bất thường có thể không được phát hiện kịp. An Nhiên kết nối thiết
+              bị đeo với trợ lý trên web để người thân nắm được tình hình hằng ngày và biết khi nào
+              cần can thiệp.
             </p>
           </div>
         </section>
@@ -131,10 +149,30 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="section" aria-labelledby="limits-heading">
+        <section className="section" aria-labelledby="assistant-heading">
+          <div className="container">
+            <h2 id="assistant-heading" className="section-title">
+              Trợ lý ở trung tâm
+            </h2>
+            <p className="section__lead">
+              Mở ứng dụng là vào thẳng không gian trợ lý. Các màn hình còn lại là công cụ để kiểm
+              chứng và xử lý việc trợ lý nêu ra.
+            </p>
+            <div className="steps">
+              {ASSISTANT_POINTS.map((point) => (
+                <div className="step" key={point.title}>
+                  <h3 className="step__title">{point.title}</h3>
+                  <p className="step__desc">{point.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--tinted" aria-labelledby="limits-heading">
           <div className="container">
             <h2 id="limits-heading" className="section-title">
-              Ranh giới an toàn của bản demo
+              Ranh giới an toàn
             </h2>
             <p className="section__lead">
               Chúng tôi nói rõ những gì hệ thống KHÔNG làm, để bạn không chờ đợi sai:
@@ -149,13 +187,13 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="section section--tinted" aria-labelledby="cta-heading">
+        <section className="section" aria-labelledby="cta-heading">
           <div className="container cta-band">
             <h2 id="cta-heading" className="section-title">
-              Bắt đầu theo dõi người thân
+              Bắt đầu với trợ lý
             </h2>
             <p className="section__lead">
-              Tạo tài khoản, lập hồ sơ và gắn thiết bị mô phỏng trong vài bước.
+              Tạo tài khoản, lập hồ sơ và trò chuyện với trợ lý về số liệu theo dõi của người thân.
             </p>
             <div className="cta-band__actions">
               <ButtonLink to="/register">Tạo tài khoản</ButtonLink>
