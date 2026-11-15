@@ -1,17 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, inArray, isNotNull, lte, notInArray } from 'drizzle-orm';
+import { and, asc, eq, gte, inArray, isNotNull, isNull, lte, notInArray, or } from 'drizzle-orm';
 import { z } from 'zod';
+import { isSyntheticDataSource } from '@annhien/contracts';
 import {
   ASSISTANT_DISCLAIMER,
   assistantSummarySchema,
   type AssistantAnswer,
   type AssistantAsk,
+  type AssistantDataQuality,
   type AssistantFact,
   type AssistantSection,
   type AssistantSource,
   type AssistantSummary,
   type AssistantSummaryQuery,
 } from '@annhien/contracts/assistant';
+import type { MeasurementGapReason } from '@annhien/contracts/measurements';
 import { DB, type AppDb } from '../database/database';
 import {
   aiSummaries,
@@ -24,6 +27,7 @@ import {
 import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
+import { PolicyService } from '../policy/policy.service';
 import {
   ASSISTANT_AI_ADAPTER,
   AssistantAdapterError,
@@ -31,6 +35,7 @@ import {
   type AssistantChatMessage,
   type AssistantCompletion,
 } from './assistant-adapter';
+import { coverageCounts } from '../measurements/insights';
 
 /**
  * Trợ lý AI — tóm tắt khoảng dữ liệu và hỏi đáp trên số liệu đã tổng hợp.
@@ -46,6 +51,21 @@ import {
 const DEFAULT_WINDOW_MS = 7 * 24 * 3600 * 1000;
 const MAX_WINDOW_MS = 31 * 24 * 3600 * 1000;
 const ASK_WINDOW_MS = 7 * 24 * 3600 * 1000;
+
+/**
+ * Ngưỡng diễn đạt chất lượng dữ liệu. Không phải ngưỡng y khoa: chỉ dùng để
+ * chọn câu chữ cảnh báo trong tóm tắt/câu trả lời, không chặn bất kỳ lượt đọc nào.
+ */
+const LOW_COVERAGE_PERCENT = 90;
+const MANY_GAP_COUNT = 3;
+/** Khoảng thiếu nếu hai mốc cách nhau quá 1,5 nhịp tim kỳ vọng (giống daily-summary). */
+const GAP_THRESHOLD_FACTOR = 1.5;
+
+const GAP_REASON_LABELS: Record<MeasurementGapReason, string> = {
+  no_data: 'không có dữ liệu',
+  clock_unsynced: 'đồng hồ chưa đồng bộ',
+  quarantined: 'mẫu bị cách ly',
+};
 
 /** Giới hạn tần suất hỏi đáp: 10 câu / 5 phút / user, lưu trong bộ nhớ một tiến trình. */
 const RATE_LIMIT_MAX = 10;
@@ -108,6 +128,8 @@ const SUMMARY_SYSTEM_PROMPT = [
   'Quy tắc bắt buộc:',
   '- Chỉ dùng các facts được cung cấp; không bịa số, không ước đoán, không điền dữ liệu thiếu.',
   '- Thiếu dữ liệu thì ghi rõ "không có dữ liệu"; không thay bằng 0 hay giá trị giả định.',
+  '- Phải đọc khối dataQuality. Khi observedCount < expectedCount hoặc gaps.count > 0, nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình; không mô tả "bình thường"/"ổn định" khi dữ liệu thiếu.',
+  '- Khi dataQuality.synthetic = true, phải ghi rõ "dữ liệu mô phỏng". Nêu dataQuality.lastSeenAt nếu có.',
   '- Không chẩn đoán bệnh, không kê đơn thuốc, không dự đoán nguy cơ y khoa, không tư vấn y tế.',
   '- Trả lời bằng tiếng Việt.',
   '- Trả về đúng một JSON, không kèm văn bản nào khác, theo cấu trúc:',
@@ -119,6 +141,8 @@ const ASK_SYSTEM_PROMPT = [
   'Bạn là trợ lý hỏi đáp về dữ liệu theo dõi sức khỏe của hệ thống An Nhiên.',
   'Quy tắc bắt buộc:',
   '- Chỉ trả lời dựa trên các facts được cung cấp; không bịa số, không suy đoán dữ liệu không có.',
+  '- Phải đọc khối dataQuality: khi observedCount < expectedCount hoặc gaps.count > 0, nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình; không mô tả "bình thường"/"ổn định" khi dữ liệu thiếu.',
+  '- Khi dataQuality.synthetic = true, phải ghi rõ "dữ liệu mô phỏng". Nêu dataQuality.lastSeenAt nếu có.',
   '- Không chẩn đoán bệnh, không kê đơn thuốc, không dự đoán nguy cơ y khoa, không tư vấn y tế.',
   '- Câu hỏi nằm ngoài dữ liệu được cung cấp thì từ chối lịch sự và gợi ý hỏi về số liệu (nhịp tim, số mẫu đo, pin, cảnh báo, công việc bảo trì).',
   '- Trả lời bằng tiếng Việt.',
@@ -137,6 +161,8 @@ export type FactsAggregate = {
     latest: { type: string; state: string; detectedAt: string } | null;
   };
   tasks: { open: number; titles: string[] };
+  /** Chất lượng dữ liệu: độ phủ, khoảng thiếu, lần nhận cuối, nguồn mô phỏng. */
+  dataQuality: AssistantDataQuality;
 };
 
 const modelFactSchema = z.object({
@@ -225,6 +251,163 @@ function toSafeFact(fact: z.infer<typeof modelFactSchema>): AssistantFact {
   return result;
 }
 
+function isIncompleteQuality(quality: AssistantDataQuality): boolean {
+  return quality.observedCount < quality.expectedCount || quality.gaps.count > 0;
+}
+
+/** Câu cố định để template và guard AI cùng nói đúng một cách. */
+function qualitySentence(quality: AssistantDataQuality): string {
+  return `Chỉ từ ${quality.observedCount} mẫu, độ phủ ${quality.coveragePercent}%, ${quality.gaps.count} khoảng thiếu dữ liệu.`;
+}
+
+function gapReasonText(reasons: MeasurementGapReason[]): string {
+  if (reasons.length === 0) return 'không rõ lý do';
+  return reasons.map((reason) => GAP_REASON_LABELS[reason]).join(', ');
+}
+
+/** Khoảng thiếu theo cùng ngưỡng 1,5 nhịp tim kỳ vọng của daily-summary. */
+function computeQualityGaps(
+  from: Date,
+  to: Date,
+  intervalSeconds: number,
+  measuredAts: Date[],
+  unsyncedCount: number,
+  quarantinedCount: number,
+): AssistantDataQuality['gaps'] {
+  if (to.getTime() <= from.getTime()) return { count: 0, reasons: [] };
+  const reasons = new Set<MeasurementGapReason>();
+  const mark = (reason: MeasurementGapReason): void => {
+    reasons.add(reason);
+  };
+  const thresholdMs = intervalSeconds * 1000 * GAP_THRESHOLD_FACTOR;
+
+  if (measuredAts.length === 0) {
+    if (unsyncedCount > 0) mark('clock_unsynced');
+    if (quarantinedCount > 0) mark('quarantined');
+    // Không có mốc tin cậy và cũng không có mẫu bị loại: cả khoảng thiếu dữ liệu.
+    if (reasons.size === 0) mark('no_data');
+    return { count: 1, reasons: [...reasons] };
+  }
+
+  let count = 0;
+  let previous: Date | null = null;
+  for (const current of measuredAts) {
+    const reference = previous ?? from;
+    if (current.getTime() - reference.getTime() > thresholdMs) {
+      count += 1;
+      mark('no_data');
+    }
+    previous = current;
+  }
+  if (previous && to.getTime() - previous.getTime() > thresholdMs) {
+    count += 1;
+    mark('no_data');
+  }
+  return { count, reasons: [...reasons] };
+}
+
+function buildDataQuality(input: {
+  from: Date;
+  to: Date;
+  intervalSeconds: number;
+  measuredAts: Date[];
+  unsyncedCount: number;
+  quarantinedCount: number;
+  heartRateValidSamples: number;
+  synthetic: boolean;
+}): AssistantDataQuality {
+  const { from, to, intervalSeconds, measuredAts, synthetic } = input;
+  const { percent, observedCount, expectedCount } = coverageCounts(
+    from,
+    to,
+    intervalSeconds,
+    measuredAts.length,
+  );
+  const gaps = computeQualityGaps(
+    from,
+    to,
+    intervalSeconds,
+    measuredAts,
+    input.unsyncedCount,
+    input.quarantinedCount,
+  );
+  const lastSeenAt =
+    measuredAts.length > 0 ? measuredAts[measuredAts.length - 1]!.toISOString() : null;
+
+  const limitations: string[] = [];
+  if (observedCount === 0) {
+    limitations.push(
+      'Không có mẫu đo hợp lệ trong khoảng; không thể kết luận tình trạng sức khỏe từ dữ liệu thiếu.',
+    );
+  } else if (percent < LOW_COVERAGE_PERCENT) {
+    limitations.push(
+      `Độ phủ dữ liệu thấp (${percent}%): số liệu chỉ từ ${observedCount}/${expectedCount} mẫu kỳ vọng.`,
+    );
+  }
+  if (gaps.count > 0) {
+    limitations.push(
+      `Có ${gaps.count} khoảng thiếu dữ liệu (${gapReasonText(gaps.reasons)}); không suy luận tình trạng trong các khoảng này.`,
+    );
+  }
+  if (gaps.count >= MANY_GAP_COUNT) {
+    limitations.push(
+      'Dữ liệu thiếu ở nhiều khoảng nên chỉ đọc các số liệu như mô tả của các mẫu đã nhận, không phải toàn bộ khoảng.',
+    );
+  }
+  if (synthetic) {
+    limitations.push('Nguồn dữ liệu là mô phỏng, không phải số đo thật của người dùng.');
+  }
+  if (observedCount > 0 && input.heartRateValidSamples === 0) {
+    limitations.push('Không có mẫu nhịp tim hợp lệ trong khoảng.');
+  }
+  if (input.quarantinedCount > 0) {
+    limitations.push(`Đã loại ${input.quarantinedCount} mẫu bị cách ly khỏi tổng hợp.`);
+  }
+
+  return {
+    coveragePercent: percent,
+    observedCount,
+    expectedCount,
+    gaps,
+    lastSeenAt,
+    synthetic,
+    limitations: limitations.slice(0, 10),
+  };
+}
+
+/**
+ * Guardrail hậu kiểm tối thiểu cho nội dung model: khi dữ liệu thiếu, không để
+ * các câu "bình thường"/"ổn định" đi thẳng tới người đọc như một kết luận sức khỏe.
+ */
+const REASSURING_CLAIM_PATTERNS: Array<[RegExp, string]> = [
+  [/ở mức bình thường/gi, 'chưa đủ dữ liệu để kết luận'],
+  [/bình thường/gi, 'chưa đủ dữ liệu để kết luận'],
+  [/ổn định/gi, 'chưa đủ dữ liệu để kết luận'],
+];
+
+function guardReassuringWording(text: string, quality: AssistantDataQuality): string {
+  if (!isIncompleteQuality(quality)) return text;
+  return REASSURING_CLAIM_PATTERNS.reduce(
+    (current, [pattern, replacement]) => current.replace(pattern, replacement),
+    text,
+  );
+}
+
+function answerWithQuality(answer: string, quality: AssistantDataQuality): string {
+  const prefix: string[] = [];
+  const incomplete = isIncompleteQuality(quality);
+  if (incomplete) prefix.push(qualitySentence(quality));
+  if (quality.synthetic) prefix.push('Dữ liệu mô phỏng.');
+  if (prefix.length === 0) return answer;
+  const normalized = answer.toLowerCase();
+  const mentionsQuality =
+    normalized.includes('độ phủ') &&
+    (!incomplete || normalized.includes('khoảng thiếu')) &&
+    (!quality.synthetic || normalized.includes('mô phỏng'));
+  if (mentionsQuality) return answer;
+  return truncate(`${prefix.join(' ')} ${answer}`, 4000);
+}
+
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
@@ -238,6 +421,7 @@ export class AssistantService {
     @Inject(DB) private readonly db: AppDb,
     private readonly access: AccessService,
     private readonly audit: AuditService,
+    private readonly policy: PolicyService,
     @Inject(ASSISTANT_AI_ADAPTER) private readonly ai: AssistantAiAdapter,
   ) {}
 
@@ -296,7 +480,7 @@ export class AssistantService {
           { role: 'system', content: SUMMARY_SYSTEM_PROMPT },
           { role: 'user', content: this.summaryUserPrompt(from, to, aggregate) },
         ]);
-        summary = this.buildAiSummary(subjectId, from, to, sources, completion);
+        summary = this.buildAiSummary(subjectId, from, to, sources, completion, aggregate);
       } catch (error) {
         summary = this.templateSummary(
           subjectId,
@@ -374,12 +558,13 @@ export class AssistantService {
     if (!hasAnyData) {
       await this.auditAsk(userId, subjectId, 'template', 'degraded', 'no_data_in_window');
       return {
-        answer: NO_DATA_ANSWER,
+        answer: answerWithQuality(NO_DATA_ANSWER, aggregate.dataQuality),
         status: 'degraded',
         provider: 'template',
         model: null,
         disclaimer: ASSISTANT_DISCLAIMER,
         sources,
+        dataQuality: aggregate.dataQuality,
         degradedReason:
           'Chưa có dữ liệu trong khoảng trợ lý được phép đọc nên không gọi AI để tránh suy đoán.',
       };
@@ -388,12 +573,13 @@ export class AssistantService {
     if (!this.ai.isConfigured()) {
       await this.auditAsk(userId, subjectId, 'template', 'degraded', 'ai_not_configured');
       return {
-        answer: AI_UNAVAILABLE_ANSWER,
+        answer: answerWithQuality(AI_UNAVAILABLE_ANSWER, aggregate.dataQuality),
         status: 'degraded',
         provider: 'template',
         model: null,
         disclaimer: ASSISTANT_DISCLAIMER,
         sources,
+        dataQuality: aggregate.dataQuality,
         degradedReason: 'Chưa cấu hình AI (AI_BASE_URL trống) nên không thể trả lời câu hỏi.',
       };
     }
@@ -419,28 +605,33 @@ export class AssistantService {
           'Câu trả lời của AI không đúng cấu trúc.',
         );
       }
-      const answer = sanitizeText(parsedResult.data.answer, 4000);
+      const answer = sanitizeText(
+        guardReassuringWording(parsedResult.data.answer, aggregate.dataQuality),
+        4000,
+      );
       if (!answer) {
         throw new AssistantAdapterError('invalid_response', 'Câu trả lời của AI rỗng.');
       }
       await this.auditAsk(userId, subjectId, completion.provider, 'ready', null);
       return {
-        answer,
+        answer: answerWithQuality(answer, aggregate.dataQuality),
         status: 'ready',
         provider: completion.provider,
         model: completion.model,
         disclaimer: ASSISTANT_DISCLAIMER,
         sources,
+        dataQuality: aggregate.dataQuality,
       };
     } catch (error) {
       await this.auditAsk(userId, subjectId, 'template', 'degraded', this.degradedCodeFor(error));
       return {
-        answer: AI_UNAVAILABLE_ANSWER,
+        answer: answerWithQuality(AI_UNAVAILABLE_ANSWER, aggregate.dataQuality),
         status: 'degraded',
         provider: 'template',
         model: null,
         disclaimer: ASSISTANT_DISCLAIMER,
         sources,
+        dataQuality: aggregate.dataQuality,
         degradedReason: this.degradedReasonFor(error),
       };
     }
@@ -461,8 +652,11 @@ export class AssistantService {
     // mẫu `measured_at` tương lai vào tổng hợp. Mẫu cách ly và mẫu chưa đồng bộ
     // giờ không phải số liệu tin cậy nên bị loại khỏi samples/HR/pin/bước.
     const telemetryTo = new Date(Math.min(to.getTime(), Date.now()));
+    // Cùng policy/nhịp tim kỳ vọng với measurements/daily-summary để coverage khớp.
+    const policy = await this.policy.getActive();
+    const intervalSeconds = policy.value.heartbeatIntervalSeconds;
 
-    const [telemetryRows, incidentRows, taskRows] = await Promise.all([
+    const [telemetryRows, incidentRows, taskRows, unsyncedRows, quarantinedRows] = await Promise.all([
       assignmentIds.length === 0
         ? Promise.resolve([] as TelemetryRow[])
         : this.db
@@ -502,6 +696,34 @@ export class AssistantService {
           ),
         )
         .orderBy(asc(maintenanceTasks.createdAt)),
+      // Mẫu chưa đồng bộ giờ/cách ly không vào tổng hợp nhưng cần cho lý do khoảng thiếu.
+      assignmentIds.length === 0
+        ? Promise.resolve([] as Array<{ id: string }>)
+        : this.db
+            .select({ id: telemetry.id })
+            .from(telemetry)
+            .where(
+              and(
+                inArray(telemetry.assignmentId, assignmentIds),
+                eq(telemetry.isQuarantined, false),
+                or(isNull(telemetry.measuredAt), eq(telemetry.clockStatus, 'unsynced')),
+                gte(telemetry.receivedAt, from),
+                lte(telemetry.receivedAt, telemetryTo),
+              ),
+            ),
+      assignmentIds.length === 0
+        ? Promise.resolve([] as Array<{ id: string }>)
+        : this.db
+            .select({ id: telemetry.id })
+            .from(telemetry)
+            .where(
+              and(
+                inArray(telemetry.assignmentId, assignmentIds),
+                eq(telemetry.isQuarantined, true),
+                gte(telemetry.measuredAt, from),
+                lte(telemetry.measuredAt, telemetryTo),
+              ),
+            ),
     ]);
 
     // Nhịp tim: chỉ mẫu quality heart_rate = valid và có giá trị; không có → null.
@@ -553,6 +775,21 @@ export class AssistantService {
       }
     }
 
+    const measuredAts = telemetryRows
+      .map((row) => row.measuredAt)
+      .filter((value): value is Date => value !== null);
+    const synthetic = telemetryRows.some((row) => isSyntheticDataSource(row.source));
+    const dataQuality = buildDataQuality({
+      from,
+      to: telemetryTo,
+      intervalSeconds,
+      measuredAts,
+      unsyncedCount: unsyncedRows.length,
+      quarantinedCount: quarantinedRows.length,
+      heartRateValidSamples: heartRate?.validSamples ?? 0,
+      synthetic,
+    });
+
     return {
       window: { from: from.toISOString(), to: telemetryTo.toISOString() },
       samples: telemetryRows.length,
@@ -564,6 +801,7 @@ export class AssistantService {
         open: taskRows.length,
         titles: taskRows.slice(0, 5).map((row) => row.title.slice(0, 120)),
       },
+      dataQuality,
     };
   }
 
@@ -578,6 +816,27 @@ export class AssistantService {
   private measurementFacts(aggregate: FactsAggregate): AssistantFact[] {
     const facts: AssistantFact[] = [
       { label: 'Số mẫu đo', value: aggregate.samples, sourceRef: 'measurements' },
+      {
+        label: 'Độ phủ dữ liệu',
+        value: aggregate.dataQuality.coveragePercent,
+        unit: '%',
+        sourceRef: 'measurements',
+      },
+      {
+        label: 'Số khoảng thiếu dữ liệu',
+        value: aggregate.dataQuality.gaps.count,
+        sourceRef: 'measurements',
+      },
+      {
+        label: 'Lần nhận cuối',
+        value: aggregate.dataQuality.lastSeenAt ?? 'Không có',
+        sourceRef: 'measurements',
+      },
+      {
+        label: 'Nguồn dữ liệu',
+        value: aggregate.dataQuality.synthetic ? 'Dữ liệu mô phỏng' : 'Dữ liệu thiết bị',
+        sourceRef: 'measurements',
+      },
     ];
     if (aggregate.heartRate) {
       facts.push(
@@ -664,22 +923,51 @@ export class AssistantService {
       (acc, count) => acc + count,
       0,
     );
+    const quality = aggregate.dataQuality;
+    const incomplete = isIncompleteQuality(quality);
+    const sourceLabel = quality.synthetic ? 'Dữ liệu mô phỏng' : 'Dữ liệu';
 
     let headline: string;
     if (aggregate.samples === 0) {
-      headline = `Không có dữ liệu đo trong khoảng ${fromLabel} đến ${toLabel}.`;
+      headline = truncate(
+        `${qualitySentence(quality)} Không có dữ liệu đo trong khoảng ${fromLabel} đến ${toLabel}.`,
+        300,
+      );
     } else {
-      const parts = [`Dữ liệu theo dõi ${fromLabel}–${toLabel}: ${aggregate.samples} mẫu đo`];
+      const parts = [
+        `${sourceLabel} theo dõi ${fromLabel}–${toLabel}: ${aggregate.samples} mẫu đo`,
+        `độ phủ ${quality.coveragePercent}%`,
+      ];
+      if (quality.gaps.count > 0) parts.push(`${quality.gaps.count} khoảng thiếu`);
       if (aggregate.heartRate) parts.push(`nhịp tim trung bình ${aggregate.heartRate.avg} bpm`);
       if (alertsTotal > 0) parts.push(`${alertsTotal} cảnh báo`);
-      headline = `${parts.join(', ')}.`;
+      const prefix = incomplete ? `${qualitySentence(quality)} ` : '';
+      headline = truncate(`${prefix}${parts.join(', ')}.`, 300);
     }
 
     const measurementBodyParts: string[] = [];
     if (aggregate.samples === 0) {
-      measurementBodyParts.push('Không có mẫu đo nào trong khoảng thời gian này.');
+      measurementBodyParts.push(
+        `Không có mẫu đo nào trong khoảng thời gian này (0/${quality.expectedCount} mẫu kỳ vọng, ${quality.gaps.count} khoảng thiếu dữ liệu).`,
+      );
     } else {
-      measurementBodyParts.push(`Có ${aggregate.samples} mẫu đo.`);
+      measurementBodyParts.push(
+        `Có ${aggregate.samples}/${quality.expectedCount} mẫu đo, độ phủ ${quality.coveragePercent}%.`,
+      );
+      if (incomplete) {
+        measurementBodyParts.push(
+          `${qualitySentence(quality)} Các số dưới đây chỉ từ các mẫu đã nhận.`,
+        );
+      }
+      if (quality.gaps.count > 0) {
+        measurementBodyParts.push(`Khoảng thiếu: ${gapReasonText(quality.gaps.reasons)}.`);
+      }
+      if (quality.synthetic) {
+        measurementBodyParts.push('Nguồn dữ liệu là mô phỏng, không phải số đo thật.');
+      }
+      if (quality.lastSeenAt) {
+        measurementBodyParts.push(`Lần nhận cuối: ${quality.lastSeenAt}.`);
+      }
       if (aggregate.heartRate) {
         measurementBodyParts.push(
           `Nhịp tim hợp lệ: ${aggregate.heartRate.validSamples} mẫu, trung bình ${aggregate.heartRate.avg} bpm (thấp nhất ${aggregate.heartRate.min}, cao nhất ${aggregate.heartRate.max}).`,
@@ -738,7 +1026,10 @@ export class AssistantService {
       {
         kind: 'note',
         title: SECTION_KIND_LABELS['note']!,
-        body: `${degradedReason} Bản tóm tắt này sinh từ mẫu xác định dựa trên số liệu đo, không qua mô hình AI.`,
+        body: truncate(
+          `${degradedReason}${quality.limitations.length > 0 ? ` Giới hạn dữ liệu: ${quality.limitations.join(' ')}` : ''} Bản tóm tắt này sinh từ mẫu xác định dựa trên số liệu đo, không qua mô hình AI.`,
+          3000,
+        ),
         facts: [],
       },
     ];
@@ -755,6 +1046,7 @@ export class AssistantService {
       sections,
       disclaimer: ASSISTANT_DISCLAIMER,
       sources,
+      dataQuality: quality,
       degradedReason,
     });
   }
@@ -769,6 +1061,7 @@ export class AssistantService {
       'Hồ sơ: hồ sơ được theo dõi (không cung cấp tên).',
       'Dữ liệu tổng hợp duy nhất được dùng (không có dữ liệu thô nào khác):',
       JSON.stringify(aggregate, null, 2),
+      'Đánh giá dataQuality: khi observedCount < expectedCount hoặc gaps.count > 0, phải nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình và không mô tả "bình thường"/"ổn định". Khi synthetic = true, ghi rõ "dữ liệu mô phỏng". Nêu lastSeenAt nếu có.',
       'Hãy viết bản tóm tắt bằng tiếng Việt theo đúng cấu trúc JSON đã nêu.',
     ].join('\n');
   }
@@ -784,6 +1077,7 @@ export class AssistantService {
       `Câu hỏi: ${question}`,
       'Dữ liệu tổng hợp duy nhất được dùng:',
       JSON.stringify(aggregate, null, 2),
+      'Đánh giá dataQuality: khi observedCount < expectedCount hoặc gaps.count > 0, phải nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" và không mô tả "bình thường"/"ổn định". Khi synthetic = true, ghi rõ "dữ liệu mô phỏng".',
       'Trả lời bằng tiếng Việt, chỉ dựa trên dữ liệu trên; trả về đúng JSON: {"answer": "..."}',
     ].join('\n');
   }
@@ -794,6 +1088,7 @@ export class AssistantService {
     to: Date,
     sources: AssistantSource[],
     completion: AssistantCompletion,
+    aggregate: FactsAggregate,
   ): AssistantSummary {
     let parsed: unknown;
     try {
@@ -811,16 +1106,45 @@ export class AssistantService {
         'Câu trả lời của AI không đúng cấu trúc.',
       );
     }
-    const headline = sanitizeText(result.data.headline, 300);
-    if (!headline) {
+    const quality = aggregate.dataQuality;
+    const incomplete = isIncompleteQuality(quality);
+    const modelHeadline = sanitizeText(
+      guardReassuringWording(result.data.headline, quality),
+      300,
+    );
+    if (!modelHeadline) {
       throw new AssistantAdapterError('invalid_response', 'Tiêu đề tóm tắt của AI rỗng.');
+    }
+    // Bổ sung câu chất lượng dữ liệu xác định: model có thể bỏ sót trong câu chữ.
+    const qualityPrefix: string[] = [];
+    if (incomplete) qualityPrefix.push(qualitySentence(quality));
+    if (quality.synthetic) qualityPrefix.push('Dữ liệu mô phỏng.');
+    let headline = modelHeadline;
+    if (qualityPrefix.length > 0) {
+      headline = truncate(`${qualityPrefix.join(' ')} ${headline}`, 300);
     }
     const sections: AssistantSection[] = result.data.sections.map((section) => ({
       kind: section.kind,
       title: sanitizeText(section.title, 140) || SECTION_KIND_LABELS[section.kind]!,
-      body: sanitizeText(section.body, 3000) || 'Không có nội dung.',
+      body:
+        sanitizeText(guardReassuringWording(section.body, quality), 3000) ||
+        'Không có nội dung.',
       facts: section.facts.map(toSafeFact),
     }));
+    // Giữ câu chất lượng ở phần số liệu để người đọc thấy trước số trung bình.
+    const measurements = sections.find((section) => section.kind === 'measurements');
+    if (measurements) {
+      const qualityNote = incomplete
+        ? quality.synthetic
+          ? `${qualitySentence(quality)} Dữ liệu mô phỏng.`
+          : qualitySentence(quality)
+        : quality.synthetic
+          ? 'Dữ liệu mô phỏng.'
+          : null;
+      if (qualityNote) {
+        measurements.body = truncate(`${qualityNote} ${measurements.body}`, 3000);
+      }
+    }
     return assistantSummarySchema.parse({
       subjectId,
       periodStart: from.toISOString(),
@@ -833,6 +1157,7 @@ export class AssistantService {
       sections,
       disclaimer: ASSISTANT_DISCLAIMER,
       sources,
+      dataQuality: quality,
       degradedReason: null,
     });
   }

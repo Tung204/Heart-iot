@@ -51,6 +51,15 @@ const DEGRADED_SUMMARY = {
   ],
   disclaimer: ASSISTANT_DISCLAIMER,
   sources: [{ type: 'measurements', label: 'Telemetry 7 ngày', at: '2026-11-14T09:00:00.000Z' }],
+  dataQuality: {
+    coveragePercent: 16.7,
+    observedCount: 120,
+    expectedCount: 720,
+    gaps: { count: 3, reasons: ['no_data'] },
+    lastSeenAt: '2026-11-14T09:00:00.000Z',
+    synthetic: false,
+    limitations: ['Độ phủ dữ liệu thấp (16.7%): số liệu chỉ từ 120/720 mẫu kỳ vọng.'],
+  },
   degradedReason: 'Chưa cấu hình AI (AI_BASE_URL trống) nên dùng mẫu tóm tắt xác định từ số liệu đo.',
 };
 
@@ -61,6 +70,15 @@ const READY_ANSWER = {
   model: 'demo-model',
   disclaimer: ASSISTANT_DISCLAIMER,
   sources: [{ type: 'measurements', label: 'Telemetry 24h', at: '2026-11-14T09:00:00.000Z' }],
+  dataQuality: {
+    coveragePercent: 16.7,
+    observedCount: 120,
+    expectedCount: 720,
+    gaps: { count: 3, reasons: ['no_data'] },
+    lastSeenAt: '2026-11-14T09:00:00.000Z',
+    synthetic: false,
+    limitations: [],
+  },
 };
 
 // Wave 4 — trợ lý: badge mẫu, disclaimer, form hỏi đáp, 429, chặn khi không có quyền.
@@ -84,6 +102,44 @@ describe('AssistantPage', () => {
     expect(screen.getByText('Nguồn số liệu')).toBeInTheDocument();
     // Không có nút "chẩn đoán" nào.
     expect(screen.queryByRole('button', { name: /chẩn đoán/i })).not.toBeInTheDocument();
+  });
+
+  it('hiển thị khối "Chất lượng dữ liệu": độ phủ, mẫu, khoảng thiếu, nguồn mô phỏng, disclaimer', async () => {
+    const lowQualitySummary = {
+      ...DEGRADED_SUMMARY,
+      dataQuality: {
+        coveragePercent: 0.8,
+        observedCount: 2,
+        expectedCount: 240,
+        gaps: { count: 3, reasons: ['no_data', 'clock_unsynced'] },
+        lastSeenAt: '2026-11-14T09:00:00.000Z',
+        synthetic: true,
+        limitations: [
+          'Độ phủ dữ liệu thấp (0.8%): số liệu chỉ từ 2/240 mẫu kỳ vọng.',
+          'Nguồn dữ liệu là mô phỏng, không phải số đo thật của người dùng.',
+        ],
+      },
+    };
+    renderPage(<AssistantPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/assistant/summary')) return mockResponse(lowQualitySummary);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText('Chất lượng dữ liệu')).toBeInTheDocument();
+    expect(screen.getByText(/0\.8% · 2\/240 mẫu kỳ vọng/)).toBeInTheDocument();
+    expect(screen.getByText(/3 khoảng \(không có dữ liệu, đồng hồ chưa đồng bộ\)/)).toBeInTheDocument();
+    expect(screen.getByText('Lần nhận cuối')).toBeInTheDocument();
+    expect(screen.getByText('Nguồn dữ liệu')).toBeInTheDocument();
+    expect(screen.getAllByText('Dữ liệu mô phỏng').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Chỉ từ 2 mẫu, độ phủ 0\.8%, 3 khoảng thiếu/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Nguồn dữ liệu là mô phỏng, không phải số đo thật/),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(ASSISTANT_DISCLAIMER).length).toBeGreaterThan(0);
   });
 
   it('form hỏi gửi đúng body; câu trả lời ready hiện badge "AI" + nguồn + disclaimer', async () => {

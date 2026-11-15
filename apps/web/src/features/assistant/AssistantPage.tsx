@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AssistantAnswer, AssistantSummary } from '@annhien/contracts/assistant';
+import type { AssistantAnswer, AssistantDataQuality, AssistantSummary } from '@annhien/contracts/assistant';
 import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
@@ -43,6 +43,77 @@ function SourcesList({ sources }: { sources: AssistantSummary['sources'] }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** Nhãn lý do khoảng thiếu — chữ là tín hiệu chính, không chỉ dựa vào màu. */
+const GAP_REASON_LABELS: Record<string, string> = {
+  no_data: 'không có dữ liệu',
+  clock_unsynced: 'đồng hồ chưa đồng bộ',
+  quarantined: 'mẫu bị cách ly',
+};
+
+function gapReasonsText(reasons: AssistantDataQuality['gaps']['reasons']): string {
+  if (reasons.length === 0) return 'không rõ lý do';
+  return reasons.map((reason) => GAP_REASON_LABELS[reason] ?? reason).join(', ');
+}
+
+/**
+ * Khối "Chất lượng dữ liệu" — độ phủ, số mẫu, khoảng thiếu, lần nhận cuối và nguồn.
+ * Mọi trạng thái đều có nhãn chữ; màu chỉ hỗ trợ, không phải tín hiệu duy nhất.
+ */
+export function DataQualityPanel({ quality }: { quality: AssistantDataQuality }) {
+  const incomplete = quality.observedCount < quality.expectedCount || quality.gaps.count > 0;
+  return (
+    <div className="ai-insight" role="group" aria-label="Chất lượng dữ liệu">
+      <h3 className="ai-insight__title">Chất lượng dữ liệu</h3>
+      <dl className="ai-facts">
+        <div>
+          <dt>Độ phủ dữ liệu</dt>
+          <dd>
+            {quality.coveragePercent}% · {quality.observedCount}/{quality.expectedCount} mẫu kỳ vọng
+          </dd>
+        </div>
+        <div>
+          <dt>Số mẫu đã nhận</dt>
+          <dd>{quality.observedCount}</dd>
+        </div>
+        <div>
+          <dt>Khoảng thiếu dữ liệu</dt>
+          <dd>
+            {quality.gaps.count === 0
+              ? 'Không có khoảng thiếu'
+              : `${quality.gaps.count} khoảng (${gapReasonsText(quality.gaps.reasons)})`}
+          </dd>
+        </div>
+        <div>
+          <dt>Lần nhận cuối</dt>
+          <dd>{quality.lastSeenAt ? formatDateTime(quality.lastSeenAt) : 'Chưa có mẫu'}</dd>
+        </div>
+        <div>
+          <dt>Nguồn dữ liệu</dt>
+          <dd>{quality.synthetic ? 'Dữ liệu mô phỏng' : 'Dữ liệu thiết bị'}</dd>
+        </div>
+      </dl>
+      {incomplete || quality.synthetic ? (
+        <Alert
+          tone="warning"
+          title={quality.synthetic ? 'Dữ liệu mô phỏng' : 'Dữ liệu chưa đầy đủ'}
+        >
+          {quality.synthetic ? 'Đây là dữ liệu mô phỏng, không phải số đo thật. ' : null}
+          {incomplete
+            ? `Chỉ từ ${quality.observedCount} mẫu, độ phủ ${quality.coveragePercent}%, ${quality.gaps.count} khoảng thiếu.`
+            : null}
+        </Alert>
+      ) : null}
+      {quality.limitations.length > 0 ? (
+        <ul className="ai-sources__list">
+          {quality.limitations.map((limitation) => (
+            <li key={limitation}>{limitation}</li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -91,6 +162,7 @@ function AnswerView({ answer }: { answer: AssistantAnswer }) {
         </Alert>
       ) : null}
       <p className="ai-answer__text">{answer.answer}</p>
+      {answer.dataQuality ? <DataQualityPanel quality={answer.dataQuality} /> : null}
       <SourcesList sources={answer.sources} />
       <Disclaimer />
     </div>
@@ -255,6 +327,9 @@ export function AssistantPage() {
                 <Alert tone="warning" title="Đang dùng bản theo mẫu">
                   {summaryData.degradedReason}
                 </Alert>
+              ) : null}
+              {summaryData.dataQuality ? (
+                <DataQualityPanel quality={summaryData.dataQuality} />
               ) : null}
               {noData ? (
                 <Alert tone="info" title="Chưa có đủ dữ liệu để tóm tắt">

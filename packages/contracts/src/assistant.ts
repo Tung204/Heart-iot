@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema, isoDateTimeSchema } from './core';
+import { measurementGapReasonSchema } from './measurements';
 
 /**
  * Hợp đồng trợ lý AI — wave 2 be-ai.
@@ -7,6 +8,10 @@ import { idSchema, isoDateTimeSchema } from './core';
  * Trợ lý chỉ tổng hợp số liệu đo đã được kiểm quyền. Không có trường chẩn đoán,
  * kê đơn hay dự đoán nguy cơ y khoa trong schema. `disclaimer` cố định để mọi
  * nơi hiển thị đều mang cùng một ranh giới trách nhiệm.
+ *
+ * `dataQuality` mô tả độ phủ/khoảng thiếu/lần nhận cuối/nguồn mô phỏng để người
+ * đọc biết câu tóm tắt dựa trên bao nhiêu mẫu. Khối này chỉ có số đếm, phần trăm,
+ * thời điểm và mã lý do — không chứa giá trị đo thô hay nội dung chẩn đoán.
  */
 
 export const ASSISTANT_DISCLAIMER =
@@ -45,6 +50,24 @@ export const assistantSourceSchema = z.object({
 });
 export type AssistantSource = z.infer<typeof assistantSourceSchema>;
 
+export const assistantDataQualitySchema = z.object({
+  /** Phần trăm mẫu đã nhận trên số mẫu kỳ vọng theo nhịp tim của policy. */
+  coveragePercent: z.number().min(0).max(100),
+  observedCount: z.number().int().nonnegative(),
+  expectedCount: z.number().int().positive(),
+  /** Số khoảng thiếu và mã lý do (không chứa giá trị đo thô). */
+  gaps: z.object({
+    count: z.number().int().nonnegative(),
+    reasons: z.array(measurementGapReasonSchema).max(3),
+  }),
+  /** Thời điểm đo cuối của mẫu hợp lệ trong khoảng; null khi không có mẫu. */
+  lastSeenAt: isoDateTimeSchema.nullable(),
+  /** Có ít nhất một mẫu nguồn simulator/synthetic trong khoảng. */
+  synthetic: z.boolean(),
+  limitations: z.array(z.string().min(1).max(300)).max(10),
+});
+export type AssistantDataQuality = z.infer<typeof assistantDataQualitySchema>;
+
 export const assistantSummarySchema = z.object({
   subjectId: idSchema,
   periodStart: isoDateTimeSchema,
@@ -57,6 +80,8 @@ export const assistantSummarySchema = z.object({
   sections: z.array(assistantSectionSchema).min(1).max(8),
   disclaimer: z.literal(ASSISTANT_DISCLAIMER),
   sources: z.array(assistantSourceSchema).max(20),
+  /** Chất lượng dữ liệu đã dùng để sinh bản tóm tắt — luôn có trong response mới. */
+  dataQuality: assistantDataQualitySchema,
   /** Lý do bản tóm tắt ở trạng thái degraded (fallback template); null khi ready. */
   degradedReason: z.string().min(1).max(500).nullable(),
 });
@@ -75,6 +100,8 @@ export const assistantAnswerSchema = z.object({
   model: z.string().min(1).max(200).nullable(),
   disclaimer: z.literal(ASSISTANT_DISCLAIMER),
   sources: z.array(assistantSourceSchema).max(20),
+  /** Có khi câu trả lời dựa trên aggregate; câu hỏi bị từ chối trước khi đọc dữ liệu thì bỏ trống. */
+  dataQuality: assistantDataQualitySchema.optional(),
   degradedReason: z.string().min(1).max(500).optional(),
 });
 export type AssistantAnswer = z.infer<typeof assistantAnswerSchema>;
