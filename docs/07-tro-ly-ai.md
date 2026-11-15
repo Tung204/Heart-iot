@@ -2,14 +2,14 @@
 
 > **Baseline v0.1 — AI đọc và tóm tắt:** đây là phạm vi thiết kế ban đầu. Người dùng đã yêu cầu AI thực thi nghiệp vụ và tự chạy trong phạm vi được giao; xem [chương 11](11-nen-tang-ai-va-cau-hinh-dong.md). Phần **AI vận hành dài hạn** (planner/tool registry/scheduler/RAG) chưa triển khai; các nguyên tắc kiểm quyền, dẫn nguồn và cảnh báo độc lập tiếp tục được giữ.
 
-**Trạng thái 15/11/2026 (v3):** đã có `GET /subjects/:id/assistant/summary` và `POST /subjects/:id/assistant/ask` trên aggregate đã kiểm quyền, adapter OpenAI-compatible tùy chọn và **fallback template xác định**. Web mở **không gian trợ lý tại `/app`** với hội thoại nhiều lượt, cột bối cảnh và lối tắt tới dữ liệu; dashboard chi tiết ở `/app/overview`. AI vẫn không nằm trong đường quyết định phát hiện/gửi cảnh báo té ngã, không tự xác nhận/đóng cảnh báo. Chưa có RAG, chưa có bằng chứng chất lượng trả lời với provider thật, chưa có toggle tắt AI trên UI và chưa có runtime AI tự chạy tool.
+**Trạng thái 15/11/2026 (v4):** đã có `GET /subjects/:id/assistant/summary` và `POST /subjects/:id/assistant/ask` trên aggregate đã kiểm quyền, adapter OpenAI-compatible tùy chọn và **fallback template xác định**. Web đưa trợ lý vào **ô hỏi ngay trên màn Hôm nay `/app`**; câu trả lời chỉ hiện sau khi người dùng hỏi, không còn bản tin/cột bối cảnh chiếm màn đầu. Sức khỏe chi tiết ở `/app/overview`; cảnh báo vẫn có route riêng. AI không nằm trong đường quyết định phát hiện/gửi cảnh báo té ngã, không tự xác nhận/đóng cảnh báo. Chưa có RAG, chưa có bằng chứng chất lượng trả lời với provider thật, chưa có toggle tắt AI trên UI và chưa có runtime AI tự chạy tool.
 
 ## Trải nghiệm trợ lý hiện tại
 
-- **Mặc định:** `/app` là không gian trợ lý; nav đưa Trợ lý lên đầu. Tổng quan chỉ tiết là `/app/overview`; cảnh báo vẫn có route riêng và không phụ thuộc AI.
-- **Bản tin ngắn:** headline + 4 fact chính + dòng độ phủ/số mẫu/khoảng thiếu; toàn văn headline, nguồn, `DataQualityPanel`, lý do fallback nằm trong `<details>` đóng sẵn. Không bỏ caveat dữ liệu, chỉ không đẩy toàn bộ vào màn đầu.
-- **Hội thoại:** câu hỏi và câu trả lời nối tiếp trong phiên; composer nằm trên thread để thấy ngay trên mobile. Câu trả lời vẫn đi qua API đã kiểm quyền, có nguồn/chất lượng dữ liệu/disclaimer.
-- **Bối cảnh:** hồ sơ đang xem, cảnh báo mở (chỉ tải khi có `canReceiveAlerts`), lần nhận dữ liệu cuối (chỉ khi có quyền số đo) và liên kết tới các màn hình. Đây là bối cảnh đọc, không phải hành động tự động.
+- **Mặc định:** `/app` là Hôm nay; trợ lý là một ô hỏi + 3 gợi ý ngắn, không phải một workspace riêng. Sức khỏe chi tiết ở `/app/overview`; cảnh báo vẫn có route riêng và không phụ thuộc AI.
+- **Không chiếm màn đầu:** không còn bản tin, 4 chỉ số, cột bối cảnh hay `DataQualityPanel` trên Hôm nay. Câu trả lời chỉ xuất hiện sau câu hỏi đầu tiên; hội thoại nhiều lượt vẫn giữ trong phiên.
+- **Hội thoại:** câu hỏi và câu trả lời nối tiếp; composer nằm ngay dưới thẻ trạng thái, trên bottom-nav ở mobile. Câu trả lời vẫn đi qua API đã kiểm quyền, có nguồn/chất lượng dữ liệu/disclaimer trong nội dung.
+- **Quyền là tín hiệu:** thiếu `canViewMeasurements` thì ô hỏi hiện trạng thái quyền, không mời thử lại vô ích; thiếu `canReceiveAlerts` thì không tải cảnh báo. Không biến 403 thành “chưa có cảnh báo mở”.
 - **Quyền:** thiếu `canViewMeasurements` → 403 hiển thị trạng thái “Chủ hồ sơ không chia sẻ số đo”, khóa gửi câu hỏi và không mời thử lại vô ích. Thiếu `canReceiveAlerts` → không gọi API cảnh báo.
 - **Cô lập hồ sơ:** đổi hồ sơ làm reset thread/câu hỏi/lỗi; phản hồi muộn của hồ sơ cũ bị bỏ. Có test cho cả hai trường hợp.
 - **Hành động:** các nút trong trợ lý chỉ dẫn tới Cảnh báo/Lịch sử/Hồ sơ/Thiết bị; không có auto-ack/auto-resolve. Muốn AI thực thi nghiệp vụ phải bổ sung contract/quyền/audit riêng, chưa làm trong lát cắt này.
@@ -36,7 +36,7 @@ MVP vẫn có thành phần AI, nhưng bắt đầu bằng việc tóm tắt có
 
 Đầu ra hiện tại gồm `headline`, `sections`, `sources`, `degradedReason` và **`dataQuality`**. `dataQuality` có `coveragePercent`, `observedCount`, `expectedCount`, `gaps {count, reasons}`, `lastSeenAt`, `synthetic`, `limitations`; chỉ chứa số đếm/phần trăm/thời điểm/mã lý do, không chứa BPM/bước/pin thô. `sources` chỉ dùng các tài liệu đã tra được. Dẫn nguồn không tự chứng minh nội dung suy luận đúng.
 
-**Hành vi đã kiểm:** template và prompt provider buộc nêu coverage/gaps/synthetic; hậu kiểm thay cụm “bình thường/ổn định” bằng “chưa đủ dữ liệu để kết luận” khi thiếu dữ liệu. Câu hỏi ngoài phạm vi bị từ chối; câu hỏi chẩn đoán không được trả lời như kết luận y khoa. Test API ở `apps/api/test/assistant.spec.ts`; test web ở `AssistantPage.test.tsx` (hội thoại nhiều lượt, 403, 429, đổi hồ sơ, không auto-ack). Lượt v3: API 20 suite/218 test; web 33 file/197 test; E2E 10/10 trên Chromium headless. Chưa kiểm provider thật, Firefox/WebKit hay chất lượng câu trả lời ngoài bộ mock/template.
+**Hành vi đã kiểm:** template và prompt provider buộc nêu coverage/gaps/synthetic; hậu kiểm thay cụm “bình thường/ổn định” bằng “chưa đủ dữ liệu để kết luận” khi thiếu dữ liệu. Câu hỏi ngoài phạm vi bị từ chối; câu hỏi chẩn đoán không được trả lời như kết luận y khoa. Test API ở `apps/api/test/assistant.spec.ts`; test web ở `AssistantPage.test.tsx` (hội thoại nhiều lượt, 403, 429, đổi hồ sơ, không auto-ack). Lượt v4: API 20 suite/219 test; web 35 file/250 test; E2E 26/26 trên Chromium headless. Chưa kiểm provider thật, Firefox/WebKit hay chất lượng câu trả lời ngoài bộ mock/template.
 
 ## Quy tắc nội dung
 

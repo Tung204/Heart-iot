@@ -39,6 +39,7 @@ CHAPTERS = [
     ("A", "quyet-dinh", "docs/decisions/0001-dinh-huong-prototype.md", "Quyết định kiến trúc"),
     ("A2", "quyet-dinh-nen-tang", "docs/decisions/0002-nen-tang-trien-khai.md", "Quyết định nền tảng triển khai"),
     ("A3", "quyet-dinh-tro-ly", "docs/decisions/0003-tro-ly-la-trung-tam.md", "Quyết định trợ lý là trung tâm"),
+    ("A4", "quyet-dinh-giao-dien-v4", "docs/decisions/0004-giao-dien-don-gian-v4.md", "Quyết định giao diện đơn giản v4"),
 ]
 MODULES = [
     ("web", "apps/web/README.md", "apps/web — Giao diện web"),

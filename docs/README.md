@@ -1,8 +1,8 @@
 # Tài liệu thiết kế và trạng thái triển khai
 
-Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần mềm: **15/11/2026** (v2/v3). Trạng thái: **bản đề xuất + lát cắt đã triển khai trên dữ liệu tổng hợp**, dựa trên đề cương người dùng đã lưu ngày 07/11/2026. Chưa có biểu mẫu trường, ngân sách, thời hạn, nhóm thực hiện hoặc cấu hình phần cứng đã xác nhận; chưa được giảng viên nghiệm thu.
+Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần mềm: **15/11/2026** (v2/v3/v4). Trạng thái: **bản đề xuất + lát cắt đã triển khai trên dữ liệu tổng hợp**, dựa trên đề cương người dùng đã lưu ngày 07/11/2026. Chưa có biểu mẫu trường, ngân sách, thời hạn, nhóm thực hiện hoặc cấu hình phần cứng đã xác nhận; chưa được giảng viên nghiệm thu.
 
-**Phần đã có mã:** API/web/simulator v1/v2/v3, test tự động, Studio, ingest cách ly, quyền xem số đo, liên hệ khẩn cấp, lưu trữ/yêu cầu xóa (chỉ ghi nhận), quản trị thiết bị và HTML tài liệu; **v3 đưa trợ lý thành không gian mặc định `/app`**, dashboard chuyển `/app/overview`. **Phần chưa có:** firmware ESP32, độ chính xác té ngã, Web Push, xóa vĩnh viễn/retention, MQTT sự kiện/ACK, AI Agent runtime/RAG. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem trạng thái, lệnh kiểm và giới hạn thực tế.
+**Phần đã có mã:** API/web/simulator v1/v2/v3/v4, test tự động, Studio, ingest cách ly, quyền xem số đo, liên hệ khẩn cấp, lưu trữ/yêu cầu xóa (chỉ ghi nhận), quản trị thiết bị và HTML tài liệu; **v4 đưa `/app` về Hôm nay**, Sức khỏe ở `/app/overview`, nav chính 4 mục. **Phần chưa có:** firmware ESP32, độ chính xác té ngã, Web Push, xóa vĩnh viễn/retention, MQTT sự kiện/ACK, AI Agent runtime/RAG. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem trạng thái, lệnh kiểm và giới hạn thực tế.
 
 **Hướng bổ sung:** [chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi yêu cầu AI tự thực hiện nghiệp vụ, nền tảng dùng chung, Dynamic / Configurable và preview frontend; [chương 12](12-nguyen-tac-phat-trien-va-bang-chung.md) ghi cách phát triển có tài liệu và bằng chứng. Các chương v0.1 là baseline IoT trước yêu cầu mới; phần đã chốt/đã làm được ghi ở chương 14, không mặc định mọi đề xuất đã được duyệt.
 
@@ -42,6 +42,6 @@ Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần m�
 
 Một số con số được đặt làm **tham số demo/đích thử nghiệm đề xuất**. Chúng không phải ngưỡng y khoa, số liệu thực nghiệm hoặc cam kết vận hành.
 
-Số test, lệnh kiểm và lỗi còn lại được ghi theo lần chạy ngày **15/11/2026** tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md) và [chương 8](08-kiem-thu-va-danh-gia.md): API 20 suite/218 test, web 33 file/197 test, E2E 10/10, randomized 218/218. Tài liệu không thay cho việc chạy lại; repo chưa có CI, còn web production build đã pass trên máy dev.
+Số test, lệnh kiểm và lỗi còn lại được ghi theo lần chạy ngày **15/11/2026** tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md) và [chương 8](08-kiem-thu-va-danh-gia.md): API 20 suite/219 test, web 35 file/250 test, E2E 26/26, randomized 219/219. Tài liệu không thay cho việc chạy lại; repo chưa có CI, còn web production build đã pass trên máy dev.
 
 [Quay lại trang dự án](../README.md).

@@ -17,20 +17,20 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
-| API | `cd apps/api && pnpm test` | **20/20 suite, 218/218 test pass**, 228,8 s |
-| Web unit | `cd apps/web && pnpm test` | **33/33 file, 197/197 test pass**, 12,3 s |
+| API | `cd apps/api && pnpm test` | **20/20 suite, 219/219 test pass**, 228,8 s |
+| Web unit | `cd apps/web && pnpm test` | **35/35 file, 250/250 test pass**, 12,3 s |
 | Simulator | `cd tools/simulator && npm test` | **23/23 test pass** |
 | Typecheck | `pnpm -r typecheck` | contracts/api/web/simulator **pass** |
 | Contracts build | `pnpm build:contracts` | pass |
-| API randomized | `cd apps/api && pnpm test:random --seed=20261115` | **20/20 suite, 218/218 test pass**; đã scope audit rollback/export theo đối tượng để không phụ thuộc thứ tự |
-| E2E | `cd apps/web && pnpm test:e2e` | **10/10 pass**; gồm trợ lý nhiều lượt, route mới và test 60 giây không refetch |
+| API randomized | `cd apps/api && pnpm test:random --seed=20261115` | **20/20 suite, 219/219 test pass**; đã scope audit rollback/export theo đối tượng để không phụ thuộc thứ tự |
+| E2E | `cd apps/web && pnpm test:e2e` | **26/26 pass**; gồm landing/login/public, Hôm nay, lịch sử và test 60 giây không refetch |
 | Web production build | `cd apps/web && pnpm build` | **pass**; tách chunk theo route, chunk lớn nhất ~271 kB |
 | Docs HTML | `python tools/docs/build.py --check` | pass sau khi sinh lại; xem log số link/ID/section ở handoff |
 | Payload mẫu | `node tools/docs/check-examples.mjs` | parse đủ 5/5 payload bằng schema tương ứng |
 | Seed demo | `cd apps/api && pnpm seed` | pass trên DB trống: 3 user, 2 hồ sơ, 1 thiết bị, 1.681 telemetry, 3 incident, 2 task, 2 outbox, 1 liên hệ khẩn cấp demo; `seed.spec.ts` xác nhận idempotent |
 | MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **không chạy lại** trong lượt này; cấu hình đã có kiểm regex trước đó, chưa chứng minh broker chạy |
 
-**Kết luận có giới hạn:** bộ unit/integration API (218), web (197), randomized (218/218), E2E (10/10) và production build đã chạy xanh trên máy dev. Đây chưa phải bằng chứng cho PostgreSQL/MQTT thật, firmware, độ chính xác té ngã, p95 trên mạng thật hay khả dụng người cao tuổi; không dùng các con số này để tuyên bố “release-ready”.
+**Kết luận có giới hạn:** bộ unit/integration API (219), web (250), randomized (219/219), E2E (26/26) và production build đã chạy xanh trên máy dev. Đây chưa phải bằng chứng cho PostgreSQL/MQTT thật, firmware, độ chính xác té ngã, p95 trên mạng thật hay khả dụng người cao tuổi; không dùng các con số này để tuyên bố “release-ready”.
 
 ### Đối chiếu T-01…T-14
 

@@ -4,12 +4,12 @@
 
 Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ, web responsive cho người dùng/người thân/quản trị, simulator thiết bị và bộ dữ liệu demo tổng hợp. Thiết kế gốc nằm trong `docs/`; kế hoạch và trạng thái triển khai ở [docs/14](docs/14-ke-hoach-trien-khai-phan-mem.md).
 
-> **Trạng thái 15/11/2026 — v3 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **Trợ lý là không gian mặc định tại `/app`**, dashboard chi tiết ở `/app/overview`; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push, chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm; HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
+> **Trạng thái 15/11/2026 — v4 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **`/app` là Hôm nay** (một câu trạng thái, một hành động, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính 4 mục. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push, chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm; HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
 
 ## Tính năng hiện có
 
 - **Tài khoản và phiên:** đăng ký/đăng nhập/đăng xuất bằng cookie HttpOnly + bảng `sessions`; đổi tên hiển thị, đổi mật khẩu (giữ phiên hiện tại, thu hồi phiên khác), xem và thu hồi từng phiên; admin khóa tài khoản sẽ thu hồi phiên.
-- **Hồ sơ và chia sẻ:** tạo/sửa hồ sơ, mời người thân, chấp nhận/thu hồi quyền, giới hạn số ngày lịch sử. `/app/overview` là dashboard chi tiết; `/app` là trợ lý. Quyền `canViewMeasurements` tách khỏi quyền nhận cảnh báo: người thân có thể nhận cảnh báo mà không xem nhịp tim/bước chân/lịch sử/CSV.
+- **Hồ sơ và chia sẻ:** tạo/sửa hồ sơ, mời người thân, chấp nhận/thu hồi quyền, giới hạn số ngày lịch sử. `/app` là Hôm nay; `/app/overview` là Sức khỏe chi tiết. Quyền `canViewMeasurements` tách khỏi quyền nhận cảnh báo: người thân có thể nhận cảnh báo mà không xem nhịp tim/bước chân/lịch sử/CSV.
 - **Dữ liệu đo:** ingest telemetry HTTP, chống trùng, gán theo assignment tại `measured_at`, cách ly mẫu lệch giờ/ngoài assignment; tổng hợp ngày, lịch sử có khoảng thiếu/độ phủ, CSV, xu hướng 7/14/30 ngày.
 - **Cảnh báo:** vòng đời `suspected → unconfirmed/open → acknowledged → resolved/cancelled`, ack/resolve compare-and-set, outbox trong ứng dụng + SSE. Badge thông báo chưa đọc và banner cảnh báo mới hiển thị toàn tài khoản; stream bị thu hồi khi mất quyền, khóa tài khoản hoặc phiên hết hạn.
 - **Liên hệ khẩn cấp:** tối đa 5 liên hệ/hồ sơ, một liên hệ chính, số điện thoại có `tel:` trong chi tiết cảnh báo; chỉ chủ hồ sơ ghi, người thân có quyền nhận cảnh báo được đọc.
@@ -17,7 +17,7 @@ Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ
 - **Lưu trữ và yêu cầu xóa:** chủ hồ sơ lưu trữ hồ sơ (thu hồi liên kết chia sẻ, **không xóa** dữ liệu) hoặc ghi nhận yêu cầu xóa dữ liệu để xử lý thủ công. Chưa có quy trình xóa cứng, retention tự động hay xóa xuyên backup/AI cache.
 - **Quản trị:** người dùng, thiết bị, policy thiết bị có preview/publish CAS, audit, tổng quan. Tab thiết bị có danh sách, cấp mã gắn thiết bị và xoay khóa; tạo thiết bị mới hiện vẫn qua API admin.
 - **Studio:** draft → preview chỉ đọc → publish CAS `baseRevision + digest` → rollback tạo bản mới; dữ liệu preview/data tôn trọng mốc chia sẻ và quyền cảnh báo.
-- **Trợ lý AI là trung tâm:** `/app` mở không gian trợ lý với hội thoại nhiều lượt, bản tin ngắn, cột bối cảnh (cảnh báo mở, lần nhận cuối), lối tắt tới dữ liệu; câu trả lời dựa trên aggregate đã kiểm quyền, có `dataQuality` (độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn), fallback template xác định khi chưa cấu hình provider. Thiếu quyền số đo hiển thị 403 là trạng thái quyền, không retry vô ích; đổi hồ sơ xóa hội thoại cũ. AI không nằm trên đường cảnh báo và không tự xác nhận/đóng cảnh báo.
+- **Hôm nay + trợ lý:** `/app` chỉ còn câu trạng thái, hành động Gọi/Xem cảnh báo, ô hỏi + 3 gợi ý; hội thoại chỉ hiện sau khi hỏi. Câu trả lời dựa trên aggregate đã kiểm quyền, có `dataQuality` (độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn), fallback template xác định khi chưa cấu hình provider. Thiếu quyền số đo hiển thị 403 là trạng thái quyền, không retry vô ích; đổi hồ sơ xóa hội thoại cũ. AI không nằm trên đường cảnh báo và không tự xác nhận/đóng cảnh báo.
 
 ## Chạy nhanh
 
@@ -85,10 +85,10 @@ Kết quả chạy ngày **15/11/2026** trên worktree này:
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`cd apps/api && pnpm test`) | **20 suite / 218 test pass**, 228,8 s |
-| Web unit (`cd apps/web && pnpm test`) | **33 file / 197 test pass**, 12,3 s |
+| API (`cd apps/api && pnpm test`) | **20 suite / 219 test pass**, 197,6 s |
+| Web unit (`cd apps/web && pnpm test`) | **35 file / 250 test pass**, ~20 s |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
-| E2E (`cd apps/web && pnpm test:e2e`) | **10/10 pass**; gồm trợ lý nhiều lượt, route mới và test 60 giây không refetch |
+| E2E (`cd apps/web && pnpm test:e2e`) | **26/26 pass**; gồm landing/login/public, Hôm nay, lịch sử và test 60 giây không refetch |
 | Typecheck (`pnpm -r typecheck`) | contracts/api/web/simulator pass |
 | Contracts (`pnpm build:contracts`) | pass |
 | Web production build (`cd apps/web && pnpm build`) | **pass**; bundle tách theo route, chunk lớn nhất ~271 kB (chưa đo mạng thật) |
@@ -134,7 +134,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** unit/integration API 218 test, web 197 test, randomized 218/218, E2E 10/10 và build web đã qua trên máy dev. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** unit/integration API 219 test, web 250 test, randomized 219/219, E2E 26/26 và build web đã qua trên máy dev. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** đã tách chunk theo route; lần đo gần nhất trước v2 có chunk lớn nhất ~265 kB, chưa đo trên mạng thật.
 
 ## Đọc tiếp

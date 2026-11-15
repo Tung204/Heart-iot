@@ -2,7 +2,7 @@
 
 > **Baseline v0.1:** danh sách màn hình gốc chưa bao gồm đầy đủ AI Workspace, theo dõi tác vụ và preview cấu hình. Yêu cầu mới về [AI và preview frontend](11-nen-tang-ai-va-cau-hinh-dong.md) vẫn là định hướng; phần đã triển khai được ghi ở mục “Hiện trạng giao diện v2” bên dưới.
 
-**Trạng thái 15/11/2026:** web responsive đã chạy trên dữ liệu tổng hợp, có route cho các màn hình nghiệp vụ và Studio. **v3 đưa trợ lý thành không gian mặc định tại `/app`**, dashboard chi tiết chuyển sang `/app/overview`; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”, nhưng vẫn ghi nguồn dữ liệu mô phỏng ở nơi có số liệu. **Chưa có mockup được duyệt bởi người dùng/giảng viên**, chưa triển khai PWA/native/Web Push và chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật.
+**Trạng thái 15/11/2026 (v4):** web responsive đã chạy trên dữ liệu tổng hợp, có route cho các màn hình nghiệp vụ và Studio. **v4 thay giao diện v3 bằng IA đơn giản: `/app` là Hôm nay (một câu trạng thái, một hành động, ô hỏi), `/app/overview` là Sức khỏe; nav chính còn 4 mục.** Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm và giữ nhãn nguồn mô phỏng ở nơi có số liệu. **Chưa có mockup được duyệt bởi người dùng/giảng viên**, chưa triển khai PWA/native/Web Push và chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật.
 
 ## Sơ đồ trang
 
@@ -11,8 +11,8 @@
 | Công khai | Trang chủ, giới thiệu sản phẩm | Hệ thống làm gì, phạm vi prototype, đăng nhập/đăng ký |
 | Tài khoản | Đăng ký, đăng nhập, hồ sơ, cài đặt tài khoản | Phiên đăng nhập; đổi tên/mật khẩu; xem/thu hồi phiên |
 | Thiết lập | Gắn thiết bị, kết nối, mời người thân, liên hệ khẩn cấp | Trạng thái từng bước; không hoàn tất giả khi thiết bị chưa online |
-| Trợ lý (mặc định) | Không gian trợ lý (`/app`) | Bản tin ngắn, hội thoại nhiều lượt, cột bối cảnh (cảnh báo mở, lần nhận cuối), lối tắt tới dữ liệu; không tự xác nhận/đóng cảnh báo |
-| Người được theo dõi | Tổng quan chi tiết (`/app/overview`) | Tình trạng thiết bị, nhịp tim mới nhất, vận động, cảnh báo đang mở, xu hướng 7/14/30 ngày |
+| Hôm nay (mặc định) | `/app` | Một câu trạng thái (cảnh báo/thiết bị/quyền), hành động chính, ô hỏi ngắn và 3 gợi ý; không còn bản tin/4 chỉ số/cột bối cảnh |
+| Sức khỏe | `/app/overview` | Cảnh báo đang mở, tổng hợp hôm nay, xu hướng và lịch sử; mở từ Hôm nay, không chiếm nav chính |
 | Người thân | Danh sách hồ sơ được chia sẻ | Hồ sơ, quyền, cảnh báo đang mở; không mặc định thấy dữ liệu trước mốc chia sẻ |
 | Chi tiết hồ sơ | Biểu đồ và lịch sử | Khoảng thời gian, chất lượng, đoạn thiếu, lịch sử incident, tải CSV |
 | Cảnh báo | Chi tiết sự kiện | Nghi ngã/chưa xác định/xác nhận/nhận trễ; ai đang hỗ trợ; xác nhận/đóng; liên hệ khẩn cấp |
@@ -93,9 +93,19 @@ Các màn hình dưới đây đã có trong code và test component; dữ liệ
 - **Studio:** danh sách view, soạn draft, preview chỉ đọc (dữ liệu mẫu hoặc hồ sơ có quyền), publish có CAS, lịch sử publication và rollback tạo bản mới. Nút publish chỉ bật sau preview thành công và draft không đổi.
 - **Điều hướng và tiếp cận (v2, đã được v3 điều chỉnh):** thanh dưới 5 mục chính, mục phụ trong “Thêm”; có liên kết bỏ qua nội dung, focus-visible, trạng thái không chỉ dựa vào màu, chữ lớn và giảm chuyển động theo `prefers-reduced-motion`. Các thay đổi v2 có test component cho Settings, Insights, Contacts, Subjects archive, Admin devices, Tasks, AppShell. Từ v3, Trợ lý đứng đầu nav và là route mặc định.
 
-**Bằng chứng hình ảnh:** ảnh v2 ở `C:/tmp/ui-final`; ảnh v3 ở `C:/tmp/ui-v3-assistant/` (24 ảnh) và `C:/tmp/ui-v3-live-*` (lead kiểm sau merge). Repo chưa có artifact nên người khác không tự kiểm lại được; ảnh ngoài repo không thay cho kiểm trực quan mới.
+**Bằng chứng hình ảnh:** ảnh v2 ở `C:/tmp/ui-final`; ảnh v3 ở `C:/tmp/ui-v3-assistant/` (24 ảnh) và `C:/tmp/ui-v3-live-*`; ảnh v4 ở `C:/c/tmp/v4-live/` (lead chụp lại từ web đang chạy). Repo chưa có artifact nên người khác không tự kiểm lại được; ảnh ngoài repo không thay cho kiểm trực quan mới.
 
-## Hiện trạng giao diện v3 (15/11/2026)
+## Hiện trạng giao diện v4 (15/11/2026)
+
+- **Một màn một mục đích:** `/app` chỉ còn Hồ sơ đang xem, câu trạng thái, hành động Gọi/Xem cảnh báo, ô hỏi + gợi ý ngắn, link Sức khỏe 7 ngày và một dòng an toàn. Không còn “Tóm tắt theo mẫu”, “Bối cảnh”, 4 chỉ số hay “Độ phủ” trên màn đầu.
+- **Nav 4 mục:** Hôm nay, Cảnh báo, Người thân, Thêm (menu phụ). Cài đặt/Thiết bị/Thông báo/Công việc/Studio nằm trong “Thêm”; Cảnh báo vẫn có badge và route riêng.
+- **Sức khỏe (`/app/overview`):** mở bằng link `← Hôm nay`; vẫn ưu tiên cảnh báo đang mở, tổng hợp hôm nay, xu hướng 7/14/30 ngày và lịch sử. Đây là màn chi tiết, không phải màn mặc định.
+- **Công khai:** landing chỉ còn hero + 3 thẻ (Theo dõi/Báo khi cần/Hỏi trợ lý) + dòng an toàn; login/register một thẻ, không còn khối “Tài khoản trải nghiệm” hay nút tự điền. Header logo-only; CTA chính trong màn đầu.
+- **Quản trị:** 4 tab Tổng quan/Người dùng/Thiết bị/Nâng cao; 4 KPI; audit/policy nằm trong Nâng cao, bảng audit có panel chi tiết ngoài vùng cuộn và thẻ trên mobile.
+- **Trạng thái thiết bị:** phân biệt `offline` (dùng `lastSeenAt`) và `stale` (thiết bị vẫn online nhưng chưa có số đo mới, dùng `lastMeasuredAt`); không gọi `stale` là “ngoại tuyến”.
+- **Kiểm:** web 35 file/250 test, typecheck/build pass; E2E 26/26 Chromium headless; ảnh 1280×900, 390×844, 360×740, chữ lớn không tràn ngang. Chưa kiểm Firefox/WebKit, thiết bị thật, AI provider thật; **chưa có reviewer độc lập cho vòng sửa app thứ hai** — các P2 còn lại nằm trong `reports/qa/v4-rereview-app.md`.
+
+## Hiện trạng giao diện v3 (15/11/2026 — lịch sử)
 
 - **`/app` mở trợ lý**, `/app/overview` mở dashboard cũ; `/app/assistant` giữ tương thích. Nav đưa Trợ lý lên đầu, Tổng quan thứ hai; admin không có hồ sơ được chuyển về `/app/admin`. Bottom-nav vẫn tối đa 6 mục.
 - **Trợ lý chat-first:** bản tin đầu ngắn (headline + 4 fact + dòng độ phủ), chi tiết số liệu/nguồn/`DataQualityPanel` trong `<details>` đóng sẵn; hội thoại nhiều lượt trong phiên; composer nằm trên thread để thấy ngay trên mobile. Câu trả lời 403 hiển thị trạng thái thiếu quyền số đo, không mời thử lại vô ích.
