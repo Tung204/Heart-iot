@@ -141,6 +141,10 @@ type TelemetryInput = {
   heartRateQuality?: 'valid' | 'poor_signal' | 'not_worn' | 'sensor_error';
   stepsSinceBoot?: number;
   batteryPercent?: number | null;
+  /** Mẫu bị cách ly (lệch giờ/ngoài assignment) — vẫn nằm trong DB nhưng không được đọc. */
+  isQuarantined?: boolean;
+  /** Dữ liệu cũ `clock_status='unsynced'` có thể còn `measured_at`; không phải mốc tin cậy. */
+  clockStatus?: 'synced' | 'unsynced';
 };
 
 async function insertTelemetry(
@@ -157,7 +161,7 @@ async function insertTelemetry(
     sequence: input.sequence ?? 0,
     measuredAt: input.measuredAt,
     receivedAt: new Date(),
-    clockStatus: 'synced',
+    clockStatus: input.clockStatus ?? 'synced',
     uptimeMs: 5_000,
     metrics: {
       heart_rate_bpm: input.heartRateBpm ?? null,
@@ -167,7 +171,7 @@ async function insertTelemetry(
     batteryPercent: input.batteryPercent ?? null,
     firmwareVersion: '0.1.0-test',
     isLate: false,
-    isQuarantined: false,
+    isQuarantined: input.isQuarantined ?? false,
     payloadHash: 'hash-test',
     source: 'test',
   });
@@ -287,6 +291,60 @@ class FakeAdapter implements AssistantAiAdapter {
       model: this.model,
     };
   }
+}
+
+/**
+ * Lấy đúng khối JSON aggregate mà service gửi cho model, độc lập với văn bản
+ * hướng dẫn xung quanh (prompt summary và ask dùng cùng marker).
+ */
+function aggregateFromPrompt(messages: AssistantChatMessage[]): {
+  window: { from: string; to: string };
+  samples: number;
+  heartRate: { validSamples: number; min: number; avg: number; max: number } | null;
+  batteryPercent: number | null;
+  steps: number | null;
+} {
+  const content = messages
+    .filter((message) => message.role === 'user')
+    .map((message) => message.content)
+    .join('\n');
+  const marker = content.indexOf('Dữ liệu tổng hợp duy nhất được dùng');
+  const jsonStart = content.indexOf('{', marker);
+  expect(marker).toBeGreaterThanOrEqual(0);
+  expect(jsonStart).toBeGreaterThanOrEqual(0);
+
+  // Prompt ask có ví dụ `{"answer": "..."}` sau JSON thật nên không dùng
+  // lastIndexOf('}'); quét ngoặc cân bằng (bỏ qua chuỗi) để lấy đúng khối aggregate.
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  let jsonEnd = -1;
+  for (let index = jsonStart; index < content.length; index += 1) {
+    const char = content[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === '{') depth += 1;
+    else if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        jsonEnd = index;
+        break;
+      }
+    }
+  }
+  expect(jsonEnd).toBeGreaterThan(jsonStart);
+  return JSON.parse(content.slice(jsonStart, jsonEnd + 1)) as {
+    window: { from: string; to: string };
+    samples: number;
+    heartRate: { validSamples: number; min: number; avg: number; max: number } | null;
+    batteryPercent: number | null;
+    steps: number | null;
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -442,6 +500,139 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
     expect(stored).toHaveLength(1);
     const aggregate = stored[0]!.aggregate as { heartRate: unknown };
     expect(aggregate.heartRate).toBeNull();
+  });
+
+  it('mẫu cách ly, mẫu tương lai và mẫu chưa đồng bộ giờ không lọt summary/aggregate; mẫu hợp lệ vẫn được dùng', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Cách Ly');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    const base = Date.now() - 3 * 3600 * 1000;
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base),
+      sequence: 1,
+      heartRateBpm: 70,
+      stepsSinceBoot: 100,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 900_000),
+      sequence: 2,
+      heartRateBpm: 80,
+      stepsSinceBoot: 110,
+      batteryPercent: 55,
+    });
+    // Mẫu bị cách ly (lệch giờ/ngoài assignment): còn trong DB nhưng không được đọc.
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 1_800_000),
+      sequence: 3,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    // Mẫu trong dung sai nên chưa bị cách ly, nhưng `measured_at` ở tương lai.
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() + 3 * 3600 * 1000),
+      sequence: 4,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+    // Dữ liệu cũ `clock_status='unsynced'` nhưng còn measured_at: không phải mốc tin cậy.
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 2_700_000),
+      sequence: 5,
+      heartRateBpm: 150,
+      stepsSinceBoot: 150,
+      batteryPercent: 90,
+      clockStatus: 'unsynced',
+    });
+
+    const from = new Date(base - 60_000).toISOString();
+    // `to` xa hơn hiện tại: client xin rộng cũng không kéo mẫu tương lai vào tổng hợp.
+    const to = new Date(Date.now() + 6 * 3600 * 1000).toISOString();
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(response.status).toBe(200);
+    // Contract giữ nguyên kỳ yêu cầu; chỉ dữ liệu dùng để tổng hợp bị kẹp về hiện tại.
+    expect(response.body.periodEnd).toBe(to);
+    expect(response.body.headline).toContain('2 mẫu đo');
+
+    const measurementSection = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    const factByLabel = new Map(
+      measurementSection.facts.map((fact: { label: string; value: unknown }) => [fact.label, fact.value]),
+    );
+    expect(factByLabel.get('Số mẫu đo')).toBe(2);
+    expect(factByLabel.get('Nhịp tim trung bình')).toBe(75);
+    expect(factByLabel.get('Nhịp tim thấp nhất')).toBe(70);
+    expect(factByLabel.get('Nhịp tim cao nhất')).toBe(80);
+    expect(factByLabel.get('Pin mẫu gần nhất')).toBe(55);
+    expect(factByLabel.get('Số bước ước tính')).toBe(10);
+
+    const stored = await ctx.db.select().from(aiSummaries).where(eq(aiSummaries.subjectId, subject.id));
+    expect(stored).toHaveLength(1);
+    const aggregate = stored[0]!.aggregate as {
+      window: { from: string; to: string };
+      samples: number;
+      heartRate: { avg: number; min: number; max: number } | null;
+      batteryPercent: number | null;
+      steps: number | null;
+    };
+    expect(aggregate.samples).toBe(2);
+    expect(aggregate.heartRate).toMatchObject({ avg: 75, min: 70, max: 80 });
+    expect(aggregate.batteryPercent).toBe(55);
+    expect(aggregate.steps).toBe(10);
+    expect(new Date(aggregate.window.to).getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('tất cả mẫu bị loại → summary báo không có dữ liệu, không bịa 0 hay trung bình', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Toàn Cách Ly');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() - 3600 * 1000),
+      sequence: 1,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() + 3 * 3600 * 1000),
+      sequence: 2,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+
+    const response = await owner.agent.get(`/api/v1/subjects/${subject.id}/assistant/summary`);
+    expect(response.status).toBe(200);
+    expect(response.body.headline).toContain('Không có dữ liệu đo');
+
+    const measurementSection = response.body.sections.find(
+      (section: { kind: string }) => section.kind === 'measurements',
+    );
+    const factByLabel = new Map(
+      measurementSection.facts.map((fact: { label: string; value: unknown }) => [fact.label, fact.value]),
+    );
+    expect(factByLabel.get('Số mẫu đo')).toBe(0);
+    expect(factByLabel.get('Nhịp tim')).toBe('Không có mẫu hợp lệ trong khoảng');
+    expect(factByLabel.has('Nhịp tim trung bình')).toBe(false);
+    expect(factByLabel.get('Pin mẫu gần nhất')).toBe('Không có dữ liệu');
+    expect(factByLabel.get('Số bước ước tính')).toBe('Không có dữ liệu');
+
+    const stored = await ctx.db.select().from(aiSummaries).where(eq(aiSummaries.subjectId, subject.id));
+    expect(stored).toHaveLength(1);
+    const aggregate = stored[0]!.aggregate as {
+      samples: number;
+      heartRate: unknown;
+      batteryPercent: number | null;
+      steps: number | null;
+    };
+    expect(aggregate.samples).toBe(0);
+    expect(aggregate.heartRate).toBeNull();
+    expect(aggregate.batteryPercent).toBeNull();
+    expect(aggregate.steps).toBeNull();
   });
 
   it('không cấu hình AI → không gọi adapter (không mạng), template + degraded', async () => {
@@ -787,5 +978,105 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
     expect(stored.filter((row) => row.status === 'failed').length).toBeGreaterThanOrEqual(3);
 
     fake.mode = 'ok';
+  });
+
+  it('summary/ask qua adapter: prompt chỉ chứa mẫu hợp lệ, không có mẫu cách ly/tương lai/chưa đồng bộ', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Prompt Cách Ly');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    const base = Date.now() - 2 * 3600 * 1000;
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base),
+      sequence: 1,
+      heartRateBpm: 60,
+      stepsSinceBoot: 100,
+      batteryPercent: 55,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 900_000),
+      sequence: 2,
+      heartRateBpm: 64,
+      stepsSinceBoot: 105,
+      batteryPercent: 54,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 1_800_000),
+      sequence: 3,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() + 3 * 3600 * 1000),
+      sequence: 4,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(base + 2_700_000),
+      sequence: 5,
+      heartRateBpm: 150,
+      stepsSinceBoot: 7777,
+      batteryPercent: 90,
+      clockStatus: 'unsynced',
+    });
+
+    const summaryResponse = await owner.agent.get(
+      `/api/v1/subjects/${subject.id}/assistant/summary`,
+    );
+    expect(summaryResponse.status).toBe(200);
+    expect(summaryResponse.body.status).toBe('ready');
+    const summaryAggregate = aggregateFromPrompt(fake.calls[fake.calls.length - 1]!);
+    expect(summaryAggregate.samples).toBe(2);
+    expect(summaryAggregate.heartRate).toMatchObject({ validSamples: 2, avg: 62, min: 60, max: 64 });
+    expect(summaryAggregate.batteryPercent).toBe(54);
+    expect(summaryAggregate.steps).toBe(5);
+    expect(new Date(summaryAggregate.window.to).getTime()).toBeLessThanOrEqual(Date.now());
+
+    const before = fake.calls.length;
+    const askResponse = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
+      .send({ question: 'Nhịp tim trung bình gần đây là bao nhiêu?' });
+    expect(askResponse.status).toBe(200);
+    expect(askResponse.body.status).toBe('ready');
+    expect(fake.calls.length).toBe(before + 1);
+    const askAggregate = aggregateFromPrompt(fake.calls[fake.calls.length - 1]!);
+    expect(askAggregate.samples).toBe(2);
+    expect(askAggregate.heartRate).toMatchObject({ validSamples: 2, avg: 62, min: 60, max: 64 });
+    expect(askAggregate.batteryPercent).toBe(54);
+    expect(askAggregate.steps).toBe(5);
+  });
+
+  it('ask khi mọi mẫu đều bị loại → trả lời không có dữ liệu, không gọi model', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Hỏi Không Dữ Liệu');
+    const { deviceId, assignmentId } = await createAssignment(ctx, subject.id, owner.session.user.id);
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() - 3600 * 1000),
+      sequence: 1,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    await insertTelemetry(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(Date.now() + 3 * 3600 * 1000),
+      sequence: 2,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+
+    const before = fake.calls.length;
+    const response = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
+      .send({ question: 'Nhịp tim trung bình gần đây là bao nhiêu?' });
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('degraded');
+    expect(response.body.provider).toBe('template');
+    expect(response.body.model).toBeNull();
+    expect(response.body.answer).toContain('Chưa có dữ liệu');
+    expect(response.body.degradedReason).toContain('Chưa có dữ liệu');
+    expect(fake.calls.length).toBe(before);
   });
 });

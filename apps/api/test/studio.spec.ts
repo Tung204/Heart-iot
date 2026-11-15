@@ -144,6 +144,49 @@ async function seedDeviceWithTelemetry(
   return { deviceId: device.id, assignmentId: assignment.id };
 }
 
+type RawTelemetryInput = {
+  measuredAt: Date;
+  sequence: number;
+  heartRateBpm: number | null;
+  stepsSinceBoot?: number;
+  batteryPercent?: number | null;
+  heartRateQuality?: 'valid' | 'poor_signal';
+  /** Mẫu bị cách ly (lệch giờ/ngoài assignment) — còn trong DB nhưng không được đọc. */
+  isQuarantined?: boolean;
+  /** Dữ liệu cũ `clock_status='unsynced'` có thể còn measured_at; không phải mốc tin cậy. */
+  clockStatus?: 'synced' | 'unsynced';
+};
+
+/** Ghi một mẫu telemetry với cờ cách ly/tương lai/đồng hồ tuỳ ý — chỉ dùng cho test lọc. */
+async function insertTelemetryRow(
+  ctx: TestContext,
+  deviceId: string,
+  assignmentId: string,
+  input: RawTelemetryInput,
+): Promise<void> {
+  await ctx.db.insert(telemetry).values({
+    messageId: crypto.randomUUID(),
+    deviceId,
+    assignmentId,
+    bootId: 'boot-studio',
+    sequence: input.sequence,
+    measuredAt: input.measuredAt,
+    receivedAt: new Date(),
+    clockStatus: input.clockStatus ?? 'synced',
+    uptimeMs: 60_000,
+    metrics: {
+      heart_rate_bpm: input.heartRateBpm,
+      steps_since_boot: input.stepsSinceBoot ?? 0,
+    },
+    quality: { heart_rate: input.heartRateQuality ?? 'valid', motion: 'valid' },
+    batteryPercent: input.batteryPercent ?? null,
+    payloadHash: crypto.randomUUID(),
+    source: 'http',
+    firmwareVersion: '0.1.0-demo',
+    isQuarantined: input.isQuarantined ?? false,
+  });
+}
+
 async function seedIncidentAndTask(ctx: TestContext, owner: TestUser, subjectId: string, deviceId: string, assignmentId: string) {
   const incidentRows = await ctx.db
     .insert(incidents)
@@ -780,5 +823,192 @@ describe('Studio workspace views — draft → preview → publish → rollback 
 
     const after = await businessCounts(ctx.db);
     expect(after).toEqual(before);
+  });
+
+  it('T10: data/preview bỏ mẫu cách ly, mẫu tương lai và mẫu chưa đồng bộ giờ; metrics/series/summary/last values chỉ từ mẫu hợp lệ', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Cách Ly Studio');
+    const deviceRows = await ctx.db
+      .insert(devices)
+      .values({
+        serial: nextSerial(),
+        label: 'Vòng tay đo',
+        credentialHash: 'hash-demo',
+        status: 'active',
+        firmwareVersion: '0.1.0-demo',
+        lastSeenAt: new Date(),
+      })
+      .returning();
+    const device = deviceRows[0];
+    if (!device) throw new Error('Không tạo được device.');
+    const assignmentRows = await ctx.db
+      .insert(deviceAssignments)
+      .values({ deviceId: device.id, subjectId: subject.id, assignedByUserId: owner.session.user.id })
+      .returning();
+    const assignment = assignmentRows[0];
+    if (!assignment) throw new Error('Không tạo được assignment.');
+
+    const nowMs = Date.now();
+    const validMeasuredAt = [nowMs - 180_000, nowMs - 120_000, nowMs - 60_000].map(
+      (value) => new Date(value),
+    );
+    const validHeartRates = [72, 75, 78];
+    for (let index = 0; index < validHeartRates.length; index += 1) {
+      await insertTelemetryRow(ctx, device.id, assignment.id, {
+        measuredAt: validMeasuredAt[index]!,
+        sequence: index,
+        heartRateBpm: validHeartRates[index]!,
+        stepsSinceBoot: 10 * (index + 1),
+        batteryPercent: [60, 57, 55][index]!,
+      });
+    }
+    // Mẫu bị cách ly: không được làm sai chart/metric/pin/"mới nhất".
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs - 30_000),
+      sequence: 10,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    // Mẫu chưa bị cách ly nhưng ở tương lai: chỉ được đọc khi thời gian thật đi qua.
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs + 3 * 3600 * 1000),
+      sequence: 11,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+    // Dữ liệu cũ `clock_status='unsynced'` có measured_at: giờ đo không tin cậy.
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs - 45_000),
+      sequence: 12,
+      heartRateBpm: 150,
+      stepsSinceBoot: 7777,
+      batteryPercent: 90,
+      clockStatus: 'unsynced',
+    });
+
+    const created = await createView(owner.agent, {
+      key: 'view-cach-ly',
+      name: 'View cách ly',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: makeConfig(DEFAULT_WIDGETS),
+    });
+    expect(created.status).toBe(201);
+    const viewId = (created.body as ViewBody).id;
+
+    const dataRes = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(dataRes.status).toBe(200);
+    const lastValidIso = validMeasuredAt[2]!.toISOString();
+    expect(dataRes.body.data.metrics).toMatchObject({
+      heartRateBpm: 78,
+      measuredAt: lastValidIso,
+    });
+    expect(dataRes.body.data.series.map((point: { heartRateBpm: number }) => point.heartRateBpm)).toEqual([
+      72, 75, 78,
+    ]);
+    expect(dataRes.body.data.summary).toMatchObject({
+      heartRateAvg: 75,
+      heartRateMin: 72,
+      heartRateMax: 78,
+      lastSeenAt: lastValidIso,
+    });
+    expect(dataRes.body.data.devices).toHaveLength(1);
+    expect(dataRes.body.data.devices[0]).toMatchObject({
+      online: true,
+      freshness: 'stale',
+      batteryPercent: 55,
+    });
+
+    // Preview dùng chung đường đọc nên cũng không thấy mẫu bị loại.
+    const previewRes = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/previews`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ draftRevision: 1, previewSubjectId: subject.id });
+    expect(previewRes.status).toBe(200);
+    expect(previewRes.body.data.metrics.heartRateBpm).toBe(78);
+    expect(previewRes.body.data.series).toHaveLength(3);
+  });
+
+  it('T11: mọi mẫu đều bị loại → data rỗng đúng hợp đồng, không bịa 0/giá trị trung bình', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Studio Không Dữ Liệu');
+    const deviceRows = await ctx.db
+      .insert(devices)
+      .values({
+        serial: nextSerial(),
+        label: 'Vòng tay đo',
+        credentialHash: 'hash-demo',
+        status: 'active',
+        firmwareVersion: '0.1.0-demo',
+        lastSeenAt: new Date(),
+      })
+      .returning();
+    const device = deviceRows[0];
+    if (!device) throw new Error('Không tạo được device.');
+    const assignmentRows = await ctx.db
+      .insert(deviceAssignments)
+      .values({ deviceId: device.id, subjectId: subject.id, assignedByUserId: owner.session.user.id })
+      .returning();
+    const assignment = assignmentRows[0];
+    if (!assignment) throw new Error('Không tạo được assignment.');
+
+    const nowMs = Date.now();
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs - 60_000),
+      sequence: 1,
+      heartRateBpm: 200,
+      stepsSinceBoot: 9999,
+      batteryPercent: 100,
+      isQuarantined: true,
+    });
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs + 3 * 3600 * 1000),
+      sequence: 2,
+      heartRateBpm: 199,
+      stepsSinceBoot: 8888,
+      batteryPercent: 99,
+    });
+    await insertTelemetryRow(ctx, device.id, assignment.id, {
+      measuredAt: new Date(nowMs - 45_000),
+      sequence: 3,
+      heartRateBpm: 150,
+      stepsSinceBoot: 7777,
+      batteryPercent: 90,
+      clockStatus: 'unsynced',
+    });
+
+    const created = await createView(owner.agent, {
+      key: 'view-khong-du-lieu',
+      name: 'View không dữ liệu',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: makeConfig(DEFAULT_WIDGETS),
+    });
+    expect(created.status).toBe(201);
+    const viewId = (created.body as ViewBody).id;
+
+    const dataRes = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(dataRes.status).toBe(200);
+    expect(dataRes.body.data.sample).toBe(false);
+    expect(dataRes.body.data.metrics).toBeNull();
+    expect(dataRes.body.data.series).toEqual([]);
+    expect(dataRes.body.data.summary).toMatchObject({
+      heartRateAvg: null,
+      heartRateMin: null,
+      heartRateMax: null,
+      lastSeenAt: null,
+      alertsTotal: 0,
+    });
+    expect(dataRes.body.data.devices).toHaveLength(1);
+    expect(dataRes.body.data.devices[0]).toMatchObject({
+      online: true,
+      freshness: 'stale',
+      batteryPercent: null,
+    });
   });
 });

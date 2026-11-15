@@ -69,6 +69,9 @@ import { isUniqueViolation } from '../database/errors';
  *   với `FOR UPDATE`; hai publish đồng thời: một thành công, một 409 APPROVAL_STALE.
  * - Quyền theo hồ sơ qua AccessService; không dùng role toàn cục thay kiểm quyền hồ sơ
  *   (admin chỉ có quyền trên scope global, không mặc định xem view subject).
+ * - Dữ liệu telemetry cho preview/data chỉ gồm mẫu đã đồng bộ giờ
+ *   (`clock_status='synced'`), không bị cách ly (`is_quarantined=false`) và có
+ *   `measured_at <= now`; mẫu bị loại không vào series/metric/summary/lastSeenAt.
  */
 
 const PREVIEW_WINDOW_MS = 24 * 3600 * 1000;
@@ -250,6 +253,9 @@ export class StudioService {
       : [];
 
     // 30 điểm gần nhất trong 24h (cho chart), lấy desc rồi lật lại asc.
+    // Chỉ mẫu đã đồng bộ giờ, không bị cách ly và không ở tương lai mới được
+    // hiển thị/tổng hợp; mẫu cách ly hoặc lệch đồng hồ không được làm sai chart,
+    // metric hay "dữ liệu mới nhất" của hồ sơ.
     const latestPoints = assignmentIds.length
       ? await this.db
           .select()
@@ -257,6 +263,8 @@ export class StudioService {
           .where(
             and(
               inArray(telemetry.assignmentId, assignmentIds),
+              eq(telemetry.isQuarantined, false),
+              eq(telemetry.clockStatus, 'synced'),
               isNotNull(telemetry.measuredAt),
               gte(telemetry.measuredAt, windowStart),
               lte(telemetry.measuredAt, now),
@@ -267,7 +275,8 @@ export class StudioService {
       : [];
     const series = [...latestPoints].reverse();
 
-    // Bản đo gần nhất theo từng thiết bị để tính online/freshness.
+    // Bản đo gần nhất theo từng thiết bị để tính online/freshness; chỉ xét mẫu
+    // đã đồng bộ giờ, không cách ly và đã xảy ra (không lấy mốc tương lai).
     const latestByDevice = assignmentIds.length
       ? await this.db
           .selectDistinctOn([telemetry.deviceId])
@@ -275,7 +284,10 @@ export class StudioService {
           .where(
             and(
               inArray(telemetry.assignmentId, assignmentIds),
+              eq(telemetry.isQuarantined, false),
+              eq(telemetry.clockStatus, 'synced'),
               isNotNull(telemetry.measuredAt),
+              lte(telemetry.measuredAt, now),
             ),
           )
           .orderBy(asc(telemetry.deviceId), desc(telemetry.measuredAt), desc(telemetry.id))
@@ -336,6 +348,8 @@ export class StudioService {
             .where(
               and(
                 inArray(telemetry.assignmentId, assignmentIds),
+                eq(telemetry.isQuarantined, false),
+                eq(telemetry.clockStatus, 'synced'),
                 isNotNull(telemetry.measuredAt),
                 gte(telemetry.measuredAt, windowStart),
                 lte(telemetry.measuredAt, now),
@@ -365,7 +379,9 @@ export class StudioService {
               and(
                 inArray(telemetry.assignmentId, assignmentIds),
                 inArray(telemetry.source, ['simulator', 'synthetic']),
+                eq(telemetry.isQuarantined, false),
                 gte(telemetry.receivedAt, windowStart),
+                lte(telemetry.receivedAt, now),
               ),
             )
             .limit(1)
