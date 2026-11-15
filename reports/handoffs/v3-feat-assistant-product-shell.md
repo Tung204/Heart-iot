@@ -151,3 +151,14 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1. Đã cài `pnpm install --f
 - Tài khoản QA: `ba-an@demo.annhien.local` / `demo-an-nhien-2026`.
 - Hai process QA sẽ được dừng sau khi handoff; ảnh và `results.json` giữ tại
   `C:/tmp/ui-v3-assistant`.
+
+## Xác nhận cổng cuối (task `task_ce85a644888a`)
+
+Chạy lại trên cây sạch tại commit code `703cfb2`, **không sửa code**:
+
+- `pnpm --filter @annhien/web typecheck`: pass.
+- `pnpm --filter @annhien/web test`: **33 file / 197 test pass**, 8.14s.
+- `pnpm --filter @annhien/web build`: pass, 210ms.
+
+Không còn thay đổi chưa commit. Ảnh, E2E 10/10 và các phần chưa chạy giữ nguyên như trên;
+QA stack 3100/4210 đã dừng.
