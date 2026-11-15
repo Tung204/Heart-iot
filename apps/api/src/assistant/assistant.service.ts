@@ -38,6 +38,9 @@ import {
  * - Kiểm quyền trước khi đọc và trước khi gửi dữ liệu tới model (requireHistory + view_ai).
  * - Chỉ gửi facts tổng hợp tới model: không email, không tên đầy đủ, không telemetry thô.
  * - Adapter lỗi/timeout/JSON sai → fallback template, không 500.
+ * - Chỉ tổng hợp telemetry đã đồng bộ giờ (`clock_status='synced'`), không bị cách ly
+ *   (`is_quarantined=false`) và có `measured_at` không vượt hiện tại; mẫu bị loại
+ *   không vào số mẫu/nhịp tim/pin/bước và không được gửi tới model.
  */
 
 const DEFAULT_WINDOW_MS = 7 * 24 * 3600 * 1000;
@@ -454,6 +457,11 @@ export class AssistantService {
       .where(eq(deviceAssignments.subjectId, subjectId));
     const assignmentIds = assignmentRows.map((row) => row.id);
 
+    // Trần dữ liệu telemetry là hiện tại: client xin `to` xa hơn cũng không kéo
+    // mẫu `measured_at` tương lai vào tổng hợp. Mẫu cách ly và mẫu chưa đồng bộ
+    // giờ không phải số liệu tin cậy nên bị loại khỏi samples/HR/pin/bước.
+    const telemetryTo = new Date(Math.min(to.getTime(), Date.now()));
+
     const [telemetryRows, incidentRows, taskRows] = await Promise.all([
       assignmentIds.length === 0
         ? Promise.resolve([] as TelemetryRow[])
@@ -463,9 +471,11 @@ export class AssistantService {
             .where(
               and(
                 inArray(telemetry.assignmentId, assignmentIds),
+                eq(telemetry.isQuarantined, false),
+                eq(telemetry.clockStatus, 'synced'),
                 isNotNull(telemetry.measuredAt),
                 gte(telemetry.measuredAt, from),
-                lte(telemetry.measuredAt, to),
+                lte(telemetry.measuredAt, telemetryTo),
               ),
             )
             .orderBy(asc(telemetry.measuredAt), asc(telemetry.id)),
@@ -544,7 +554,7 @@ export class AssistantService {
     }
 
     return {
-      window: { from: from.toISOString(), to: to.toISOString() },
+      window: { from: from.toISOString(), to: telemetryTo.toISOString() },
       samples: telemetryRows.length,
       heartRate,
       batteryPercent,
