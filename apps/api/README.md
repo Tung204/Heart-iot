@@ -37,8 +37,8 @@ pnpm db:migrate  # áp migration (dừng API trước)
 pnpm seed
 ```
 
-Lần chạy ngày **15/11/2026**: `pnpm test` **20 suite / 205 test pass** (115,3 s). Chạy randomized
-cùng ngày với seed `1288443891`: **204/205**, còn 1 test Studio phụ thuộc dữ liệu audit của test khác.
+Lần chạy ngày **15/11/2026**: `pnpm test` **20 suite / 214 test pass** (109,2 s). Chạy randomized
+cùng ngày với seed `1288443891`: **214/214**; các test audit đã scope theo đối tượng, không phụ thuộc thứ tự.
 Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 
 ## Module và ranh giới

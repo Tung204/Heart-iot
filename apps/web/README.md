@@ -86,11 +86,8 @@ e2e/            smoke, alerts, history (mock /api/v1)
   lịch sử + biểu đồ, cảnh báo + SSE + badge/banner, hồ sơ/chia sẻ + liên hệ khẩn cấp + lưu trữ/yêu cầu xóa,
   thiết bị, thông báo, trợ lý có `dataQuality`, công việc + tạo việc, Studio draft→preview→publish→rollback,
   quản trị + tab thiết bị + policy CAS + audit; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
-- **Kiểm ngày 15/11/2026:** `pnpm test` **32 file / 176 test pass** (12,6 s); E2E **6/7 pass**
-  (`history.spec.ts:117` đếm 3 request `/measurements` thay vì 2). `pnpm build` **đang fail**:
-  `layout.css` có `}` thừa (lightningcss `Invalid empty selector`, khoảng dòng 2127) — cần sửa code
-  trước khi coi là bản build được. Không có cảnh báo chunk >500 kB trong lần build gần nhất trước đó,
-  nhưng chưa đo lại sau v2.
+- **Kiểm ngày 15/11/2026:** `pnpm test` **32 file / 178 test pass** (11,2 s); E2E **7/7 pass**; `pnpm build` **pass**.
+  Bundle tách theo route; chunk lớn nhất ~269 kB, chưa đo trên mạng thật.
 - **Chưa có:** Web Push khi đóng trình duyệt, PWA/native, dữ liệu sức khỏe thật, firmware/đo thật,
   form tạo thiết bị trong tab admin (tạo qua API), Studio approval độc lập, xóa cứng/retention.
   Cảnh báo chỉ hiển thị khi trang đang mở; không tự gọi cấp cứu.

@@ -144,7 +144,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 6. Không commit secret/.env; `.env.example` chỉ tên biến.
 7. Cập nhật docs nguồn + sinh lại HTML trước khi báo hoàn thành.
 
-**Trạng thái cổng ngày 15/11/2026:** typecheck và unit test tuần tự đạt; **cổng build web chưa đạt** (CSS `layout.css` lỗi `Invalid empty selector`), E2E 6/7 và API randomized còn 1 test phụ thuộc thứ tự. Không được coi mục 8 là “đã xanh toàn bộ” cho tới khi sửa và chạy lại.
+**Trạng thái cổng ngày 15/11/2026:** typecheck, unit test API/web, API randomized (214/214), E2E (7/7) và production build web đều đã chạy lại và đạt trên máy dev. Đây là bằng chứng phần mềm, không thay cho kiểm PostgreSQL/MQTT thật, firmware/độ chính xác hay khả dụng người cao tuổi.
 
 ## 9. Rủi ro đã biết
 
@@ -159,8 +159,8 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 
 ## 10. Định nghĩa hoàn thành v1
 
-- Tất cả cổng mục 8 đã chạy với output thật trong phiên này. **Hiện chưa đạt đầy đủ:** web build fail, E2E 6/7, API randomized 204/205.
-- Reviewer độc lập không còn finding P0/P1 mở; P2 còn lại được ghi rõ. **Hiện chưa có vòng review độc lập cuối cho toàn bộ v2**; các fix mới có test cục bộ.
+- Các cổng kỹ thuật mục 8 đã chạy lại với output thật: API 214 test, web 178 test, randomized 214/214, E2E 7/7, build web pass. **Chưa đạt đầy đủ** ở phần bằng chứng thực tế: MQTT broker/ACK, PostgreSQL thật, firmware/độ chính xác, retention/xóa thật và khả dụng người cao tuổi.
+- Reviewer độc lập không còn finding P0/P1 mở; P2 còn lại được ghi rõ. **Hiện chưa có vòng review độc lập cuối cho toàn bộ v2**; hai reviewer v2 đã chạy; các fix sau báo cáo mới có test cục bộ, chưa có vòng tái kiểm độc lập cuối. P1 privacy/retention và P0-2 MQTT vẫn mở.
 - README/API/UI dùng được theo hướng dẫn; demo script tái lập từ DB rỗng. **Chưa kiểm lại demo từ DB rỗng trong lượt tài liệu này.**
 - Docs nguồn được cập nhật; HTML build `--check` đạt.
 - Giới hạn (firmware, push, dữ liệu thật, PostgreSQL production) được nêu rõ ở README và báo cáo.
@@ -175,7 +175,6 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 - **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký, khung ứng dụng, tổng quan + xu hướng, lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ + lưu trữ/yêu cầu xóa, thiết bị, chia sẻ + liên hệ khẩn cấp, thông báo + badge/banner, cài đặt tài khoản, Studio, trợ lý, công việc, quản trị thiết bị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
 - **Simulator** (`tools/simulator`): telemetry theo profile, fall cancel/confirm/duplicate/late/sos, queue retry, không in device key; đã chạy end-to-end với API.
 - **Seed demo** idempotent: 3 tài khoản, 2 hồ sơ, thiết bị, telemetry tổng hợp 6 ngày, cảnh báo, task, outbox, liên hệ khẩn cấp demo. Dữ liệu telemetry ghi `source='simulator'` và hiển thị `is_synthetic=true`.
-- **Chưa đạt cổng build:** `apps/web && pnpm build` fail vì CSS `layout.css` có `}` thừa (lightningcss `Invalid empty selector`, khoảng dòng 2127). Đây là lỗi mã ngoài phạm vi task tài liệu, chưa sửa.
 
 ### Nhật ký thay đổi v2 (ngắn)
 
@@ -205,14 +204,14 @@ pnpm build:contracts
 cd apps/api && pnpm test
 cd apps/api && pnpm test:random --seed=1288443891
 cd apps/web && pnpm test
-cd apps/web && pnpm build          # hiện fail CSS
-cd apps/web && pnpm test:e2e       # hiện 6/7
+cd apps/web && pnpm build          # pass; chunk theo route
+cd apps/web && pnpm test:e2e       # 7/7
 cd tools/simulator && npm test
 node tools/docs/check-examples.mjs # sau pnpm build:contracts
 python tools/docs/build.py --check
 ```
 
-Kết quả chạy ngày **15/11/2026**: API **20 suite/205 test pass** (115,3 s); web **32 file/176 test pass** (12,6 s); simulator **23 pass**; typecheck pass; API randomized seed `1288443891` **204/205** (Studio T8 phụ thuộc audit của test khác); E2E **6/7** (history 60 s fail vì 3 request thay vì 2); web production build **fail** do CSS; docs `--check` và payload mẫu pass. Không chạy lại seed, PostgreSQL/MQTT thật, Web Push, AI provider thật, p95 hay kiểm khả dụng trong lượt này. Bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; không dùng con số trong tài liệu này thay cho việc chạy lại.
+Kết quả chạy ngày **15/11/2026**: API **20 suite/214 test pass** (109,2 s); web **32 file/178 test pass** (11,2 s); simulator **23 pass**; typecheck pass; API randomized seed `1288443891` **214/214**; E2E **7/7**; web production build **pass**; docs `--check` và payload mẫu pass; seed DB trống pass (3 user/2 hồ sơ/1 thiết bị/1.681 telemetry/1 liên hệ khẩn cấp demo). Không chạy PostgreSQL/MQTT broker thật, Web Push, AI provider thật, p95 hay kiểm khả dụng trong lượt này. Bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; không dùng con số trong tài liệu này thay cho việc chạy lại.
 
 ### Chưa làm hoặc chưa đủ bằng chứng
 
@@ -226,15 +225,15 @@ Kết quả chạy ngày **15/11/2026**: API **20 suite/205 test pass** (115,3 s
 - **UI tạo thiết bị admin** — tab thiết bị có list/cấp mã/xoay khóa nhưng chưa có form tạo; phải gọi API admin.
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
 - **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
-- **Cổng kỹ thuật chưa xanh** — web build fail CSS; E2E 6/7; API randomized 204/205. Cần sửa ở task code/test rồi chạy lại trước khi coi là bản build được.
-- **Review độc lập cuối cho v2** — các fix có test cục bộ nhưng chưa có reviewer độc lập tái kiểm toàn bộ; không đóng finding chỉ vì có handoff.
+- **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, retention/xóa cứng/backup; deletion-request mới ghi audit. Không tuyên bố tuân thủ pháp lý.
+- **Tái kiểm độc lập sau fix v2** — đã có 2 reviewer độc lập (tính năng, bảo mật) và 13 báo cáo QA; các fix sau báo cáo mới có test cục bộ, chưa có vòng reviewer thứ ba xác nhận từng finding. Không đóng finding chỉ vì có handoff.
 
 ### Giới hạn vận hành đã biết
 
 - PGlite mở file DB độc quyền theo process: phải dừng API trước khi chạy seed/migration từ process khác.
 - `apps/api` build ra `dist/src/main.js` (rootDir `src`); script `start` đã trỏ đúng.
 - Web dev dùng alias `@annhien/contracts` sang source TypeScript để tránh interop CJS/ESM; build dùng package exports.
-- Web production build hiện fail ở CSS; không dùng `pnpm build` để kiểm UI cho tới khi sửa.
+- Web production build đã pass; khi kiểm UI nên dùng build/preview cho hành vi production, dev server có StrictMode có thể gửi lặp request đầu.
 
 ## 12. Kết quả review và trạng thái xử lý (14–15/11/2026)
 
@@ -248,7 +247,7 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 - **Bảo mật/phân quyền** (`reports/qa/v2-rev-security.md`, `v2-security-authz.md`): các P1 đã có fix/test cục bộ — event ingest theo assignment, MQTT surface/ACL mẫu, quyền số đo tách cảnh báo, SSE thu hồi, notification boundary. **Còn mở** P0-2 MQTT event/ACK và các P2 như lockout DoS, enumeration, cursor alerts, security headers, admin task không cần care link, giới hạn export/SSE.
 - **Toàn vẹn dữ liệu** (`reports/qa/v2-data-integrity.md`): quarantine/assignment, notification boundary, last telemetry, status boundary đã có fix/test; chưa có UI xem vùng cách ly, chưa kiểm PostgreSQL thật.
 - **IoT/protocol** (`reports/qa/v2-iot-protocol.md`): broker bị hạ xuống profile thử nghiệm, HTTP là đường chính thức; **P0-2 vẫn mở** vì chưa có ingest sự kiện/ACK qua MQTT và chưa kiểm ACL/TLS broker thật.
-- **Chất lượng kiểm thử** (`reports/qa/v2-chat-luong-kiem-thu.md`): hermetic env và randomize đã được cải thiện; hiện còn 1 test API phụ thuộc thứ tự, E2E 6/7 và web build fail. Không dùng “205 test pass” để nói toàn bộ hệ thống đã kiểm.
+- **Chất lượng kiểm thử** (`reports/qa/v2-chat-luong-kiem-thu.md`): hermetic env và randomize đã được cải thiện; đã sửa phụ thuộc thứ tự còn lại; randomized 214/214, E2E 7/7, build pass. Không dùng “214 test pass” để nói toàn bộ hệ thống đã kiểm.
 - **Hiệu năng** (`reports/qa/v2-hieu-nang-va-on-dinh-tai-trang.md`): code-split/font/lịch sử đã tối ưu; số đo p95 trước đó là trên PGlite cục bộ, không đại diện mạng thật và chưa chạy lại sau v2.
 
-**Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test, nhưng **chưa release-ready**: còn build web fail, E2E/randomized test chưa xanh, MQTT P0-2 mở, chưa có xóa/retention thật, chưa có firmware/accuracy và chưa có review độc lập cuối cho v2.
+**Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: MQTT P0-2 mở, chưa có xóa/retention thật, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.

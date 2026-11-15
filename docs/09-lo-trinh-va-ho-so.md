@@ -2,7 +2,7 @@
 
 Đây là **trình tự kỹ thuật đề xuất**, không có deadline hoặc người phụ trách được tự gán. Kế hoạch có checkbox/trạng thái duy nhất nằm trong `Kế hoạch.md` của dự án Obsidian. Tài liệu này chỉ mô tả phụ thuộc, đầu ra và điều kiện chuyển giai đoạn.
 
-**Trạng thái 15/11/2026:** G2 (lát cắt phần mềm) đã có mã chạy được trên dữ liệu tổng hợp, nhưng chưa đạt đầy đủ điều kiện chuyển tiếp (web build đang fail, E2E 6/7, test randomized còn 1 lỗi thứ tự). G1/G3 (phần cứng, firmware, đo thật) và G4 ở mức AI runtime dài hạn **chưa làm**; G5 (hồ sơ/demo cuối) chưa hoàn thiện. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem bằng chứng và giới hạn.
+**Trạng thái 15/11/2026:** G2 (lát cắt phần mềm) đã có mã chạy được trên dữ liệu tổng hợp, các cổng phần mềm đã chạy xanh trên máy dev (API 214 test, web 178 test, randomized 214/214, E2E 7/7, build pass). G1/G3 (phần cứng, firmware, đo thật) và G4 ở mức AI runtime dài hạn **chưa làm**; G5 (hồ sơ/demo cuối) chưa hoàn thiện. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem bằng chứng và giới hạn.
 
 ## Các giai đoạn
 

@@ -85,13 +85,13 @@ Kết quả chạy ngày **15/11/2026** trên worktree này:
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`cd apps/api && pnpm test`) | **20 suite / 205 test pass**, 115,3 s |
-| Web unit (`cd apps/web && pnpm test`) | **32 file / 176 test pass**, 12,6 s |
+| API (`cd apps/api && pnpm test`) | **20 suite / 214 test pass**, 109,2 s |
+| Web unit (`cd apps/web && pnpm test`) | **32 file / 178 test pass**, 11,2 s |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
-| E2E (`cd apps/web && pnpm test:e2e`) | **6/7 pass**; test lịch sử 60 giây fail vì đếm 3 request `/measurements` thay vì 2 |
+| E2E (`cd apps/web && pnpm test:e2e`) | **7/7 pass**; test 60 giây xác nhận không refetch sau khi tải thêm |
 | Typecheck (`pnpm -r typecheck`) | contracts/api/web/simulator pass |
 | Contracts (`pnpm build:contracts`) | pass |
-| Web production build (`cd apps/web && pnpm build`) | **fail**: `layout.css` có `}` thừa tại khoảng dòng 2127, lightningcss báo `Invalid empty selector` |
+| Web production build (`cd apps/web && pnpm build`) | **pass**; bundle tách theo route, chunk lớn nhất ~269 kB (chưa đo mạng thật) |
 | Docs HTML (`python tools/docs/build.py --check`) | pass sau khi sinh lại; xem `tools/docs/README.md` |
 | Payload mẫu | parse đủ bằng schema tương ứng; script fail nếu file mẫu chưa khai báo schema |
 
@@ -134,7 +134,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** web production build đang fail do lỗi CSS; E2E 6/7; test API randomized có 1 test phụ thuộc thứ tự (Studio T8). Chưa có CI, chưa đo p95/NFR-07, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** unit/integration API 214 test, web 178 test, randomized 214/214, E2E 7/7 và build web đã qua trên máy dev. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** đã tách chunk theo route; lần đo gần nhất trước v2 có chunk lớn nhất ~265 kB, chưa đo trên mạng thật.
 
 ## Đọc tiếp
