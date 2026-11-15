@@ -31,9 +31,10 @@ describe('RegisterPage', () => {
     renderApp('/register', () => me401Response());
 
     expect(
-      await screen.findByText('Theo dõi người thân cùng An Nhiên.'),
+      await screen.findByText('Theo dõi sức khỏe người thân cùng trợ lý AI.'),
     ).toBeInTheDocument();
     expect(screen.getAllByText('Dữ liệu mô phỏng · không thay thế cấp cứu.')).toHaveLength(1);
+    expect(screen.queryByText(/An Nhiên/)).toBeNull();
     expect(document.querySelectorAll('h1')).toHaveLength(1);
   });
 });

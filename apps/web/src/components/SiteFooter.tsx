@@ -3,7 +3,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="container">
         <p>
-          <strong>An Nhiên</strong> — theo dõi người thân từ xa.
+          <strong>Theo dõi sức khỏe</strong> — người thân từ xa.
         </p>
       </div>
     </footer>

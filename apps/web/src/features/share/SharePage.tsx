@@ -231,7 +231,7 @@ export function SharePage() {
               required
               value={email}
               error={fieldErrors.fields.email}
-              hint="Người được mời cần đăng ký tài khoản An Nhiên với email này để chấp nhận lời mời."
+              hint="Người được mời cần đăng ký tài khoản với email này để chấp nhận lời mời."
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="off"
             />

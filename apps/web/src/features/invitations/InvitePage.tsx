@@ -66,7 +66,7 @@ export function InvitePage() {
       <SkipLink />
       <header className="auth-header">
         <Link to="/" className="brand">
-          An Nhiên
+          Theo dõi sức khỏe
         </Link>
       </header>
       <main id="main" tabIndex={-1} className="auth-main">

@@ -30,7 +30,7 @@ test('landing hiển thị tên sản phẩm, trợ lý AI và dữ liệu mô p
     page.getByRole('heading', { level: 1, name: /Người thân ở nhà/ }),
   ).toBeVisible();
   await expect(page).toHaveTitle(/trợ lý AI/i);
-  await expect(page.getByText('An Nhiên', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Theo dõi sức khỏe', { exact: true }).first()).toBeVisible();
   await expect(
     page.getByText('Trợ lý AI trả lời câu hỏi về số liệu của người thân.'),
   ).toBeVisible();
