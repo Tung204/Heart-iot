@@ -56,18 +56,22 @@ Server bổ sung `received_at`, `assignment_id` và cờ dữ liệu trễ. Firm
 
 Tổng bước theo ngày được tính từ delta trong từng boot và gán vào khoảng có thời gian tin cậy. Lần nhận đầu của boot sau một đoạn mất dữ liệu có thể không phân bổ chính xác theo ngày; đánh dấu chưa đủ dữ liệu thay vì cộng toàn bộ vào ngày nhận. Khi counter giảm trong cùng boot, ghi lỗi dữ liệu. Ngày hiển thị theo timezone hồ sơ; lưu timestamp UTC.
 
-## Topic và giao nhận MQTT
+## Topic và giao nhận MQTT (thiết kế, chưa dùng trên đường ingest)
 
-| Topic | Hướng | Payload/chính sách |
-| --- | --- | --- |
-| `v1/devices/{device_id}/telemetry` | Thiết bị → backend | Envelope telemetry; QoS 1 đề xuất, có thể tổng hợp mẫu để giảm băng thông |
-| `v1/devices/{device_id}/events` | Thiết bị → backend | `fall.candidate`, `fall.cancelled`, `fall.confirmed`, `user.cancel_requested`, `sos.confirmed`; QoS 1 |
-| `v1/devices/{device_id}/status` | Thiết bị/broker → backend | Presence/heartbeat gồm boot_id, uptime, firmware, pin nếu có; LWT chỉ là gợi ý mất kết nối |
-| `v1/devices/{device_id}/acks` | Backend → thiết bị | ACK ứng dụng cho sự kiện quan trọng sau commit |
+**Trạng thái 15/11/2026 — HTTP là đường duy nhất đang hỗ trợ.** `POST /api/v1/ingest/telemetry` và `POST /api/v1/ingest/events` (header `x-device-id`, `x-device-key`) là đường simulator, web và test đang dùng. Adapter MQTT trong `apps/api` chỉ subscribe `v1/devices/+/telemetry` khi đặt `MQTT_URL`; nó **không** subscribe `events`/`status`, **không** publish ACK, nên publish `fall.*`/`sos.*` lên broker **không tạo incident, không có ACK** và có thể bị bỏ im lặng — finding **P0-2** trong [`reports/qa/v2-iot-protocol.md`](../reports/qa/v2-iot-protocol.md) **vẫn mở**. Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental` (tắt khi `docker compose up` mặc định), chỉ bind loopback, bắt buộc user/password + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md). Thay đổi cấu hình đó là **giảm bề mặt tấn công**, không phải đã triển khai MQTT.
 
-Không retain telemetry hoặc sự kiện té ngã: subscriber mới không được hiểu một sự kiện cũ là mới. Có thể retain presence, nhưng phải kiểm thời gian nhận. Topic status dùng cùng envelope định danh khi do thiết bị gửi; LWT do broker gửi phải được nhận diện riêng và không đưa vào bảng dữ liệu đo.
+Bảng dưới là **hợp đồng thiết kế** cho khi hiện thực; cột trạng thái cho biết phần nào đã có trong code.
 
-ACL buộc `device_id` trong topic và payload khớp định danh đã cấp. Subscriber backend không tin một device_id chỉ vì JSON hợp lệ. Certificate/credential provisioning và rotation được chọn khi dựng broker; không dùng chung một tài khoản thiết bị cho mọi board.
+| Topic | Hướng | Payload/chính sách | Trạng thái |
+| --- | --- | --- | --- |
+| `v1/devices/{device_id}/telemetry` | Thiết bị → backend | Envelope telemetry; QoS 1 đề xuất, có thể tổng hợp mẫu để giảm băng thông | Adapter đã subscribe; chưa chạy broker thật, chưa có xác thực thiết bị ở tầng ứng dụng |
+| `v1/devices/{device_id}/events` | Thiết bị → backend | `fall.candidate`, `fall.cancelled`, `fall.confirmed`, `user.cancel_requested`, `sos.confirmed`; QoS 1 | **Chưa có ingest**: publish bị bỏ qua, không tạo incident, không ACK |
+| `v1/devices/{device_id}/status` | Thiết bị/broker → backend | Presence/heartbeat gồm boot_id, uptime, firmware, pin nếu có; LWT chỉ là gợi ý mất kết nối | Chưa có |
+| `v1/devices/{device_id}/acks` | Backend → thiết bị | ACK ứng dụng cho sự kiện quan trọng sau commit | Chưa publish |
+
+Khi hiện thực: không retain telemetry hoặc sự kiện té ngã — subscriber mới không được hiểu một sự kiện cũ là mới. Có thể retain presence, nhưng phải kiểm thời gian nhận. Topic status dùng cùng envelope định danh khi do thiết bị gửi; LWT do broker gửi phải được nhận diện riêng và không đưa vào bảng dữ liệu đo.
+
+ACL phải buộc `device_id` trong topic và payload khớp định danh đã cấp; subscriber backend không tin một `device_id` chỉ vì JSON hợp lệ. Cấu hình mẫu ở `infra/mosquitto/acl` dùng username = `device_id` cho từng thiết bị, `pattern` chỉ cho publish `v1/devices/%u/telemetry` và đọc `v1/devices/%u/acks`, backend dùng user riêng chỉ đọc telemetry. File mật khẩu tạo cục bộ ngoài repo và không commit; không dùng chung một tài khoản thiết bị cho mọi board. Certificate/credential provisioning và rotation chưa được hiện thực cho MQTT (P1-2), và ACL/TLS chưa được kiểm với broker thật.
 
 ## Incident và ACK
 
@@ -91,7 +95,7 @@ Prefix `/api/v1`. Phần lớn endpoint dưới đây **đã chạy** trong `app
 | Chia sẻ | `GET/POST /subjects/:id/invitations`; `GET /invitations/:token`; `POST /invitations/:token/accept`; `GET /subjects/:id/care-links`; `DELETE /subjects/:id/care-links/:linkId` | Đã có; chủ hồ sơ tạo/thu hồi; token dùng một lần, có hạn; không ghi token vào log |
 | Thiết bị | `POST /subjects/:id/devices/claim`; `GET /subjects/:id/devices`; `POST /devices/:id/release` | Đã có; bằng chứng ghép thiết bị dùng một lần; assignment đóng/mở đúng thời điểm |
 | Thiết bị (admin) | `GET/POST /admin/devices`; `POST /admin/devices/:id/claim-code`; `POST /admin/devices/:id/rotate-key` | Đã có; khóa thiết bị không trả lại dạng thô sau khi tạo |
-| Ingest | `POST /ingest/telemetry`, `POST /ingest/events` (header `x-device-id`, `x-device-key`) | Đã có; xác thực khóa thiết bị, không dùng cookie người dùng |
+| Ingest | `POST /ingest/telemetry`, `POST /ingest/events` (header `x-device-id`, `x-device-key`) | Đã có; xác thực khóa thiết bị, không dùng cookie người dùng. **Đây là đường duy nhất đang hỗ trợ**; MQTT chỉ là profile thử nghiệm, chưa ingest sự kiện |
 | Đo | `GET /subjects/:id/measurements?from=&to=&cursor=`; `GET /subjects/:id/daily-summary?date=`; `GET /subjects/:id/export.csv` | Đã có; giới hạn khoảng, pagination và quyền lịch sử |
 | Cảnh báo | `GET /subjects/:id/alerts`; `GET /alerts/:id`; `POST /alerts/:id/acknowledge`; `POST /alerts/:id/resolve` | Đã có; ack/resolve compare-and-set; 403 khi có link nhưng thiếu quyền nhận cảnh báo, 404 khi không có link hoặc incident đang `suspected` |
 | Realtime | `GET /subjects/:id/events` (SSE) | Đã có; xác thực stream, kiểm lại quyền mỗi vòng, reconnect bằng cursor/`Last-Event-ID` |

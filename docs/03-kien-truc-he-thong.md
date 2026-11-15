@@ -9,18 +9,22 @@
 ```mermaid
 flowchart LR
     Sensors["PPG / IMU / nút bấm"] --> Device["Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"]
-    Device -->|"MQTT qua TLS"| Broker["MQTT broker"]
-    Broker --> Ingest["Tiếp nhận, xác thực, chống trùng"]
+    Device -->|"HTTPS: POST /api/v1/ingest/* — đường duy nhất đang hỗ trợ"| Ingest["Tiếp nhận, xác thực, chống trùng"]
+    Device -->|"MQTT thử nghiệm: chỉ telemetry, chưa có ingest sự kiện"| Broker["MQTT broker (profile mqtt-experimental, tắt mặc định)"]
+    Broker -->|"adapter chỉ subscribe telemetry, chưa kiểm với broker thật"| Ingest
     Ingest --> Backend["Backend: hồ sơ, quyền, dữ liệu, cảnh báo"]
     Backend --> DB[("PostgreSQL")]
     Backend --> Delivery["Outbox và tác vụ gửi thông báo"]
     Delivery -->|"Sự kiện trong ứng dụng"| Web["Web responsive"]
     Web -->|"HTTPS / API"| Backend
-    Backend -->|"ACK sau lưu bền vững"| Broker
-    Broker --> Device
+    Backend -->|"Application ACK sau commit — chưa hiện thực"| Broker
+    Broker -->|"Chưa publish ACK (P0-2 mở)"| Device
     Backend -->|"Dữ liệu tối thiểu đã kiểm quyền"| AI["Trợ lý AI tùy chọn"]
     AI --> Backend
 ```
+
+> **Trạng thái truyền dữ liệu thiết bị (15/11/2026):** HTTP `POST /api/v1/ingest/*` với header `x-device-id`/`x-device-key` là **đường duy nhất đang được hỗ trợ và đã chạy**. Adapter MQTT trong backend chỉ subscribe telemetry khi đặt `MQTT_URL`; chưa có ingest `fall.*`/`sos.*`/`status`, chưa publish ACK, nên publish sự kiện lên broker **không tạo incident và không có ACK** (finding P0-2 vẫn mở). Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental`, tắt khi `docker compose up` mặc định, chỉ bind loopback và bắt buộc `password_file` + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md). Đây là **giảm bề mặt tấn công và ghi đúng thực tế**, không phải đã triển khai MQTT hay đã xác thực thiết bị trên MQTT.
+
 
 Các module ingest, cảnh báo, thông báo và AI nằm trong một backend triển khai chung ở bản đầu. Có thể chạy worker riêng cùng codebase khi cần khôi phục tác vụ; chưa có lý do để chia microservices hoặc thêm Kubernetes.
 
@@ -32,10 +36,10 @@ Các module ingest, cảnh báo, thông báo và AI nằm trong một backend tr
 | API | NestJS + TypeScript | Tổ chức module theo nghiệp vụ; API, ingest và tác vụ dùng chung domain |
 | Lưu trữ | PostgreSQL | Quan hệ hồ sơ/chia sẻ, transaction và unique constraint; chưa cần database chuỗi thời gian riêng |
 | Thiết bị | ESP32, ESP-IDF, ESP-MQTT | Wi-Fi và MQTT/TLS; chọn board/version sau khảo sát thư viện cảm biến và bộ nhớ |
-| MQTT broker | Mosquitto hoặc broker tương thích | Có ACL theo thiết bị; phương án hosting và persistence cần thử |
+| MQTT broker | Mosquitto hoặc broker tương thích | **Chưa dùng trên đường ingest**; adapter chỉ subscribe telemetry. Cấu hình mẫu đã bỏ anonymous, bind loopback và nằm sau profile thử nghiệm; ACL/TLS/hosting/persistence phải thử trước khi dùng |
 | Realtime web | SSE hoặc WebSocket, chốt sau thử phiên đăng nhập | Server đẩy dữ liệu/cảnh báo; client reconnect phải lấy lại trạng thái từ API |
 | AI | Adapter phía server | Đổi provider/model mà không đổi luồng cảnh báo; chưa chọn provider |
-| Local demo | Compose khi đã có ứng dụng | Dựng DB/broker/API/web nhất quán; chưa tạo cấu hình chạy khi chưa có image/code |
+| Local demo | Compose khi đã có ứng dụng | Hiện chỉ dựng PostgreSQL (mặc định) và Mosquitto sau profile `mqtt-experimental`; API/web chạy `pnpm dev`, chưa có image |
 
 Tài liệu chính thức ESP-IDF được đọc ngày 10/11/2026 cho biết ESP-MQTT đã tách thành component riêng từ ESP-IDF v6.0. Vì vậy khi bắt đầu firmware phải chốt bộ ESP-IDF + ESP-MQTT tương thích; không dùng ví dụ cũ mà mặc định component vẫn tích hợp. Nguồn ở [danh mục](10-nguon-va-cau-hoi-mo.md).
 
@@ -85,6 +89,6 @@ Một confirmed đến trễ hơn 5 phút hoặc không xác định được gi
 
 ## Ranh giới quyền và vận hành
 
-Broker chỉ cho thiết bị publish/subscribe topic của nó; API xác minh payload khớp định danh kết nối. API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
+Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
 
 Backup, restore, secret rotation, giới hạn retention và quan sát lỗi được mô tả ở [lộ trình/bàn giao](09-lo-trinh-va-ho-so.md); cần bằng chứng trước khi dùng dữ liệu thật.
