@@ -514,6 +514,47 @@ describe('Trợ lý AI — không cấu hình AI (template fallback)', () => {
     expect(askOutsider.status).toBe(404);
   });
 
+  it('ask với link vừa accept: dùng mốc sharedFrom, không 403; chưa có dữ liệu → trả lời trung thực', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Vừa Chia Sẻ');
+    const caregiver = await registerUser(ctx.app, { displayName: 'Người thân vừa accept' });
+    const caregiverNoAi = await registerUser(ctx.app, { displayName: 'Người thân vừa accept không AI' });
+    const sharedFrom = new Date(Date.now() - 5 * 60 * 1000);
+    await insertCareLink(
+      ctx,
+      subject.id,
+      caregiver.session.user.id,
+      owner.session.user.id,
+      { ...DEFAULT_CARE_PERMISSIONS, canViewAi: true, historyDays: 1 },
+      sharedFrom,
+    );
+    await insertCareLink(
+      ctx,
+      subject.id,
+      caregiverNoAi.session.user.id,
+      owner.session.user.id,
+      { ...DEFAULT_CARE_PERMISSIONS, canViewAi: false, historyDays: 1 },
+      sharedFrom,
+    );
+
+    // Link mới hơn cửa sổ 7 ngày: câu hỏi phải chạy trong [sharedFrom, now], không 403 lịch sử.
+    const response = await caregiver.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
+      .send({ question: 'Nhịp tim trung bình là bao nhiêu?' });
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('degraded');
+    expect(response.body.provider).toBe('template');
+    expect(response.body.answer).toContain('Chưa có dữ liệu');
+    expect(response.body.degradedReason).toContain('Chưa có dữ liệu');
+    expect(response.body.answer).not.toMatch(/bpm|nhịp tim trung bình là/i);
+
+    // Thiếu view_ai vẫn là 403 quyền AI, không bị báo nhầm thành lỗi lịch sử.
+    const noAi = await caregiverNoAi.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/ask`)
+      .send({ question: 'Nhịp tim trung bình là bao nhiêu?' });
+    expect(noAi.status).toBe(403);
+    expect(noAi.body.message).toBe('Quyền được chia sẻ không cho phép thao tác này.');
+  });
+
   it('câu hỏi đòi chẩn đoán/kê đơn → từ chối lịch sự, không gọi adapter, không bịa số', async () => {
     const adapter = ctx.app.get<AssistantAiAdapter>(ASSISTANT_AI_ADAPTER);
     const spy = jest.spyOn(adapter, 'complete');

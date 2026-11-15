@@ -94,14 +94,22 @@ export function todayInTimeZone(timeZone: string, now = new Date()): string {
   return formatted.replaceAll('/', '-');
 }
 
-/** Giới hạn khoảng lịch sử theo quyền: không hỏi quá `historyDays` ngày. */
+/**
+ * Giới hạn khoảng lịch sử theo quyền: không hỏi quá `historyDays` ngày và không bắt đầu
+ * trước mốc chia sẻ (`sharedFrom`) của người thân. Owner truyền `sharedFromMs = null`.
+ */
 export function clampRangeToHistoryDays(
   fromMs: number,
   toMs: number,
   historyDays: number,
+  sharedFromMs?: number | null,
 ): { from: string; to: string } {
   const maxFromMs = toMs - historyDays * 24 * 3600 * 1000;
-  const clampedFrom = Math.max(fromMs, maxFromMs);
+  const shareStartMs =
+    sharedFromMs !== null && sharedFromMs !== undefined && Number.isFinite(sharedFromMs)
+      ? sharedFromMs
+      : Number.NEGATIVE_INFINITY;
+  const clampedFrom = Math.max(fromMs, maxFromMs, shareStartMs);
   return {
     from: new Date(clampedFrom).toISOString(),
     to: new Date(toMs).toISOString(),

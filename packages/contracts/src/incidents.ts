@@ -51,6 +51,12 @@ export const incidentSummarySchema = z
     version: z.number().int().positive(),
     late: z.boolean(),
     acknowledgedBy: acknowledgedBySchema.nullable(),
+    /**
+     * Cảnh báo đang hoạt động nhưng phát hiện trước mốc chia sẻ của người xem.
+     * Chỉ xuất hiện với caregiver; UI phải ghi rõ đây là trạng thái an toàn hiện tại,
+     * không phải lịch sử được chia sẻ. Cảnh báo đã đóng trước mốc không trả về.
+     */
+    startedBeforeShare: z.boolean().optional(),
   })
   .strict();
 export type IncidentSummary = z.infer<typeof incidentSummarySchema>;

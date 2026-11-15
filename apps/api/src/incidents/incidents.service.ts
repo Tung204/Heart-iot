@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import {
   LATE_EVENT_MINUTES,
   alertUpdatedEventSchema,
@@ -95,6 +95,14 @@ export function applyTransition(state: IncidentState, eventType: IncidentEventTy
 
 export function isTerminalState(state: IncidentState): boolean {
   return state === 'resolved' || state === 'cancelled';
+}
+
+/**
+ * Trạng thái không còn hoạt động với người xem lịch sử: resolved/cancelled/unconfirmed.
+ * `unconfirmed` chưa từng được xác nhận nên cũng không phải trạng thái an toàn hiện tại.
+ */
+export function isHistoryClosedState(state: IncidentState): boolean {
+  return state === 'resolved' || state === 'cancelled' || state === 'unconfirmed';
 }
 
 /** Sắp xếp khóa đệ quy để JSON.stringify ổn định bất kể thứ tự khóa của jsonb. */
@@ -637,8 +645,11 @@ export class IncidentsService {
   // ---------------------------------------------------------------------------
 
   async listAlerts(userId: string, subjectId: string, query: AlertsQuery): Promise<IncidentList> {
-    const access = await this.access.requireSubject(userId, subjectId);
-    if (access.role !== 'owner') {
+    // `requireHistory` cũng là `requireSubject`: không có quyền xem hồ sơ → 404.
+    // Mốc hiệu lực = max(now - historyDays, sharedFrom); owner có cửa sổ rộng theo OWNER_PERMISSIONS.
+    const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, undefined);
+    const isCaregiver = access.role !== 'owner';
+    if (isCaregiver) {
       this.access.assertAction(access, 'receive_alerts');
     }
     const states: IncidentState[] =
@@ -657,6 +668,11 @@ export class IncidentsService {
       }
     }
 
+    // Lịch sử đã đóng chỉ được đọc trong cửa sổ chia sẻ. Cảnh báo đang mở được giữ
+    // vì là trạng thái an toàn hiện tại, nhưng đánh dấu `startedBeforeShare` để UI nói rõ.
+    const historyFilter =
+      isCaregiver && query.state === 'closed' ? gte(incidents.detectedAt, effectiveFrom) : undefined;
+
     const rows = await this.db
       .select()
       .from(incidents)
@@ -664,6 +680,7 @@ export class IncidentsService {
         and(
           eq(incidents.subjectId, subjectId),
           inArray(incidents.state, states),
+          historyFilter,
           cursorFilter ?? undefined,
         ),
       )
@@ -672,7 +689,7 @@ export class IncidentsService {
 
     const hasMore = rows.length > query.limit;
     const page = rows.slice(0, query.limit);
-    const items = await this.buildSummaries(page);
+    const items = await this.buildSummaries(page, isCaregiver ? effectiveFrom : null);
     const lastRow = page[page.length - 1];
     const nextCursor = hasMore && lastRow
       ? encodeCursor({ detectedAt: lastRow.detectedAt.toISOString(), id: lastRow.id })
@@ -681,31 +698,48 @@ export class IncidentsService {
   }
 
   async getAlert(userId: string, alertId: string): Promise<IncidentDetail> {
-    const incidentRow = await this.loadVisibleIncident(userId, alertId);
-    return this.buildDetail(incidentRow);
+    const { incident, startedBeforeShare } = await this.loadVisibleIncident(userId, alertId);
+    return this.buildDetail(incident, startedBeforeShare);
   }
 
-  /** 404 khi không tồn tại hoặc đang suspected. */
+  /**
+   * 404 khi không tồn tại hoặc đang suspected. Với caregiver, cảnh báo đã đóng phát hiện
+   * trước mốc chia sẻ bị 403 (không lộ lý do kết thúc); cảnh báo đang hoạt động trước mốc
+   * vẫn trả 200 kèm cờ `startedBeforeShare` vì là trạng thái an toàn hiện tại.
+   */
   private async loadVisibleIncident(
     userId: string,
     alertId: string,
     action?: 'acknowledge' | 'resolve',
-  ): Promise<IncidentRow> {
+  ): Promise<{ incident: IncidentRow; startedBeforeShare: boolean }> {
     const rows = await this.db.select().from(incidents).where(eq(incidents.id, alertId)).limit(1);
     const incidentRow = rows[0];
     if (!incidentRow || incidentRow.state === 'suspected') {
       throw AppError.notFound('Không tìm thấy cảnh báo.');
     }
-    const access = await this.access.requireSubject(userId, incidentRow.subjectId);
+    // `requireHistory(..., undefined)` trả mốc hiệu lực nhưng không từ chối chỉ vì mốc share mới.
+    const { access, effectiveFrom } = await this.access.requireHistory(
+      userId,
+      incidentRow.subjectId,
+      undefined,
+    );
     if (action) {
       // Thao tác cần quyền rõ ràng: thiếu quyền trả 403 để UI phân biệt chính sách.
       this.access.assertAction(access, action);
-      return incidentRow;
+    } else {
+      // Nhất quán với list: có link nhưng thiếu quyền nhận cảnh báo → 403;
+      // không có link thì requireSubject ở trên đã trả 404 (không lộ tồn tại).
+      this.access.assertAction(access, 'receive_alerts');
     }
-    // Nhất quán với list: có link nhưng thiếu quyền nhận cảnh báo → 403;
-    // không có link thì requireSubject ở trên đã trả 404 (không lộ tồn tại).
-    this.access.assertAction(access, 'receive_alerts');
-    return incidentRow;
+    const startedBeforeShare =
+      access.role !== 'owner' && incidentRow.detectedAt.getTime() < effectiveFrom.getTime();
+    if (startedBeforeShare && isHistoryClosedState(incidentRow.state)) {
+      throw AppError.forbidden(
+        'Cảnh báo này xảy ra trước thời điểm bạn được chia sẻ quyền xem lịch sử.',
+        { effectiveFrom: effectiveFrom.toISOString() },
+      );
+    }
+    return { incident: incidentRow, startedBeforeShare };
   }
 
   async acknowledgeAlert(
@@ -713,7 +747,7 @@ export class IncidentsService {
     alertId: string,
     input: AcknowledgeAlert,
   ): Promise<IncidentDetail> {
-    const incidentRow = await this.loadVisibleIncident(userId, alertId, 'acknowledge');
+    await this.loadVisibleIncident(userId, alertId, 'acknowledge');
 
     let conflict: { value: { stateBefore: IncidentState; stateAfter: IncidentState } | null } = {
       value: null,
@@ -800,7 +834,7 @@ export class IncidentsService {
   }
 
   async resolveAlert(userId: string, alertId: string, input: ResolveAlert): Promise<IncidentDetail> {
-    const incidentRow = await this.loadVisibleIncident(userId, alertId, 'resolve');
+    await this.loadVisibleIncident(userId, alertId, 'resolve');
 
     let conflict: { value: { stateBefore: IncidentState; stateAfter: IncidentState } | null } = {
       value: null,
@@ -905,7 +939,7 @@ export class IncidentsService {
   // Dựng view
   // ---------------------------------------------------------------------------
 
-  private async buildSummaries(rows: IncidentRow[]) {
+  private async buildSummaries(rows: IncidentRow[], effectiveFrom: Date | null = null) {
     if (rows.length === 0) return [];
     const ids = rows.map((row) => row.id);
     const deviceRows = await this.db
@@ -928,13 +962,25 @@ export class IncidentsService {
       }
     }
 
-    return rows.map((incident) => this.toSummary(incident, deviceById.get(incident.id), acknowledgedBy.get(incident.id) ?? null));
+    return rows.map((incident) => {
+      // Caregiver: cảnh báo đang mở phát hiện trước mốc chia sẻ vẫn được trả (an toàn
+      // hiện tại) nhưng phải đánh dấu để UI không trình bày như lịch sử được chia sẻ.
+      const startedBeforeShare =
+        effectiveFrom !== null && incident.detectedAt.getTime() < effectiveFrom.getTime();
+      return this.toSummary(
+        incident,
+        deviceById.get(incident.id),
+        acknowledgedBy.get(incident.id) ?? null,
+        startedBeforeShare,
+      );
+    });
   }
 
   private toSummary(
     incident: IncidentRow,
     device: { id: string; label: string; serial: string } | undefined,
     acknowledgedBy: { userId: string; displayName: string } | null,
+    startedBeforeShare = false,
   ) {
     const late =
       incident.lastEventAt.getTime() - incident.detectedAt.getTime() > LATE_EVENT_MINUTES * 60 * 1000;
@@ -959,10 +1005,14 @@ export class IncidentsService {
       version: incident.version,
       late,
       acknowledgedBy,
+      ...(startedBeforeShare ? { startedBeforeShare: true } : {}),
     };
   }
 
-  private async buildDetail(incident: IncidentRow): Promise<IncidentDetail> {
+  private async buildDetail(
+    incident: IncidentRow,
+    startedBeforeShare = false,
+  ): Promise<IncidentDetail> {
     const [deviceRows, eventRows, actionRows, outboxRows] = await Promise.all([
       this.db
         .select({ id: devices.id, label: devices.label, serial: devices.serial })
@@ -997,7 +1047,7 @@ export class IncidentsService {
     const recipientIds = [...new Set(outboxRows.map((row) => row.recipientUserId))];
     const recipients = await this.buildRecipients(incident.subjectId, recipientIds);
 
-    const summary = this.toSummary(incident, device, acknowledgedBy);
+    const summary = this.toSummary(incident, device, acknowledgedBy, startedBeforeShare);
     return incidentDetailSchema.parse({
       ...summary,
       events: eventRows.map((event) => ({
