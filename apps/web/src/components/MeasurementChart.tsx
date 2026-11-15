@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { MeasurementGap } from '@annhien/contracts/measurements';
 import { formatCompactDateTime, formatDate, formatTime } from '../lib/format';
+import './MeasurementChart.css';
 
 export interface ChartPoint {
   measuredAt: string;
@@ -83,99 +84,104 @@ export function MeasurementChart({ points, gaps, range }: MeasurementChartProps)
 
   return (
     <figure className="chart">
-      <div className="chart__scroll">
-      <svg
-        className="chart__svg"
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        role="img"
-        aria-label={
-          points.length > 0
-            ? `Biểu đồ nhịp tim: ${points.length} mẫu hợp lệ, thấp nhất ${bounds.min} nhịp/phút, cao nhất ${bounds.max} nhịp/phút. Chi tiết từng mẫu ở bảng dữ liệu bên dưới.`
-            : 'Biểu đồ nhịp tim: chưa có mẫu hợp lệ để vẽ. Chi tiết ở bảng dữ liệu bên dưới.'
-        }
+      <div
+        className="chart__scroll"
+        tabIndex={0}
+        role="group"
+        aria-label="Biểu đồ nhịp tim có thể cuộn ngang. Dùng phím mũi tên trái/phải để xem các mốc thời gian; bảng dữ liệu bên dưới liệt kê từng mẫu."
       >
-        {/* Khoảng thiếu dữ liệu */}
-        {gapRects.map((rect) => (
-          <rect
-            key={rect.key}
-            x={rect.x}
-            y={MARGIN.top}
-            width={rect.width}
-            height={plotHeight}
-            className="chart__gap"
-          />
-        ))}
-
-        {/* Lưới + trục Y */}
-        {yTicks.map((tick) => (
-          <g key={`y-${tick}`}>
-            <line
-              x1={MARGIN.left}
-              x2={WIDTH - MARGIN.right}
-              y1={yFor(tick)}
-              y2={yFor(tick)}
-              className="chart__grid"
-            />
-            <text x={MARGIN.left - 8} y={yFor(tick) + 4} textAnchor="end" className="chart__tick">
-              {tick}
-            </text>
-          </g>
-        ))}
-        <text
-          x={12}
-          y={MARGIN.top + plotHeight / 2}
-          textAnchor="middle"
-          className="chart__axis-label"
-          transform={`rotate(-90 12 ${MARGIN.top + plotHeight / 2})`}
+        <svg
+          className="chart__svg"
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          role="img"
+          aria-label={
+            points.length > 0
+              ? `Biểu đồ nhịp tim: ${points.length} mẫu hợp lệ, thấp nhất ${bounds.min} nhịp/phút, cao nhất ${bounds.max} nhịp/phút. Chi tiết từng mẫu ở bảng dữ liệu bên dưới.`
+              : 'Biểu đồ nhịp tim: chưa có mẫu hợp lệ để vẽ. Chi tiết ở bảng dữ liệu bên dưới.'
+          }
         >
-          nhịp/phút
-        </text>
+          {/* Khoảng thiếu dữ liệu */}
+          {gapRects.map((rect) => (
+            <rect
+              key={rect.key}
+              x={rect.x}
+              y={MARGIN.top}
+              width={rect.width}
+              height={plotHeight}
+              className="chart__gap"
+            />
+          ))}
 
-        {/* Trục X */}
-        {xTicks.map((tick) => (
+          {/* Lưới + trục Y */}
+          {yTicks.map((tick) => (
+            <g key={`y-${tick}`}>
+              <line
+                x1={MARGIN.left}
+                x2={WIDTH - MARGIN.right}
+                y1={yFor(tick)}
+                y2={yFor(tick)}
+                className="chart__grid"
+              />
+              <text x={MARGIN.left - 8} y={yFor(tick) + 4} textAnchor="end" className="chart__tick">
+                {tick}
+              </text>
+            </g>
+          ))}
           <text
-            key={tick.t}
-            x={xFor(tick.iso)}
-            y={HEIGHT - 8}
-            textAnchor={tick.anchor}
-            className="chart__tick"
-          >
-            {showDateOnAxis ? formatCompactDateTime(tick.iso) : formatTime(tick.iso)}
-          </text>
-        ))}
-
-        {/* Đường + điểm dữ liệu */}
-        {areaPoints ? <polygon points={areaPoints} className="chart__area" /> : null}
-        {points.length > 1 ? (
-          <polyline points={linePoints} fill="none" className="chart__line" />
-        ) : null}
-        {points.length <= 40
-          ? points.map((point) => (
-              <circle
-                key={point.measuredAt}
-                cx={xFor(point.measuredAt)}
-                cy={yFor(point.heartRateBpm)}
-                r={3}
-                className="chart__dot"
-              >
-                <title>
-                  {formatCompactDateTime(point.measuredAt)}: {point.heartRateBpm} nhịp/phút
-                </title>
-              </circle>
-            ))
-          : null}
-
-        {points.length === 0 ? (
-          <text
-            x={WIDTH / 2}
-            y={HEIGHT / 2}
+            x={12}
+            y={MARGIN.top + plotHeight / 2}
             textAnchor="middle"
-            className="chart__empty"
+            className="chart__axis-label"
+            transform={`rotate(-90 12 ${MARGIN.top + plotHeight / 2})`}
           >
-            Chưa có mẫu hợp lệ để vẽ biểu đồ
+            nhịp/phút
           </text>
-        ) : null}
-      </svg>
+
+          {/* Trục X */}
+          {xTicks.map((tick) => (
+            <text
+              key={tick.t}
+              x={xFor(tick.iso)}
+              y={HEIGHT - 8}
+              textAnchor={tick.anchor}
+              className="chart__tick"
+            >
+              {showDateOnAxis ? formatCompactDateTime(tick.iso) : formatTime(tick.iso)}
+            </text>
+          ))}
+
+          {/* Đường + điểm dữ liệu */}
+          {areaPoints ? <polygon points={areaPoints} className="chart__area" /> : null}
+          {points.length > 1 ? (
+            <polyline points={linePoints} fill="none" className="chart__line" />
+          ) : null}
+          {points.length <= 40
+            ? points.map((point) => (
+                <circle
+                  key={point.measuredAt}
+                  cx={xFor(point.measuredAt)}
+                  cy={yFor(point.heartRateBpm)}
+                  r={3}
+                  className="chart__dot"
+                >
+                  <title>
+                    {formatCompactDateTime(point.measuredAt)}: {point.heartRateBpm} nhịp/phút
+                  </title>
+                </circle>
+              ))
+            : null}
+
+          {points.length === 0 ? (
+            <text
+              x={WIDTH / 2}
+              y={HEIGHT / 2}
+              textAnchor="middle"
+              className="chart__empty"
+            >
+              Chưa có mẫu hợp lệ để vẽ biểu đồ
+            </text>
+          ) : null}
+        </svg>
       </div>
       <figcaption className="chart__caption">
         <span>

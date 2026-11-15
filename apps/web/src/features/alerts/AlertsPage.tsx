@@ -35,7 +35,10 @@ export function AlertsPage() {
   const activeSubject = useActiveSubject(subjects.data);
   const [stateFilter, setStateFilter] = useState<'open' | 'closed'>('open');
   const queryClient = useQueryClient();
-  const [conflict, setConflict] = useState<string | null>(null);
+  const [conflictAlertId, setConflictAlertId] = useState<string | null>(null);
+  const [ackFailure, setAckFailure] = useState<{ alertId: string; message: string } | null>(
+    null,
+  );
 
   const alerts = useInfiniteQuery({
     queryKey: queryKeys.subjectAlerts(activeSubject?.id ?? 'none', stateFilter),
@@ -57,19 +60,25 @@ export function AlertsPage() {
     mutationFn: ({ alertId, version }: { alertId: string; version: number }) =>
       acknowledgeAlert(alertId, { expectedVersion: version }),
     onSuccess: () => {
-      setConflict(null);
+      setConflictAlertId(null);
+      setAckFailure(null);
       if (activeSubject) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.subjectAlerts(activeSubject.id, stateFilter),
         });
       }
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       if (isConflictError(error)) {
-        setConflict(
-          'Cảnh báo đã thay đổi ở nơi khác. Danh sách dưới đây có thể cũ — hãy tải lại.',
-        );
+        setAckFailure(null);
+        setConflictAlertId(variables.alertId);
+        // Tải lại ngay để phân biệt "đã có người xác nhận" với "dữ liệu cũ".
+        void alerts.refetch();
+        return;
       }
+      // Lỗi mạng/5xx không được im lặng: hiện thông báo + giữ nguyên danh sách.
+      setConflictAlertId(null);
+      setAckFailure({ alertId: variables.alertId, message: getApiErrorMessage(error) });
     },
   });
 
@@ -84,9 +93,13 @@ export function AlertsPage() {
   }
 
   const items = alerts.data?.pages.flatMap((page) => page?.items ?? []) ?? [];
+  const conflictAcknowledgedBy = conflictAlertId
+    ? (items.find((item) => item.id === conflictAlertId)?.acknowledgedBy ?? null)
+    : null;
 
   const handleAcknowledge = (item: IncidentSummary) => {
-    setConflict(null);
+    setConflictAlertId(null);
+    setAckFailure(null);
     acknowledge.mutate({ alertId: item.id, version: item.version });
   };
 
@@ -120,11 +133,47 @@ export function AlertsPage() {
         </button>
       </div>
 
-      {conflict ? (
-        <Alert tone="warning" title="Danh sách có thể chưa cập nhật">
-          {conflict}{' '}
-          <Button variant="secondary" size="sm" onClick={() => void alerts.refetch()}>
-            Tải lại danh sách
+      {conflictAlertId ? (
+        <Alert
+          tone="warning"
+          title={
+            conflictAcknowledgedBy
+              ? 'Cảnh báo đã có người xác nhận'
+              : 'Danh sách có thể chưa cập nhật'
+          }
+        >
+          {conflictAcknowledgedBy
+            ? `${conflictAcknowledgedBy.displayName} đã xác nhận đang hỗ trợ cảnh báo này. Danh sách vừa được cập nhật — bạn không cần xác nhận lại.`
+            : 'Cảnh báo đã thay đổi ở nơi khác trong lúc bạn thao tác. Danh sách dưới đây có thể cũ — hãy tải lại để xem trạng thái mới nhất.'}
+          {!conflictAcknowledgedBy ? (
+            <>
+              {' '}
+              <Button variant="secondary" size="sm" onClick={() => void alerts.refetch()}>
+                Tải lại danh sách
+              </Button>
+            </>
+          ) : null}
+        </Alert>
+      ) : null}
+
+      {ackFailure ? (
+        <Alert tone="error" title="Chưa xác nhận được cảnh báo">
+          {ackFailure.message} Cảnh báo vẫn giữ nguyên trạng thái. Kiểm tra kết nối và thử
+          lại.{' '}
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={acknowledge.isPending}
+            onClick={() => {
+              const target = items.find((item) => item.id === ackFailure.alertId);
+              if (target) {
+                handleAcknowledge(target);
+              } else {
+                void alerts.refetch();
+              }
+            }}
+          >
+            Thử lại
           </Button>
         </Alert>
       ) : null}
@@ -208,7 +257,9 @@ export function AlertsPage() {
                     {ALERT_STATE_LABELS[item.state]}
                   </StatusPill>
                   <div className="alert-row__actions">
-                    {isActionableState(item.state) ? (
+                    {isActionableState(item.state) &&
+                    item.state === 'open' &&
+                    !item.acknowledgedBy ? (
                       <Button
                         variant="secondary"
                         size="sm"
