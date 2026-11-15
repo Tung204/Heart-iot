@@ -75,7 +75,7 @@ function measurementsPage(offset: number) {
  * để test khẳng định không refetch sau khi đồng hồ chạy qua mốc 60 giây.
  */
 async function mockApi(page: Page) {
-  const counters = { measurements: 0 };
+  const counters = { measurements: 0, urls: [] as string[] };
   await page.route('**/api/v1/**', async (route) => {
     const url = new URL(route.request().url());
     const path = url.pathname;
@@ -87,6 +87,7 @@ async function mockApi(page: Page) {
     }
     if (path === `/api/v1/subjects/${SUBJECT.id}/measurements`) {
       counters.measurements += 1;
+      counters.urls.push(route.request().url());
       const cursor = url.searchParams.get('cursor');
       const offset = cursor ? Number(/^offset-(\d+)$/.exec(cursor)?.[1] ?? 0) : 0;
       return route.fulfill({ json: measurementsPage(offset) });
@@ -109,36 +110,65 @@ test('lịch sử giữ nguyên trang đã tải sau 60 giây, không refetch', 
   await page.goto('/app/history');
 
   const table = page.getByRole('table');
-  await expect(table).toContainText('Đang hiển thị 20/500 dòng');
+  await expect(table).toContainText('Đang hiển thị 10/500 dòng');
+  await expect(table.locator('tbody tr')).toHaveCount(10);
 
-  await page.getByRole('button', { name: 'Tải thêm từ máy chủ' }).click();
-  await expect(table).toContainText('Đang hiển thị 20/1000 dòng');
+  // v4: một nút duy nhất mở thêm 50 dòng đã tải (10 → 60), không gọi máy chủ.
+  await page.getByRole('button', { name: 'Hiện thêm 50 dòng' }).click();
+  await expect(table).toContainText('Đang hiển thị 60/500 dòng');
+  await expect(table.locator('tbody tr')).toHaveCount(60);
+
   const callsBefore = counters.measurements;
-  // Dev + StrictMode có thể gửi lặp request đầu tiên (unmount/remount), nên chỉ
-  // cần trang đã tải xong; điều cốt lõi là sau 60 giây không tăng thêm request.
-  expect(callsBefore).toBeGreaterThanOrEqual(2);
+  const urlsBefore = [...counters.urls];
+  // Dev + StrictMode có thể gửi lặp request đầu tiên (unmount/remount) với cùng
+  // from/to; điều cốt lõi là sau 60 giây không tăng thêm request nào.
+  expect(callsBefore).toBeGreaterThanOrEqual(1);
+  expect(new Set(urlsBefore).size).toBe(1);
 
   await page.clock.fastForward(61_000);
 
-  // Không có request mới và danh sách đã tải vẫn còn nguyên.
-  await expect(table).toContainText('Đang hiển thị 20/1000 dòng');
+  // Không có request mới (cùng from/to) và danh sách đã tải vẫn còn nguyên.
+  await expect(table).toContainText('Đang hiển thị 60/500 dòng');
+  await expect(table.locator('tbody tr')).toHaveCount(60);
   expect(counters.measurements).toBe(callsBefore);
+  expect(counters.urls).toEqual(urlsBefore);
 });
 
-test('hiện thêm 50 dòng mỗi bước và dừng ở 400 dòng thay vì 1.681', async ({ page }) => {
+test('một nút Hiện thêm 50 dòng mỗi bước, dừng ở trần 400 dòng và chỉ dẫn CSV', async ({ page }) => {
   await mockApi(page);
   await page.goto('/app/history');
 
   const table = page.getByRole('table');
-  await expect(table).toContainText('Đang hiển thị 20/500 dòng');
-  await expect(page.getByRole('button', { name: /Hiện tất cả/ })).toHaveCount(0);
+  await expect(table).toContainText('Đang hiển thị 10/500 dòng');
+  await expect(table.locator('tbody tr')).toHaveCount(10);
 
-  await page.getByRole('button', { name: 'Hiện thêm 50 dòng' }).click();
-  await expect(table).toContainText('Đang hiển thị 70/500 dòng');
+  // v4 chỉ còn một nút “Hiện thêm N dòng”; không có “Hiện tất cả”/“Hiện tới 400 dòng”.
+  const more = page.getByRole('button', { name: 'Hiện thêm 50 dòng' });
+  await expect(more).toBeVisible();
+  await expect(page.getByRole('button', { name: /Hiện tất cả|Hiện tới/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Tải thêm từ máy chủ/ })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Hiện tới 400 dòng' }).click();
+  await more.click();
+  await expect(table).toContainText('Đang hiển thị 60/500 dòng');
+  await expect(table.locator('tbody tr')).toHaveCount(60);
+
+  // 8 bước 50 dòng: 10 → 60 → … → 400 (trần v4), không render thêm dòng nào.
+  for (let step = 0; step < 7; step += 1) {
+    await page.getByRole('button', { name: /Hiện thêm \d+ dòng/ }).click();
+  }
   await expect(table).toContainText('Đang hiển thị 400/500 dòng');
-  await expect(page.getByText(/Dùng nút “Tải CSV” ở trên để xem toàn bộ 500 dòng/)).toBeVisible();
+  await expect(table.locator('tbody tr')).toHaveCount(400);
+  await expect(page.getByRole('button', { name: /Hiện thêm/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Tải thêm từ máy chủ/ })).toHaveCount(0);
+
+  const hint = page.getByText(/Đã hiện tối đa 400\/500 dòng/);
+  await expect(hint).toBeVisible();
+  await expect(hint).toContainText(
+    'Dùng nút “Tải CSV” ở trên để xem toàn bộ 500 dòng đã tải.',
+  );
+  const csv = page.getByRole('link', { name: 'Tải CSV' });
+  await expect(csv).toHaveAttribute('href', /\/export\.csv/);
+  await expect(csv).toHaveAttribute('download', '');
 
   // Một biến thể danh sách (bảng desktop) + trần 400 dòng ⇒ DOM không phình như trước.
   const elementCount = await page.evaluate(() => document.querySelectorAll('*').length);

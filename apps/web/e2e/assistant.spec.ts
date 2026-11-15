@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// E2E cho không gian trợ lý (v3) — mock API bằng page.route, không cần API thật.
-// `/app` là trợ lý; câu trả lời nối tiếp trong phiên; bối cảnh dẫn sang màn hình khác.
+// E2E cho màn Hôm nay (v4) — mock API bằng page.route, không cần API thật.
+// `/app` là Hôm nay: trạng thái + ô hỏi; `/app/overview` là Sức khỏe.
 
 const USER = {
   id: '0f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b',
@@ -157,21 +157,42 @@ async function mockApi(page: Page) {
   });
 }
 
-test('/app mở không gian trợ lý, có tóm tắt và cột bối cảnh', async ({ page }) => {
+test('/app là Hôm nay: trạng thái cảnh báo, ô hỏi, không còn bối cảnh v3', async ({ page }) => {
   await mockApi(page);
   await page.goto('/app');
 
-  await expect(page.getByRole('heading', { level: 1, name: 'Trợ lý' })).toBeVisible();
-  await expect(page.getByText('Tóm tắt theo mẫu').first()).toBeVisible();
-  await expect(page.getByText('Dữ liệu mô phỏng').first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Bối cảnh' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Cảnh báo đang mở' })).toBeVisible();
-  await expect(page.locator('.assistant-context').getByText('1 cảnh báo')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Lịch sử đo' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Xem tất cả cảnh báo' })).toHaveAttribute(
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Hôm nay' })).toBeVisible();
+
+  // Thẻ trạng thái lấy từ cảnh báo đang mở, có lối sang danh sách cảnh báo.
+  const status = page.getByRole('region', { name: 'Trạng thái hôm nay' });
+  await expect(status).toContainText('Nghi ngã lúc');
+  await expect(status).toContainText('1 cảnh báo đang mở.');
+  await expect(status.getByRole('link', { name: 'Xem cảnh báo' })).toHaveAttribute(
     'href',
     '/app/alerts',
   );
+
+  // Màn Hôm nay v4 không còn tóm tắt 7 ngày/bối cảnh của trợ lý v3.
+  await expect(page.getByText('Tóm tắt theo mẫu')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Bối cảnh' })).toHaveCount(0);
+  await expect(page.getByText(/Độ phủ/)).toHaveCount(0);
+  await expect(page.getByText(/bản tin/i)).toHaveCount(0);
+
+  // Ô hỏi + gợi ý ngắn; hội thoại chỉ xuất hiện sau câu hỏi đầu tiên.
+  await expect(page.getByLabel(/^Câu hỏi/)).toBeVisible();
+  const send = page.getByRole('button', { name: 'Gửi câu hỏi' });
+  await expect(send).toBeEnabled();
+  await expect(send).toHaveText('Gửi');
+  await expect(page.getByRole('button', { name: 'Nhịp tim?' })).toBeVisible();
+  await expect(page.getByRole('log')).toHaveCount(0);
+
+  // Lối sang Sức khỏe 7 ngày và ghi chú giới hạn của màn Hôm nay.
+  await expect(page.getByRole('link', { name: 'Sức khỏe 7 ngày →' })).toHaveAttribute(
+    'href',
+    '/app/overview',
+  );
+  await expect(page.getByText('Dữ liệu mô phỏng · không thay thế cấp cứu.')).toHaveCount(1);
 });
 
 test('hỏi hai câu → hai câu trả lời nối tiếp, câu đầu vẫn còn', async ({ page }) => {
@@ -193,14 +214,17 @@ test('hỏi hai câu → hai câu trả lời nối tiếp, câu đầu vẫn c�
   await expect(thread.getByText('Pin thiết bị còn bao nhiêu?')).toBeVisible();
 });
 
-test('từ /app/overview quay về trợ lý bằng nav đầu tiên', async ({ page }) => {
+test('từ /app/overview quay về Hôm nay bằng nav đầu tiên', async ({ page }) => {
   await mockApi(page);
   await page.goto('/app/overview');
 
-  await expect(page.getByRole('link', { name: 'Trợ lý' }).first()).toHaveAttribute(
-    'href',
-    '/app',
-  );
-  await page.getByRole('link', { name: 'Trợ lý' }).first().click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Trợ lý' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sức khỏe' })).toBeVisible();
+
+  const nav = page.getByRole('navigation', { name: 'Điều hướng ứng dụng' }).first();
+  const today = nav.getByRole('link', { name: 'Hôm nay' });
+  await expect(today).toHaveAttribute('href', '/app');
+  await today.click();
+
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Hôm nay' })).toBeVisible();
 });
