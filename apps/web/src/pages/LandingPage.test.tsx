@@ -63,12 +63,14 @@ describe('LandingPage', () => {
     expect(hero).not.toBeNull();
     if (hero) {
       expect(
-        within(hero).getByText(/Trợ lý AI trả lời câu hỏi về số liệu của người thân\./),
+        within(hero).getByText(
+          'Nhịp tim, vận động và kết nối thiết bị của người thân được ghi lại; bạn nhận cảnh báo khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.',
+        ),
       ).toBeInTheDocument();
     }
 
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Theo dõi sức khỏe làm gì' }),
+      screen.getByRole('heading', { level: 2, name: 'Ứng dụng làm gì' }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
     expect(screen.getByRole('heading', { level: 3, name: 'Theo dõi' })).toBeInTheDocument();

@@ -249,7 +249,7 @@ describe('AppShell — điều hướng bốn mục', () => {
     return Array.from(nav?.querySelectorAll('a') ?? []) as HTMLAnchorElement[];
   }
 
-  it('admin có hồ sơ → nav đúng bốn mục; menu tài khoản có Quản trị/Studio/Tài khoản', async () => {
+  it('admin có hồ sơ → nav đúng bốn mục; menu tài khoản có Quản trị/Tài khoản, không có Studio', async () => {
     renderShell({ user: ADMIN }, SUBJECTS);
     const user = userEvent.setup();
 
@@ -272,14 +272,11 @@ describe('AppShell — điều hướng bốn mục', () => {
       'href',
       '/app/admin',
     );
-    expect(within(menu).getByRole('menuitem', { name: 'Studio' })).toHaveAttribute(
-      'href',
-      '/app/studio',
-    );
+    expect(within(menu).queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
     expect(within(menu).queryByRole('menuitem', { name: 'Thông báo' })).not.toBeInTheDocument();
   });
 
-  it('chủ hồ sơ → menu có Studio nhưng KHÔNG có Quản trị', async () => {
+  it('chủ hồ sơ → menu chỉ có Tài khoản, KHÔNG có Studio/Quản trị', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     const user = userEvent.setup();
 
@@ -287,8 +284,16 @@ describe('AppShell — điều hướng bốn mục', () => {
     await openAccountMenu(user);
     const menu = accountMenu();
     expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toBeInTheDocument();
-    expect(within(menu).getByRole('menuitem', { name: 'Studio' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
     expect(within(menu).queryByRole('menuitem', { name: 'Quản trị' })).not.toBeInTheDocument();
+  });
+
+  it('không còn link Studio trong shell; /app/studio vẫn mở trực tiếp', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, { initialEntries: ['/app/studio'] });
+
+    expect(await screen.findByText('trang studio')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Studio' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
   });
 
   it('caregiver không phải chủ hồ sơ → menu chỉ còn Tài khoản', async () => {
@@ -484,12 +489,12 @@ describe('AppShell — menu tài khoản một bản, đóng được', () => {
     await openAccountMenu(user);
     const menu = accountMenu();
     const account = within(menu).getByRole('menuitem', { name: 'Tài khoản' });
-    const studio = within(menu).getByRole('menuitem', { name: 'Studio' });
+    const largeText = within(menu).getByRole('button', { name: 'Bật chữ lớn' });
     const logout = within(menu).getByRole('menuitem', { name: 'Đăng xuất' });
 
     await waitFor(() => expect(account).toHaveFocus());
     await user.keyboard('{ArrowDown}');
-    expect(studio).toHaveFocus();
+    expect(largeText).toHaveFocus();
     await user.keyboard('{ArrowUp}');
     expect(account).toHaveFocus();
     await user.keyboard('{End}');
