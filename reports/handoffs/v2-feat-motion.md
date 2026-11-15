@@ -75,3 +75,8 @@ Chưa chạy với API/DB thật (cổng 3000 đang do phiên khác dùng; PGlit
 - Chưa có đo FPS/LCP trước–sau; “không chậm first paint” mới được bảo đảm bằng thiết kế (không animation ở lần tải đầu, chỉ opacity/transform) và kiểm `animation-name: none` trên lần tải đầu.
 - Landing/auth (`base.css`) không thuộc phạm vi; hover ở đó vẫn như cũ.
 - Bước tiếp theo: review bản xem trước theo quy ước frontend của dự án, rồi (nếu duyệt) chạy lại `pnpm -r test` trước khi merge.
+
+## Ghi chú khi merge (master đã tiến sau base)
+
+- `master` hiện ở `bac20d4` (sau base `c56fece`), có thêm `e99c61c fix(web): chấm báo trên nút Thêm mobile` sửa cùng vùng CSS.
+- `git merge-tree --write-tree HEAD master`: `AppShell.tsx` và `AppShell.test.tsx` **tự merge**; **conflict duy nhất dự kiến ở `apps/web/src/styles/layout.css`**, khối `.shell__more-toggle` (master thêm `position: relative` cho chấm báo, nhánh này thêm `transition` và `:active`). Cách giải: giữ **cả** `position: relative` của master và `transition`/`:active` của nhánh này; các khối hover `@media (hover: hover)` và motion nằm ở đoạn khác nên không xung đột.
