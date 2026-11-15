@@ -772,13 +772,15 @@ describe('Studio workspace views — draft → preview → publish → rollback 
     expect(rollbackOther.status).toBe(404);
   });
 
-  it('T9: data endpoint — kiểm quyền subject (không có link → 404), dữ liệu thật, không ghi', async () => {
+  it('T9: data endpoint — chưa có publication active → 404 (không trả draft); đã publish → config/digest active; quyền subject và scope giữ nguyên; không ghi', async () => {
     const subject1 = await createSubject(ctx, owner.session.user.id, 'Bà Chín');
     const { deviceId, assignmentId } = await seedDeviceWithTelemetry(ctx, owner, subject1.id, [72, 75, 78]);
     await seedIncidentAndTask(ctx, owner, subject1.id, deviceId, assignmentId);
     const subject2 = await createSubject(ctx, owner.session.user.id, 'Ông Mười');
     const caregiver2 = await registerUser(ctx.app);
     await shareSubject(ctx, owner, subject2.id, caregiver2);
+    const caregiver1 = await registerUser(ctx.app, { displayName: 'Người xem bà Chín' });
+    await shareSubject(ctx, owner, subject1.id, caregiver1);
 
     const created = await createView(owner.agent, {
       key: 'view-data',
@@ -789,6 +791,7 @@ describe('Studio workspace views — draft → preview → publish → rollback 
     });
     expect(created.status).toBe(201);
     const viewId = (created.body as ViewBody).id;
+    const digest1 = (created.body as ViewBody).draftDigest as string;
 
     // View scope user không có subjectId mặc định → cần truyền subjectId.
     const userView = await createView(owner.agent, {
@@ -797,6 +800,35 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       scope: 'user',
       config: makeConfig(DEFAULT_WIDGETS),
     });
+    expect(userView.status).toBe(201);
+    const userViewId = (userView.body as ViewBody).id;
+    const userViewDigest = (userView.body as ViewBody).draftDigest as string;
+
+    // Chưa có publication active: owner và caregiver đều 404, không trả draftConfig.
+    const ownerNoActive = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerNoActive.status).toBe(404);
+    expect(ownerNoActive.body.code).toBe('NOT_FOUND');
+    expect(ownerNoActive.body.config).toBeUndefined();
+
+    const caregiverNoActive = await caregiver1.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverNoActive.status).toBe(404);
+    expect(caregiverNoActive.body.config).toBeUndefined();
+
+    // Publish view subject + view user (để kiểm nhánh 422 thiếu subjectId).
+    const publish = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ draftRevision: 1, digest: digest1, baseRevision: 0 });
+    expect(publish.status).toBe(201);
+    const publishUser = await owner.agent
+      .post(`/api/v1/workspace-views/${userViewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ draftRevision: 1, digest: userViewDigest, baseRevision: 0 });
+    expect(publishUser.status).toBe(201);
 
     const before = await businessCounts(ctx.db);
 
@@ -804,10 +836,25 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       .get(`/api/v1/workspace-views/${viewId}/data`)
       .set('Origin', TEST_ORIGIN);
     expect(dataRes.status).toBe(200);
+    // Config + digest là của publication active (r1 vừa công bố), view không lộ draft.
+    expect(dataRes.body.digest).toBe(digest1);
+    expect(dataRes.body.config.widgets[0].title).toBe('Nhịp tim');
+    expect(dataRes.body.view.currentPublication.revision).toBe(1);
+    expect(dataRes.body.view.currentPublication.digest).toBe(digest1);
+    expect(dataRes.body.view.draftDigest).toBeNull();
     expect(dataRes.body.data.sample).toBe(false);
     expect(dataRes.body.data.metrics.heartRateBpm).toBe(78);
     expect(dataRes.body.data.series).toHaveLength(3);
     expect(dataRes.body.data.subject.id).toBe(subject1.id);
+
+    // Caregiver có link tới subject1 → cùng bản công bố, cùng config/digest.
+    const caregiverData = await caregiver1.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverData.status).toBe(200);
+    expect(caregiverData.body.digest).toBe(digest1);
+    expect(caregiverData.body.config).toEqual(dataRes.body.config);
+    expect(caregiverData.body.view.currentPublication.revision).toBe(1);
 
     // Caregiver của hồ sơ khác không có link tới subject1 → 404.
     const forbiddenData = await caregiver2.agent
@@ -815,9 +862,9 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       .set('Origin', TEST_ORIGIN);
     expect(forbiddenData.status).toBe(404);
 
-    // View scope user không có subjectId mặc định → cần truyền subjectId.
+    // View scope user đã publish nhưng không có subjectId mặc định → 422.
     const noSubject = await owner.agent
-      .get(`/api/v1/workspace-views/${(userView.body as ViewBody).id}/data`)
+      .get(`/api/v1/workspace-views/${userViewId}/data`)
       .set('Origin', TEST_ORIGIN);
     expect(noSubject.status).toBe(422);
 
@@ -896,7 +943,18 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       config: makeConfig(DEFAULT_WIDGETS),
     });
     expect(created.status).toBe(201);
-    const viewId = (created.body as ViewBody).id;
+    const createdBody = created.body as ViewBody;
+    const viewId = createdBody.id;
+    const published = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        draftRevision: createdBody.draftRevision,
+        digest: createdBody.draftDigest,
+        baseRevision: 0,
+        note: 'Công bố view cách ly',
+      });
+    expect(published.status).toBe(201);
 
     const dataRes = await owner.agent
       .get(`/api/v1/workspace-views/${viewId}/data`)
@@ -988,7 +1046,18 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       config: makeConfig(DEFAULT_WIDGETS),
     });
     expect(created.status).toBe(201);
-    const viewId = (created.body as ViewBody).id;
+    const createdBody = created.body as ViewBody;
+    const viewId = createdBody.id;
+    const published = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        draftRevision: createdBody.draftRevision,
+        digest: createdBody.draftDigest,
+        baseRevision: 0,
+        note: 'Công bố view không dữ liệu',
+      });
+    expect(published.status).toBe(201);
 
     const dataRes = await owner.agent
       .get(`/api/v1/workspace-views/${viewId}/data`)
@@ -1010,5 +1079,114 @@ describe('Studio workspace views — draft → preview → publish → rollback 
       freshness: 'stale',
       batteryPercent: null,
     });
+  });
+
+  it('T10: data endpoint — draft mới hơn active và sau rollback luôn trả config/digest của publication active cho owner và caregiver', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Tám');
+    await seedDeviceWithTelemetry(ctx, owner, subject.id, [70, 75, 80]);
+    const caregiver = await registerUser(ctx.app, { displayName: 'Người xem bà Tám' });
+    await shareSubject(ctx, owner, subject.id, caregiver);
+
+    const configA = makeConfig([{ id: 'hr', type: 'metric', title: 'Nhịp tim QA', span: 1 }]);
+    const created = await createView(owner.agent, {
+      key: 'view-data-active',
+      name: 'View data active',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: configA,
+    });
+    expect(created.status).toBe(201);
+    const viewId = (created.body as ViewBody).id;
+    const digestA = (created.body as ViewBody).draftDigest as string;
+
+    const publishA = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ draftRevision: 1, digest: digestA, baseRevision: 0, note: 'Bản A' });
+    expect(publishA.status).toBe(201);
+    const publicationAId = publishA.body.publication.id as string;
+
+    // Bản B được công bố → active r2.
+    const configB = makeConfig([{ id: 'hr', type: 'metric', title: 'Nhịp tim QA lần 2', span: 1 }]);
+    const updateB = await owner.agent
+      .put(`/api/v1/workspace-views/${viewId}/draft`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ config: configB, baseRevision: 1 });
+    expect(updateB.status).toBe(200);
+    const digestB = (updateB.body as ViewBody).draftDigest as string;
+    const publishB = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ draftRevision: 2, digest: digestB, baseRevision: 1, note: 'Bản B' });
+    expect(publishB.status).toBe(201);
+    const publicationBId = publishB.body.publication.id as string;
+
+    // Bản C mới hơn active nhưng chưa công bố.
+    const configC = makeConfig([{ id: 'hr', type: 'metric', title: 'Nhịp tim QA lần 3', span: 1 }]);
+    const updateC = await owner.agent
+      .put(`/api/v1/workspace-views/${viewId}/draft`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ config: configC, baseRevision: 2 });
+    expect(updateC.status).toBe(200);
+    const digestC = (updateC.body as ViewBody).draftDigest as string;
+    expect(digestC).not.toBe(digestB);
+
+    // Owner: GET view vẫn thấy draft C, nhưng /data chỉ trả bản công bố active r2 (B).
+    const ownerView = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerView.body.draftDigest).toBe(digestC);
+
+    const ownerDataDraft = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerDataDraft.status).toBe(200);
+    expect(ownerDataDraft.body.config.widgets[0].title).toBe('Nhịp tim QA lần 2');
+    expect(JSON.stringify(ownerDataDraft.body.config)).not.toContain('lần 3');
+    expect(ownerDataDraft.body.digest).toBe(digestB);
+    expect(ownerDataDraft.body.view.currentPublication).toMatchObject({
+      id: publicationBId,
+      revision: 2,
+      digest: digestB,
+      status: 'active',
+    });
+    expect(ownerDataDraft.body.view.draftDigest).toBeNull();
+
+    // Caregiver (viewer) cũng thấy đúng bản active, không phải draft.
+    const caregiverDataDraft = await caregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverDataDraft.status).toBe(200);
+    expect(caregiverDataDraft.body.config).toEqual(ownerDataDraft.body.config);
+    expect(caregiverDataDraft.body.digest).toBe(digestB);
+
+    // Rollback về bản A → publication mới r3 giữ config A; draft C vẫn còn nhưng
+    // /data phải trả config A, không phải draft.
+    const rollback = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/rollback`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ publicationId: publicationAId, note: 'Quay lại bản A' });
+    expect(rollback.status).toBe(201);
+    expect(rollback.body.publication.revision).toBe(3);
+    expect(rollback.body.publication.digest).toBe(digestA);
+    expect(rollback.body.publication.status).toBe('active');
+
+    const ownerDataRollback = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerDataRollback.status).toBe(200);
+    expect(ownerDataRollback.body.config.widgets[0].title).toBe('Nhịp tim QA');
+    expect(JSON.stringify(ownerDataRollback.body.config)).not.toContain('lần');
+    expect(ownerDataRollback.body.digest).toBe(digestA);
+    expect(ownerDataRollback.body.view.currentPublication.revision).toBe(3);
+    expect(ownerDataRollback.body.view.currentPublication.digest).toBe(digestA);
+
+    const caregiverDataRollback = await caregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverDataRollback.status).toBe(200);
+    expect(caregiverDataRollback.body.config.widgets[0].title).toBe('Nhịp tim QA');
+    expect(caregiverDataRollback.body.digest).toBe(digestA);
+    expect(caregiverDataRollback.body.view.currentPublication.revision).toBe(3);
   });
 });

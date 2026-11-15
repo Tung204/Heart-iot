@@ -16,7 +16,9 @@ import { SCOPE_LABELS, shortDigest } from './labels';
 import { DataModeBadge, WidgetPreview } from './widgets';
 
 /**
- * /app/studio/:id/data — render bản ĐÃ CÔNG BỐ với dữ liệu thật (sample luôn false).
+ * /app/studio/:id/data — render **bản công bố đang hoạt động** với dữ liệu thật
+ * (sample luôn false). API chỉ trả publication active, không trả draft config;
+ * draft chỉ xem qua “Xem trước” ở trang quản lý, có nhãn Draft riêng.
  * View chưa công bố → thông báo rõ, không giả lập dữ liệu.
  * Scope user/global cần chọn hồ sơ có quyền (query subjectId); scope subject
  * mặc định dùng subjectId của view.
@@ -75,6 +77,22 @@ export function StudioViewDataPage() {
   const needsSubjectPick = !effectiveSubjectId;
   const scopeLacksSubject = viewData.scope === 'subject' && !effectiveSubjectId;
 
+  // Ưu tiên publication trong chính response dữ liệu: đó là bản mà config/digest
+  // đang render, nên revision + digest trên trang luôn khớp payload.
+  const dataPublication = data.data?.view.currentPublication ?? null;
+  const publication = dataPublication ?? viewData.currentPublication;
+  const publicationDigest = data.data?.digest ?? viewData.currentPublication?.digest ?? '';
+  const renderedRevision =
+    data.data?.view.currentPublication?.revision ?? publication?.revision ?? null;
+
+  // Owner/admin nhận draftDigest từ GET view. Khác digest bản công bố nghĩa là
+  // có bản nháp chưa công bố (ví dụ sau rollback) — nêu rõ, không trộn vào trang này.
+  const hasUnpublishedDraft = Boolean(
+    viewData.draftDigest &&
+      viewData.currentPublication &&
+      viewData.draftDigest !== viewData.currentPublication.digest,
+  );
+
   return (
     <div className="stack">
       <header>
@@ -85,8 +103,7 @@ export function StudioViewDataPage() {
             {SCOPE_LABELS[viewData.scope]}
           </StatusPill>
           <span className="studio-datamode">
-            Bản công bố r{viewData.currentPublication?.revision} (
-            {shortDigest(viewData.currentPublication?.digest ?? '')})
+            Bản công bố r{publication?.revision} ({shortDigest(publicationDigest)})
           </span>
         </p>
       </header>
@@ -96,6 +113,21 @@ export function StudioViewDataPage() {
           Về trang quản lý
         </Link>
       </div>
+
+      {hasUnpublishedDraft ? (
+        <Alert tone="info" title="Bản nháp hiện tại chưa được công bố">
+          <p>
+            Trang này chỉ hiển thị bản công bố đang hoạt động (r{publication?.revision}). Bản nháp đã lưu
+            có nội dung khác — dùng “Xem trước” ở trang quản lý để xem dữ liệu thật với bản nháp, và công
+            bố khi đã duyệt.
+          </p>
+          <div style={{ marginTop: '0.75rem' }}>
+            <ButtonLink to={`/app/studio/${id}`} variant="secondary" size="sm">
+              Xem trước bản nháp
+            </ButtonLink>
+          </div>
+        </Alert>
+      ) : null}
 
       {viewData.scope !== 'subject' ? (
         <div className="field">
@@ -146,7 +178,9 @@ export function StudioViewDataPage() {
         />
       ) : null}
       {data.data ? (
-        <Card description={`Kiểm tra lúc ${formatDateTime(data.data.checkedAt)} · digest ${shortDigest(data.data.digest)}`}>
+        <Card
+          description={`Kiểm tra lúc ${formatDateTime(data.data.checkedAt)} · render theo bản công bố r${renderedRevision}`}
+        >
           <DataModeBadge sample={data.data.data.sample} subjectName={data.data.data.subject?.displayName} />
           <div className="studio-preview" style={{ marginTop: '1rem' }}>
             <WidgetPreview config={data.data.config} data={data.data.data} />
