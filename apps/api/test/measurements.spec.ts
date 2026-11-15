@@ -355,7 +355,7 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
   it('daily-summary: HR chỉ mẫu valid, steps delta trong boot, incidents và coverage', async () => {
     const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ tổng hợp');
     // Ngày 2026-11-13 theo Asia/Ho_Chi_Minh = 2026-11-12T17:00Z → 2026-11-13T17:00Z.
-    const dayTimes = ['2026-11-13T03:00:00Z', '2026-11-13T03:15:00Z', '2026-11-13T03:30:00Z'];
+    const dayTimes = ['2026-11-13T03:00:00Z', '2026-11-13T03:00:15Z', '2026-11-13T03:00:30Z'];
     const hr = [70, 80, 90];
     const steps = [100, 140, 190];
     for (let i = 0; i < dayTimes.length; i += 1) {
@@ -404,9 +404,41 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
     expect(response.body.incidents).toEqual({ total: 2, resolved: 1 });
     expect(response.body.coverage.observedCount).toBe(3);
     expect(response.body.coverage.expectedCount).toBe(5760);
-    expect(response.body.lastSeenAt).toBe('2026-11-13T03:30:00.000Z');
+    expect(response.body.lastSeenAt).toBe('2026-11-13T03:00:30.000Z');
     expect(response.body.batteryPercent).toBe(60);
     expect(response.body.source).toBe('device');
+  });
+
+  it('daily-summary steps: khoảng mất dữ liệu dài → partial, không cộng bước bắc gap', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ bước qua gap');
+    const points = [
+      { at: '2026-11-13T03:00:00Z', steps: 100 },
+      { at: '2026-11-13T03:00:15Z', steps: 120 },
+      // Cách mốc trước 2h55 — dài hơn ngưỡng gap; delta 300 không được cộng.
+      { at: '2026-11-13T06:00:00Z', steps: 420 },
+      { at: '2026-11-13T06:00:15Z', steps: 440 },
+    ];
+    for (let index = 0; index < points.length; index += 1) {
+      const point = points[index]!;
+      await send(
+        ctx,
+        fixture,
+        makeEnvelope(fixture.deviceId, {
+          sequence: index,
+          boot_id: 'boot-gap-steps',
+          measured_at: point.at,
+          metrics: { heart_rate_bpm: 70, steps_since_boot: point.steps },
+        }),
+      );
+    }
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2026-11-13`,
+    );
+    expect(response.status).toBe(200);
+    expect(response.body.steps.total).toBe(40);
+    expect(response.body.steps.completeness).toBe('partial');
+    expect(response.body.steps.notes.join(' ')).toMatch(/mất dữ liệu/i);
   });
 
   it('daily-summary: không mẫu HR hợp lệ → heartRate null; ngày tương lai bị 422', async () => {

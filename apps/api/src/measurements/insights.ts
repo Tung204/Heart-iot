@@ -39,7 +39,7 @@ export type DailyStepsAggregate = DailyInsight['steps'] & {
 };
 
 /** Số khoảng heartbeat liên tiếp tối đa còn coi là đủ tin cậy để cộng delta bước. */
-const STEPS_GAP_INTERVALS = 4;
+export const STEPS_GAP_INTERVALS = 4;
 
 const MAX_NOTES = 3;
 

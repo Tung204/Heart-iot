@@ -27,6 +27,7 @@ import {
   buildInsightNotes,
   coverageCounts,
   summarizeInsights,
+  STEPS_GAP_INTERVALS,
   type InsightIncidentRow,
   type InsightTelemetryRow,
 } from './insights';
@@ -226,7 +227,7 @@ export class MeasurementsService {
       date,
       timezone: access.subject.timezone,
       heartRate: computeHeartRate(dayRows),
-      steps: computeSteps(dayRows),
+      steps: computeSteps(dayRows, intervalSeconds),
       coverage: computeCoverage(windowFrom, coverageTo, intervalSeconds, measuredAts.length),
       gaps: computeGaps(windowFrom, coverageTo, intervalSeconds, measuredAts, unsyncedCount),
       incidents: {
@@ -575,7 +576,10 @@ function computeHeartRate(rows: TelemetryRow[]): DailySummary['heartRate'] {
   };
 }
 
-function computeSteps(rows: TelemetryRow[]): DailySummary['steps'] {
+function computeSteps(
+  rows: TelemetryRow[],
+  intervalSeconds: number,
+): DailySummary['steps'] {
   if (rows.length === 0) {
     return {
       total: 0,
@@ -585,27 +589,42 @@ function computeSteps(rows: TelemetryRow[]): DailySummary['steps'] {
   }
   let total = 0;
   let completeness: 'complete' | 'partial' = 'complete';
+  let positiveDelta = false;
   const notes: string[] = [];
-  const lastByBoot = new Map<string, number>();
+  const gapMs = intervalSeconds * STEPS_GAP_INTERVALS * 1000;
+  const lastByBoot = new Map<string, { steps: number; measuredAt: Date }>();
   for (const row of rows) {
+    if (!row.measuredAt) continue;
+    // Cảm biến chuyển động lỗi không có nghĩa là người ít vận động.
+    if (row.quality.motion === 'sensor_error') continue;
     const previous = lastByBoot.get(row.bootId);
-    if (previous === undefined) {
-      // Mẫu đầu của boot trong ngày: không suy ra delta.
-      lastByBoot.set(row.bootId, row.metrics.steps_since_boot);
-      continue;
+    if (previous) {
+      const delta = row.metrics.steps_since_boot - previous.steps;
+      const elapsedMs = row.measuredAt.getTime() - previous.measuredAt.getTime();
+      if (elapsedMs > gapMs) {
+        // Mất mẫu dài: bỏ đoạn chênh lệch thay vì cộng toàn bộ vào ngày nhận mẫu.
+        completeness = 'partial';
+        notes.push(
+          `Có khoảng mất dữ liệu dài hơn ${STEPS_GAP_INTERVALS} nhịp tim; bỏ bước bắc qua khoảng này.`,
+        );
+      } else if (delta < 0) {
+        completeness = 'partial';
+        notes.push(
+          `Counter steps giảm trong boot ${row.bootId.slice(0, 8)} (${previous.steps} → ${row.metrics.steps_since_boot}); bỏ delta âm, có thể đã reset.`,
+        );
+      } else if (delta > 0) {
+        total += delta;
+        positiveDelta = true;
+      }
     }
-    const delta = row.metrics.steps_since_boot - previous;
-    if (delta > 0) {
-      total += delta;
-    } else if (delta < 0) {
-      completeness = 'partial';
-      notes.push(
-        `Counter steps giảm trong boot ${row.bootId.slice(0, 8)} (${previous} → ${row.metrics.steps_since_boot}); bỏ delta âm, có thể đã reset.`,
-      );
-    }
-    lastByBoot.set(row.bootId, row.metrics.steps_since_boot);
+    lastByBoot.set(row.bootId, {
+      steps: row.metrics.steps_since_boot,
+      measuredAt: row.measuredAt,
+    });
   }
-  return { total, completeness, notes };
+  // Chỉ một mốc của boot hoặc toàn delta 0: không đủ căn cứ để nói "đủ dữ liệu".
+  if (!positiveDelta) completeness = 'partial';
+  return { total, completeness, notes: [...new Set(notes)] };
 }
 
 function csvCell(value: string): string {
