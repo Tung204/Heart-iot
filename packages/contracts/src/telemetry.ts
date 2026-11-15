@@ -153,5 +153,11 @@ export const deviceStatusSchema = z.object({
   batteryPercent: z.number().int().nullable(),
   firmwareVersion: z.string().nullable(),
   clockStatus: z.enum(['synced', 'unsynced', 'unknown']),
+  /**
+   * Người xem có được thấy số đo của thiết bị này không. `false` khi chủ hồ sơ
+   * không chia sẻ quyền xem số đo; các trường số đo khi đó là `null` dù thiết bị online.
+   * Mặc định `true` để phản hồi cũ/thiết bị khác không phải sửa hợp đồng.
+   */
+  healthDataVisible: z.boolean().default(true),
 });
 export type DeviceStatus = z.infer<typeof deviceStatusSchema>;

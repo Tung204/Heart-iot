@@ -11,7 +11,7 @@ import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import { Button } from '../../components/Button';
 import { clampRangeToHistoryDays, formatCompactDateTime, formatDateTime } from '../../lib/format';
-import { getApiErrorMessage } from '../../lib/api';
+import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
@@ -40,6 +40,22 @@ const HR_QUALITY_LABELS: Record<HeartRateQuality, string> = {
 
 const PAGE_SIZE = 500;
 
+/** 403 ở lịch sử đo là trạng thái quyền, không phải lỗi kỹ thuật. */
+function isForbiddenError(error: unknown): boolean {
+  return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
+}
+
+/** Trạng thái quyền dùng chung cho trường hợp biết trước và trường hợp API trả 403. */
+function MeasurementsNotShared() {
+  return (
+    <EmptyState
+      title="Chủ hồ sơ không chia sẻ số đo"
+      description="Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo."
+      action={<ButtonLink to="/app">Về tổng quan</ButtonLink>}
+    />
+  );
+}
+
 /**
  * /app/history — lịch sử đo trong khoảng 24h/7 ngày/30 ngày (giới hạn theo quyền).
  * - Bảng dữ liệu + biểu đồ SVG có nhãn trục; bảng là phương án cho screen reader.
@@ -62,6 +78,10 @@ export function HistoryPage() {
   const rangeOption =
     RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
   const historyDays = activeSubject?.permissions.historyDays ?? 1;
+  // Link cũ thiếu `canViewMeasurements` được hiểu là `true` (server đã chuẩn hóa).
+  const canViewMeasurements = activeSubject
+    ? activeSubject.permissions.canViewMeasurements !== false
+    : true;
   const maxHours = historyDays * 24;
   // Người thân mới accept: dữ liệu chỉ được xem từ `sharedFrom`, không phải toàn bộ 24 giờ.
   const sharedFromMs =
@@ -98,9 +118,12 @@ export function HistoryPage() {
         : null,
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
-    enabled: Boolean(activeSubject),
+    enabled: Boolean(activeSubject) && canViewMeasurements,
     staleTime: 30_000,
   });
+
+  const measurementsForbidden =
+    measurements.isError && isForbiddenError(measurements.error);
 
   if (!activeSubject && !subjects.isPending && !subjects.isError) {
     return (
@@ -109,6 +132,20 @@ export function HistoryPage() {
         description="Tạo hồ sơ cho người cần theo dõi hoặc chọn hồ sơ ở đầu trang."
         action={<ButtonLink to="/app/subjects">Tạo hồ sơ</ButtonLink>}
       />
+    );
+  }
+
+  if (activeSubject && !canViewMeasurements) {
+    return (
+      <div className="stack">
+        <header>
+          <h1 className="page-title">Lịch sử đo lường</h1>
+          <p className="page-lead">
+            Dữ liệu của hồ sơ <strong>{activeSubject.displayName}</strong>.
+          </p>
+        </header>
+        <MeasurementsNotShared />
+      </div>
     );
   }
 
@@ -144,43 +181,45 @@ export function HistoryPage() {
         </p>
       </header>
 
-      <div className="history-toolbar">
-        <div className="segmented" role="group" aria-label="Chọn khoảng thời gian">
-          {RANGE_OPTIONS.map((option) => {
-            const allowedByHistory = option.hours <= maxHours;
-            // Khoảng đầy đủ bắt đầu trước mốc chia sẻ thì không xem được trọn vẹn:
-            // disable kèm giải thích thay vì để người dùng gặp lỗi 403.
-            const allowedByShare =
-              sharedFromMs === null || now - option.hours * 3600 * 1000 >= sharedFromMs;
-            const allowed = allowedByHistory && allowedByShare;
-            const disabledReason = !allowedByHistory
-              ? `Quyền chỉ cho xem ${historyDays} ngày`
-              : `Chỉ xem được dữ liệu từ ${activeSubject?.sharedFrom ? formatDateTime(activeSubject.sharedFrom) : 'mốc chia sẻ quyền'} — khoảng ${option.label} bắt đầu trước mốc này`;
-            return (
-              <button
-                key={option.key}
-                type="button"
-                className={`segmented__item${rangeKey === option.key ? ' is-active' : ''}`}
-                aria-pressed={rangeKey === option.key}
-                disabled={!allowed}
-                title={allowed ? undefined : disabledReason}
-                onClick={() => setRangeKey(option.key)}
-              >
-                {option.label}
-              </button>
-            );
-          })}
+      {measurementsForbidden ? null : (
+        <div className="history-toolbar">
+          <div className="segmented" role="group" aria-label="Chọn khoảng thời gian">
+            {RANGE_OPTIONS.map((option) => {
+              const allowedByHistory = option.hours <= maxHours;
+              // Khoảng đầy đủ bắt đầu trước mốc chia sẻ thì không xem được trọn vẹn:
+              // disable kèm giải thích thay vì để người dùng gặp lỗi 403.
+              const allowedByShare =
+                sharedFromMs === null || now - option.hours * 3600 * 1000 >= sharedFromMs;
+              const allowed = allowedByHistory && allowedByShare;
+              const disabledReason = !allowedByHistory
+                ? `Quyền chỉ cho xem ${historyDays} ngày`
+                : `Chỉ xem được dữ liệu từ ${activeSubject?.sharedFrom ? formatDateTime(activeSubject.sharedFrom) : 'mốc chia sẻ quyền'} — khoảng ${option.label} bắt đầu trước mốc này`;
+              return (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`segmented__item${rangeKey === option.key ? ' is-active' : ''}`}
+                  aria-pressed={rangeKey === option.key}
+                  disabled={!allowed}
+                  title={allowed ? undefined : disabledReason}
+                  onClick={() => setRangeKey(option.key)}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+          {activeSubject ? (
+            <a
+              className="button button--secondary button--sm"
+              href={exportCsvUrl(activeSubject.id, from, to)}
+              download
+            >
+              Tải CSV
+            </a>
+          ) : null}
         </div>
-        {activeSubject ? (
-          <a
-            className="button button--secondary button--sm"
-            href={exportCsvUrl(activeSubject.id, from, to)}
-            download
-          >
-            Tải CSV
-          </a>
-        ) : null}
-      </div>
+      )}
 
       {isClamped ? (
         <p className="field__hint">
@@ -199,11 +238,15 @@ export function HistoryPage() {
       {measurements.isPending ? (
         <PageLoader label="Đang tải dữ liệu đo…" />
       ) : measurements.isError ? (
-        <ErrorState
-          title="Không tải được dữ liệu đo"
-          message={getApiErrorMessage(measurements.error)}
-          onRetry={() => void measurements.refetch()}
-        />
+        measurementsForbidden ? (
+          <MeasurementsNotShared />
+        ) : (
+          <ErrorState
+            title="Không tải được dữ liệu đo"
+            message={getApiErrorMessage(measurements.error)}
+            onRetry={() => void measurements.refetch()}
+          />
+        )
       ) : items.length === 0 ? (
         <EmptyState
           title="Chưa có dữ liệu"

@@ -6,7 +6,7 @@ import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { StatusPill } from '../../components/StatusPill';
 import { formatDateTime, formatRelativeTime, todayInTimeZone } from '../../lib/format';
-import { getApiErrorMessage } from '../../lib/api';
+import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useMe } from '../auth/useAuth';
 import { RecentInsightsCard } from '../insights/RecentInsightsCard';
@@ -34,6 +34,15 @@ const HR_QUALITY_LABELS = {
   not_worn: 'không đeo',
   sensor_error: 'lỗi cảm biến',
 } as const;
+
+/** 403 là trạng thái quyền, không phải lỗi kỹ thuật: hiển thị thông điệp nghiệp vụ. */
+function isForbiddenError(error: unknown): boolean {
+  return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
+}
+
+const MEASUREMENTS_NOT_SHARED_TITLE = 'Chủ hồ sơ không chia sẻ số đo';
+const MEASUREMENTS_NOT_SHARED_TEXT =
+  'Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.';
 
 /** Loading cục bộ của một vùng: không chiếm cả trang, không ghi số khi chưa có dữ liệu. */
 function RegionLoading({ label }: { label: string }) {
@@ -126,6 +135,10 @@ export function DashboardPage() {
   }
 
   const alertItems = openAlerts.data?.items ?? [];
+  // Server trả `healthDataVisible=false` khi chủ hồ sơ không chia sẻ quyền xem số đo:
+  // hiển thị thông báo quyền thay vì các dòng “chưa có mẫu”/số 0 mạo nhận dữ liệu.
+  const healthDataHidden =
+    status.data?.devices.some((device) => device.healthDataVisible === false) ?? false;
 
   return (
     <div className="stack dashboard">
@@ -218,7 +231,12 @@ export function DashboardPage() {
             </h2>
           </div>
           {summary.isPending ? <RegionLoading label="Đang tải dữ liệu tổng quan…" /> : null}
-          {summary.isError ? (
+          {summary.isError && isForbiddenError(summary.error) ? (
+            <Alert tone="info" title={MEASUREMENTS_NOT_SHARED_TITLE}>
+              <p>{MEASUREMENTS_NOT_SHARED_TEXT}</p>
+            </Alert>
+          ) : null}
+          {summary.isError && !isForbiddenError(summary.error) ? (
             <RegionError
               title="Không tải được dữ liệu tổng quan"
               error={summary.error}
@@ -313,6 +331,11 @@ export function DashboardPage() {
               onRetry={() => void status.refetch()}
             />
           ) : null}
+          {healthDataHidden ? (
+            <Alert tone="info" title={MEASUREMENTS_NOT_SHARED_TITLE}>
+              <p>{MEASUREMENTS_NOT_SHARED_TEXT}</p>
+            </Alert>
+          ) : null}
           {status.data ? (
             status.data.devices.length ? (
               status.data.devices.map((device) => (
@@ -332,40 +355,44 @@ export function DashboardPage() {
                           : 'chưa từng kết nối'}
                       </dd>
                     </div>
-                    <div>
-                      <dt>Nhịp tim gần nhất</dt>
-                      <dd>
-                        {device.lastHeartRateBpm !== null &&
-                        device.lastHeartRateQuality === 'valid' ? (
-                          <strong>{device.lastHeartRateBpm} bpm</strong>
-                        ) : (
-                          'chưa có mẫu hợp lệ'
-                        )}
-                        {device.lastHeartRateQuality &&
-                        device.lastHeartRateQuality !== 'valid' ? (
-                          <span className="metric-line__note">
-                            {' '}
-                            (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
-                          </span>
-                        ) : null}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Pin</dt>
-                      <dd>
-                        {device.batteryPercent !== null
-                          ? `${device.batteryPercent}%`
-                          : 'chưa có thông tin'}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Lần đo gần nhất</dt>
-                      <dd>
-                        {device.lastMeasuredAt
-                          ? formatDateTime(device.lastMeasuredAt)
-                          : 'chưa có dữ liệu'}
-                      </dd>
-                    </div>
+                    {device.healthDataVisible === false ? null : (
+                      <>
+                        <div>
+                          <dt>Nhịp tim gần nhất</dt>
+                          <dd>
+                            {device.lastHeartRateBpm !== null &&
+                            device.lastHeartRateQuality === 'valid' ? (
+                              <strong>{device.lastHeartRateBpm} bpm</strong>
+                            ) : (
+                              'chưa có mẫu hợp lệ'
+                            )}
+                            {device.lastHeartRateQuality &&
+                            device.lastHeartRateQuality !== 'valid' ? (
+                              <span className="metric-line__note">
+                                {' '}
+                                (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
+                              </span>
+                            ) : null}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Pin</dt>
+                          <dd>
+                            {device.batteryPercent !== null
+                              ? `${device.batteryPercent}%`
+                              : 'chưa có thông tin'}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Lần đo gần nhất</dt>
+                          <dd>
+                            {device.lastMeasuredAt
+                              ? formatDateTime(device.lastMeasuredAt)
+                              : 'chưa có dữ liệu'}
+                          </dd>
+                        </div>
+                      </>
+                    )}
                   </dl>
                 </Card>
               ))

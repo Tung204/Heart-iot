@@ -103,6 +103,11 @@ export const incidentRecipientSchema = z
         canAcknowledge: z.boolean(),
         canResolve: z.boolean(),
         canViewAi: z.boolean(),
+        /**
+         * Quyền xem số đo không ảnh hưởng luồng cảnh báo; link cũ thiếu trường
+         * vẫn đọc được (mặc định true) để hợp đồng cảnh báo không phụ thuộc migration.
+         */
+        canViewMeasurements: z.boolean().default(true),
       })
       .strict(),
   })

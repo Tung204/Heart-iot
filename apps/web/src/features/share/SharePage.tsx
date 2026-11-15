@@ -35,7 +35,12 @@ const INVITATION_STATUS_LABELS = {
 } as const;
 
 function describePermissions(permissions: CarePermissions): string {
-  const parts: string[] = [`xem ${permissions.historyDays} ngày lịch sử`];
+  const parts: string[] = [];
+  parts.push(
+    permissions.canViewMeasurements === false
+      ? 'không xem số đo'
+      : `xem số đo ${permissions.historyDays} ngày`,
+  );
   parts.push(permissions.canReceiveAlerts ? 'nhận cảnh báo' : 'không nhận cảnh báo');
   parts.push(permissions.canAcknowledge ? 'xác nhận' : 'không xác nhận');
   parts.push(permissions.canResolve ? 'đóng cảnh báo' : 'không đóng cảnh báo');
@@ -55,6 +60,9 @@ export function SharePage() {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [historyDays, setHistoryDays] = useState(DEFAULT_CARE_PERMISSIONS.historyDays);
+  const [canViewMeasurements, setCanViewMeasurements] = useState(
+    DEFAULT_CARE_PERMISSIONS.canViewMeasurements,
+  );
   const [canReceiveAlerts, setCanReceiveAlerts] = useState(DEFAULT_CARE_PERMISSIONS.canReceiveAlerts);
   const [canAcknowledge, setCanAcknowledge] = useState(DEFAULT_CARE_PERMISSIONS.canAcknowledge);
   const [canResolve, setCanResolve] = useState(DEFAULT_CARE_PERMISSIONS.canResolve);
@@ -93,7 +101,10 @@ export function SharePage() {
           canReceiveAlerts,
           canAcknowledge,
           canResolve,
-          canViewAi,
+          // Tắt số đo thì tắt luôn tóm tắt AI: AI đọc dữ liệu đo nên không thể
+          // chia sẻ số đo qua đường khác.
+          canViewAi: canViewMeasurements && canViewAi,
+          canViewMeasurements,
         },
         expiresInHours,
       }),
@@ -118,7 +129,14 @@ export function SharePage() {
     event.preventDefault();
     const input = {
       email,
-      permissions: { historyDays, canReceiveAlerts, canAcknowledge, canResolve, canViewAi },
+      permissions: {
+        historyDays,
+        canReceiveAlerts,
+        canAcknowledge,
+        canResolve,
+        canViewAi: canViewMeasurements && canViewAi,
+        canViewMeasurements,
+      },
       expiresInHours,
     };
     const parsed = createInvitationSchema.safeParse(input);
@@ -233,8 +251,15 @@ export function SharePage() {
                   min={1}
                   max={3650}
                   value={historyDays}
+                  disabled={!canViewMeasurements}
+                  aria-describedby="invite-history-days-hint"
                   onChange={(event) => setHistoryDays(Number(event.target.value))}
                 />
+                <p id="invite-history-days-hint" className="field__hint">
+                  {canViewMeasurements
+                    ? 'Chỉ áp dụng cho dữ liệu đo; người được mời không xem được dữ liệu trước thời điểm họ chấp nhận.'
+                    : 'Không áp dụng vì bạn không chia sẻ số đo và lịch sử.'}
+                </p>
               </div>
               <div className="field">
                 <label className="field__label" htmlFor="invite-expires">
@@ -253,6 +278,24 @@ export function SharePage() {
             </div>
             <fieldset className="invite-form__perms">
               <legend className="field__label">Quyền của người được mời</legend>
+              <label className="checkline">
+                <input
+                  type="checkbox"
+                  checked={canViewMeasurements}
+                  aria-describedby="invite-measurements-hint"
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setCanViewMeasurements(checked);
+                    // AI tóm tắt từ dữ liệu đo: không cho bật khi đã tắt quyền số đo.
+                    if (!checked) setCanViewAi(false);
+                  }}
+                />
+                Cho phép xem số đo và lịch sử
+              </label>
+              <p id="invite-measurements-hint" className="field__hint">
+                Gồm nhịp tim, số bước chân, lịch sử đo và tệp CSV tải về. Tắt mục này thì
+                người được mời chỉ thấy cảnh báo, trạng thái kết nối và pin của thiết bị.
+              </p>
               {(
                 [
                   ['canReceiveAlerts', 'Nhận cảnh báo', canReceiveAlerts, setCanReceiveAlerts],
@@ -265,12 +308,21 @@ export function SharePage() {
                   <input
                     type="checkbox"
                     checked={value}
+                    disabled={key === 'canViewAi' && !canViewMeasurements}
                     onChange={(event) => setter(event.target.checked)}
                   />
                   {label}
+                  {key === 'canViewAi' && !canViewMeasurements ? (
+                    <span className="field__hint"> (cần bật quyền xem số đo)</span>
+                  ) : null}
                 </label>
               ))}
             </fieldset>
+            <p className="field__hint">
+              Người được mời có thể tải dữ liệu đo ra tệp CSV và giữ bản sao sau khi bạn thu
+              hồi quyền. Thu hồi chặn truy cập tiếp theo, không thu hồi được bản đã tải hoặc
+              đã chụp lại.
+            </p>
             {create.isError ? (
               <Alert tone="error">{getApiErrorMessage(create.error)}</Alert>
             ) : null}
