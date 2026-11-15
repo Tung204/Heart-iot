@@ -16,6 +16,7 @@ import {
 import { z } from 'zod';
 import {
   INCIDENT_OPEN_STATES,
+  hasCarePermission,
   isSyntheticDataSource,
   type UserSummary,
 } from '@annhien/contracts';
@@ -240,12 +241,29 @@ export class StudioService {
   // Dữ liệu render (dùng chung cho preview chế độ subject và GET :id/data)
   // ---------------------------------------------------------------------------
 
+  /**
+   * Dữ liệu render dùng chung cho preview và `GET :id/data`.
+   * - Mốc dữ liệu lấy từ `AccessService.requireHistory`: caregiver chỉ thấy từ
+   *   `sharedFrom` (đã kẹp theo `historyDays`), owner giữ cửa sổ 24h như trước.
+   *   Truyền `from = null` vì đây là view mặc định, không phải yêu cầu một khoảng
+   *   lịch sử cụ thể — link mới không bị 403 mà chỉ bị cắt cửa sổ.
+   * - `windowStart = max(now - 24h, effectiveFrom)`, nên mọi truy vấn dùng
+   *   `windowStart` đều đã bị cắt theo mốc chia sẻ. Các truy vấn không dùng
+   *   `windowStart` (bản đo gần nhất theo thiết bị) cũng lọc `effectiveFrom`.
+   * - Caregiver thiếu `canReceiveAlerts` vẫn xem được widget khác; riêng alerts
+   *   và count trả rỗng/0, không 403 toàn view.
+   */
   private async renderSubjectData(userId: string, subjectId: string): Promise<StudioData> {
-    const access = await this.access.requireSubject(userId, subjectId);
+    const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
     const subject = access.subject;
     const policy = (await this.policy.getActive()).value;
     const now = new Date();
-    const windowStart = new Date(now.getTime() - PREVIEW_WINDOW_MS);
+    const windowStart = new Date(
+      Math.max(now.getTime() - PREVIEW_WINDOW_MS, effectiveFrom.getTime()),
+    );
+    const visibleFrom = access.role === 'owner' ? null : effectiveFrom;
+    const canReceiveAlerts =
+      access.role === 'owner' || hasCarePermission(access.permissions, 'receive_alerts');
 
     const assignments = await this.db
       .select()
@@ -282,7 +300,8 @@ export class StudioService {
     const series = [...latestPoints].reverse();
 
     // Bản đo gần nhất theo từng thiết bị để tính online/freshness; chỉ xét mẫu
-    // đã đồng bộ giờ, không cách ly và đã xảy ra (không lấy mốc tương lai).
+    // đã đồng bộ giờ, không cách ly, đã xảy ra (không lấy mốc tương lai) và không
+    // sớm hơn mốc chia sẻ của caregiver.
     const latestByDevice = assignmentIds.length
       ? await this.db
           .selectDistinctOn([telemetry.deviceId])
@@ -293,6 +312,7 @@ export class StudioService {
               eq(telemetry.isQuarantined, false),
               eq(telemetry.clockStatus, 'synced'),
               isNotNull(telemetry.measuredAt),
+              gte(telemetry.measuredAt, effectiveFrom),
               lte(telemetry.measuredAt, now),
             ),
           )
@@ -301,7 +321,14 @@ export class StudioService {
     const latestByDeviceId = new Map(latestByDevice.map((row) => [row.deviceId, row]));
 
     const devicesOut = deviceRows.map((device) => {
-      const status = computeDeviceStatus(device, subjectId, policy, latestByDeviceId.get(device.id) ?? null);
+      const status = computeDeviceStatus(
+        device,
+        subjectId,
+        policy,
+        latestByDeviceId.get(device.id) ?? null,
+        now,
+        visibleFrom,
+      );
       return {
         id: status.deviceId,
         label: status.label,
@@ -329,18 +356,29 @@ export class StudioService {
       };
     }
 
-    const alertRows = await this.db
-      .select()
-      .from(incidents)
-      .where(
-        and(
-          eq(incidents.subjectId, subjectId),
-          gte(incidents.lastEventAt, windowStart),
-          inArray(incidents.state, [...INCIDENT_OPEN_STATES, 'resolved', 'cancelled']),
-        ),
-      )
-      .orderBy(desc(incidents.lastEventAt))
-      .limit(ALERTS_LIMIT);
+    // Cảnh báo cũng tính theo `detectedAt` và mốc chia sẻ: không lộ cảnh báo đã
+    // xảy ra trước khi caregiver được chia sẻ. Studio không có cờ
+    // `startedBeforeShare` trong hợp đồng nên cảnh báo đang mở trước mốc cũng
+    // không hiển thị ở đây; trang Cảnh báo giữ trạng thái an toàn đó kèm cờ.
+    // Caregiver thiếu `canReceiveAlerts` → không truy vấn, trả rỗng thay vì 403.
+    const alertWindow = and(
+      eq(incidents.subjectId, subjectId),
+      gte(incidents.detectedAt, effectiveFrom),
+      lte(incidents.detectedAt, now),
+    );
+    const alertRows = canReceiveAlerts
+      ? await this.db
+          .select()
+          .from(incidents)
+          .where(
+            and(
+              alertWindow,
+              inArray(incidents.state, [...INCIDENT_OPEN_STATES, 'resolved', 'cancelled']),
+            ),
+          )
+          .orderBy(desc(incidents.detectedAt), desc(incidents.id))
+          .limit(ALERTS_LIMIT)
+      : [];
 
     const [aggregateRow, alertsTotalRow, alertsResolvedRow, syntheticRow] = await Promise.all([
       assignmentIds.length
@@ -363,20 +401,15 @@ export class StudioService {
               ),
             )
         : Promise.resolve([]),
-      this.db
-        .select({ total: count() })
-        .from(incidents)
-        .where(and(eq(incidents.subjectId, subjectId), gte(incidents.detectedAt, windowStart))),
-      this.db
-        .select({ resolved: count() })
-        .from(incidents)
-        .where(
-          and(
-            eq(incidents.subjectId, subjectId),
-            eq(incidents.state, 'resolved'),
-            gte(incidents.detectedAt, windowStart),
-          ),
-        ),
+      canReceiveAlerts
+        ? this.db.select({ total: count() }).from(incidents).where(alertWindow)
+        : Promise.resolve([{ total: 0 }]),
+      canReceiveAlerts
+        ? this.db
+            .select({ resolved: count() })
+            .from(incidents)
+            .where(and(alertWindow, eq(incidents.state, 'resolved')))
+        : Promise.resolve([{ resolved: 0 }]),
       assignmentIds.length
         ? this.db
             .select({ source: telemetry.source })

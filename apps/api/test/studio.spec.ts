@@ -85,14 +85,15 @@ async function shareSubject(
   owner: TestUser,
   subjectId: string,
   caregiver: TestUser,
+  options: { sharedFrom?: Date; permissions?: typeof DEFAULT_CARE_PERMISSIONS } = {},
 ) {
   await ctx.db.insert(careLinks).values({
     subjectId,
     caregiverUserId: caregiver.session.user.id,
     invitedByUserId: owner.session.user.id,
-    permissions: DEFAULT_CARE_PERMISSIONS,
+    permissions: options.permissions ?? DEFAULT_CARE_PERMISSIONS,
     status: 'active',
-    sharedFrom: new Date(),
+    sharedFrom: options.sharedFrom ?? new Date(),
   });
 }
 
@@ -185,6 +186,39 @@ async function insertTelemetryRow(
     firmwareVersion: '0.1.0-demo',
     isQuarantined: input.isQuarantined ?? false,
   });
+}
+
+/** Ghi một incident với mốc phát hiện/trạng thái tuỳ ý — dùng cho test ranh giới chia sẻ. */
+async function insertIncident(
+  ctx: TestContext,
+  subjectId: string,
+  deviceId: string,
+  assignmentId: string,
+  input: {
+    state: 'suspected' | 'open' | 'acknowledged' | 'resolved' | 'cancelled' | 'unconfirmed';
+    detectedAt: Date;
+    lastEventAt?: Date;
+    type?: 'fall' | 'sos';
+  },
+): Promise<string> {
+  const rows = await ctx.db
+    .insert(incidents)
+    .values({
+      subjectId,
+      assignmentId,
+      deviceId,
+      deviceIncidentId: crypto.randomUUID(),
+      type: input.type ?? 'fall',
+      state: input.state,
+      lastRevision: 1,
+      detectedAt: input.detectedAt,
+      lastEventAt: input.lastEventAt ?? input.detectedAt,
+      version: 1,
+    })
+    .returning({ id: incidents.id });
+  const row = rows[0];
+  if (!row) throw new Error('Không tạo được incident.');
+  return row.id;
 }
 
 async function seedIncidentAndTask(ctx: TestContext, owner: TestUser, subjectId: string, deviceId: string, assignmentId: string) {
@@ -1188,5 +1222,229 @@ describe('Studio workspace views — draft → preview → publish → rollback 
     expect(caregiverDataRollback.body.config.widgets[0].title).toBe('Nhịp tim QA');
     expect(caregiverDataRollback.body.digest).toBe(digestA);
     expect(caregiverDataRollback.body.view.currentPublication.revision).toBe(3);
+  });
+
+  it('T12: data — caregiver chỉ thấy mẫu/cảnh báo từ sharedFrom; owner giữ 24h; link cũ thấy đủ; digest vẫn là bản active', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Ranh Giới Studio');
+    const { deviceId, assignmentId } = await seedDeviceWithTelemetry(ctx, owner, subject.id, []);
+    const nowMs = Date.now();
+    const shareFrom = new Date(nowMs - 2 * 3600_000);
+    const preShareSampleAt = new Date(nowMs - 3 * 3600_000);
+    const postShareEarly = new Date(nowMs - 90 * 60_000);
+    const postShareLate = new Date(nowMs - 30 * 60_000);
+
+    await insertTelemetryRow(ctx, deviceId, assignmentId, {
+      measuredAt: preShareSampleAt,
+      sequence: 1,
+      heartRateBpm: 60,
+      stepsSinceBoot: 10,
+      batteryPercent: 100,
+    });
+    await insertTelemetryRow(ctx, deviceId, assignmentId, {
+      measuredAt: postShareEarly,
+      sequence: 2,
+      heartRateBpm: 70,
+      stepsSinceBoot: 20,
+      batteryPercent: 60,
+    });
+    await insertTelemetryRow(ctx, deviceId, assignmentId, {
+      measuredAt: postShareLate,
+      sequence: 3,
+      heartRateBpm: 80,
+      stepsSinceBoot: 30,
+      batteryPercent: 55,
+    });
+    // Mốc last_seen của thiết bị cũng trước share: caregiver không được thấy
+    // metadata này, owner vẫn thấy như cũ.
+    await ctx.db.update(devices).set({ lastSeenAt: preShareSampleAt }).where(eq(devices.id, deviceId));
+
+    const preShareOpenId = await insertIncident(ctx, subject.id, deviceId, assignmentId, {
+      state: 'open',
+      detectedAt: new Date(nowMs - 3 * 3600_000),
+    });
+    const preShareResolvedId = await insertIncident(ctx, subject.id, deviceId, assignmentId, {
+      state: 'resolved',
+      detectedAt: new Date(nowMs - 4 * 3600_000),
+      lastEventAt: new Date(nowMs - 3.5 * 3600_000),
+    });
+    const postShareResolvedId = await insertIncident(ctx, subject.id, deviceId, assignmentId, {
+      state: 'resolved',
+      detectedAt: new Date(nowMs - 90 * 60_000),
+      lastEventAt: new Date(nowMs - 60 * 60_000),
+    });
+    const postShareOpenId = await insertIncident(ctx, subject.id, deviceId, assignmentId, {
+      state: 'open',
+      detectedAt: new Date(nowMs - 30 * 60_000),
+    });
+
+    const caregiver = await registerUser(ctx.app, { displayName: 'Người chăm sóc mới' });
+    await shareSubject(ctx, owner, subject.id, caregiver, { sharedFrom: shareFrom });
+    // Link cũ hơn cửa sổ 24h và còn trong historyDays → thấy đủ 24h như owner.
+    const oldCaregiver = await registerUser(ctx.app, { displayName: 'Người chăm sóc lâu năm' });
+    await shareSubject(ctx, owner, subject.id, oldCaregiver, {
+      sharedFrom: new Date(nowMs - 10 * 24 * 3600_000),
+    });
+
+    const created = await createView(owner.agent, {
+      key: 'view-ranh-gioi-share',
+      name: 'View ranh giới chia sẻ',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: makeConfig(DEFAULT_WIDGETS),
+    });
+    expect(created.status).toBe(201);
+    const createdBody = created.body as ViewBody;
+    const viewId = createdBody.id;
+    const published = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        draftRevision: createdBody.draftRevision,
+        digest: createdBody.draftDigest,
+        baseRevision: 0,
+        note: 'Công bố view ranh giới chia sẻ',
+      });
+    expect(published.status).toBe(201);
+
+    // Owner: không đổi — 24h đầy đủ, gồm cả mẫu/cảnh báo trước share.
+    const ownerData = await owner.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerData.status).toBe(200);
+    expect(ownerData.body.digest).toBe(createdBody.draftDigest);
+    expect(
+      ownerData.body.data.series.map((point: { heartRateBpm: number | null }) => point.heartRateBpm),
+    ).toEqual([60, 70, 80]);
+    expect(ownerData.body.data.metrics.heartRateBpm).toBe(80);
+    expect(ownerData.body.data.summary).toMatchObject({
+      heartRateAvg: 70,
+      heartRateMin: 60,
+      heartRateMax: 80,
+      alertsTotal: 4,
+      alertsResolved: 2,
+    });
+    expect(Date.parse(ownerData.body.data.summary.windowStart)).toBeLessThan(shareFrom.getTime());
+    expect(ownerData.body.data.alerts.map((alert: { id: string }) => alert.id)).toEqual([
+      postShareOpenId,
+      postShareResolvedId,
+      preShareOpenId,
+      preShareResolvedId,
+    ]);
+    expect(ownerData.body.data.devices[0].lastSeenAt).toBe(preShareSampleAt.toISOString());
+
+    // Caregiver mới: chỉ mẫu/cảnh báo từ sharedFrom, kể cả cảnh báo đang mở trước mốc.
+    const caregiverData = await caregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverData.status).toBe(200);
+    expect(caregiverData.body.digest).toBe(createdBody.draftDigest);
+    expect(caregiverData.body.config).toEqual(ownerData.body.config);
+    expect(
+      caregiverData.body.data.series.map((point: { heartRateBpm: number | null }) => point.heartRateBpm),
+    ).toEqual([70, 80]);
+    expect(caregiverData.body.data.metrics.heartRateBpm).toBe(80);
+    expect(caregiverData.body.data.summary).toMatchObject({
+      windowStart: shareFrom.toISOString(),
+      heartRateAvg: 75,
+      heartRateMin: 70,
+      heartRateMax: 80,
+      alertsTotal: 2,
+      alertsResolved: 1,
+      lastSeenAt: postShareLate.toISOString(),
+    });
+    expect(caregiverData.body.data.alerts.map((alert: { id: string }) => alert.id)).toEqual([
+      postShareOpenId,
+      postShareResolvedId,
+    ]);
+    expect(caregiverData.body.data.devices[0]).toMatchObject({
+      batteryPercent: 55,
+      lastSeenAt: null,
+    });
+
+    // Link cũ hơn 24h nhưng còn trong historyDays → thấy đủ dữ liệu 24h.
+    const oldCaregiverData = await oldCaregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(oldCaregiverData.status).toBe(200);
+    expect(
+      oldCaregiverData.body.data.series.map((point: { heartRateBpm: number | null }) => point.heartRateBpm),
+    ).toEqual([60, 70, 80]);
+    expect(oldCaregiverData.body.data.summary).toMatchObject({
+      alertsTotal: 4,
+      alertsResolved: 2,
+    });
+    expect(oldCaregiverData.body.data.alerts.map((alert: { id: string }) => alert.id)).toEqual([
+      postShareOpenId,
+      postShareResolvedId,
+      preShareOpenId,
+      preShareResolvedId,
+    ]);
+  });
+
+  it('T13: data — caregiver thiếu canReceiveAlerts vẫn xem dữ liệu khác, alerts/count rỗng thay vì 403', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Không Nhận Cảnh Báo');
+    const { deviceId, assignmentId } = await seedDeviceWithTelemetry(ctx, owner, subject.id, []);
+    const nowMs = Date.now();
+    const shareFrom = new Date(nowMs - 3600_000);
+
+    await insertTelemetryRow(ctx, deviceId, assignmentId, {
+      measuredAt: new Date(nowMs - 30 * 60_000),
+      sequence: 1,
+      heartRateBpm: 88,
+      stepsSinceBoot: 10,
+      batteryPercent: 70,
+    });
+    const alertId = await insertIncident(ctx, subject.id, deviceId, assignmentId, {
+      state: 'open',
+      detectedAt: new Date(nowMs - 20 * 60_000),
+    });
+
+    const deniedCaregiver = await registerUser(ctx.app, { displayName: 'Không nhận cảnh báo' });
+    await shareSubject(ctx, owner, subject.id, deniedCaregiver, {
+      sharedFrom: shareFrom,
+      permissions: { ...DEFAULT_CARE_PERMISSIONS, canReceiveAlerts: false },
+    });
+    const allowedCaregiver = await registerUser(ctx.app, { displayName: 'Có nhận cảnh báo' });
+    await shareSubject(ctx, owner, subject.id, allowedCaregiver, { sharedFrom: shareFrom });
+
+    const created = await createView(owner.agent, {
+      key: 'view-khong-nhan-alert',
+      name: 'View không nhận cảnh báo',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: makeConfig(DEFAULT_WIDGETS),
+    });
+    expect(created.status).toBe(201);
+    const createdBody = created.body as ViewBody;
+    const viewId = createdBody.id;
+    const published = await owner.agent
+      .post(`/api/v1/workspace-views/${viewId}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        draftRevision: createdBody.draftRevision,
+        digest: createdBody.draftDigest,
+        baseRevision: 0,
+        note: 'Công bố view không nhận cảnh báo',
+      });
+    expect(published.status).toBe(201);
+
+    // Control: caregiver đủ quyền nhận cảnh báo thấy cảnh báo trong cùng view.
+    const allowedData = await allowedCaregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(allowedData.status).toBe(200);
+    expect(allowedData.body.data.alerts.map((alert: { id: string }) => alert.id)).toEqual([alertId]);
+    expect(allowedData.body.data.summary).toMatchObject({ alertsTotal: 1, alertsResolved: 0 });
+
+    // Thiếu canReceiveAlerts: không 403 toàn view; alerts/count rỗng, dữ liệu khác còn.
+    const deniedData = await deniedCaregiver.agent
+      .get(`/api/v1/workspace-views/${viewId}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(deniedData.status).toBe(200);
+    expect(deniedData.body.digest).toBe(createdBody.draftDigest);
+    expect(deniedData.body.data.metrics.heartRateBpm).toBe(88);
+    expect(deniedData.body.data.series).toHaveLength(1);
+    expect(deniedData.body.data.alerts).toEqual([]);
+    expect(deniedData.body.data.summary).toMatchObject({ alertsTotal: 0, alertsResolved: 0 });
   });
 });
