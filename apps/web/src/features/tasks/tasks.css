@@ -1,0 +1,75 @@
+/* ============================================================
+   Công việc bảo trì — CSS riêng của feature (v2 tạo việc).
+   Dùng design tokens từ styles/tokens.css; không tạo hệ CSS mới.
+   Mobile 360px: header xếp dọc, hai trường ưu tiên/hạn xếp dọc.
+   ============================================================ */
+
+.tasks-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tasks-header__text {
+  min-width: 0;
+}
+
+.tasks-header > .button {
+  align-self: flex-start;
+}
+
+@media (min-width: 768px) {
+  .tasks-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-5);
+  }
+
+  .tasks-header > .button {
+    flex-shrink: 0;
+  }
+}
+
+/* ---------- Form tạo việc ---------- */
+
+.task-create-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-create-form .field {
+  margin-bottom: var(--space-4);
+}
+
+.task-create-form__subject {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.task-create-form__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--space-4);
+}
+
+.task-create-form__row > * {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .task-create-form__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.task-create-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.task-create-form__retry {
+  margin-top: var(--space-2);
+}

@@ -1,17 +1,24 @@
 import {
   closeTaskSchema,
+  createTaskSchema,
   maintenanceTaskListSchema,
+  maintenanceTaskSummarySchema,
   type CloseTask,
+  type CreateTaskInput,
   type MaintenanceTaskList,
   type MaintenanceTaskStatus,
+  type MaintenanceTaskSummary,
 } from '@annhien/contracts/tasks';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**
- * API client công việc bảo trì (wave 4 fe-admin-ai).
- * Chỉ xem theo quyền hồ sơ và đóng task (chủ hồ sơ/admin) — không sinh task định kỳ.
+ * API client công việc bảo trì.
+ * Xem theo quyền hồ sơ, chủ hồ sơ tạo việc cho thiết bị đang gắn, và đóng task
+ * (chủ hồ sơ/admin) — không sinh task định kỳ.
  */
 export const tasksQueryKeys = {
+  /** Tiền tố chung để invalidate mọi bộ lọc sau khi tạo/đóng task. */
+  all: ['maintenance-tasks'] as const,
   list: (status: MaintenanceTaskStatus | 'open' | 'closed' | 'all') =>
     ['maintenance-tasks', status] as const,
 };
@@ -35,6 +42,14 @@ export async function fetchMaintenanceTasks(
   return parseResponse(maintenanceTaskListSchema, data);
 }
 
+/** POST /maintenance-tasks — chủ hồ sơ tạo việc; 201 trả task summary. */
+export async function createMaintenanceTask(
+  input: CreateTaskInput,
+): Promise<MaintenanceTaskSummary> {
+  const data = await apiRequest<unknown>('/maintenance-tasks', { method: 'POST', body: input });
+  return parseResponse(maintenanceTaskSummarySchema, data);
+}
+
 /** POST /maintenance-tasks/:id/close — lý do đóng 3..500; 409 khi task đã đóng. */
 export async function closeMaintenanceTask(
   taskId: string,
@@ -47,4 +62,4 @@ export async function closeMaintenanceTask(
   return data;
 }
 
-export { closeTaskSchema };
+export { closeTaskSchema, createTaskSchema };

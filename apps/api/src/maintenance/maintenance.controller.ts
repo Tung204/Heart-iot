@@ -2,8 +2,10 @@ import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '
 import { idSchema, type UserSummary } from '@annhien/contracts';
 import {
   closeTaskSchema,
+  createTaskSchema,
   maintenanceTaskQuerySchema,
   type CloseTask,
+  type CreateTaskInput,
   type MaintenanceTaskQuery,
 } from '@annhien/contracts/tasks';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
@@ -14,9 +16,9 @@ import { MaintenanceService } from './maintenance.service';
 const idPipe = new ZodValidationPipe(idSchema);
 
 /**
- * Công việc bảo trì (wave 3 be-admin): xem danh sách theo quyền hồ sơ
- * (chủ hồ sơ/caregiver có canReceiveAlerts; admin chỉ thấy task không gắn hồ sơ)
- * và đóng task (chỉ chủ hồ sơ hoặc admin). Không sinh task định kỳ trong wave này.
+ * Công việc bảo trì: xem danh sách theo quyền hồ sơ (chủ hồ sơ/caregiver có
+ * canReceiveAlerts; admin chỉ thấy task không gắn hồ sơ), chủ hồ sơ tạo việc
+ * thủ công cho thiết bị đang gắn, và đóng task (chủ hồ sơ hoặc admin).
  */
 @Controller('maintenance-tasks')
 @UseGuards(SessionGuard)
@@ -29,6 +31,15 @@ export class MaintenanceController {
     @Query(new ZodValidationPipe(maintenanceTaskQuerySchema)) query: MaintenanceTaskQuery,
   ) {
     return this.maintenance.listTasks(user, query);
+  }
+
+  /** Chỉ chủ hồ sơ; thiết bị phải đang gắn với hồ sơ. Trả 201 + task summary. */
+  @Post()
+  create(
+    @CurrentUser() user: UserSummary,
+    @Body(new ZodValidationPipe(createTaskSchema)) body: CreateTaskInput,
+  ) {
+    return this.maintenance.createTask(user, body);
   }
 
   @Post(':id/close')

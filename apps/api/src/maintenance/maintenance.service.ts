@@ -1,18 +1,20 @@
+import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lt, or, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNotNull, isNull, lt, or, sql, type SQL } from 'drizzle-orm';
 import {
   CLOSED_TASK_STATUSES,
   OPEN_TASK_STATUSES,
   maintenanceTaskListSchema,
   maintenanceTaskSummarySchema,
   type CloseTask,
+  type CreateTaskInput,
   type MaintenanceTaskList,
   type MaintenanceTaskQuery,
   type MaintenanceTaskSummary,
 } from '@annhien/contracts/tasks';
 import type { UserSummary } from '@annhien/contracts';
 import { DB, type AppDb } from '../database/database';
-import { maintenanceTasks } from '../database/schema';
+import { deviceAssignments, maintenanceTasks } from '../database/schema';
 import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
@@ -21,7 +23,7 @@ import { decodeCursor, encodeCursor } from '../common/pagination';
 type TaskRow = typeof maintenanceTasks.$inferSelect;
 
 /**
- * MaintenanceService — xem/đóng công việc bảo trì.
+ * MaintenanceService — xem/tạo/đóng công việc bảo trì.
  *
  * Quyền xem (dùng lại AccessService, không tự viết lại luật hồ sơ):
  * - Lọc theo `subjectId`: chủ hồ sơ thấy task của hồ sơ; caregiver cần
@@ -31,8 +33,13 @@ type TaskRow = typeof maintenanceTasks.$inferSelect;
  *   sở hữu/chăm sóc có `canReceiveAlerts`; admin chỉ thấy task KHÔNG gắn
  *   hồ sơ (`subjectId IS NULL`).
  * Đóng task: chỉ chủ hồ sơ (có `subjectId`) hoặc admin; task đã đóng → 409.
- * Wave này không sinh task định kỳ — chỉ đọc và đóng.
+ * Tạo task thủ công: chỉ chủ hồ sơ; thiết bị phải đang gắn với đúng hồ sơ
+ * (`device_assignments.ended_at IS NULL`); hạn xử lý nếu có phải ở tương lai.
+ * Không sinh task định kỳ.
  */
+
+/** Sai số cho phép khi so `dueAt` với hiện tại (đồng hồ máy khách lệch nhẹ). */
+const DUE_AT_PAST_TOLERANCE_MS = 60_000;
 
 function statusFilterFor(status: MaintenanceTaskQuery['status']): SQL | undefined {
   if (status === 'open') return inArray(maintenanceTasks.status, [...OPEN_TASK_STATUSES]);
@@ -152,6 +159,86 @@ export class MaintenanceService {
       lt(maintenanceTasks.priority, priority),
       and(eq(maintenanceTasks.priority, priority), afterWithinPriority),
     );
+  }
+
+  /**
+   * POST /maintenance-tasks — chủ hồ sơ tạo việc bảo trì cho thiết bị đang gắn.
+   *
+   * - Hồ sơ không tồn tại/đã archive hoặc người ngoài → 404 (không lộ tồn tại).
+   * - Người thân có link (caregiver) → 403; admin không phải chủ hồ sơ → 404.
+   * - Thiết bị không đang gắn với hồ sơ → 400 kèm thông điệp rõ.
+   * - `dueAt` ở quá khứ (ngoài sai số 1 phút) → 400.
+   */
+  async createTask(user: UserSummary, input: CreateTaskInput): Promise<MaintenanceTaskSummary> {
+    const subjectAccess = await this.access.resolve(user.id, input.subjectId);
+    if (!subjectAccess) {
+      throw AppError.notFound('Không tìm thấy hồ sơ hoặc bạn không có quyền truy cập.');
+    }
+    if (subjectAccess.role !== 'owner') {
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo công việc bảo trì cho hồ sơ này.');
+    }
+
+    const assignmentRows = await this.db
+      .select({ id: deviceAssignments.id })
+      .from(deviceAssignments)
+      .where(
+        and(
+          eq(deviceAssignments.deviceId, input.deviceId),
+          eq(deviceAssignments.subjectId, input.subjectId),
+          isNull(deviceAssignments.endedAt),
+        ),
+      )
+      .limit(1);
+    if (!assignmentRows[0]) {
+      throw new AppError(
+        'VALIDATION_FAILED',
+        'Thiết bị chưa được gắn với hồ sơ này (hoặc đã được tháo). Chọn thiết bị đang gắn của hồ sơ.',
+        400,
+        { field: 'deviceId' },
+      );
+    }
+
+    const now = new Date();
+    const dueAt = input.dueAt ? new Date(input.dueAt) : null;
+    if (dueAt && dueAt.getTime() < now.getTime() - DUE_AT_PAST_TOLERANCE_MS) {
+      throw new AppError(
+        'VALIDATION_FAILED',
+        'Hạn xử lý phải ở thời điểm sau hiện tại. Chọn ngày khác hoặc để trống.',
+        400,
+        { field: 'dueAt' },
+      );
+    }
+
+    const inserted = await this.db
+      .insert(maintenanceTasks)
+      .values({
+        deviceId: input.deviceId,
+        subjectId: input.subjectId,
+        kind: input.kind,
+        title: input.title,
+        status: 'open',
+        priority: input.priority,
+        dueAt,
+        // `createTaskSchema` đã trim; chuỗi rỗng nghĩa là người dùng không nhập ghi chú.
+        notes: input.notes ? input.notes : null,
+        dedupeKey: `manual:${randomUUID()}`,
+      })
+      .returning();
+    const row = inserted[0];
+    if (!row) throw new Error('Không tạo được công việc bảo trì.');
+
+    await this.audit.record({
+      actorUserId: user.id,
+      actorKind: 'user',
+      action: 'maintenance_task.create',
+      targetType: 'maintenance_task',
+      targetId: row.id,
+      outcome: 'success',
+      // Chỉ metadata kỹ thuật — không chứa ghi chú sức khỏe của người dùng.
+      metadata: { kind: row.kind, priority: row.priority, deviceId: row.deviceId },
+    });
+
+    return toSummary(row);
   }
 
   async closeTask(
