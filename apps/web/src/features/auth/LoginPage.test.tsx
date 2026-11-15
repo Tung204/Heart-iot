@@ -15,6 +15,12 @@ describe('LoginPage', () => {
 
     expect(await screen.findByText('Vui lòng nhập email.')).toBeInTheDocument();
     expect(screen.getByText('Vui lòng nhập mật khẩu.')).toBeInTheDocument();
+    // P2-10: focus vào field lỗi đầu tiên, không chỉ thông báo role=alert.
+    expect(screen.getByLabelText(/^Email/)).toHaveFocus();
+    expect(screen.getByLabelText(/^Email/)).toHaveAttribute(
+      'aria-describedby',
+      'login-email-error',
+    );
 
     const loginCalls = fetchMock.mock.calls.filter(([url]) =>
       String(url).endsWith('/auth/login'),
@@ -106,5 +112,23 @@ describe('LoginPage', () => {
 
     expect(screen.getByLabelText(/^Email/)).toHaveValue('ba-an@demo.annhien.local');
     expect(screen.getByLabelText(/^Mật khẩu/)).toHaveValue('demo-an-nhien-2026');
+  });
+
+  it('Escape đóng “Tài khoản trải nghiệm” và trả focus về summary', async () => {
+    renderApp('/login', () => me401Response());
+    const user = userEvent.setup();
+
+    await screen.findByRole('heading', { level: 1, name: 'Đăng nhập' });
+    const summary = screen.getByText('Tài khoản trải nghiệm');
+    const details = summary.closest('details');
+    expect(details).not.toBeNull();
+    if (!details) return;
+    details.open = true;
+    summary.focus();
+
+    await user.keyboard('{Escape}');
+
+    expect(details.open).toBe(false);
+    expect(summary).toHaveFocus();
   });
 });

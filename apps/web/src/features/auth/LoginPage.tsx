@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
@@ -10,6 +10,12 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { loginSchema } from './api';
 import { useLogin, useMe } from './useAuth';
 import { AuthLayout } from './AuthLayout';
+import { useFocusFirstError } from './useFocusFirstError';
+
+const FIELD_ORDER = [
+  ['email', 'login-email'],
+  ['password', 'login-password'],
+] as const;
 
 const TRIAL_ACCOUNTS = [
   { role: 'Chủ hồ sơ', email: 'ba-an@demo.annhien.local', password: 'demo-an-nhien-2026' },
@@ -27,6 +33,9 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const trialAccounts = useRef<HTMLDetailsElement>(null);
+
+  useFocusFirstError(fieldErrors, FIELD_ORDER);
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;
@@ -105,7 +114,17 @@ export function LoginPage() {
           {loginMutation.isPending ? 'Đang đăng nhập…' : 'Đăng nhập'}
         </Button>
       </form>
-      <details className="trial-accounts">
+      <details
+        className="trial-accounts"
+        ref={trialAccounts}
+        onKeyDown={(event: KeyboardEvent<HTMLDetailsElement>) => {
+          // Escape đóng disclosure và trả focus về summary, giống hộp thoại nhẹ.
+          if (event.key !== 'Escape' || !trialAccounts.current?.open) return;
+          event.preventDefault();
+          trialAccounts.current.open = false;
+          trialAccounts.current.querySelector('summary')?.focus();
+        }}
+      >
         <summary>Tài khoản trải nghiệm</summary>
         <div className="trial-accounts__list">
           {TRIAL_ACCOUNTS.map((account) => (

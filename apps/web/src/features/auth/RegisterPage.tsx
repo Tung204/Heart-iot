@@ -10,6 +10,14 @@ import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
 import { registerSchema } from './api';
 import { useMe, useRegister } from './useAuth';
 import { AuthLayout } from './AuthLayout';
+import { useFocusFirstError } from './useFocusFirstError';
+
+const FIELD_ORDER = [
+  ['displayName', 'register-name'],
+  ['email', 'register-email'],
+  ['password', 'register-password'],
+  ['confirmPassword', 'register-confirm'],
+] as const;
 
 export function RegisterPage() {
   const me = useMe();
@@ -23,6 +31,8 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  useFocusFirstError(fieldErrors, FIELD_ORDER);
 
   if (me.isSuccess) {
     return <Navigate to={next} replace />;

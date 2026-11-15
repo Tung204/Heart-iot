@@ -13,13 +13,21 @@ import { useMe } from '../auth/useAuth';
 import { acceptInvitation, fetchPublicInvitation } from './api';
 import type { PublicInvitation } from '@annhien/contracts/care';
 
-function describePermissions(invitation: PublicInvitation): string {
-  const parts: string[] = [`xem lịch sử tối đa ${invitation.permissions.historyDays} ngày`];
-  parts.push(invitation.permissions.canReceiveAlerts ? 'nhận cảnh báo' : 'không nhận cảnh báo');
-  parts.push(invitation.permissions.canAcknowledge ? 'xác nhận hỗ trợ' : 'không xác nhận');
-  parts.push(invitation.permissions.canResolve ? 'đóng cảnh báo' : 'không đóng cảnh báo');
-  parts.push(invitation.permissions.canViewAi ? 'xem tóm tắt AI' : 'không xem AI');
-  return parts.join(' · ');
+function describePermissions(invitation: PublicInvitation): string[] {
+  const items = [`Xem lịch sử tối đa ${invitation.permissions.historyDays} ngày`];
+  items.push(
+    invitation.permissions.canReceiveAlerts ? 'Nhận cảnh báo' : 'Không nhận cảnh báo',
+  );
+  items.push(
+    invitation.permissions.canAcknowledge ? 'Xác nhận hỗ trợ' : 'Không xác nhận hỗ trợ',
+  );
+  items.push(invitation.permissions.canResolve ? 'Đóng cảnh báo' : 'Không đóng cảnh báo');
+  items.push(
+    invitation.permissions.canViewAi
+      ? 'Xem tóm tắt từ trợ lý AI'
+      : 'Không xem tóm tắt từ trợ lý AI',
+  );
+  return items;
 }
 
 /**
@@ -72,18 +80,23 @@ export function InvitePage() {
                   Lời mời không hợp lệ
                 </h1>
                 <Alert tone="warning">
-                  Lời mời này không tồn tại hoặc đã hết hạn.
+                  Lời mời này không tồn tại, đã hết hạn hoặc đã được dùng. Hãy kiểm tra lại
+                  link hoặc nhờ người mời gửi lời mời mới.
                 </Alert>
-                <p className="auth-footer">
-                  <Link to="/">Về trang chủ</Link>
-                </p>
+                <div style={{ marginTop: '1.25rem' }}>
+                  <ButtonLink to="/">Về trang chủ</ButtonLink>
+                </div>
+                <p className="auth-note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
               </>
             ) : (
-              <ErrorState
-                title="Không kiểm tra được lời mời"
-                message="Không kết nối được máy chủ hoặc lời mời đang gặp lỗi. Hãy thử lại."
-                onRetry={() => void invitation.refetch()}
-              />
+              <>
+                <ErrorState
+                  title="Không kiểm tra được lời mời"
+                  message="Không kết nối được máy chủ hoặc lời mời đang gặp lỗi. Hãy thử lại."
+                  onRetry={() => void invitation.refetch()}
+                />
+                <p className="auth-note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
+              </>
             )
           ) : invitation.isSuccess ? (
             <>
@@ -95,10 +108,16 @@ export function InvitePage() {
                 <strong>{invitation.data.subjectName}</strong>.
               </p>
               <div className="stack" style={{ gap: '0.75rem' }}>
-                <p>
-                  <strong>Quyền khi chấp nhận:</strong>{' '}
-                  {describePermissions(invitation.data)}
-                </p>
+                <div>
+                  <p>
+                    <strong>Quyền khi chấp nhận:</strong>
+                  </p>
+                  <ul className="invite-permissions">
+                    {describePermissions(invitation.data).map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
                 <p>
                   <strong>Hết hạn:</strong> {formatDateTime(invitation.data.expiresAt)}
                 </p>

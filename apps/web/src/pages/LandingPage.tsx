@@ -1,8 +1,10 @@
+import { Link } from 'react-router-dom';
 import { ButtonLink } from '../components/Button';
 import { SiteFooter } from '../components/SiteFooter';
 import { SiteHeader } from '../components/SiteHeader';
 import { SkipLink } from '../components/SkipLink';
 import { useMe } from '../features/auth/useAuth';
+import { isUnauthorizedError } from '../lib/api';
 
 const CAPABILITIES = [
   {
@@ -14,8 +16,8 @@ const CAPABILITIES = [
     text: 'Cảnh báo do hệ thống tạo, không phụ thuộc trợ lý.',
   },
   {
-    title: 'Hỏi đáp',
-    text: 'Hỏi về số liệu của người thân bằng câu ngắn.',
+    title: 'Hỏi trợ lý',
+    text: 'Hỏi trợ lý AI về số liệu của người thân.',
   },
 ] as const;
 
@@ -97,6 +99,10 @@ function HeroArt() {
 export function LandingPage() {
   const me = useMe();
   const user = me.data?.user ?? null;
+  // Chưa biết phiên (đang tải) hoặc lỗi máy chủ: không hiện CTA khách để tránh
+  // người đã đăng nhập bấm nhầm "Tạo tài khoản".
+  const sessionUnclear = me.isPending || (me.isError && !isUnauthorizedError(me.error));
+  const guest = !sessionUnclear && !user;
 
   return (
     <div className="public">
@@ -110,21 +116,28 @@ export function LandingPage() {
                 Người thân ở nhà, mình vẫn an tâm
               </h1>
               <p className="hero__lead">
-                An Nhiên ghi nhịp tim và vận động của người thân, rồi báo bạn khi có bất thường.
-                Bạn hỏi nhanh tình hình ngay trong ứng dụng.
+                An Nhiên ghi nhịp tim và vận động từ thiết bị đeo của người thân, rồi báo
+                bạn khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
               </p>
               <div className="hero__actions">
-                {user ? (
-                  <ButtonLink to="/app">Mở ứng dụng</ButtonLink>
-                ) : (
-                  <ButtonLink to="/register">Tạo tài khoản</ButtonLink>
-                )}
-                {user ? null : (
-                  <ButtonLink to="/login" variant="secondary">
-                    Đăng nhập
-                  </ButtonLink>
-                )}
+                {user ? <ButtonLink to="/app">Mở ứng dụng</ButtonLink> : null}
+                {guest ? (
+                  <>
+                    <ButtonLink to="/register">Tạo tài khoản</ButtonLink>
+                    <ButtonLink to="/login" variant="secondary">
+                      Đăng nhập
+                    </ButtonLink>
+                  </>
+                ) : null}
               </div>
+              {me.isError && !isUnauthorizedError(me.error) ? (
+                <p className="hero__session" role="status">
+                  Không kiểm tra được phiên đăng nhập. <Link to="/login">Đăng nhập</Link>
+                </p>
+              ) : null}
+              <p className="hero__note">
+                Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web mở · không tự gọi cấp cứu.
+              </p>
             </div>
             <HeroArt />
           </div>
