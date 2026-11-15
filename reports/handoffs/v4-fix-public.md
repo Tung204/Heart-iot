@@ -1,8 +1,8 @@
 # Handoff — Fix worker v4: sửa lỗi review giao diện công khai
 
-- **Ngày:** 2026-11-15 17:03 +07 (Asia/Ho_Chi_Minh)
+- **Ngày:** 2026-11-15 17:15 +07 (Asia/Ho_Chi_Minh)
 - **Branch:** `fix-v4-public`, cắt từ `feat/v4-simple-public` (`49c3ac9`); **không merge**.
-- **Commit code:** `1d4ca1d` — `fix(web): sửa lỗi review giao diện công khai v4`
+- **Commit code:** `1d4ca1d` — sửa 10 nhóm lỗi review; `dd1fbd5` — bỏ khối “Tài khoản trải nghiệm” (P1-5).
 - **Báo cáo nguồn:** `C:/MyFolder/Hoc_Tap/project/DATN/reports/qa/v4-review-public.md`
 - **Phạm vi:** chỉ web công khai + test/E2E. Không đổi API/contract, route, quyền, dependency; không sửa `AppShell.tsx`, `router.tsx`, `layout.css`, `tokens.css`, admin/app CSS, docs/README (theo phạm vi spec v4). Không đụng DB, không seed, không ghi API.
 
@@ -13,12 +13,13 @@
 | P1-1, P1-3 | Hero có đúng một dòng nhỏ ngay dưới CTA: `Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web mở · không tự gọi cấp cứu.` Footer chỉ còn `An Nhiên — theo dõi người thân từ xa.`, không lặp disclaimer. Test kiểm tồn tại đúng 1 lần, nằm trong `.hero`, sau CTA trong DOM; E2E đo `getBoundingClientRect` để chắc dòng này nằm trong viewport đầu. |
 | P1-2 | Hero thêm câu `Trợ lý AI trả lời câu hỏi về số liệu của người thân.`; thẻ thứ ba đổi thành `Hỏi trợ lý` / `Hỏi trợ lý AI về số liệu của người thân.`; title thành `An Nhiên — theo dõi người thân và trợ lý AI`, meta description nêu thiết bị đeo + trợ lý AI. |
 | P1-4 | `apps/web/e2e/smoke.spec.ts` không còn tìm `Mở trợ lý`; kiểm CTA `Tạo tài khoản`/`Đăng nhập` (khách), title, disclaimer trong màn đầu và geometry 390×844. Trạng thái `/me` được mock 401 để smoke không phụ thuộc API/DB. |
+| P1-5 | Bỏ hoàn toàn khối `<details>` “Tài khoản trải nghiệm”, 3 nút vai trò và `TRIAL_ACCOUNTS` khỏi `LoginPage`; không còn email/mật khẩu admin trong bundle web. Credential vẫn giữ trong `README.md` và `apps/api/src/database/seed.ts` cho kiểm thử local. Test khẳng định trang login công khai không có khối này, không có nút tự điền, form bắt đầu trống; E2E kiểm lại sau khi mở `/login`. |
 | P1-6 | Giữ test hồi quy cho thông điệp an toàn; thêm test đúng một link mỗi đích và test focus field lỗi. |
 | P2-1, P2-2 | `SiteHeader` chỉ còn logo (bỏ CTA và `useMe`). Hero là nơi duy nhất có CTA: khách có đúng một `Tạo tài khoản` + một `Đăng nhập`; đã đăng nhập chỉ một `Mở ứng dụng`. Test/E2E dùng `toHaveLength(1)`, không dùng `length > 0`. |
 | P2-3 | Giảm padding/khoảng cách khung auth; thêm override cho `html[data-text-size='large']` (padding khung, title, margin field, padding input). Nút submit nằm trong màn đầu ở 390×844 chữ lớn, 360×740 chữ lớn và 360×740 thường; không cắt field. |
 | P2-4 | Lời mời lỗi: `Lời mời này không tồn tại, đã hết hạn hoặc đã được dùng. Hãy kiểm tra lại link hoặc nhờ người mời gửi lời mời mới.` (2 câu). 404 thêm một câu hướng dẫn link lời mời. |
 | P2-5 | `Về trang chủ` ở lời mời lỗi dùng `ButtonLink` (51,6px thường / 60px chữ lớn, cùng kiểu 404). Link chéo `Tạo tài khoản mới` / `Đăng nhập` trong câu được underline rõ (đậm + dày 1,5px + offset 4px). Lời mời lỗi và lỗi tải lời mời có dòng `Dữ liệu mô phỏng · không thay thế cấp cứu.` |
-| P2-6 | `<details>` tài khoản trải nghiệm đóng được bằng Escape và trả focus về `summary`. Có test. |
+| P2-6 | Không còn `<details>` “Tài khoản trải nghiệm” sau P1-5 nên yêu cầu Escape không còn áp dụng; các disclosure khác không thuộc phạm vi sửa này. |
 | P2-7 | Khi `/me` đang tải: không render CTA khách. Khi `/me` lỗi không phải 401: hiện `Không kiểm tra được phiên đăng nhập.` + link `Đăng nhập`, không giả làm khách. Có test cho cả pending và 500. |
 | P2-8 | Hero dùng `nhịp tim và vận động từ thiết bị đeo của người thân`; không thêm đoạn dài. |
 | P2-9 | Quyền lời mời là danh sách ngắn 5 dòng, dùng thuật ngữ `trợ lý AI`; bỏ chuỗi run-on ` · ` và nhãn `không xem AI`. |
@@ -32,16 +33,16 @@
 | `apps/web/src/pages/LandingPage.test.tsx` | Viết lại/chặt hơn: đúng một CTA mỗi đích, header chỉ logo, disclaimer trong hero sau CTA, card mới, pending/500 |
 | `apps/web/src/components/SiteHeader.tsx` | Chỉ logo |
 | `apps/web/src/components/SiteFooter.tsx` | Một dòng tên + mô tả |
-| `apps/web/src/styles/public-simple.css` | Header/hero note/footer; khoảng cách auth; large-text compact; underline link chéo; danh sách quyền lời mời |
-| `apps/web/src/features/auth/LoginPage.tsx` | Focus field lỗi đầu tiên; Escape đóng `<details>` |
+| `apps/web/src/styles/public-simple.css` | Header/hero note/footer; khoảng cách auth; large-text compact; underline link chéo; danh sách quyền lời mời; bỏ style khối tài khoản trải nghiệm |
+| `apps/web/src/features/auth/LoginPage.tsx` | Focus field lỗi đầu tiên; bỏ hoàn toàn khối tài khoản trải nghiệm và credential hard-code |
 | `apps/web/src/features/auth/RegisterPage.tsx` | Focus field lỗi đầu tiên |
 | `apps/web/src/features/auth/useFocusFirstError.ts` | Hook dùng chung cho hai form (mới) |
-| `apps/web/src/features/auth/LoginPage.test.tsx` | Thêm assert focus + test Escape |
+| `apps/web/src/features/auth/LoginPage.test.tsx` | Thêm assert focus; thay test khối trải nghiệm bằng test khẳng định khối này không còn |
 | `apps/web/src/features/auth/RegisterPage.test.tsx` | Test mới: lỗi field, focus field đầu, khung tối giản |
 | `apps/web/src/features/invitations/InvitePage.tsx` | Copy lỗi 2 câu, nút về trang chủ, disclaimer, quyền dạng danh sách |
 | `apps/web/src/features/invitations/InvitePage.test.tsx` | Test mới: lỗi 404, lời mời hợp lệ, lỗi 500 |
 | `apps/web/src/pages/NotFoundPage.tsx` | Thêm một câu hướng dẫn link lời mời + dòng dữ liệu mô phỏng |
-| `apps/web/e2e/smoke.spec.ts` | CTA mới, đúng một link, geometry disclaimer/CTA, register 390/360 thường + chữ lớn |
+| `apps/web/e2e/smoke.spec.ts` | CTA mới, đúng một link, geometry disclaimer/CTA, register 390/360 thường + chữ lớn; kiểm login công khai không có khối tự điền |
 | `apps/web/index.html` | Title/meta description nêu trợ lý AI và thiết bị đeo |
 
 ## Kiểm chứng đã chạy (output thật)
@@ -60,12 +61,12 @@ $ tsc -p tsconfig.json
 $ pnpm --filter @annhien/web test
 
  Test Files  35 passed (35)
-      Tests  207 passed (207)
-   Duration  15.44s
+      Tests  206 passed (206)
+   Duration  14.11s
 (exit 0)
 ```
 
-Tăng từ 33 file/199 test (baseline nhánh) lên 35 file/207 test; không xóa/nới assertion cũ.
+Tăng từ 33 file/199 test (baseline nhánh) lên 35 file/206 test; không xóa/nới assertion cũ. Sau P1-5, hai test của khối trải nghiệm được thay bằng một test khẳng định khối này không còn.
 
 ### Typecheck
 
@@ -81,9 +82,16 @@ $ tsc -p tsconfig.json --noEmit
 $ pnpm --filter @annhien/web build
 $ tsc -p tsconfig.json --noEmit
 vite v8.3.8 building for production...
-dist/assets/index-B57kA-tU.js  266.50 kB │ gzip: 81.86 kB
-✓ built in 320ms
+dist/assets/index-B_34oClD.js  265.75 kB │ gzip: 81.60 kB
+✓ built in 356ms
 (exit 0)
+```
+
+Kiểm bundle P1-5:
+
+```text
+$ grep -r "demo-admin-2026\|demo-an-nhien-2026\|ba-an@demo.annhien.local" apps/web/dist
+(absent cả ba — credential không còn trong JS gửi tới trình duyệt)
 ```
 
 ### E2E smoke (chạy thật, Chromium)
@@ -96,22 +104,22 @@ $ pnpm exec playwright test --config=<config tạm>
 Running 6 tests using 1 worker
 
 ok 1 landing hiển thị tên sản phẩm, trợ lý AI và dữ liệu mô phỏng trong màn đầu
-ok 2 điều hướng tới trang đăng nhập từ landing
+ok 2 điều hướng tới trang đăng nhập từ landing (có assert không còn “Tài khoản trải nghiệm”/nút Quản trị, email trống)
 ok 3 landing 390×844 › CTA và dòng cảnh báo nằm trong màn đầu, không tràn ngang
 ok 4 register 390×844 chữ lớn › nút tạo tài khoản nằm trong màn đầu, không tràn ngang
 ok 5 register 360×740 chữ lớn › nút tạo tài khoản vẫn nằm trong màn đầu
 ok 6 register 360×740 chữ lớn › nút tạo tài khoản nằm trong màn đầu ở cỡ thường
 
-6 passed (12.9s)
+6 passed (3.5s)
 ```
 
-Output đầy đủ: `C:/Users/nguye/orca/workspaces/DATN/.artifacts/v4-fix-public/smoke-output.txt`.
+Output đầy đủ: `C:/Users/nguye/orca/workspaces/DATN/.artifacts/v4-fix-public/smoke-output-p15.txt`.
 
 ## Ảnh và số đo
 
 Ảnh/JSON **ngoài repo**, không commit: `C:/Users/nguye/orca/workspaces/DATN/.artifacts/v4-fix-public/`
-- 30 ảnh viewport: `landing|register|login|notfound|invite-{1280x900,390x844,360x740,390x844-large,360x740-large,1280x900-large}.png`
-- `measure.json`, `measure-console.txt`, `smoke-output.txt`, `measure-fix-v4.mjs` (script đo, không commit)
+- 30 ảnh viewport (đã chụp lại sau khi bỏ khối P1-5): `landing|register|login|notfound|invite-{1280x900,390x844,360x740,390x844-large,360x740-large,1280x900-large}.png`
+- `measure.json`, `measure-console.txt`, `smoke-output-p15.txt`, `measure-fix-v4.mjs` (script đo, không commit)
 
 Đo bằng Chromium, mock `/me` 401 và `/invitations/*` 404:
 
@@ -137,14 +145,15 @@ Kiểm trực tiếp khác:
 | Thiết bị đeo | Hero có `thiết bị đeo` |
 | Title | `An Nhiên — theo dõi người thân và trợ lý AI` |
 | Focus lỗi | Login rỗng → `INPUT#login-email`; Register rỗng → `INPUT#register-name`; error id tương ứng tồn tại |
-| Escape details | `open=false`, active element `SUMMARY` |
+| Khối tài khoản trải nghiệm | Không còn trong DOM (`details` = 0, không nút vai trò); login submit bottom 567,6/844 (390) và 501,1/740 (360 chữ lớn) |
+| Credential trong bundle | `demo-admin-2026`, `demo-an-nhien-2026`, `ba-an@demo.annhien.local` đều không có trong `apps/web/dist` |
 | Lời mời lỗi | `Về trang chủ` là `.button`, cao 51,6px thường / 60px chữ lớn; có dòng dữ liệu mô phỏng |
 | 404 | `Về trang chủ` `.button` 51,6px / 60px; có câu hướng dẫn link lời mời |
 | Chữ cấm | Không có `bản demo/đồ án/giảng viên/nghiệm thu/chưa được duyệt` trong body text các màn đã kiểm |
 
 ## Chưa làm / giới hạn
 
-- **P1-5 chưa sửa:** trang `/login` vẫn có nút điền tài khoản quản trị từ seed. Đây là hành vi có từ trước, nằm ngoài danh sách sửa của lượt này và spec v4 yêu cầu giữ 3 nút vai trò; cần quyết định sản phẩm trước khi triển khai công khai (tắt trên bản public hoặc bỏ credential khỏi bundle).
+- Credential demo vẫn nằm trong `README.md` và seed API để kiểm thử local; đây là chủ đích, không đưa lên UI/bundle web.
 - Chỉ kiểm Chromium/Playwright; chưa kiểm Firefox/WebKit, thiết bị thật, zoom trình duyệt, `forced-colors`.
 - Chỉ chạy smoke E2E; các E2E cần đăng nhập/seed (`alerts`, `assistant`, `history`) không chạy để không ghi DB.
 - Không sửa docs/README theo phạm vi spec v4; nếu cần ghi hiện trạng v4 vào `docs/06`, lead có thể cập nhật sau khi merge.
