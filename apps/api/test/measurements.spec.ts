@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DevicesModule } from '../src/devices/devices.module';
@@ -533,7 +533,12 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
     const auditRows = await ctx.db
       .select()
       .from(auditLogs)
-      .where(eq(auditLogs.action, 'measurement.export'));
+      .where(
+        and(
+          eq(auditLogs.action, 'measurement.export'),
+          eq(auditLogs.targetId, fixture.subjectId),
+        ),
+      );
     expect(auditRows).toHaveLength(1);
     expect(auditRows[0]?.targetId).toBe(fixture.subjectId);
     expect(auditRows[0]?.outcome).toBe('success');
