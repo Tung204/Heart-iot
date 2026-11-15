@@ -16,6 +16,14 @@ import {
   type PolicyState,
   type UpdateUserStatus,
 } from '@annhien/contracts/admin';
+import {
+  deviceListSchema,
+  newClaimCodeResponseSchema,
+  rotateDeviceKeySchema,
+  type DeviceList,
+  type NewClaimCodeResult,
+  type RotateDeviceKeyResult,
+} from '@annhien/contracts/devices';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**
@@ -28,6 +36,7 @@ export const adminQueryKeys = {
   audit: (action: string, actorUserId: string | null) =>
     ['admin', 'audit', action, actorUserId ?? ''] as const,
   policy: (key: string) => ['admin', 'policies', key] as const,
+  devices: ['admin', 'devices'] as const,
 };
 
 export interface AdminUserQueryParams {
@@ -100,6 +109,28 @@ export async function previewPolicy(
     body: input,
   });
   return parseResponse(policyPreviewSchema, data);
+}
+
+/** GET /admin/devices — danh sách thiết bị cho vận hành; không trả khóa/mã. */
+export async function fetchAdminDevices(signal?: AbortSignal): Promise<DeviceList> {
+  const data = await apiRequest<unknown>('/admin/devices', { signal });
+  return parseResponse(deviceListSchema, data);
+}
+
+/** POST /admin/devices/:id/claim-code — mã gắn thiết bị mới, chỉ trả một lần. */
+export async function issueAdminClaimCode(deviceId: string): Promise<NewClaimCodeResult> {
+  const data = await apiRequest<unknown>(`/admin/devices/${deviceId}/claim-code`, {
+    method: 'POST',
+  });
+  return parseResponse(newClaimCodeResponseSchema, data);
+}
+
+/** POST /admin/devices/:id/rotate-key — khóa thiết bị mới, chỉ trả một lần. */
+export async function rotateAdminDeviceKey(deviceId: string): Promise<RotateDeviceKeyResult> {
+  const data = await apiRequest<unknown>(`/admin/devices/${deviceId}/rotate-key`, {
+    method: 'POST',
+  });
+  return parseResponse(rotateDeviceKeySchema, data);
 }
 
 /** PUT /admin/policies/:key — publish CAS theo expectedVersion; 409 APPROVAL_STALE. */

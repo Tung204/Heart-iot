@@ -15,6 +15,7 @@ import { formatDateTime, formatShortDate } from '../../lib/format';
 import { getApiErrorMessage, isApiError, isConflictError } from '../../lib/api';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { useMe } from '../auth/useAuth';
+import { AdminDevicesTab } from './AdminDevicesTab';
 import {
   adminQueryKeys,
   fetchAdminAudit,
@@ -51,11 +52,12 @@ const POLICY_FIELDS = [
 
 type PolicyValue = Record<(typeof POLICY_FIELDS)[number]['key'], number>;
 
-type Tab = 'overview' | 'users' | 'policy' | 'audit';
+type Tab = 'overview' | 'users' | 'devices' | 'policy' | 'audit';
 
 const TABS: { value: Tab; label: string }[] = [
   { value: 'overview', label: 'Tổng quan' },
   { value: 'users', label: 'Người dùng' },
+  { value: 'devices', label: 'Thiết bị' },
   { value: 'policy', label: 'Chính sách thiết bị' },
   { value: 'audit', label: 'Audit' },
 ];
@@ -786,7 +788,7 @@ export function AdminPage() {
       <header>
         <h1 className="page-title">Quản trị</h1>
         <p className="page-lead">
-          Tài khoản, audit, chính sách động và tổng quan hệ thống. Mọi thay đổi đều được ghi audit.
+          Tài khoản, thiết bị, audit, chính sách động và tổng quan hệ thống. Mọi thay đổi đều được ghi audit.
         </p>
       </header>
 
@@ -806,6 +808,7 @@ export function AdminPage() {
 
       {tab === 'overview' ? <OverviewTab /> : null}
       {tab === 'users' ? <UsersTab currentUserId={user.id} /> : null}
+      {tab === 'devices' ? <AdminDevicesTab /> : null}
       {tab === 'policy' ? <PolicyTab /> : null}
       {tab === 'audit' ? <AuditTab /> : null}
     </div>
