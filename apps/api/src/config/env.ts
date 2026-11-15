@@ -22,6 +22,8 @@ const envSchema = z.object({
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().optional(),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
+  /** Dung sai đồng hồ thiết bị: measured_at vượt quá now + ngưỡng này bị cách ly. */
+  MAX_CLOCK_SKEW_SECONDS: z.coerce.number().int().min(0).max(3600).default(120),
   SESSION_TTL_HOURS: z.coerce.number().int().positive().default(168),
 });
 

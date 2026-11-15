@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { eq } from 'drizzle-orm';
 import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
 import { insightsResponseSchema } from '@annhien/contracts/insights';
 import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
@@ -7,7 +8,7 @@ import { IngestModule } from '../src/ingest/ingest.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
 import { coverageCounts } from '../src/measurements/insights';
 import { PolicyModule } from '../src/policy/policy.module';
-import { careLinks, incidents, subjects, telemetry } from '../src/database/schema';
+import { careLinks, deviceAssignments, incidents, subjects, telemetry } from '../src/database/schema';
 import {
   createAdmin,
   createModuleTestApp,
@@ -65,11 +66,18 @@ async function createClaimedDevice(
     .set('Origin', TEST_ORIGIN)
     .send({ claimCode: created.body.claimCode });
   expect(claimed.status).toBe(201);
+  const assignmentId = claimed.body.assignmentId as string;
+  // Test gửi mẫu lịch sử ngay sau khi claim: lùi mốc assignment để mẫu nằm
+  // trong assignment thay vì bị cách ly (test cách ly có trường hợp riêng).
+  await ctx.db
+    .update(deviceAssignments)
+    .set({ startedAt: new Date(Date.now() - 35 * 24 * 3600 * 1000) })
+    .where(eq(deviceAssignments.id, assignmentId));
   return {
     subjectId: subject.id,
     deviceId: created.body.device.id,
     deviceKey: created.body.deviceKey,
-    assignmentId: claimed.body.assignmentId,
+    assignmentId,
   };
 }
 
@@ -290,6 +298,60 @@ describe('Xu hướng: GET /subjects/:id/insights', () => {
     expect(yesterdayDay.heartRate).toEqual({ avg: 62, min: 61, max: 63, validSamples: 2 });
     expect(yesterdayDay.coverage.expectedCount).toBe(5760);
     expect(dayByDate(response.body, addDays(localToday, -2)).hasData).toBe(false);
+  });
+
+  it('mẫu tương lai/cách ly không vào xu hướng; coverage/hasData không vượt hiện tại', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner);
+    const now = Date.now();
+    const futureBeyond = new Date(now + 10 * 60 * 1000);
+    const futureWithin = new Date(now + 90 * 1000);
+
+    // Quá dung sai đồng hồ → cách ly.
+    await send(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        sequence: 0,
+        boot_id: 'boot-future',
+        measured_at: futureBeyond.toISOString(),
+        metrics: { heart_rate_bpm: 200, steps_since_boot: 9999 },
+      }),
+    );
+    // Trong dung sai → lưu bình thường nhưng chưa được đọc.
+    await send(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        sequence: 1,
+        boot_id: 'boot-future',
+        measured_at: futureWithin.toISOString(),
+        metrics: { heart_rate_bpm: 180, steps_since_boot: 8888 },
+      }),
+    );
+
+    const stored = await ctx.db
+      .select({ isQuarantined: telemetry.isQuarantined })
+      .from(telemetry)
+      .where(eq(telemetry.deviceId, fixture.deviceId));
+    expect(stored).toHaveLength(2);
+    expect(stored.filter((row) => row.isQuarantined)).toHaveLength(1);
+
+    const response = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/insights?days=7`,
+    );
+    expect(response.status).toBe(200);
+    expect(insightsResponseSchema.safeParse(response.body).success).toBe(true);
+    expect(response.body.summary.dataDays).toBe(0);
+    expect(response.body.summary.totalSteps).toBe(0);
+    expect(response.body.summary.avgHeartRate).toBeNull();
+    for (const day of response.body.days as InsightDayBody[]) {
+      expect(day.hasData).toBe(false);
+      expect(day.heartRate).toBeNull();
+      expect(day.steps).toEqual({ total: 0, completeness: 'unavailable' });
+      expect(day.coverage.observedCount).toBe(0);
+      expect(day.coverage.percent).toBe(0);
+    }
+    expect(Date.parse(response.body.to)).toBeLessThanOrEqual(Date.now());
   });
 
   it('days=14/30 trả đúng số ngày; days ngoài 7..30 hoặc tham số lạ → 400', async () => {

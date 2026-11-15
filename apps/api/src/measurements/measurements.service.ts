@@ -40,6 +40,9 @@ import { zonedDayToUtcRange } from './time-utils';
  * - Bản ghi `measured_at: null` / `clock_status: unsynced` không vào timeline,
  *   đếm `excludedUnsyncedCount`; nếu cả khoảng không có mốc tin cậy thì gap có
  *   lý do `clock_unsynced`. Không bịa mẫu.
+ * - Bản ghi `is_quarantined = true` (giờ đo lệch quá dung sai hoặc ngoài
+ *   assignment) bị loại khỏi **mọi** đường đọc telemetry; mẫu có
+ *   `measured_at > now` cũng không được tính cho tới khi thời gian thật đi qua.
  * - Cursor ổn định theo (measuredAt, id).
  */
 
@@ -89,15 +92,21 @@ export class MeasurementsService {
     );
     const { from, to } = resolveWindow(query.from, query.to);
     const windowFrom = from < effectiveFrom ? effectiveFrom : from;
+    // Trần cửa sổ telemetry là hiện tại: mẫu `measured_at` tương lai không được
+    // đếm vào coverage/gap dù client xin `to` xa hơn.
+    const coverageTo = new Date(
+      Math.max(windowFrom.getTime(), Math.min(to.getTime(), Date.now())),
+    );
     const policy = await this.policy.getActive();
     const intervalSeconds = policy.value.heartbeatIntervalSeconds;
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
 
     const syncedBase = and(
       inArray(telemetry.assignmentId, assignmentIds),
+      eq(telemetry.isQuarantined, false),
       isNotNull(telemetry.measuredAt),
       gte(telemetry.measuredAt, windowFrom),
-      lte(telemetry.measuredAt, to),
+      lte(telemetry.measuredAt, coverageTo),
     );
 
     let pageWhere: ReturnType<typeof and> | undefined = syncedBase;
@@ -124,7 +133,7 @@ export class MeasurementsService {
         .from(telemetry)
         .where(syncedBase)
         .orderBy(asc(telemetry.measuredAt)),
-      this.countUnsyncedInWindow(assignmentIds, windowFrom, to),
+      this.countUnsyncedInWindow(assignmentIds, windowFrom, coverageTo),
     ]);
 
     const hasMore = pageRows.length > query.limit;
@@ -139,8 +148,8 @@ export class MeasurementsService {
       nextCursor: hasMore && lastItem?.measuredAt
         ? encodeMeasurementCursor(lastItem.measuredAt, lastItem.id)
         : null,
-      coverage: computeCoverage(windowFrom, to, intervalSeconds, measuredAts.length),
-      gaps: computeGaps(windowFrom, to, intervalSeconds, measuredAts, unsyncedCount),
+      coverage: computeCoverage(windowFrom, coverageTo, intervalSeconds, measuredAts.length),
+      gaps: computeGaps(windowFrom, coverageTo, intervalSeconds, measuredAts, unsyncedCount),
       excludedUnsyncedCount: unsyncedCount,
       nextCursorMeta:
         hasMore && lastItem?.measuredAt
@@ -155,8 +164,9 @@ export class MeasurementsService {
 
   async dailySummary(userId: string, subjectId: string, date: string): Promise<DailySummary> {
     const access = await this.access.requireSubject(userId, subjectId);
+    const now = new Date();
     const { from, to } = zonedDayToUtcRange(date, access.subject.timezone);
-    if (from.getTime() > Date.now()) {
+    if (from.getTime() > now.getTime()) {
       throw AppError.validation('Ngày yêu cầu nằm trong tương lai.');
     }
     const { effectiveFrom } = await this.access.requireHistory(userId, subjectId, undefined);
@@ -167,12 +177,13 @@ export class MeasurementsService {
     }
     // Ngày có mốc chia sẻ ở giữa (thường là hôm nay): chỉ tính phần sau khi được chia sẻ.
     const windowFrom = from < effectiveFrom ? effectiveFrom : from;
+    // Ngày đang diễn ra: mọi phép tính telemetry chỉ tới hiện tại, không tới cuối
+    // ngày; mẫu tương lai không được kéo coverage/lastSeenAt về tương lai.
+    const coverageTo = to.getTime() > now.getTime() ? now : to;
 
     const policy = await this.policy.getActive();
     const intervalSeconds = policy.value.heartbeatIntervalSeconds;
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
-    // Ngày đang diễn ra: coverage/gap chỉ tính tới hiện tại, không tính phần tương lai.
-    const coverageTo = to.getTime() > Date.now() ? new Date() : to;
 
     const dayRows = await this.db
       .select()
@@ -180,15 +191,16 @@ export class MeasurementsService {
       .where(
         and(
           inArray(telemetry.assignmentId, assignmentIds),
+          eq(telemetry.isQuarantined, false),
           isNotNull(telemetry.measuredAt),
           gte(telemetry.measuredAt, windowFrom),
-          lt(telemetry.measuredAt, to),
+          lt(telemetry.measuredAt, coverageTo),
         ),
       )
       .orderBy(asc(telemetry.measuredAt), asc(telemetry.id));
 
     const [unsyncedCount, incidentRows] = await Promise.all([
-      this.countUnsyncedInWindow(assignmentIds, windowFrom, to),
+      this.countUnsyncedInWindow(assignmentIds, windowFrom, coverageTo),
       this.db
         .select({ state: incidents.state })
         .from(incidents)
@@ -270,6 +282,7 @@ export class MeasurementsService {
             .where(
               and(
                 inArray(telemetry.assignmentId, assignmentIds),
+                eq(telemetry.isQuarantined, false),
                 isNotNull(telemetry.measuredAt),
                 gte(telemetry.measuredAt, queryFrom),
                 lte(telemetry.measuredAt, now),
@@ -324,6 +337,8 @@ export class MeasurementsService {
     const { from, to } = resolveWindow(query.from, query.to);
     await this.access.requireHistory(userId, subjectId, from);
     const assignmentIds = await this.assignmentIdsForSubject(subjectId);
+    // CSV cũng là đường đọc: không xuất mẫu cách ly hoặc mẫu tương lai.
+    const windowTo = to.getTime() > Date.now() ? new Date() : to;
 
     const rows = await this.db
       .select()
@@ -331,16 +346,17 @@ export class MeasurementsService {
       .where(
         and(
           inArray(telemetry.assignmentId, assignmentIds),
+          eq(telemetry.isQuarantined, false),
           or(
             and(
               isNotNull(telemetry.measuredAt),
               gte(telemetry.measuredAt, from),
-              lte(telemetry.measuredAt, to),
+              lte(telemetry.measuredAt, windowTo),
             ),
             and(
               isNull(telemetry.measuredAt),
               gte(telemetry.receivedAt, from),
-              lte(telemetry.receivedAt, to),
+              lte(telemetry.receivedAt, windowTo),
             ),
           ),
         ),
@@ -410,6 +426,7 @@ export class MeasurementsService {
       .where(
         and(
           inArray(telemetry.assignmentId, assignmentIds),
+          eq(telemetry.isQuarantined, false),
           or(isNull(telemetry.measuredAt), eq(telemetry.clockStatus, 'unsynced')),
           gte(telemetry.receivedAt, from),
           lte(telemetry.receivedAt, to),
@@ -496,6 +513,7 @@ function computeGaps(
   excludedUnsyncedCount: number,
 ): MeasurementGap[] {
   const gaps: MeasurementGap[] = [];
+  if (to.getTime() <= from.getTime()) return gaps;
   const thresholdMs = intervalSeconds * 1.5 * 1000;
   if (measuredAts.length === 0) {
     gaps.push({

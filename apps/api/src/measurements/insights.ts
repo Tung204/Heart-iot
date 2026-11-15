@@ -13,8 +13,9 @@ import { isValidTimezone, zonedDayToUtcRange } from './time-utils';
  * - Mỗi ngày xuất hiện đúng một lần, cũ→mới, kể cả ngày không có mẫu.
  * - Ngày không có mẫu: `heartRate: null`, bước `unavailable`, coverage 0/0 —
  *   không thay bằng 0 hoặc nội suy.
- * - Chỉ dùng mẫu đã đồng bộ (caller đã lọc `measured_at` khác null) và đã cắt
- *   theo mốc chia sẻ (`effectiveFrom`).
+ * - Chỉ dùng mẫu đã đồng bộ (caller đã lọc `measured_at` khác null, không
+ *   quarantine) và đã cắt theo mốc chia sẻ (`effectiveFrom`); mẫu tương lai bị
+ *   loại lần nữa ở `buildDailyInsights` để không đẩy thống kê vượt hiện tại.
  * - Không suy diễn sức khỏe; `notes` chỉ mô tả dữ liệu thiếu/nguồn mô phỏng.
  */
 
@@ -245,8 +246,13 @@ export type InsightBuildInput = {
  */
 export function buildDailyInsights(input: InsightBuildInput): DailyInsight[] {
   const { windows, telemetryRows, incidentRows, effectiveFrom, now, intervalSeconds } = input;
+  // Phòng thủ nhiều lớp: dù caller quên kẹp, mẫu `measured_at > now` không được
+  // đóng góp vào bất kỳ ngày nào (không làm coverage/bước/lastSeen vượt hiện tại).
+  const boundedRows = telemetryRows.filter(
+    (row) => row.measuredAt !== null && row.measuredAt.getTime() <= now.getTime(),
+  );
   const rowsByDate = new Map<string, InsightTelemetryRow[]>();
-  for (const row of telemetryRows) {
+  for (const row of boundedRows) {
     if (!row.measuredAt) continue;
     const window = findInsightWindow(windows, row.measuredAt);
     if (!window) continue;
@@ -254,7 +260,7 @@ export function buildDailyInsights(input: InsightBuildInput): DailyInsight[] {
     list.push(row);
     rowsByDate.set(window.date, list);
   }
-  const stepsByDate = aggregateStepsByWindow(windows, telemetryRows, intervalSeconds);
+  const stepsByDate = aggregateStepsByWindow(windows, boundedRows, intervalSeconds);
 
   return windows.map((window) => {
     const windowFrom = new Date(Math.max(window.from.getTime(), effectiveFrom.getTime()));
