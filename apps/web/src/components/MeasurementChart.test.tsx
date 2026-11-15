@@ -26,6 +26,6 @@ describe('MeasurementChart — vùng cuộn focusable', () => {
     expect(region).toHaveAccessibleName(/Dùng phím mũi tên trái\/phải/);
 
     expect(screen.getByRole('img', { name: /Biểu đồ nhịp tim/ })).toBeInTheDocument();
-    expect(screen.getByText(/Bảng dữ liệu bên dưới liệt kê từng mẫu/)).toBeInTheDocument();
+    expect(screen.getByText(/Bảng\/danh sách dữ liệu bên dưới liệt kê từng mẫu/)).toBeInTheDocument();
   });
 });

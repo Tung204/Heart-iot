@@ -5,25 +5,44 @@ function toDate(iso: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/**
+ * Bộ định dạng dùng lại — tạo `Intl.DateTimeFormat` rất đắt (~50 µs/lần).
+ * Trước đây mỗi ô trong bảng dựng một instance mới; với 1.681 dòng × 2 biến thể
+ * bảng/thẻ, chi phí này chiếm khoảng một nửa thời gian render (đo ở QA v2).
+ * Formatter là bất biến nên tạo một lần ở phạm vi module là an toàn.
+ */
+const DATE_TIME_FORMAT = new Intl.DateTimeFormat('vi-VN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
+const SHORT_DATE_FORMAT = new Intl.DateTimeFormat('vi-VN', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
+const COMPACT_TIME_FORMAT = new Intl.DateTimeFormat('vi-VN', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+const DATE_FORMAT = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' });
+
+const TIME_FORMAT = new Intl.DateTimeFormat('vi-VN', { timeStyle: 'short' });
+
 export function formatDateTime(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;
-  return new Intl.DateTimeFormat('vi-VN', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
+  return DATE_TIME_FORMAT.format(date);
 }
-
 
 /** Ngày dạng 14/11/2026 — dùng trong bảng để không phải xuống dòng. */
 export function formatShortDate(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
+  return SHORT_DATE_FORMAT.format(date);
 }
 
 /** Ngày + giờ ngắn (14/11 04:56) cho bảng dữ liệu dày đặc. */
@@ -32,24 +51,20 @@ export function formatCompactDateTime(iso: string): string {
   if (!date) return iso;
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
-  const time = new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date);
+  const time = COMPACT_TIME_FORMAT.format(date);
   return `${day}/${month} ${time}`;
 }
 
 export function formatDate(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;
-  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(date);
+  return DATE_FORMAT.format(date);
 }
 
 export function formatTime(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;
-  return new Intl.DateTimeFormat('vi-VN', { timeStyle: 'short' }).format(date);
+  return TIME_FORMAT.format(date);
 }
 
 /**
