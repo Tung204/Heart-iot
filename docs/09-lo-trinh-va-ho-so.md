@@ -2,6 +2,8 @@
 
 Đây là **trình tự kỹ thuật đề xuất**, không có deadline hoặc người phụ trách được tự gán. Kế hoạch có checkbox/trạng thái duy nhất nằm trong `Kế hoạch.md` của dự án Obsidian. Tài liệu này chỉ mô tả phụ thuộc, đầu ra và điều kiện chuyển giai đoạn.
 
+**Trạng thái 15/11/2026:** G2 (lát cắt phần mềm) đã có mã chạy được trên dữ liệu tổng hợp, nhưng chưa đạt đầy đủ điều kiện chuyển tiếp (web build đang fail, E2E 6/7, test randomized còn 1 lỗi thứ tự). G1/G3 (phần cứng, firmware, đo thật) và G4 ở mức AI runtime dài hạn **chưa làm**; G5 (hồ sơ/demo cuối) chưa hoàn thiện. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem bằng chứng và giới hạn.
+
 ## Các giai đoạn
 
 | Giai đoạn | Đầu ra | Điều kiện chuyển tiếp |
@@ -29,7 +31,7 @@ Phạm vi đề xuất: một hồ sơ demo, hai tài khoản người thân v�
 | Demo | Trình diễn ổn định, tập cấu hình được ghi lại | Dữ liệu tổng hợp hoặc thử nghiệm đã được phép và ẩn danh |
 | Thử nghiệm có người | Đo khả năng sử dụng/độ tin cậy có giới hạn | Chỉ sau khi có quy trình đồng ý, quyền và retention |
 
-Khi có code, cấu hình local sẽ được đặt trong `infra`; secret ở môi trường thực thi, file mẫu chỉ chứa tên biến và giá trị vô hại. Chốt runtime/package manager/version trước khi thêm manifest và lockfile. Nêu rõ cổng, TLS, broker ACL, migration và rollback trong hướng dẫn triển khai thực tế.
+Cấu hình local hiện nằm ở `infra/` (compose PostgreSQL, Mosquitto sau profile thử nghiệm) và `.env.example`; secret phải ở môi trường thực thi, file mẫu chỉ chứa tên biến và giá trị vô hại. Runtime/package manager/version đã chốt trong manifest/lockfile (Node 24, pnpm 12, NestJS 11, React 19). Hướng dẫn triển khai thực tế vẫn phải bổ sung cổng, TLS, broker ACL, migration và rollback; hiện chưa có image hay môi trường deploy.
 
 Quan sát tối thiểu: last_seen thiết bị, số bản tin nhận/từ chối/trùng, sự kiện cách ly, tuổi notification outbox, số lần gửi lỗi, độ trễ xử lý, lỗi AI. Log dùng ID tham chiếu, không dump toàn bộ dữ liệu sức khỏe hoặc secret.
 
@@ -60,4 +62,4 @@ Phụ lục có thể gồm BOM, sơ đồ mạch, API/schema, bộ kịch bản
 | Không có nguồn AI đủ tin cậy | Hỏi đáp dễ suy diễn | Giới hạn AI ở tóm tắt dữ liệu và fallback theo mẫu |
 | Rubric trường khác đề xuất | Bộ hồ sơ/phạm vi cần thay đổi | Đối chiếu nguồn chính thức trước khi hoàn thiện báo cáo |
 
-Việc có tài liệu không chứng minh đã triển khai, nghiệm thu hoặc sẵn sàng dùng cho người thật. Bằng chứng hoàn thành được lưu theo [quy ước kiểm thử](08-kiem-thu-va-danh-gia.md).
+Việc có tài liệu không chứng minh đã triển khai, nghiệm thu hoặc sẵn sàng dùng cho người thật. Bằng chứng hoàn thành được lưu theo [quy ước kiểm thử](08-kiem-thu-va-danh-gia.md). Hiện mới có bằng chứng phần mềm trên dữ liệu tổng hợp; chưa có bằng chứng phần cứng, độ chính xác té ngã, Web Push, PostgreSQL/MQTT production hoặc khả dụng với người cao tuổi.

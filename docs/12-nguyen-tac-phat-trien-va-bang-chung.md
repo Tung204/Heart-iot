@@ -43,7 +43,7 @@ Không ép các nghiệp vụ khác nhau dùng chung một abstraction vì tên 
 
 Đề xuất khi bắt đầu có source: mỗi capability có tên, mục đích, nơi triển khai chính thức, contract, quyền, module dùng, test/tài liệu liên quan và trạng thái `planned`/`active`/`deprecated`. Phần có thể suy ra từ source/manifest nên sinh hoặc kiểm tự động; không duy trì danh sách endpoint/package thủ công thứ hai.
 
-Hiện repository đã có `packages/contracts` với zod schema cho 15 miền (được API, web và simulator import), các module NestJS trong `apps/api/src` và web React trong `apps/web/src`, cùng test chạy được ở ba package. **Chưa có** runtime tool registry/capability `active`, OpenAPI máy sinh hoặc quality gate tự động trong CI. Dùng manifest và README hiện có; không tạo index giả chứa đường dẫn code chưa tồn tại.
+Hiện repository đã có `packages/contracts` với zod schema cho các miền nghiệp vụ (được API, web và simulator import), các module NestJS trong `apps/api/src` và web React trong `apps/web/src`; ngày 15/11/2026 API chạy 20 suite/205 test và web chạy 32 file/176 test. **Chưa có** runtime tool registry/capability `active`, OpenAPI máy sinh hoặc quality gate tự động trong CI. Dùng manifest và README hiện có; không tạo index giả chứa đường dẫn code chưa tồn tại.
 
 Với thay đổi xuyên module, thực hiện:
 
@@ -82,6 +82,24 @@ Việc AI được giao sửa backend ở môi trường phát triển không c�
 
 Khi có source, có thể thêm kiểm dependency boundary, contract và policy để ngăn lệch kiến trúc. Chọn kiểm tra gắn với rủi ro cụ thể; không mặc định phải cài mọi công cụ nêu trong bài tham khảo. Ở HEAD đã có `pnpm -r typecheck`, test từng package, `tools/docs/build.py --check` và `tools/docs/check-examples.mjs`; **chưa có** CI tự động, dependency boundary hay contract test sinh tự động nên các cổng này vẫn phải chạy tay.
 
+## Bảo mật, quyền riêng tư và bằng chứng v2
+
+Phần này ghi các bất biến phải giữ khi mở rộng, không tuyên bố sản phẩm đã tuân thủ pháp lý hay đủ an toàn cho dữ liệu thật.
+
+| Chủ đề | Quy tắc đang áp dụng | Bằng chứng/giới hạn |
+| --- | --- | --- |
+| Quyền xem số đo | `canViewMeasurements` tách khỏi `canReceiveAlerts`; thiếu quyền số đo trả 403 nghiệp vụ, không 404 vì người thân vẫn có quyền hồ sơ; áp cho measurements/daily-summary/insights/export/status/devices/assistant/Studio | Test `care.spec.ts`, `devices.spec.ts`, `assistant.spec.ts`, `studio.spec.ts`; chưa có test xuyên toàn bộ đường trong một kịch bản thu hồi |
+| AI không vượt quyền | Assistant gọi `requireMeasurementsHistory` + `assertAction('view_ai')`; aggregate chỉ từ mẫu đã lọc quyền/cách ly; response có `dataQuality` | Test assistant quyền/fallback; chưa test prompt injection, chưa dùng provider thật |
+| Admin và dữ liệu sức khỏe | `AccessService` chỉ cho owner/care link; role admin không tự mở hồ sơ; admin device tab chỉ metadata thiết bị | Test admin subject 404, notifications 404; policy/audit có test |
+| Thu hồi quyền | Care link thu hồi chặn REST/export/AI/Studio/notification; SSE gửi `revoked`; khóa tài khoản/phiên hết hạn cũng đóng stream | `sse.spec.ts` S1–S6, `notifications.spec.ts` N4–N10, `studio.spec.ts` T12/T13 |
+| Dữ liệu trẻ em/người cao tuổi | Demo chỉ dùng dữ liệu tổng hợp; chưa có quy trình đồng ý cho người giám hộ, chưa thử với người thật; mô hình người đại diện còn mở | Không có bằng chứng pháp lý/đồng thuận thực tế; không được tuyên bố tuân thủ luật cụ thể |
+| Lưu trữ/xóa/retention | Archive chỉ ẩn + thu hồi chia sẻ; deletion request chỉ ghi audit `recorded`; không xóa telemetry/cảnh báo/export/AI cache/backup | `subjects.spec.ts`; chưa có job retention/xóa cứng; UI nói rõ chưa xóa |
+| Dữ liệu nhạy cảm trong log/audit | Audit cảnh báo/thiết bị/liên hệ không ghi HR, bước, số điện thoại, token hay evidence | Test metadata quarantine/contact; chưa kiểm log production |
+| Secret và phiên | Cookie HttpOnly/SameSite, mật khẩu scrypt, session bảng DB thu hồi được, Origin check cho ghi; secret ngoài Git | `auth.spec.ts`, `account.spec.ts`; chưa có TLS termination/rotation production |
+| Cách ly ingest | Mẫu lệch giờ/ngoài assignment không tạo incident/outbox/SSE; telemetry cách ly không vào đường đọc; audit không chứa số đo | `ingest.spec.ts`, `incidents.spec.ts` T19–T24; chưa có UI xem vùng cách ly |
+
+**Không tuyên bố:** chưa có đánh giá pháp lý, chưa ký thỏa thuận xử lý dữ liệu, chưa có cơ chế đồng ý/khôi phục/xóa theo yêu cầu pháp lý, chưa kiểm với dữ liệu người thật. Các câu “đã bảo vệ dữ liệu” trong báo cáo phải giới hạn ở hành vi kỹ thuật có test nêu trên.
+
 ## Điều kiện báo hoàn thành
 
 ### Hồ sơ thay đổi có thể đối chiếu
@@ -112,6 +130,6 @@ Quyết định kỹ thuật chỉ chuyển sang accepted khi có căn cứ và 
 
 ### Báo cáo kết quả
 
-Kết quả phải ghi đúng: đã thay gì, vì sao, phạm vi/API/data bị ảnh hưởng, kiểm nào đã chạy với kết quả thật, phần chưa kiểm và giới hạn. Tài liệu liên quan phải cập nhật, HTML phải khớp nguồn, phần cần preview phải có bản review được. Chỉ nói một module/khả năng hoạt động khi có bằng chứng thực thi, không dựa vào việc đã viết thiết kế.
+Kết quả phải ghi đúng: đã thay gì, vì sao, phạm vi/API/data bị ảnh hưởng, kiểm nào đã chạy với kết quả thật, phần chưa kiểm và giới hạn. Tài liệu liên quan phải cập nhật, HTML phải khớp nguồn, phần cần preview phải có bản review được. Chỉ nói một module/khả năng hoạt động khi có bằng chứng thực thi, không dựa vào việc đã viết thiết kế. Khi test/build/E2E còn fail, báo đúng lỗi và phạm vi ảnh hưởng thay vì ghi “đã chạy ổn”.
 
 Hướng dẫn bằng văn bản giúp các agent làm nhất quán; nó không bảo đảm AI không bao giờ sai. Cần kiểm chứng thực tế và cơ chế backend/CI ở những ranh giới đã xác định.

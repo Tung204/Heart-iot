@@ -1,6 +1,6 @@
 # Sinh tài liệu HTML ngoại tuyến
 
-Mở [docs/html/index.html](../../docs/html/index.html) bằng trình duyệt. Trang gồm các chương thiết kế và yêu cầu nền tảng AI/cấu hình động, nguyên tắc phát triển, ADR, review, cấu trúc dự án/trách nhiệm từng thư mục và ba payload JSON mẫu. Có mục lục theo chương, tìm nội dung không phân biệt dấu tiếng Việt, điều hướng bàn phím và kiểu trình bày khi in/lưu PDF.
+Mở [docs/html/index.html](../../docs/html/index.html) bằng trình duyệt. Trang gồm các chương thiết kế và yêu cầu nền tảng AI/cấu hình động, nguyên tắc phát triển, ADR, review, cấu trúc dự án/trách nhiệm từng thư mục và **năm payload JSON mẫu** (telemetry, confirmed, ACK, ACK cách ly, insights). Có mục lục theo chương, tìm nội dung không phân biệt dấu tiếng Việt, điều hướng bàn phím và kiểu trình bày khi in/lưu PDF.
 
 HTML chứa sẵn nội dung, CSS và JavaScript; không gọi CDN, font mạng, API hoặc dịch vụ tìm kiếm. Sao chép riêng `index.html` vẫn đọc, tìm kiếm và in được; các liên kết “nguồn Markdown”/JSON cần giữ repository đi kèm. Khi JavaScript tắt, toàn bộ nội dung và mục lục vẫn đọc được; tìm kiếm/nút in chỉ xuất hiện khi JavaScript hoạt động. Có thể dùng chức năng in của trình duyệt.
 
@@ -39,7 +39,7 @@ pnpm build:contracts
 node tools/docs/check-examples.mjs
 ```
 
-Script đọc mọi file `packages/contracts/examples/*.json`, ánh xạ sang `telemetryEnvelopeSchema`/`incidentEnvelopeSchema`/`ingestAckSchema`. Thêm file mẫu mới mà chưa khai báo schema sẽ fail thay vì bỏ qua. Chạy cả hai lệnh trước khi commit thay đổi tài liệu/hợp đồng: `--check` không thay kiểm schema.
+Script đọc mọi file `packages/contracts/examples/*.json`, ánh xạ sang `telemetryEnvelopeSchema`/`incidentEnvelopeSchema`/`ingestAckSchema`/`insightsResponseSchema`. Hiện có 5 file mẫu; thêm file mới mà chưa khai báo schema sẽ fail thay vì bỏ qua. Chạy cả hai lệnh trước khi commit thay đổi tài liệu/hợp đồng: `--check` không thay kiểm schema.
 
 ## Sơ đồ và kiểm chứng
 

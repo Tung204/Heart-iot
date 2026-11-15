@@ -1,0 +1,88 @@
+{
+  "subjectId": "1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "from": "2026-11-13T00:00:00+07:00",
+  "to": "2026-11-15T23:59:59+07:00",
+  "days": [
+    {
+      "date": "2026-11-13",
+      "hasData": true,
+      "source": "synthetic",
+      "heartRate": {
+        "avg": 72.4,
+        "min": 66,
+        "max": 81,
+        "validSamples": 240
+      },
+      "steps": {
+        "total": 3200,
+        "completeness": "complete"
+      },
+      "coverage": {
+        "percent": 87.5,
+        "observedCount": 240,
+        "expectedCount": 274
+      },
+      "incidents": {
+        "total": 0,
+        "resolved": 0
+      }
+    },
+    {
+      "date": "2026-11-14",
+      "hasData": false,
+      "source": "synthetic",
+      "heartRate": null,
+      "steps": {
+        "total": 0,
+        "completeness": "unavailable"
+      },
+      "coverage": {
+        "percent": 0,
+        "observedCount": 0,
+        "expectedCount": 274
+      },
+      "incidents": {
+        "total": 1,
+        "resolved": 1
+      }
+    },
+    {
+      "date": "2026-11-15",
+      "hasData": true,
+      "source": "device",
+      "heartRate": {
+        "avg": 74,
+        "min": 70,
+        "max": 79,
+        "validSamples": 96
+      },
+      "steps": {
+        "total": 1100,
+        "completeness": "partial"
+      },
+      "coverage": {
+        "percent": 64.2,
+        "observedCount": 96,
+        "expectedCount": 149
+      },
+      "incidents": {
+        "total": 0,
+        "resolved": 0
+      }
+    }
+  ],
+  "summary": {
+    "dataDays": 2,
+    "avgHeartRate": 72.9,
+    "totalSteps": 4300,
+    "avgCoveragePercent": 75.9,
+    "incidentsTotal": 1,
+    "incidentsResolved": 1,
+    "syntheticDays": 2
+  },
+  "notes": [
+    "Có 1 ngày không có mẫu đo; ngày thiếu hiển thị “—”, không nội suy.",
+    "Dữ liệu mô phỏng được đánh dấu để không nhầm với dữ liệu thiết bị thật."
+  ]
+}

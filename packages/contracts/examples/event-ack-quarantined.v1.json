@@ -1,0 +1,9 @@
+{
+  "status": "rejected",
+  "sourceMessageId": "msg-demo-quarantine-0001",
+  "receivedAt": "2026-11-15T08:00:00Z",
+  "incidentId": null,
+  "acceptedRevision": null,
+  "code": "QUARANTINED",
+  "message": "Sự kiện đã bị cách ly để kiểm tra thời gian hoặc assignment; không tạo cảnh báo."
+}
