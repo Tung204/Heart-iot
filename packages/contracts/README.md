@@ -4,11 +4,11 @@ Package `@annhien/contracts` giữ **zod schema + type** dùng cho API, web và 
 
 ## Trạng thái
 
-- Đã có schema chạy được cho **15 miền nghiệp vụ** (auth, subjects, care, devices, telemetry/incident envelope, measurements, incidents API, notifications, assistant, tasks, studio, admin, policies, insights, contacts) cộng lõi enum/lỗi/phân trang, và được `apps/api`, `apps/web`, `tools/simulator` import qua subpath.
-- Trong đó `insights`, `contacts` và phần mở rộng `auth`/`tasks` mới là **nền hợp đồng cho v2** (commit `0d669a1`); chưa có endpoint/UI dùng, không được báo là tính năng đã giao.
-- Ba payload trong `examples/` được kiểm parse bằng schema tương ứng: `pnpm build:contracts && node tools/docs/check-examples.mjs`. Script fail nếu thêm file mẫu mà chưa khai báo schema, nên mẫu lỗi không lọt qua.
+- Đã có schema chạy được cho các miền nghiệp vụ (auth, subjects, care, devices, telemetry/incident envelope, measurements, insights, incidents API, notifications, assistant, tasks, studio, admin, policies, contacts) cộng lõi enum/lỗi/phân trang, và được `apps/api`, `apps/web`, `tools/simulator` import qua subpath.
+- Các miền v2 (`insights`, `contacts`, phần mở rộng `auth`/`tasks`/`subjects`) **đã có endpoint/UI dùng thật** ở HEAD hiện tại: xu hướng 7–30 ngày, liên hệ khẩn cấp, cài đặt tài khoản/phiên, tạo việc, lưu trữ/yêu cầu xóa. Không còn là “nền hợp đồng chưa giao”.
+- Năm payload trong `examples/` được kiểm parse bằng schema tương ứng: `pnpm build:contracts && node tools/docs/check-examples.mjs`. Script fail nếu thêm file mẫu mà chưa khai báo schema, nên mẫu lỗi không lọt qua.
 - **Chưa có OpenAPI máy sinh.** Khi bổ sung phải sinh từ schema/service hoặc một nguồn duy nhất; không viết tay bản thứ hai rồi để lệch.
-- `ingestAckSchema` là response HTTP của ingest. Adapter MQTT hiện chỉ subscribe telemetry nên **chưa publish ACK**; contract MQTT đầy đủ vẫn là thiết kế trong `docs/04`.
+- `ingestAckSchema` là response HTTP của ingest. ACK có thể là `accepted`/`duplicate`/`rejected`; khi cách ly, `code=QUARANTINED` và `incidentId`/`acceptedRevision` có thể null. Adapter MQTT hiện chỉ subscribe telemetry nên **chưa publish ACK**; contract MQTT đầy đủ vẫn là thiết kế trong `docs/04`.
 
 ## Dùng trong code
 
@@ -29,9 +29,10 @@ API dùng `ZodValidationPipe` để parse request; response quan trọng cũng n
 ## Quy tắc
 
 - Timestamp trên HTTP dùng RFC 3339 UTC (`2026-11-14T09:20:00Z`), trừ trường ngày địa phương có tên `date`.
-- Chỉ số không hợp lệ là `null`, không dùng `0` giả; `heart_rate_bpm` đi cùng quality.
+- Chỉ số không hợp lệ là `null`, không dùng `0` giả; `heart_rate_bpm` đi cùng quality. `clock_status=synced` bắt buộc có `measured_at`; chỉ `unsynced` được null.
 - `incident_id` do thiết bị sinh chỉ duy nhất trong namespace thiết bị; server khóa theo `(device_id, incident_id)`.
-- Enum mới/thay đổi enum là thay đổi hợp đồng; phải xem xét version, migration và phía firmware/simulator.
+- Quyền chia sẻ gồm `canViewMeasurements`; bản ghi cũ thiếu trường được đọc là `true`, chỉ `false` tường minh mới chặn dữ liệu sức khỏe.
+- Enum mới/thay đổi enum là thay đổi hợp đồng; phải xem xét version, migration và phía firmware/simulator. `incidentStateSchema` có thêm `unconfirmed` cho ứng viên quá hạn không có kết quả cuối.
 - Không đưa credential, token hay dữ liệu sức khỏe người thật vào file mẫu/test.
 - Mỗi file trong `examples/` phải khai báo schema kiểm trong `tools/docs/check-examples.mjs`; giữ mẫu parse được thay vì mô tả một hợp đồng cũ.
 
@@ -42,5 +43,7 @@ API dùng `ZodValidationPipe` để parse request; response quan trọng cũng n
 | [telemetry.v1.json](examples/telemetry.v1.json) | Một mẫu BPM và tổng bước trong boot, kèm chất lượng/đồng hồ |
 | [fall-confirmed.v1.json](examples/fall-confirmed.v1.json) | Thiết bị xác nhận sau cửa sổ hủy; đủ thông tin để xử lý nếu candidate đến sau (`incident_type`, `evidence.wear_location/motion_quality/heart_rate_quality/heart_rate_bpm`) |
 | [event-ack.v1.json](examples/event-ack.v1.json) | Backend xác nhận đã lưu bản tin incident; camelCase đúng `ingestAckSchema`, `incidentId` là UUID server (khác `incident_id` do thiết bị sinh) |
+| [event-ack-quarantined.v1.json](examples/event-ack-quarantined.v1.json) | Sự kiện bị cách ly: `status=rejected`, `code=QUARANTINED`, `incidentId=null`; không tạo incident/outbox/SSE |
+| [insights.v1.json](examples/insights.v1.json) | Xu hướng ngày có dữ liệu và ngày thiếu (`hasData=false`, `heartRate=null`), chỉ số tổng hợp, ghi chú nguồn mô phỏng |
 
-Quy tắc trường, idempotency, MQTT và API nằm ở [đặc tả dữ liệu](../../docs/04-du-lieu-va-giao-tiep.md) và [kế hoạch v1](../../docs/14-ke-hoach-trien-khai-phan-mem.md).
+Quy tắc trường, idempotency, MQTT và API nằm ở [đặc tả dữ liệu](../../docs/04-du-lieu-va-giao-tiep.md) và [kế hoạch v1/v2](../../docs/14-ke-hoach-trien-khai-phan-mem.md).

@@ -1,6 +1,8 @@
 # Đặc tả đề xuất: thực thi AI và cấu hình động
 
-Ngày soạn: **11/11/2026**. Tài liệu viết sâu từ [định hướng nền tảng](11-nen-tang-ai-va-cau-hinh-dong.md), phục vụ review và chốt kỹ thuật. **Mọi tên thực thể, trạng thái, tool và endpoint dưới đây là thiết kế đề xuất, chưa có implementation hoặc contract đã được duyệt.** Các ID và ví dụ đều tổng hợp. Không dùng tài liệu này để kết luận đã có AI Agent, sandbox, kiểm thử sản phẩm hoặc hệ thống tự vận hành.
+Ngày soạn: **11/11/2026**. Tài liệu viết sâu từ [định hướng nền tảng](11-nen-tang-ai-va-cau-hinh-dong.md), phục vụ review và chốt kỹ thuật. **Mọi tên thực thể, trạng thái, tool và endpoint dưới đây là thiết kế đề xuất cho AI runtime dài hạn, chưa có implementation hoặc contract đã được duyệt.** Các ID và ví dụ đều tổng hợp. Không dùng tài liệu này để kết luận đã có AI Agent, sandbox, kiểm thử sản phẩm hoặc hệ thống tự vận hành.
+
+**Đã có ở mức giới hạn (khác phạm vi tài liệu này):** trợ lý summary/ask trong [chương 7](07-tro-ly-ai.md) dùng aggregate đã kiểm quyền, `dataQuality` và fallback template; chưa có planner/tool registry/scheduler/RAG hay `runtime agent_runs`.
 
 Yêu cầu đã xác nhận: AI làm được công việc, có tự động hóa, giao diện nghiệp vụ đầy đủ, Dynamic / Configurable, luôn có docs và frontend được preview/chấp nhận. Cách thực hiện các yêu cầu đó được trình bày bên dưới để có thể đánh giá trước khi chọn stack. Không thay thế đặc tả thiết bị trong [chương 04](04-du-lieu-va-giao-tiep.md); bốn phát hiện [review v0.1](reviews/01-thiet-ke-v0.1.md) vẫn mở.
 

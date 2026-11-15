@@ -22,6 +22,8 @@ const SCHEMAS = {
   'telemetry.v1.json': { module: 'telemetry.js', exportName: 'telemetryEnvelopeSchema' },
   'fall-confirmed.v1.json': { module: 'telemetry.js', exportName: 'incidentEnvelopeSchema' },
   'event-ack.v1.json': { module: 'telemetry.js', exportName: 'ingestAckSchema' },
+  'event-ack-quarantined.v1.json': { module: 'telemetry.js', exportName: 'ingestAckSchema' },
+  'insights.v1.json': { module: 'insights.js', exportName: 'insightsResponseSchema' },
 };
 
 function fail(message) {

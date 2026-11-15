@@ -54,6 +54,8 @@ PAYLOADS = [
     ("telemetry", "telemetry.v1.json", "Telemetry — nhịp tim và bước chân"),
     ("confirmed", "fall-confirmed.v1.json", "Confirmed — thiết bị xác nhận sự kiện"),
     ("ack", "event-ack.v1.json", "Application ACK — xác nhận đã lưu"),
+    ("quarantine", "event-ack-quarantined.v1.json", "ACK — sự kiện bị cách ly"),
+    ("insights", "insights.v1.json", "Insights — xu hướng nhiều ngày"),
 ]
 ROUTES = {path: section for _, section, path, _ in CHAPTERS}
 ROUTES.update({path: f"cau-truc-{key}" for key, path, _ in MODULES})

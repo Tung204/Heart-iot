@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái:** thiết kế phép kiểm, chưa phải kết quả. Chỉ bổ sung test tự động khi đã có hành vi ứng dụng cần bảo vệ; không tạo test để khẳng định framework hoạt động đúng.
+**Trạng thái 15/11/2026:** đã có test tự động và kết quả chạy thật cho lát cắt phần mềm v1/v2 trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -10,6 +10,46 @@
 4. Dùng E2E cho đường demo quan trọng; race test cho xác nhận đồng thời; load/stress chỉ khi đánh giá giới hạn cụ thể. Full suite dành cho gate phát hành hoặc bằng chứng hồi quy rộng cần thiết.
 
 Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
+
+## Bằng chứng chạy ngày 15/11/2026
+
+Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, Vitest cho web, Playwright Chromium cho E2E. Đây là số đo trên worktree tài liệu `docs-v2-final`; không dùng số này thay cho lần chạy ở máy khác.
+
+| Hạng mục | Lệnh | Kết quả thật |
+| --- | --- | --- |
+| API | `cd apps/api && pnpm test` | **20/20 suite, 205/205 test pass**, 115,3 s |
+| Web unit | `cd apps/web && pnpm test` | **32/32 file, 176/176 test pass**, 12,6 s |
+| Simulator | `cd tools/simulator && npm test` | **23/23 test pass** |
+| Typecheck | `pnpm -r typecheck` | contracts/api/web/simulator **pass** |
+| Contracts build | `pnpm build:contracts` | pass |
+| API randomized | `cd apps/api && pnpm test:random --seed=1288443891` | **19/20 suite, 204/205 test pass**; `studio.spec.ts` T8 fail vì đếm audit `workspace_view.rollback` = 2 thay vì 1 (test phụ thuộc dữ liệu audit của test khác, chưa kết luận lỗi sản phẩm) |
+| E2E | `cd apps/web && pnpm test:e2e` | **6/7 pass**; `history.spec.ts:117` fail: đếm 3 request `/measurements` thay vì 2 sau khi tải thêm. Chưa kết luận nguyên nhân |
+| Web production build | `cd apps/web && pnpm build` | **fail**: lightningcss báo `Invalid empty selector` tại `apps/web/src/styles/layout.css` khoảng dòng 2127 (có `}` thừa). Typecheck vẫn pass; build chưa dùng được |
+| Docs HTML | `python tools/docs/build.py --check` | pass sau khi sinh lại; xem log số link/ID/section ở handoff |
+| Payload mẫu | `node tools/docs/check-examples.mjs` | parse đủ 5/5 payload bằng schema tương ứng |
+| Seed demo | `cd apps/api && pnpm seed` | **không chạy lại trong lượt tài liệu này**; `seed.spec.ts` pass và review trước ghi nhận idempotent. Chạy lại nếu cần bằng chứng mới |
+| MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **không chạy lại** trong lượt này; cấu hình đã có kiểm regex trước đó, chưa chứng minh broker chạy |
+
+**Kết luận có giới hạn:** bộ unit/integration API và web đang xanh khi chạy tuần tự; test API randomized còn 1 test phụ thuộc thứ tự; E2E còn 1 test fail; web production build đang fail do CSS. Vì vậy **không** được báo “build xanh” hay “toàn bộ kiểm thử đạt”.
+
+### Đối chiếu T-01…T-14
+
+| Phép kiểm | Bằng chứng hiện có | Phần chưa có/không đạt |
+| --- | --- | --- |
+| T-01 phiên | `auth.spec.ts`, `account.spec.ts`, `sse.spec.ts` S2/S3/S6; UI Settings | Chưa test logout/disable cắt SSE trong một kịch bản xuyên UI |
+| T-02 quyền hồ sơ | `care.spec.ts`, `sse.spec.ts`, `assistant.spec.ts`, `studio.spec.ts` T12/T13, `notifications.spec.ts` N4–N10 | Chưa có E2E thật mời→accept→revoke xuyên API/web |
+| T-03 chuyển thiết bị/dữ liệu cũ | `ingest.spec.ts` (assignment theo `measured_at`), `incidents.spec.ts` T19–T24 | Chưa chạy với thiết bị thật; chưa có UI xem vùng cách ly |
+| T-04 chỉ số/coverage | `measurements.spec.ts`, `insights.spec.ts`; UI History/Insights | Chưa đo với dữ liệu cảm biến thật |
+| T-05 vòng đời incident | `incidents.spec.ts` T1–T18; UI `AlertsPage` | Firmware/cửa sổ hủy thật chưa có |
+| T-06 trùng/xung đột | `ingest.spec.ts`, `incidents.spec.ts` T5/T6/T19; simulator queue test | Chưa kill worker giữa transaction; chưa broker thật |
+| T-07 outbox/restart | `notifications.spec.ts` N1–N3, `sse.spec.ts` | Chưa test crash/restart tiến trình gửi |
+| T-08 hai người ack | `incidents.spec.ts` T7–T9; UI 409 | Chưa race test đa tiến trình |
+| T-09 offline/clock/reboot | `devices.spec.ts`, `ingest.spec.ts`; UI offline/pin null | Chưa có thiết bị thật, buffer đầy hay mất nguồn |
+| T-10 SOS/hủy | `incidents.spec.ts` T11; simulator `sos` | Không có nút SOS/anti-mistap trên firmware |
+| T-11 AI thiếu dữ liệu/quyền | `assistant.spec.ts` (fallback, quyền, HR null, câu hỏi ngoài phạm vi), `dataQuality` test | Chưa test prompt injection; chưa provider thật; chưa RAG |
+| T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`; UI archive/deletion-request | Chưa có xóa cứng/retention/backup; chưa kiểm admin với dữ liệu thật |
+| T-13 Web Push | Không có service worker/Web Push | **Chưa làm**, ngoài phạm vi v2 |
+| T-14 độ trễ p95 | Không có instrumentation p50/p95 | **Chưa đo**; NFR-07 vẫn là mục tiêu |
 
 ## Ma trận yêu cầu và bằng chứng
 
@@ -31,6 +71,8 @@ Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm
 | T-14 | NFR-07 | Đo chuỗi timestamp khi dashboard online | Báo p50/p95 và số mẫu; tách cửa sổ hủy, truyền mạng, xử lý, hiển thị |
 
 T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng vẫn là **mục tiêu**: một phần đã có test tự động ở lớp sở hữu hành vi (ví dụ `apps/api/test/incidents.spec.ts` cho state machine/dedupe/ack-resolve, `apps/api/test/measurements.spec.ts` cho coverage và quyền lịch sử, `apps/api/test/care.spec.ts` cho mời/thu hồi; số suite/test hiện tại ở `README.md` mục Kiểm thử), phần còn lại chưa có test hoặc chưa có kết quả đạt. Test của một module không chứng minh phép kiểm liên thành phần (phần cứng, Web Push, độ trễ mạng thật) đã đạt.
+
+**Phần chưa chạy trong lượt này:** PostgreSQL thật/nhiều instance, MQTT broker + ACL + ACK, AI provider thật, Web Push, backup/restore, retention/xóa thật, p50/p95, load/stress, kiểm khả dụng với người cao tuổi/người chăm sóc, kiểm TLS/secret rotation, CI. Không được dùng kết quả unit/integration thay cho các phép đo này.
 
 ## Bổ sung cho AI thực thi và cấu hình động
 

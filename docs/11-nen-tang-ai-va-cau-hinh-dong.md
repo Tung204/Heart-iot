@@ -1,6 +1,8 @@
 # Nền tảng AI, web/app và cấu hình động
 
-Ngày ghi nhận: **10/11/2026**. Đây là tài liệu thu thập yêu cầu và đề xuất để chốt hướng, **chưa phải đặc tả triển khai được duyệt**. Chưa có ứng dụng, AI runtime hay cơ chế sinh module chạy được.
+Ngày ghi nhận: **10/11/2026**. Đây là tài liệu thu thập yêu cầu và đề xuất để chốt hướng, **chưa phải đặc tả triển khai được duyệt**.
+
+**Trạng thái 15/11/2026:** đã có ứng dụng IoT v1/v2 (API, web, simulator) và trợ lý tóm tắt/hỏi đáp giới hạn; **chưa có AI runtime dài hạn**, planner/tool registry, scheduler, approval flow, RAG hay cơ chế sinh module chạy được. Các mục dưới đây là đề xuất cho phần chưa triển khai, trừ khi được ghi rõ là đã có trong [chương 14](14-ke-hoach-trien-khai-phan-mem.md).
 
 Bổ sung ngày **11/11/2026**: [chương 13](13-dac-ta-thuc-thi-ai-va-cau-hinh.md) cụ thể hóa delegation, capability, vòng đời tác vụ, chống trùng, cấu hình/preview, ranh giới code và phép kiểm. [Review Codex](reviews/02-nen-tang-ai-va-cau-hinh-dong.md) ghi các khoảng trống tìm được và cách bổ sung đặc tả; chưa chứng minh cơ chế runtime đã hoạt động.
 
@@ -8,7 +10,7 @@ Bổ sung ngày **11/11/2026**: [chương 13](13-dac-ta-thuc-thi-ai-va-cau-hinh.
 
 | Nội dung | Trạng thái và nguồn |
 | --- | --- |
-| Web/app có giao diện nghiệp vụ thông thường, CRUD, tìm kiếm, lọc, báo cáo, xuất và hướng dẫn | Yêu cầu người dùng trong cuộc trao đổi và [link chia sẻ](https://chatgpt.com/share/6af3471e-9458-83ec-9204-728fa8ce2b97) |
+| Web/app có giao diện nghiệp vụ thông thường, CRUD, tìm kiếm, lọc, báo cáo, xuất và hướng dẫn | Yêu cầu người dùng trong cuộc trao đổi và [link chia sẻ](https://chatgpt.com/share/6af3471e-9458-83ec-9204-728fa8ce2b97); v1/v2 đã có một phần giao diện, chưa đủ mọi mục |
 | AI thực hiện công việc, có khả năng tự chạy trong phạm vi được giao; khách hàng ít quyền hơn admin | Yêu cầu người dùng; danh sách quyền cụ thể chưa chốt |
 | Luôn duy trì tài liệu; Dynamic / Configurable; không bịa nghiệp vụ hoặc quyết định kỹ thuật thiếu căn cứ | Yêu cầu trực tiếp ngày 10/11/2026 |
 | Frontend phải có preview và được chấp nhận trước khi áp dụng chính thức | Yêu cầu trực tiếp; cơ chế preview/phiên bản bên dưới là đề xuất |

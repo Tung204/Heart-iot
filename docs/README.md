@@ -1,8 +1,10 @@
-# Tài liệu thiết kế v0.1
+# Tài liệu thiết kế và trạng thái triển khai
 
-Ngày soạn: **10/11/2026**. Trạng thái: **bản đề xuất**, dựa trên đề cương người dùng đã lưu ngày 07/11/2026. Chưa có biểu mẫu trường, ngân sách, thời hạn, nhóm thực hiện hoặc cấu hình phần cứng đã xác nhận.
+Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần mềm: **15/11/2026**. Trạng thái: **bản đề xuất + lát cắt đã triển khai trên dữ liệu tổng hợp**, dựa trên đề cương người dùng đã lưu ngày 07/11/2026. Chưa có biểu mẫu trường, ngân sách, thời hạn, nhóm thực hiện hoặc cấu hình phần cứng đã xác nhận; chưa được giảng viên nghiệm thu.
 
-**Hướng bổ sung đang chốt:** [chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi yêu cầu AI tự thực hiện nghiệp vụ, nền tảng dùng chung, Dynamic / Configurable và preview frontend; [chương 12](12-nguyen-tac-phat-trien-va-bang-chung.md) ghi cách phát triển có tài liệu và bằng chứng. Các chương v0.1 là baseline IoT trước yêu cầu mới, cần cập nhật đồng bộ sau khi chốt; chưa phải đặc tả đầy đủ cho nền tảng AI.
+**Phần đã có mã:** API/web/simulator v1/v2, test tự động, Studio, ingest cách ly, quyền xem số đo, liên hệ khẩn cấp, lưu trữ/yêu cầu xóa (chỉ ghi nhận), quản trị thiết bị và HTML tài liệu. **Phần chưa có:** firmware ESP32, độ chính xác té ngã, Web Push, xóa vĩnh viễn/retention, MQTT sự kiện/ACK, AI Agent runtime/RAG. Đọc [chương 14](14-ke-hoach-trien-khai-phan-mem.md) để xem trạng thái, lệnh kiểm và giới hạn thực tế.
+
+**Hướng bổ sung:** [chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi yêu cầu AI tự thực hiện nghiệp vụ, nền tảng dùng chung, Dynamic / Configurable và preview frontend; [chương 12](12-nguyen-tac-phat-trien-va-bang-chung.md) ghi cách phát triển có tài liệu và bằng chứng. Các chương v0.1 là baseline IoT trước yêu cầu mới; phần đã chốt/đã làm được ghi ở chương 14, không mặc định mọi đề xuất đã được duyệt.
 
 **Bổ sung 11/11/2026:** [chương 13](13-dac-ta-thuc-thi-ai-va-cau-hinh.md) viết sâu các contract và luồng lỗi; [review Codex](reviews/02-nen-tang-ai-va-cau-hinh-dong.md) ghi bốn khoảng trống thiết kế cùng cách bổ sung và phép kiểm. Tất cả giải pháp chưa chốt vẫn giữ trạng thái đề xuất, chưa có kiểm runtime.
 
@@ -23,7 +25,7 @@ Ngày soạn: **10/11/2026**. Trạng thái: **bản đề xuất**, dựa trên
 | [11 — Nền tảng AI, web/app và cấu hình động](11-nen-tang-ai-va-cau-hinh-dong.md) | Nền tảng tổng quát gồm gì, AI tự làm tới đâu, có sửa backend không, preview frontend thế nào? |
 | [12 — Nguyên tắc phát triển và bằng chứng](12-nguyen-tac-phat-trien-va-bang-chung.md) | Duy trì docs, dùng đúng API/version, tái sử dụng và tránh sửa sót module thế nào? |
 | [13 — Đặc tả thực thi AI và cấu hình](13-dac-ta-thuc-thi-ai-va-cau-hinh.md) | Quyền, tác vụ, retry, preview, lịch/trigger, code và bằng chứng được quản lý cụ thể ra sao? |
-| [14 — Kế hoạch triển khai và trạng thái](14-ke-hoach-trien-khai-phan-mem.md) | Đã làm gì, chạy/kiểm thế nào, còn giới hạn nào, kết quả review độc lập ra sao? |
+| [14 — Kế hoạch triển khai và trạng thái](14-ke-hoach-trien-khai-phan-mem.md) | Đã làm gì (v1/v2), chạy/kiểm thế nào, còn giới hạn nào, kết quả review và trạng thái xử lý ra sao? |
 | [Quyết định kiến trúc dự thảo](decisions/0001-dinh-huong-prototype.md) | Vì sao đề xuất các lựa chọn hiện tại, khi nào xem xét lại? |
 | [Quyết định nền tảng triển khai](decisions/0002-nen-tang-trien-khai.md) | Stack, PGlite/PostgreSQL, phiên cookie, SSE và phạm vi v1 đã chốt thế nào? |
 | [Review thiết kế v0.1](reviews/01-thiet-ke-v0.1.md) | Những điểm cần sửa/làm rõ trước khi triển khai, tình huống lỗi và giới hạn kiểm chứng? |
@@ -38,5 +40,7 @@ Ngày soạn: **10/11/2026**. Trạng thái: **bản đề xuất**, dựa trên
 - **Đã kiểm chứng:** chỉ dùng khi có bằng chứng cụ thể và điều kiện thực hiện.
 
 Một số con số được đặt làm **tham số demo/đích thử nghiệm đề xuất**. Chúng không phải ngưỡng y khoa, số liệu thực nghiệm hoặc cam kết vận hành.
+
+Số test, lệnh kiểm và lỗi còn lại được ghi theo lần chạy ngày **15/11/2026** tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md) và [chương 8](08-kiem-thu-va-danh-gia.md). Tài liệu không thay cho việc chạy lại; repo chưa có CI và web production build hiện chưa đạt.
 
 [Quay lại trang dự án](../README.md).

@@ -1,15 +1,17 @@
 # Kiến trúc hệ thống
 
-> **Baseline v0.1:** kiến trúc dưới đây chưa bao gồm đầy đủ AI execution, capability registry và cấu hình động. [Chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi hướng bổ sung cần chốt; đường cảnh báo vẫn phải hoạt động độc lập với model.
+> **Baseline v0.1:** kiến trúc gốc chưa bao gồm đầy đủ AI execution, capability registry và cấu hình động. [Chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi hướng bổ sung cần chốt; đường cảnh báo vẫn phải hoạt động độc lập với model.
 
-**Đề xuất v0.1:** web responsive + backend modular monolith + PostgreSQL + MQTT broker + firmware ESP32. Chưa khóa framework, phiên bản, cloud hay nhà cung cấp AI.
+**Trạng thái 15/11/2026:** đã có web responsive + backend modular monolith + PGlite/PostgreSQL + simulator. **Chưa có firmware ESP32**, broker thật hay AI runtime dài hạn. HTTP `POST /api/v1/ingest/*` là đường ingest đang hỗ trợ; MQTT chỉ là thử nghiệm có kiểm soát. Các mục dưới đây phân biệt rõ thiết kế với phần đã chạy.
+
+**Đề xuất ban đầu:** web responsive + backend modular monolith + PostgreSQL + MQTT broker + firmware ESP32. Chưa khóa cloud hay nhà cung cấp AI.
 
 ## Các thành phần
 
 ```mermaid
 flowchart LR
     Sensors["PPG / IMU / nút bấm"] --> Device["Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"]
-    Device -->|"HTTPS: POST /api/v1/ingest/* — đường duy nhất đang hỗ trợ"| Ingest["Tiếp nhận, xác thực, chống trùng"]
+    Device -->|"HTTPS: POST /api/v1/ingest/* — đường duy nhất đang hỗ trợ"| Ingest["Tiếp nhận, xác thực, chống trùng, cách ly"]
     Device -->|"MQTT thử nghiệm: chỉ telemetry, chưa có ingest sự kiện"| Broker["MQTT broker (profile mqtt-experimental, tắt mặc định)"]
     Broker -->|"adapter chỉ subscribe telemetry, chưa kiểm với broker thật"| Ingest
     Ingest --> Backend["Backend: hồ sơ, quyền, dữ liệu, cảnh báo"]
@@ -27,6 +29,25 @@ flowchart LR
 
 
 Các module ingest, cảnh báo, thông báo và AI nằm trong một backend triển khai chung ở bản đầu. Có thể chạy worker riêng cùng codebase khi cần khôi phục tác vụ; chưa có lý do để chia microservices hoặc thêm Kubernetes.
+
+## Gán sự kiện theo assignment tại `measured_at`
+
+Đây là thay đổi v2 quan trọng: dữ liệu đến muộn hoặc thiết bị đã chuyển chủ **không** được gán cho chủ đang mở tại thời điểm nhận.
+
+- Server đọc lịch sử `device_assignments` và chọn assignment chứa `measured_at`; khoảng assignment là nửa mở `[started_at, ended_at)`. Dữ liệu đo trong assignment đã đóng thuộc chủ cũ; không chuyển sang hồ sơ mới.
+- **Telemetry**: mẫu trong assignment đang mở/đã đóng được gán đúng assignment. Dung sai `MAX_CLOCK_SKEW_SECONDS` (mặc định 120 giây, cấu hình được) chỉ nới sát biên assignment; mẫu trước assignment đầu tiên, rơi vào khoảng trống hoặc vượt hiện tại quá ngưỡng bị **cách ly**. Mẫu `clock_status=unsynced`/`measured_at=null` được lưu vào assignment đang mở nhưng không lên timeline; `synced` mà thiếu `measured_at` bị từ chối 422.
+- **Sự kiện incident**: tra toàn bộ lịch sử assignment theo `measured_at`, kiểm chính xác biên (không nới) và chỉ áp dung sai cho hướng tương lai. `measured_at=null`, trước assignment đầu tiên, ngoài khoảng assignment hoặc lệch tương lai quá ngưỡng bị cách ly. Nếu incident đã tồn tại nhưng assignment theo `measured_at` thuộc hồ sơ khác, bản tin bị từ chối với lý do `assignment_mismatch`; không ghi chéo chủ.
+- **Telemetry bị cách ly** vẫn được ghi với `is_quarantined=true` để giữ dedupe/bằng chứng, trả HTTP **202 `accepted` + `code=QUARANTINED`**; không xuất hiện trong measurements/daily-summary/insights/export/dashboard. **Sự kiện incident bị cách ly** không tạo incident/outbox/SSE, trả **202 `rejected` + `code=QUARANTINED`**, `incidentId=null`.
+- Audit `telemetry.quarantined`/`incident.quarantined` chỉ ghi id bản tin, thời gian, lý do, độ lệch và assignment; **không** ghi nhịp tim, bước chân, điện thoại hay evidence.
+
+Không có màn hình quản trị vùng cách ly; hiện chỉ kiểm qua DB/audit và test. Đây là giới hạn cần bổ sung trước khi vận hành với thiết bị thật.
+
+## SSE và thu hồi quyền
+
+- Stream `GET /subjects/:id/events` yêu cầu phiên hợp lệ và quyền `canReceiveAlerts`; mỗi vòng poll kiểm lại **phiên còn hiệu lực + tài khoản còn `active` + care link còn hiệu lực**.
+- Khi admin khóa tài khoản, phiên hết hạn hoặc care link bị thu hồi, server gửi `event: revoked` với payload rỗng rồi đóng stream. Client xóa cache hồ sơ và điều hướng an toàn; không tiếp tục nhận `alert.updated`.
+- `revoked` không chứa lý do, id phiên, số đo hay thông tin hồ sơ khác. Reconnect dùng cursor/`Last-Event-ID`, nhưng phải qua kiểm quyền lại; không có “replay” dữ liệu đã mất quyền.
+- Web hiển thị banner “Mất cập nhật trực tiếp — đang thử lại” khi stream lỗi; cảnh báo đã tải vẫn giữ, nhưng đây không phải bảo đảm thay thế Web Push.
 
 ## Công nghệ ứng viên
 
@@ -50,15 +71,19 @@ stateDiagram-v2
     [*] --> Suspected: thuật toán tạo incident
     Suspected --> Cancelled: hủy trong cửa sổ
     Suspected --> Open: thiết bị gửi confirmed
+    Suspected --> Unconfirmed: quá ngưỡng không có kết quả cuối
+    Unconfirmed --> Open: confirmed đến muộn
     Open --> Acknowledged: người thân nhận trách nhiệm
     Open --> Resolved: đóng có lý do
     Acknowledged --> Resolved: ghi kết quả hỗ trợ
     Cancelled --> [*]
+    Unconfirmed --> [*]
     Resolved --> [*]
 ```
 
-- Firmware là nơi quyết định kết thúc cửa sổ hủy, dùng đồng hồ monotonic. Tham số demo đề xuất là **20 giây**, chưa chốt sau thử thao tác.
+- Firmware là nơi quyết định kết thúc cửa sổ hủy, dùng đồng hồ monotonic. Tham số demo đề xuất là **20 giây**, chưa chốt sau thử thao tác; hiện **chưa có firmware** để kiểm.
 - `fall.candidate` chỉ tạo trạng thái `suspected`. Backend **không tự suy ra confirmed** vì hết thời gian nhận dữ liệu: có thể thiết bị đã hủy khi mất mạng.
+- Ứng viên quá hạn không có kết quả cuối được job nền chuyển sang `unconfirmed` (mặc định `SUSPECTED_TIMEOUT_MINUTES=10`, là chính sách demo). Đây là bản ghi “thiếu kết quả cuối”, không phải cảnh báo khẩn: không phát SSE, không tạo outbox; UI hiện “Chưa xác định” trong tab Đã đóng. Nếu `fall.confirmed` đến sau, incident mở lại thành `open` để không bỏ sót ca đã xác nhận.
 - `fall.cancelled` trước confirmed kết thúc incident và không gửi cảnh báo khẩn tới người thân. Nếu đã confirmed, yêu cầu hủy sau đó được ghi là `user.cancel_requested`; backend đóng với lý do và thông báo cập nhật cho những người đã nhận, không xóa lịch sử.
 - `fall.confirmed` mở cảnh báo ngay cả khi `candidate` chưa tới. `incident_id` ổn định, `event_revision` tăng trong cùng incident; dữ liệu đến trễ không được làm lùi trạng thái cuối.
 - SOS là incident riêng, mở trực tiếp sau thao tác xác nhận chủ động, không đợi 20 giây của nghi ngã.
@@ -89,6 +114,8 @@ Một confirmed đến trễ hơn 5 phút hoặc không xác định được gi
 
 ## Ranh giới quyền và vận hành
 
-Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
+Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. Adapter MQTT hiện chỉ subscribe `v1/devices/+/telemetry`, **không** subscribe sự kiện/status và **không** publish ACK; publish `fall.*`/`sos.*` lên broker không tạo incident. HTTP là đường ingest chính thức.
+
+API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Từ v2, quyền xem số đo (`canViewMeasurements`) là cổng riêng, không dùng chung với quyền nhận cảnh báo; trợ lý AI cần cả quyền xem số đo và `canViewAi`. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
 
 Backup, restore, secret rotation, giới hạn retention và quan sát lỗi được mô tả ở [lộ trình/bàn giao](09-lo-trinh-va-ho-so.md); cần bằng chứng trước khi dùng dữ liệu thật.
