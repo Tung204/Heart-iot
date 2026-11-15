@@ -41,6 +41,7 @@ import { sha256 } from '../auth/password';
 import { decodeCursor, encodeCursor } from '../common/pagination';
 import { currentRequestId } from '../common/request-context';
 import { ENV, type AppEnv } from '../config/env';
+import { resolveAssignmentForEventTime, type EventQuarantineReason } from './event-assignment';
 
 /** Kiểu executor giao dịch: chấp nhận cả DB chính lẫn transaction. */
 export type DbExecutor = Parameters<Parameters<AppDb['transaction']>[0]>[0];
@@ -314,31 +315,6 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
     const receivedAt = new Date();
     const ackBase = { sourceMessageId: envelope.message_id, receivedAt: receivedAt.toISOString() };
 
-    const assignmentRows = await this.db
-      .select()
-      .from(deviceAssignments)
-      .where(and(eq(deviceAssignments.deviceId, device.id), isNull(deviceAssignments.endedAt)))
-      .limit(1);
-    const assignment = assignmentRows[0];
-    if (!assignment) {
-      await this.audit.record({
-        actorKind: 'device',
-        action: 'incident.ingest',
-        targetType: 'device',
-        targetId: device.id,
-        outcome: 'denied',
-        metadata: { code: 'DEVICE_NOT_CLAIMED', messageId: envelope.message_id, incidentId: envelope.incident_id },
-      });
-      return ingestAckSchema.parse({
-        ...ackBase,
-        status: 'rejected',
-        incidentId: null,
-        acceptedRevision: null,
-        code: 'DEVICE_NOT_CLAIMED',
-        message: 'Thiết bị chưa được gán vào hồ sơ nào.',
-      });
-    }
-
     return this.db.transaction(async (tx) => {
       // 1) Bản tin này đã được lưu chưa? (unique device_id + message_id)
       const storedMessage = await tx
@@ -392,7 +368,54 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
-      // 2) Khóa/tạo incident theo namespace (device_id, device_incident_id).
+      // 2) Xác định assignment theo thời điểm đo, không theo chủ đang mở hồ sơ.
+      //    Thiết bị đã chuyển chủ vẫn có thể gửi sự kiện cũ thuộc assignment đã
+      //    kết thúc; sự kiện không có mốc thời gian tin cậy bị cách ly thay vì
+      //    mặc định gán cho chủ hiện tại (docs/03, docs/04, docs/08 T-03).
+      const assignments = await tx
+        .select()
+        .from(deviceAssignments)
+        .where(eq(deviceAssignments.deviceId, device.id))
+        .orderBy(asc(deviceAssignments.startedAt), asc(deviceAssignments.id));
+      if (assignments.length === 0) {
+        await this.audit.record(
+          {
+            actorKind: 'device',
+            action: 'incident.ingest',
+            targetType: 'device',
+            targetId: device.id,
+            outcome: 'denied',
+            metadata: {
+              code: 'DEVICE_NOT_CLAIMED',
+              messageId: envelope.message_id,
+              incidentId: envelope.incident_id,
+            },
+          },
+          tx,
+        );
+        return ingestAckSchema.parse({
+          ...ackBase,
+          status: 'rejected',
+          incidentId: null,
+          acceptedRevision: null,
+          code: 'DEVICE_NOT_CLAIMED',
+          message: 'Thiết bị chưa được gán vào hồ sơ nào.',
+        });
+      }
+
+      const measuredAt = envelope.measured_at ? new Date(envelope.measured_at) : null;
+      const resolution = resolveAssignmentForEventTime({
+        assignments,
+        measuredAt,
+        receivedAt,
+        clockSkewMs: this.env.MAX_CLOCK_SKEW_SECONDS * 1000,
+      });
+      if (resolution.kind === 'quarantined') {
+        return this.quarantineEvent(tx, device, envelope, measuredAt, receivedAt, resolution.reason);
+      }
+      const assignment = resolution.assignment;
+
+      // 3) Khóa/tạo incident theo namespace (device_id, device_incident_id).
       let incidentRow = (
         await tx
           .select()
@@ -403,7 +426,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       )[0];
       let created = false;
       if (!incidentRow) {
-        const detectedAt = envelope.measured_at ? new Date(envelope.measured_at) : receivedAt;
+        const detectedAt = measuredAt ?? receivedAt;
         try {
           const inserted = await tx
             .insert(incidents)
@@ -437,9 +460,22 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       }
       if (!incidentRow) throw new Error('Không thể tạo hoặc đọc incident.');
 
+      // Incident đã lưu không đổi chủ. Nếu thời điểm đo chỉ ra hồ sơ khác,
+      // không được ghi sự kiện mới vào incident cũ của chủ trước.
+      if (incidentRow.subjectId !== assignment.subjectId) {
+        return this.quarantineEvent(
+          tx,
+          device,
+          envelope,
+          measuredAt,
+          receivedAt,
+          'assignment_mismatch',
+        );
+      }
+
       const revision = envelope.event_revision;
 
-      // 3) Revision cũ đến sau: không lùi trạng thái. Nếu revision này chưa có
+      // 4) Revision cũ đến sau: không lùi trạng thái. Nếu revision này chưa có
       //    sự kiện nào thì lưu lịch sử applied=false; nếu slot đã có (unique
       //    incidentId+eventRevision của schema) thì so nội dung: giống → accepted,
       //    khác → lỗi giao thức, từ chối + audit.
@@ -483,7 +519,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
-      // 4) Cùng revision đã có sự kiện: so nội dung để trả duplicate hoặc từ chối.
+      // 5) Cùng revision đã có sự kiện: so nội dung để trả duplicate hoặc từ chối.
       if (!created && revision === incidentRow.lastRevision) {
         const existing = await tx
           .select()
@@ -527,7 +563,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         // vẫn áp dụng transition bên dưới, không nâng lastRevision.
       }
 
-      // 5) Áp dụng transition.
+      // 6) Áp dụng transition.
       const transition = applyTransition(incidentRow.state, envelope.event_type);
       const stateChanged = transition.state !== incidentRow.state;
       const newVersion = stateChanged ? incidentRow.version + 1 : incidentRow.version;
@@ -559,7 +595,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       }
       await tx.update(incidents).set(setPatch).where(eq(incidents.id, incidentRow.id));
 
-      // 6) Realtime: chỉ phát khi trạng thái không còn là suspected (không lộ
+      // 7) Realtime: chỉ phát khi trạng thái không còn là suspected (không lộ
       //    incident chưa xác nhận ra stream của người thân).
       const revisionChanged = created || revision > incidentRow.lastRevision;
       if ((stateChanged || revisionChanged) && transition.state !== 'suspected') {
@@ -572,7 +608,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         });
       }
 
-      // 7) Outbox trong cùng transaction.
+      // 8) Outbox trong cùng transaction.
       if (stateChanged && transition.state === 'open') {
         await this.createOutboxRows(tx, incidentRow.id, incidentRow.subjectId, newVersion, 'alert');
       }
@@ -591,6 +627,55 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         code: null,
         message: null,
       });
+    });
+  }
+
+  /**
+   * Từ chối sự kiện không xác định được assignment an toàn. Chỉ ghi audit
+   * `incident.quarantined` với id/thời gian/lý do; không tạo incident, outbox
+   * hay SSE, và metadata không chứa evidence sức khỏe.
+   */
+  private async quarantineEvent(
+    tx: DbExecutor,
+    device: DeviceRow,
+    envelope: IncidentEnvelope,
+    measuredAt: Date | null,
+    receivedAt: Date,
+    reason: EventQuarantineReason,
+  ): Promise<IngestAck> {
+    await this.audit.record(
+      {
+        actorKind: 'device',
+        action: 'incident.quarantined',
+        targetType: 'device',
+        targetId: device.id,
+        outcome: 'failed',
+        metadata: {
+          messageId: envelope.message_id,
+          bootId: envelope.boot_id,
+          sequence: envelope.sequence,
+          incidentId: envelope.incident_id,
+          reason,
+          measuredAt: measuredAt?.toISOString() ?? null,
+          clockSkewSeconds:
+            measuredAt === null
+              ? null
+              : Math.round((measuredAt.getTime() - receivedAt.getTime()) / 1000),
+        },
+      },
+      tx,
+    );
+    this.logger.warn(
+      `Sự kiện cách ly: device=${device.id} message=${envelope.message_id} reason=${reason}`,
+    );
+    return ingestAckSchema.parse({
+      sourceMessageId: envelope.message_id,
+      receivedAt: receivedAt.toISOString(),
+      status: 'rejected',
+      incidentId: null,
+      acceptedRevision: null,
+      code: 'QUARANTINED',
+      message: 'Sự kiện không xác định được hồ sơ theo thời điểm đo nên đã được cách ly để kiểm tra.',
     });
   }
 
