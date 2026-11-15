@@ -79,7 +79,7 @@ const CONTACT = {
 
 type Calls = { assistant: string[]; alerts: string[]; status: string[] };
 
-/** Harness nhỏ mô phỏng SubjectSwitcher: đổi hồ sơ không đổi pathname. */
+/** Harness nhỏ mô phỏng dòng ngữ cảnh: đổi hồ sơ không đổi pathname. */
 function SwitchHarness() {
   return (
     <>
@@ -158,6 +158,9 @@ describe('Hôm nay (/app)', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Hôm nay' })).toBeInTheDocument();
     expect(screen.getByText('Bà Năm')).toBeInTheDocument();
+    // v6: dòng ngữ cảnh gọn thay card “Hồ sơ đang xem”; không lặp nhãn/link quản lý.
+    expect(screen.queryByText(/Hồ sơ đang xem/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Quản lý và chia sẻ' })).not.toBeInTheDocument();
     expect(await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`)).toBeInTheDocument();
 
     // Không tự gọi API tóm tắt; tài liệu dài của v3 không còn trên màn đầu.
@@ -337,6 +340,29 @@ describe('Hôm nay (/app)', () => {
     expect(screen.getAllByRole('link', { name: /Sức khỏe/ })).toHaveLength(1);
   });
 
+  it('link Sức khỏe 7 ngày + dòng giới hạn đứng ngay dưới khối trạng thái, không trôi theo hội thoại', async () => {
+    renderPage(<AssistantPage />, todayHandler());
+    const user = userEvent.setup();
+
+    const link = await screen.findByRole('link', { name: 'Sức khỏe 7 ngày →' });
+    const note = screen.getByText('Dữ liệu mô phỏng · không thay thế cấp cứu.');
+    const input = screen.getByLabelText(/^Câu hỏi/);
+
+    // Cùng một khối meta và đứng trước ô hỏi, không nằm sau hội thoại.
+    expect(link.parentElement?.parentElement).toBe(note.parentElement);
+    expect(
+      link.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    await user.type(input, 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    const thread = await screen.findByRole('log');
+
+    expect(
+      link.compareDocumentPosition(thread) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it('chưa nhận dữ liệu → nói rõ và mở đường kiểm tra thiết bị', async () => {
     renderPage(
       <AssistantPage />,
@@ -514,6 +540,31 @@ describe('Hôm nay (/app)', () => {
     expect(screen.getByText('Nhịp tim hôm nay thế nào?')).toBeInTheDocument();
     expect(screen.getByText('Pin thiết bị còn bao nhiêu?')).toBeInTheDocument();
     expect(screen.getAllByText('Bạn')).toHaveLength(2);
+  });
+
+  it('nhiều hồ sơ: select trên Hôm nay đổi hồ sơ đang xem và xóa hội thoại cũ', async () => {
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        subjects: [OWNER_SUBJECT, SECOND_SUBJECT],
+        ask: () => mockResponse({ ...READY_ANSWER, answer: 'Câu trả lời của hồ sơ đầu tiên.' }),
+      }),
+    );
+    const user = userEvent.setup();
+
+    await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`);
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Nhịp tim hôm nay thế nào?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    expect(await screen.findByText('Câu trả lời của hồ sơ đầu tiên.')).toBeInTheDocument();
+
+    const select = screen.getByRole('combobox', { name: 'Chọn hồ sơ' });
+    await user.selectOptions(select, SECOND_SUBJECT.id);
+
+    await waitFor(() =>
+      expect(screen.queryByText('Câu trả lời của hồ sơ đầu tiên.')).not.toBeInTheDocument(),
+    );
+    expect(select).toHaveValue(SECOND_SUBJECT.id);
+    expect((screen.getByLabelText(/^Câu hỏi/) as HTMLTextAreaElement).value).toBe('');
   });
 
   it('đổi hồ sơ → hội thoại cũ biến mất, ô hỏi trống', async () => {

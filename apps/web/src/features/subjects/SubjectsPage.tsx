@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import type { ZodIssue } from 'zod';
 import {
   archiveSubjectSchema,
@@ -14,13 +15,10 @@ import {
   type UpdateSubjectInput,
 } from '@annhien/contracts/subjects';
 import { Alert } from '../../components/Alert';
-import { Button, ButtonLink } from '../../components/Button';
-import { Card } from '../../components/Card';
-import { EmptyState } from '../../components/EmptyState';
+import { Button } from '../../components/Button';
 import { ErrorState } from '../../components/ErrorState';
 import { TextField } from '../../components/Field';
 import { PageLoader } from '../../components/PageLoader';
-import { StatusPill } from '../../components/StatusPill';
 import { formatDateTime } from '../../lib/format';
 import {
   apiRequest,
@@ -105,13 +103,15 @@ function DangerConsequences({ mode }: { mode: DangerMode }) {
 }
 
 /**
- * /app/subjects — quản lý hồ sơ:
- * - Tạo hồ sơ (tên + múi giờ, mặc định Asia/Ho_Chi_Minh).
- * - Sửa tên hồ sơ mình sở hữu.
- * - Đi tới màn hình chia sẻ cho hồ sơ sở hữu.
+ * /app/subjects — quản lý hồ sơ theo dạng hàng gọn:
+ * - Header một hàng: H1 + nút `Thêm người`; form tạo chỉ mở khi bấm.
+ * - Mỗi hồ sơ: tên, vai trò, trạng thái quyền và ba lối tắt Xem sức khỏe /
+ *   Chia sẻ / Thiết bị; `Xem sức khỏe` và `Thiết bị` đặt hồ sơ đó làm hồ sơ
+ *   đang xem trước khi điều hướng.
+ * - `Thêm thao tác` gộp Sửa tên / Lưu trữ / Yêu cầu xóa ở cuối hàng.
  * - Lưu trữ hồ sơ và ghi nhận yêu cầu xóa dữ liệu (FR-14): form tại chỗ có
  *   xác nhận gõ đúng tên, chỉ chủ hồ sơ thấy; không dùng window.confirm/prompt.
- * - Vai trò (chủ/người thân) và quyền hiển thị rõ; không hiển thị dữ liệu sức khỏe.
+ * - Không hiển thị dữ liệu sức khỏe trên màn này.
  */
 export function SubjectsPage() {
   const subjects = useSubjects();
@@ -302,19 +302,43 @@ export function SubjectsPage() {
 
   return (
     <div className="stack">
-      <header>
+      <header className="subjects-page__header">
         <h1 className="page-title">Người thân</h1>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setCreateOpen((value) => !value)}
+          aria-expanded={createOpen}
+          aria-controls="subject-create-form"
+        >
+          {createOpen ? 'Đóng' : 'Thêm người'}
+        </Button>
       </header>
 
-      {items.length === 0 ? (
-        <Card title="Tạo hồ sơ đầu tiên">
+      {createOpen ? (
+        <section
+          id="subject-create-form"
+          className="subjects-page__create"
+          aria-labelledby="subject-create-heading"
+        >
+          <h2 id="subject-create-heading" className="visually-hidden">
+            Thêm người
+          </h2>
           {formError ? <Alert tone="error">{formError}</Alert> : null}
           <SubjectForm
             mode="create"
             pending={create.isPending}
+            onCancel={() => setCreateOpen(false)}
             onSubmit={(values) => create.mutate(values)}
           />
-        </Card>
+        </section>
+      ) : null}
+
+      {items.length === 0 ? (
+        <p className="subjects-page__empty">
+          Chưa có hồ sơ nào. Thêm người cần theo dõi để bắt đầu nhận dữ liệu và mời người thân
+          cùng xem.
+        </p>
       ) : (
         <>
           <section aria-labelledby="subject-list-heading">
@@ -344,47 +368,51 @@ export function SubjectsPage() {
                 const confirmId = `subject-danger-confirm-${item.id}`;
                 return (
                   <li key={item.id} className="subject-list__item">
-                    <div className="subject-list__info">
-                      <p className="subject-list__name">{item.displayName}</p>
-                      <p className="subject-list__meta">
-                        <StatusPill tone={item.role === 'caregiver' ? 'sand' : 'teal'}>
-                          {item.role === 'caregiver' ? 'Người thân xem hộ' : 'Chủ hồ sơ'}
-                        </StatusPill>
-                        {item.permissions.canReceiveAlerts ? ' · nhận cảnh báo' : ''}
-                      </p>
-                    </div>
-                    <div className="subject-list__actions">
-                      <ButtonLink to="/app/overview" variant="secondary" size="sm">
-                        Xem sức khỏe
-                      </ButtonLink>
-                      {isOwner ? (
-                        <ButtonLink
-                          to={`/app/subjects/${item.id}/share`}
-                          variant="secondary"
-                          size="sm"
+                    <div className="subject-list__row">
+                      <div className="subject-list__info">
+                        <p className="subject-list__name">{item.displayName}</p>
+                        <p className="subject-list__meta">
+                          <span>
+                            {item.role === 'caregiver' ? 'Người thân xem hộ' : 'Chủ hồ sơ'}
+                          </span>
+                          <span aria-hidden="true">·</span>
+                          <span>
+                            {item.permissions.canReceiveAlerts
+                              ? 'nhận cảnh báo'
+                              : 'không nhận cảnh báo'}
+                          </span>
+                          {item.permissions.canViewMeasurements === false ? (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span>không xem số đo</span>
+                            </>
+                          ) : null}
+                        </p>
+                      </div>
+                      <div className="subject-list__actions">
+                        <Link
+                          className="subject-list__action"
+                          to="/app/overview"
+                          onClick={() => setActiveSubjectId(item.id)}
                         >
-                          Chia sẻ
-                        </ButtonLink>
-                      ) : null}
-                      <ButtonLink to="/app/devices" variant="subtle" size="sm">
-                        Thiết bị
-                      </ButtonLink>
-                      {isOwner ? (
-                        editingId === item.id ? (
-                          <div className="subject-list__edit">
-                            <SubjectForm
-                              mode="edit"
-                              initial={{ displayName: item.displayName, timezone: item.timezone }}
-                              pending={update.isPending}
-                              submitLabel="Lưu"
-                              onCancel={() => setEditingId(null)}
-                              onSubmit={(values) => update.mutate({ id: item.id, input: values })}
-                            />
-                            {update.isError ? (
-                              <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
-                            ) : null}
-                          </div>
-                        ) : (
+                          Xem sức khỏe
+                        </Link>
+                        {isOwner ? (
+                          <Link
+                            className="subject-list__action"
+                            to={`/app/subjects/${item.id}/share`}
+                          >
+                            Chia sẻ
+                          </Link>
+                        ) : null}
+                        <Link
+                          className="subject-list__action"
+                          to="/app/devices"
+                          onClick={() => setActiveSubjectId(item.id)}
+                        >
+                          Thiết bị
+                        </Link>
+                        {isOwner && editingId !== item.id ? (
                           <details className="subject-list__more">
                             <summary className="subject-list__more-summary">Thêm thao tác</summary>
                             <div className="subject-list__more-body">
@@ -430,9 +458,25 @@ export function SubjectsPage() {
                               </div>
                             </div>
                           </details>
-                        )
-                      ) : null}
+                        ) : null}
+                      </div>
                     </div>
+
+                    {isOwner && editingId === item.id ? (
+                      <div className="subject-list__edit">
+                        <SubjectForm
+                          mode="edit"
+                          initial={{ displayName: item.displayName, timezone: item.timezone }}
+                          pending={update.isPending}
+                          submitLabel="Lưu"
+                          onCancel={() => setEditingId(null)}
+                          onSubmit={(values) => update.mutate({ id: item.id, input: values })}
+                        />
+                        {update.isError ? (
+                          <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
+                        ) : null}
+                      </div>
+                    ) : null}
 
                     {isOwner && dangerOpen && dangerTarget ? (
                       <section
@@ -551,35 +595,6 @@ export function SubjectsPage() {
                 );
               })}
             </ul>
-          </section>
-
-          <section aria-labelledby="subject-create-heading">
-            <div className="section-heading-row">
-              <h2 id="subject-create-heading" className="section-title">
-                Thêm người
-              </h2>
-              <Button
-                variant={createOpen ? 'subtle' : 'secondary'}
-                size="sm"
-                onClick={() => setCreateOpen((value) => !value)}
-                aria-expanded={createOpen}
-                aria-controls="subject-create-form"
-              >
-                {createOpen ? 'Đóng form' : 'Tạo hồ sơ mới'}
-              </Button>
-            </div>
-            {createOpen ? (
-              <div id="subject-create-form">
-                <Card>
-                  {formError ? <Alert tone="error">{formError}</Alert> : null}
-                  <SubjectForm
-                    mode="create"
-                    pending={create.isPending}
-                    onSubmit={(values) => create.mutate(values)}
-                  />
-                </Card>
-              </div>
-            ) : null}
           </section>
         </>
       )}
