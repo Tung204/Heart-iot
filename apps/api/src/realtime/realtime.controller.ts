@@ -1,7 +1,9 @@
 import { Controller, Get, Param, Req, Res } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { idSchema, type UserSummary } from '@annhien/contracts';
 import { CurrentUser } from '../auth/auth.decorators';
+import type { AuthenticatedRequest } from '../auth/session.guard';
+import { AppError } from '../common/app-error';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { AccessService } from '../access/access.service';
 import { RealtimeService } from './realtime.service';
@@ -17,9 +19,13 @@ export class RealtimeController {
   async events(
     @CurrentUser() user: UserSummary,
     @Param('id', new ZodValidationPipe(idSchema)) subjectId: string,
-    @Req() req: Request,
+    @Req() req: AuthenticatedRequest,
     @Res() res: Response,
   ): Promise<void> {
+    // SessionGuard đã resolve phiên; giữ sessionId để stream kiểm lại mỗi vòng.
+    const sessionId = req.sessionId;
+    if (!sessionId) throw AppError.unauthenticated('Phiên đăng nhập đã hết hạn.');
+
     // Kiểm quyền nhận cảnh báo trước khi mở stream; các vòng sau kiểm lại trong service.
     await this.access.requireAction(user.id, subjectId, 'receive_alerts');
 
@@ -35,6 +41,6 @@ export class RealtimeController {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    await this.realtime.stream(user.id, subjectId, res, cursor);
+    await this.realtime.stream(user.id, subjectId, sessionId, res, cursor);
   }
 }

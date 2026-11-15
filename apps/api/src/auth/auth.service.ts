@@ -347,6 +347,27 @@ export class AuthService {
     await this.db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, sessionId));
   }
 
+  /**
+   * Kiểm nhanh một phiên còn hiệu lực và tài khoản còn `active`.
+   * Dùng cho vòng poll của stream đang mở (SSE); chỉ trả boolean, không log
+   * token/sessionId và không ném lỗi nghiệp vụ.
+   */
+  async isSessionActive(sessionId: string): Promise<boolean> {
+    const rows = await this.db
+      .select({ status: users.status })
+      .from(sessions)
+      .innerJoin(users, eq(users.id, sessions.userId))
+      .where(
+        and(
+          eq(sessions.id, sessionId),
+          isNull(sessions.revokedAt),
+          gt(sessions.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+    return rows[0]?.status === 'active';
+  }
+
   async deleteExpiredSessions(): Promise<void> {
     await this.db.delete(sessions).where(sql`expires_at < now() - interval '7 days'`);
   }
