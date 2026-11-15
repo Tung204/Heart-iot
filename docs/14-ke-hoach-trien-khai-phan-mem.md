@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2 ngày **15/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3 ngày **15/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -144,7 +144,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 6. Không commit secret/.env; `.env.example` chỉ tên biến.
 7. Cập nhật docs nguồn + sinh lại HTML trước khi báo hoàn thành.
 
-**Trạng thái cổng ngày 15/11/2026:** typecheck, unit test API/web, API randomized (214/214), E2E (7/7) và production build web đều đã chạy lại và đạt trên máy dev. Đây là bằng chứng phần mềm, không thay cho kiểm PostgreSQL/MQTT thật, firmware/độ chính xác hay khả dụng người cao tuổi.
+**Trạng thái cổng ngày 15/11/2026:** typecheck, unit test API/web, API randomized (218/218), E2E (10/10) và production build web đều đã chạy lại và đạt trên máy dev. Đây là bằng chứng phần mềm, không thay cho kiểm PostgreSQL/MQTT thật, firmware/độ chính xác hay khả dụng người cao tuổi.
 
 ## 9. Rủi ro đã biết
 
@@ -159,7 +159,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 
 ## 10. Định nghĩa hoàn thành v1
 
-- Các cổng kỹ thuật mục 8 đã chạy lại với output thật: API 214 test, web 178 test, randomized 214/214, E2E 7/7, build web pass. **Chưa đạt đầy đủ** ở phần bằng chứng thực tế: MQTT broker/ACK, PostgreSQL thật, firmware/độ chính xác, retention/xóa thật và khả dụng người cao tuổi.
+- Các cổng kỹ thuật mục 8 đã chạy lại với output thật: API 218 test, web 197 test, randomized 218/218, E2E 10/10, build web pass. **Chưa đạt đầy đủ** ở phần bằng chứng thực tế: MQTT broker/ACK, PostgreSQL thật, firmware/độ chính xác, retention/xóa thật và khả dụng người cao tuổi.
 - Reviewer độc lập không còn finding P0/P1 mở; P2 còn lại được ghi rõ. **Hiện chưa có vòng review độc lập cuối cho toàn bộ v2**; hai reviewer v2 đã chạy; các fix sau báo cáo mới có test cục bộ, chưa có vòng tái kiểm độc lập cuối. P1 privacy/retention và P0-2 MQTT vẫn mở.
 - README/API/UI dùng được theo hướng dẫn; demo script tái lập từ DB rỗng. **Chưa kiểm lại demo từ DB rỗng trong lượt tài liệu này.**
 - Docs nguồn được cập nhật; HTML build `--check` đạt.
@@ -172,7 +172,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 ### Đã có mã chạy được
 
 - **API** (`apps/api`, NestJS 11 + Drizzle + PGlite/PostgreSQL): xác thực phiên và cài đặt tài khoản; hồ sơ, lời mời/chia sẻ quyền có `canViewMeasurements`; lưu trữ hồ sơ + ghi nhận yêu cầu xóa; liên hệ khẩn cấp; thiết bị claim/release/rotate; ingest HTTP + MQTT adapter, chống trùng, assignment theo `measured_at`, cách ly; đo lường/tổng hợp/CSV/insights 7–30 ngày; cảnh báo có state machine (gồm `unconfirmed`) + ack/resolve compare-and-set; outbox + SSE có `revoked`; Studio draft/preview/publish/rollback; trợ lý tóm tắt/hỏi đáp có `dataQuality` và fallback; bảo trì xem/tạo/đóng; admin user/device/policy CAS/audit.
-- **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký, khung ứng dụng, tổng quan + xu hướng, lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ + lưu trữ/yêu cầu xóa, thiết bị, chia sẻ + liên hệ khẩn cấp, thông báo + badge/banner, cài đặt tài khoản, Studio, trợ lý, công việc, quản trị thiết bị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
+- **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký, khung ứng dụng; **`/app` là không gian trợ lý mặc định**, `/app/overview` là dashboard chi tiết; lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ + lưu trữ/yêu cầu xóa, thiết bị, chia sẻ + liên hệ khẩn cấp, thông báo + badge/banner, cài đặt tài khoản, Studio, công việc, quản trị thiết bị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
 - **Simulator** (`tools/simulator`): telemetry theo profile, fall cancel/confirm/duplicate/late/sos, queue retry, không in device key; đã chạy end-to-end với API.
 - **Seed demo** idempotent: 3 tài khoản, 2 hồ sơ, thiết bị, telemetry tổng hợp 6 ngày, cảnh báo, task, outbox, liên hệ khẩn cấp demo. Dữ liệu telemetry ghi `source='simulator'` và hiển thị `is_synthetic=true`.
 
@@ -196,22 +196,32 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 | Cửa sổ chia sẻ | `historyDays`/`sharedFrom` áp cho lịch sử, cảnh báo, notification, Studio, AI | `incidents.spec.ts`, `notifications.spec.ts` N4–N10, test caregiver window |
 | Hiệu năng/a11y/motion | Code-split route, font self-host, focus/contrast, chuyển trang nhẹ, `prefers-reduced-motion` | Test web và handoff v2; chưa đo mạng thật |
 
+### Lát cắt v3 — trợ lý là trung tâm (15/11/2026)
+
+| Thay đổi | Hành vi chính | Bằng chứng |
+| --- | --- | --- |
+| Trợ lý là route mặc định | `/app` mở AssistantPage; dashboard chuyển `/app/overview`; `/app/assistant` giữ tương thích; nav Trợ lý đầu, Tổng quan thứ hai; admin-only về `/app/admin` | `router.test.tsx`, `AppShell.test.tsx`, `e2e/assistant.spec.ts` |
+| Hội thoại và bối cảnh | Bản tin đầu ngắn + 4 fact; chi tiết/nguồn/DataQualityPanel trong `<details>`; hội thoại nhiều lượt; composer trên thread; cột bối cảnh cảnh báo/lần nhận cuối/liên kết | `AssistantPage.test.tsx` 15 test, `e2e/assistant.spec.ts`, ảnh 1280/390/360/chữ lớn |
+| Quyền và cô lập hồ sơ | 403 thiếu quyền số đo hiển thị trạng thái quyền, khóa gửi và không retry vô ích; thiếu `canReceiveAlerts` không gọi API cảnh báo; đổi hồ sơ reset thread, bỏ phản hồi muộn | `AssistantPage.test.tsx`; `incidents.spec.ts` 29 test |
+| Ngôn ngữ sản phẩm | Bỏ “Bản demo/đồ án/giảng viên/nghiệm thu” khỏi text/metadata/aria-label web; giữ nhãn nguồn mô phỏng/disclaimer; landing/login/footer/settings đồng bộ | `LandingPage.test.tsx`, `AppShell.test.tsx`, grep copy trong e2e |
+| Mobile | Composer + nút Gửi nằm trên bottom-nav ở 390/360/chữ lớn; gợi ý gọn một hàng; 0 tràn ngang | ảnh `C:/tmp/ui-v3-assistant`, `C:/tmp/ui-v3-live-*`; bounding box trong handoff v3 |
+
 ### Lệnh kiểm đã dùng
 
 ```bash
 pnpm -r typecheck
 pnpm build:contracts
 cd apps/api && pnpm test
-cd apps/api && pnpm test:random --seed=1288443891
+cd apps/api && pnpm test:random --seed=20261115
 cd apps/web && pnpm test
 cd apps/web && pnpm build          # pass; chunk theo route
-cd apps/web && pnpm test:e2e       # 7/7
+cd apps/web && pnpm test:e2e       # 10/10
 cd tools/simulator && npm test
 node tools/docs/check-examples.mjs # sau pnpm build:contracts
 python tools/docs/build.py --check
 ```
 
-Kết quả chạy ngày **15/11/2026**: API **20 suite/214 test pass** (109,2 s); web **32 file/178 test pass** (11,2 s); simulator **23 pass**; typecheck pass; API randomized seed `1288443891` **214/214**; E2E **7/7**; web production build **pass**; docs `--check` và payload mẫu pass; seed DB trống pass (3 user/2 hồ sơ/1 thiết bị/1.681 telemetry/1 liên hệ khẩn cấp demo). Không chạy PostgreSQL/MQTT broker thật, Web Push, AI provider thật, p95 hay kiểm khả dụng trong lượt này. Bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; không dùng con số trong tài liệu này thay cho việc chạy lại.
+Kết quả chạy ngày **15/11/2026** (sau merge v3): API **20 suite/218 test pass** (228,8 s); web **33 file/197 test pass** (12,3 s); simulator **23 pass**; typecheck pass; API randomized seed `20261115` **218/218**; E2E **10/10**; web production build **pass** (chunk lớn nhất ~271 kB); docs `--check` và payload mẫu pass; seed DB trống pass (3 user/2 hồ sơ/1 thiết bị/1.681 telemetry/1 liên hệ khẩn cấp demo). Không chạy PostgreSQL/MQTT broker thật, Web Push, AI provider thật, p95 hay kiểm khả dụng trong lượt này. Bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; không dùng con số trong tài liệu này thay cho việc chạy lại.
 
 ### Chưa làm hoặc chưa đủ bằng chứng
 
@@ -226,7 +236,7 @@ Kết quả chạy ngày **15/11/2026**: API **20 suite/214 test pass** (109,2 s
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
 - **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
 - **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, retention/xóa cứng/backup; deletion-request mới ghi audit. Không tuyên bố tuân thủ pháp lý.
-- **Tái kiểm độc lập sau fix v2** — đã có 2 reviewer độc lập (tính năng, bảo mật) và 13 báo cáo QA; các fix sau báo cáo mới có test cục bộ, chưa có vòng reviewer thứ ba xác nhận từng finding. Không đóng finding chỉ vì có handoff.
+- **Tái kiểm độc lập sau fix v2/v3** — đã có 2 reviewer độc lập (tính năng, bảo mật) và 13 báo cáo QA; các fix sau báo cáo mới có test cục bộ, chưa có vòng reviewer thứ ba xác nhận từng finding. **v3 trợ lý trung tâm chưa có reviewer độc lập**; worker tự kiểm 197 test/10 E2E nhưng lead chỉ kiểm lại unit/build/visual, chưa kiểm Firefox/WebKit/AI thật. Không đóng finding chỉ vì có handoff.
 
 ### Giới hạn vận hành đã biết
 
@@ -247,7 +257,7 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 - **Bảo mật/phân quyền** (`reports/qa/v2-rev-security.md`, `v2-security-authz.md`): các P1 đã có fix/test cục bộ — event ingest theo assignment, MQTT surface/ACL mẫu, quyền số đo tách cảnh báo, SSE thu hồi, notification boundary. **Còn mở** P0-2 MQTT event/ACK và các P2 như lockout DoS, enumeration, cursor alerts, security headers, admin task không cần care link, giới hạn export/SSE.
 - **Toàn vẹn dữ liệu** (`reports/qa/v2-data-integrity.md`): quarantine/assignment, notification boundary, last telemetry, status boundary đã có fix/test; chưa có UI xem vùng cách ly, chưa kiểm PostgreSQL thật.
 - **IoT/protocol** (`reports/qa/v2-iot-protocol.md`): broker bị hạ xuống profile thử nghiệm, HTTP là đường chính thức; **P0-2 vẫn mở** vì chưa có ingest sự kiện/ACK qua MQTT và chưa kiểm ACL/TLS broker thật.
-- **Chất lượng kiểm thử** (`reports/qa/v2-chat-luong-kiem-thu.md`): hermetic env và randomize đã được cải thiện; đã sửa phụ thuộc thứ tự còn lại; randomized 214/214, E2E 7/7, build pass. Không dùng “214 test pass” để nói toàn bộ hệ thống đã kiểm.
+- **Chất lượng kiểm thử** (`reports/qa/v2-chat-luong-kiem-thu.md`): hermetic env và randomize đã được cải thiện; đã sửa phụ thuộc thứ tự còn lại. Tại v2 đạt randomized 214/214, E2E 7/7; sau v3 hiện là randomized 218/218, E2E 10/10, build pass. Không dùng “218 test pass” để nói toàn bộ hệ thống đã kiểm.
 - **Hiệu năng** (`reports/qa/v2-hieu-nang-va-on-dinh-tai-trang.md`): code-split/font/lịch sử đã tối ưu; số đo p95 trước đó là trên PGlite cục bộ, không đại diện mạng thật và chưa chạy lại sau v2.
 
 **Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: MQTT P0-2 mở, chưa có xóa/retention thật, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.

@@ -52,3 +52,13 @@ hay checklist tiến độ; chi tiết và bằng chứng nằm ở các file ng
   không được biến thành assertion “đúng 2 request”. Sửa test theo ý định, không nới hành vi.
 - **Visual gate sau cùng:** mở vai trò caregiver/admin, 390/360/chữ lớn; kiểm nút disabled có lý do,
   link đúng vai trò, badge mobile, tràn ngang. Ảnh full-page có thể đặt nav sai vị trí.
+
+## v3 (trợ lý trung tâm)
+
+- **IA là yêu cầu sản phẩm, không phải chi tiết UI:** đổi route mặc định (`/app` → trợ lý, dashboard → `/app/overview`) phải được test ở router, nav, sau đăng nhập và E2E; không chỉ đổi nhãn menu.
+- **Kiểm hành động chính trong viewport đầu:** ảnh 390/360 phải thấy ô hỏi + nút Gửi, không chỉ `scrollWidth == clientWidth`. Đo bounding box so với bottom-nav; ẩn page lead/hint nếu cần, không đẩy hành động xuống dưới.
+- **State gắn hồ sơ phải reset theo `subjectId`:** thread, câu hỏi, lỗi và mutation đang chờ. Bỏ phản hồi muộn bằng ref; test cả “đổi hồ sơ” và “phản hồi về sau khi đổi”.
+- **403 là trạng thái quyền:** không hiển thị “Thử lại” vô ích; khóa gửi câu hỏi, giải thích thiếu `canViewMeasurements`; không gọi API cảnh báo khi thiếu `canReceiveAlerts`.
+- **Bỏ copy demo nhưng giữ nguồn dữ liệu:** “Bản demo/đồ án/giảng viên/nghiệm thu” không được có trong text/metadata/aria-label web; “Dữ liệu mô phỏng” vẫn phải có ở nơi hiển thị số đo. Không đánh đổi trung thực dữ liệu để giống sản phẩm.
+- **Worker có thể over-polish cuối phiên:** theo dõi token/context; gửi lệnh “dừng polish, chạy gates, commit/handoff” trước khi hết ngân sách. Lead phải tự kiểm ảnh và build sau merge.
+- **Vault Obsidian NFC/NFD:** kiểm đường dẫn thực bằng Python; không kết luận thiếu tài liệu khi có hai cây Unicode cùng tên.

@@ -2,7 +2,7 @@
 
 > **Baseline v0.1:** danh sách màn hình gốc chưa bao gồm đầy đủ AI Workspace, theo dõi tác vụ và preview cấu hình. Yêu cầu mới về [AI và preview frontend](11-nen-tang-ai-va-cau-hinh-dong.md) vẫn là định hướng; phần đã triển khai được ghi ở mục “Hiện trạng giao diện v2” bên dưới.
 
-**Trạng thái 15/11/2026:** web responsive đã chạy trên dữ liệu tổng hợp, có route cho các màn hình nghiệp vụ và Studio. **Chưa có mockup được duyệt**, chưa triển khai PWA/native/Web Push và chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật.
+**Trạng thái 15/11/2026:** web responsive đã chạy trên dữ liệu tổng hợp, có route cho các màn hình nghiệp vụ và Studio. **v3 đưa trợ lý thành không gian mặc định tại `/app`**, dashboard chi tiết chuyển sang `/app/overview`; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”, nhưng vẫn ghi nguồn dữ liệu mô phỏng ở nơi có số liệu. **Chưa có mockup được duyệt bởi người dùng/giảng viên**, chưa triển khai PWA/native/Web Push và chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật.
 
 ## Sơ đồ trang
 
@@ -11,11 +11,12 @@
 | Công khai | Trang chủ, giới thiệu sản phẩm | Hệ thống làm gì, phạm vi prototype, đăng nhập/đăng ký |
 | Tài khoản | Đăng ký, đăng nhập, hồ sơ, cài đặt tài khoản | Phiên đăng nhập; đổi tên/mật khẩu; xem/thu hồi phiên |
 | Thiết lập | Gắn thiết bị, kết nối, mời người thân, liên hệ khẩn cấp | Trạng thái từng bước; không hoàn tất giả khi thiết bị chưa online |
-| Người được theo dõi | Tổng quan | Tình trạng thiết bị, nhịp tim mới nhất, vận động, cảnh báo đang mở, xu hướng 7/14/30 ngày |
+| Trợ lý (mặc định) | Không gian trợ lý (`/app`) | Bản tin ngắn, hội thoại nhiều lượt, cột bối cảnh (cảnh báo mở, lần nhận cuối), lối tắt tới dữ liệu; không tự xác nhận/đóng cảnh báo |
+| Người được theo dõi | Tổng quan chi tiết (`/app/overview`) | Tình trạng thiết bị, nhịp tim mới nhất, vận động, cảnh báo đang mở, xu hướng 7/14/30 ngày |
 | Người thân | Danh sách hồ sơ được chia sẻ | Hồ sơ, quyền, cảnh báo đang mở; không mặc định thấy dữ liệu trước mốc chia sẻ |
 | Chi tiết hồ sơ | Biểu đồ và lịch sử | Khoảng thời gian, chất lượng, đoạn thiếu, lịch sử incident, tải CSV |
 | Cảnh báo | Chi tiết sự kiện | Nghi ngã/chưa xác định/xác nhận/nhận trễ; ai đang hỗ trợ; xác nhận/đóng; liên hệ khẩn cấp |
-| AI | Tóm tắt và câu hỏi giới hạn | Khoảng dữ liệu, độ phủ, khoảng thiếu, nguồn mô phỏng và khả năng không trả lời |
+| AI | Trợ lý hội thoại và tóm tắt có nguồn | Khoảng dữ liệu, độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn và khả năng không trả lời; 403 là trạng thái quyền |
 | Chia sẻ | Người thân và quyền | Mời, chấp nhận, khoảng lịch sử, quyền xem số đo/CSV, thu hồi |
 | Việc bảo trì | Danh sách và tạo việc | Thiết bị đang gắn, hạn xử lý, lý do đóng; caregiver chỉ xem |
 | Admin | Tình trạng hệ thống, người dùng, thiết bị, policy, audit | Thiết bị online/offline, cấp mã/xoay khóa, lỗi outbox; audit đã lọc |
@@ -33,6 +34,17 @@
 [Biểu đồ — phân biệt rõ những khoảng không có dữ liệu]
 [Tóm tắt ngày — dữ liệu dùng, dữ liệu thiếu, nguồn khi cần]
 ```
+
+### Bố cục trợ lý hiện tại (v3)
+
+```text
+[Hồ sơ đang xem]                         [Bối cảnh: cảnh báo mở / lần nhận cuối]
+[Trợ lý — bản tin ngắn: headline + 4 fact + độ phủ]
+[Gợi ý câu hỏi | Ô hỏi + Gửi]            [Liên kết: Tổng quan / Lịch sử / Cảnh báo / Hồ sơ]
+[Hội thoại: câu hỏi → câu trả lời có nguồn, dataQuality, disclaimer]
+```
+
+Trợ lý không thay thế dashboard hay cảnh báo: dashboard là nơi kiểm chứng chi tiết, cảnh báo là luồng độc lập. Các nút trong trợ lý chỉ dẫn tới màn hình xử lý, không tự xác nhận/đóng cảnh báo.
 
 Ưu tiên sự kiện cần hành động và độ mới của dữ liệu trước biểu đồ trang trí. Số liệu tổng hợp từ simulator phải có nhãn “Dữ liệu mô phỏng”. Không dùng tên hoặc ảnh bệnh nhân thật trong demo.
 
@@ -79,9 +91,20 @@ Các màn hình dưới đây đã có trong code và test component; dữ liệ
 - **Công việc:** chủ hồ sơ có nút “Tạo việc” cho thiết bị đang gắn, chọn loại/ưu tiên/hạn/ghi chú; caregiver không thấy nút tạo, chỉ xem và đóng nếu có quyền.
 - **Quản trị:** 5 mục Tổng quan/Người dùng/Thiết bị/Chính sách thiết bị/Audit. Tab Thiết bị có danh sách, trạng thái kết nối, hồ sơ đang gắn, cấp mã gắn và xoay khóa; mã/khóa chỉ hiện một lần, có cảnh báo sao chép. **Chưa có form tạo thiết bị mới** — việc tạo vẫn qua API admin.
 - **Studio:** danh sách view, soạn draft, preview chỉ đọc (dữ liệu mẫu hoặc hồ sơ có quyền), publish có CAS, lịch sử publication và rollback tạo bản mới. Nút publish chỉ bật sau preview thành công và draft không đổi.
-- **Điều hướng và tiếp cận:** thanh dưới 5 mục chính, mục phụ trong “Thêm”; có liên kết bỏ qua nội dung, focus-visible, trạng thái không chỉ dựa vào màu, chữ lớn và giảm chuyển động theo `prefers-reduced-motion`. Các thay đổi v2 có test component cho Settings, Insights, Contacts, Subjects archive, Admin devices, Tasks, AppShell.
+- **Điều hướng và tiếp cận (v2, đã được v3 điều chỉnh):** thanh dưới 5 mục chính, mục phụ trong “Thêm”; có liên kết bỏ qua nội dung, focus-visible, trạng thái không chỉ dựa vào màu, chữ lớn và giảm chuyển động theo `prefers-reduced-motion`. Các thay đổi v2 có test component cho Settings, Insights, Contacts, Subjects archive, Admin devices, Tasks, AppShell. Từ v3, Trợ lý đứng đầu nav và là route mặc định.
 
-**Bằng chứng hình ảnh:** phiên kiểm giao diện trước đó ghi ảnh ngoài repo tại `C:\tmp\ui-final` (worklog `reports/worklog/2026-11-15.md`); repo chưa có artifact nên người khác không tự kiểm lại được. Lần chạy tài liệu này **không** chụp lại toàn bộ màn hình; không dùng mô tả trên thay cho kiểm trực quan mới.
+**Bằng chứng hình ảnh:** ảnh v2 ở `C:/tmp/ui-final`; ảnh v3 ở `C:/tmp/ui-v3-assistant/` (24 ảnh) và `C:/tmp/ui-v3-live-*` (lead kiểm sau merge). Repo chưa có artifact nên người khác không tự kiểm lại được; ảnh ngoài repo không thay cho kiểm trực quan mới.
+
+## Hiện trạng giao diện v3 (15/11/2026)
+
+- **`/app` mở trợ lý**, `/app/overview` mở dashboard cũ; `/app/assistant` giữ tương thích. Nav đưa Trợ lý lên đầu, Tổng quan thứ hai; admin không có hồ sơ được chuyển về `/app/admin`. Bottom-nav vẫn tối đa 6 mục.
+- **Trợ lý chat-first:** bản tin đầu ngắn (headline + 4 fact + dòng độ phủ), chi tiết số liệu/nguồn/`DataQualityPanel` trong `<details>` đóng sẵn; hội thoại nhiều lượt trong phiên; composer nằm trên thread để thấy ngay trên mobile. Câu trả lời 403 hiển thị trạng thái thiếu quyền số đo, không mời thử lại vô ích.
+- **Bối cảnh:** hồ sơ, cảnh báo đang mở (chỉ gọi khi có `canReceiveAlerts`), lần nhận dữ liệu cuối (chỉ khi có quyền số đo), liên kết tới các màn hình; ghi chú cảnh báo độc lập với trợ lý.
+- **Đổi hồ sơ không lẫn dữ liệu:** thread, câu hỏi và lỗi reset theo `subjectId`; phản hồi về muộn của hồ sơ cũ bị bỏ. Có test cho cả hai trường hợp.
+- **Ngôn ngữ sản phẩm:** bỏ “Bản demo”, “đồ án”, “giảng viên”, “nghiệm thu” khỏi text/metadata/aria-label của web; giữ nhãn “Dữ liệu mô phỏng”/“Nguồn: dữ liệu mô phỏng” ở nơi có số liệu và disclaimer.
+- **Kiểm:** web 33 file/197 test, typecheck/build pass; E2E 10/10 trên Chromium headless; ảnh 1280×900, 390×844, 360×740 và chữ lớn không tràn ngang. Chưa kiểm Firefox/WebKit, thiết bị thật, AI provider thật; chưa có reviewer độc lập duyệt v3.
+
+**Bằng chứng hình ảnh v3:** `C:/tmp/ui-v3-assistant/` (24 ảnh do worker) và `C:/tmp/ui-v3-live-{360,390}.png`, `C:/tmp/ui-v3-live-390-large.png` (lead kiểm lại sau merge). Ảnh nằm ngoài repo, không thay cho kiểm lại.
 
 ## Phần chỉ là mô phỏng hoặc chưa có
 
