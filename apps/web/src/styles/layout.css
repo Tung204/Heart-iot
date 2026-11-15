@@ -1737,7 +1737,6 @@
   background: var(--color-paper-deep);
   transform: scale(0.985);
 }
-}
 .shell__bottomnav .shell__more-menu {
   position: absolute;
   bottom: calc(100% + var(--space-2));
