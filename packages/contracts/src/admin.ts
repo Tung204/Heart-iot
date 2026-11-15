@@ -93,8 +93,19 @@ export type AuditList = z.infer<typeof auditListSchema>;
 // Policy động
 // ---------------------------------------------------------------------------
 
-/** POST /admin/policies/:key/previews — chỉ validate, không ghi DB. */
-export const policyPreviewRequestSchema = z.object({ value: policyValueSchema }).strict();
+/**
+ * POST /admin/policies/:key/previews — chỉ validate, không ghi DB.
+ *
+ * `expectedVersion` là phiên bản nền người vận hành đang xem; preview tính diff và
+ * digest gắn với đúng phiên bản đó. Lệch với bản active hiện tại → 409 APPROVAL_STALE
+ * để buộc tải lại thay vì xem trước trên dữ liệu đã cũ.
+ */
+export const policyPreviewRequestSchema = z
+  .object({
+    value: policyValueSchema,
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict();
 export type PolicyPreviewRequest = z.infer<typeof policyPreviewRequestSchema>;
 
 export const policyDiffEntrySchema = z.object({
@@ -107,17 +118,30 @@ export type PolicyDiffEntry = z.infer<typeof policyDiffEntrySchema>;
 export const policyPreviewSchema = z.object({
   valid: z.boolean(),
   value: policyValueSchema.nullable(),
-  digest: z.string().nullable(),
+  /**
+   * sha256 của value đã chuẩn hóa (canonical JSON) + `expectedVersion`. Chỉ phụ thuộc
+   * nội dung policy vốn công khai và phiên bản nền, không chứa secret.
+   */
+  digest: z.string().regex(/^[0-9a-f]{64}$/),
+  /** Phiên bản nền đã dùng để tính diff + digest (khớp request). */
+  expectedVersion: z.number().int().nonnegative(),
   warnings: z.array(z.string()),
   effectiveDiff: z.array(policyDiffEntrySchema),
 });
 export type PolicyPreview = z.infer<typeof policyPreviewSchema>;
 
-/** PUT /admin/policies/:key — publish CAS theo expectedVersion. */
+/**
+ * PUT /admin/policies/:key — publish CAS theo expectedVersion + đúng nội dung đã xem trước.
+ *
+ * `previewDigest` là digest do preview trả về cho đúng cặp (value, expectedVersion).
+ * Trường khai báo optional ở schema để service trả 409 APPROVAL_STALE khi thiếu (thay vì
+ * 422 của validation); thiếu hoặc khác digest đều không ghi policy.
+ */
 export const policyPublishRequestSchema = z
   .object({
     value: policyValueSchema,
     expectedVersion: z.number().int().nonnegative(),
+    previewDigest: z.string().trim().min(1).max(128).optional(),
     note: z.string().trim().min(1).max(500).optional(),
   })
   .strict();

@@ -355,6 +355,11 @@ function UsersTab({ currentUserId }: { currentUserId: string }) {
 
 const POLICY_KEY = 'device_runtime';
 
+/** So sánh nội dung policy theo đúng các trường của schema (dùng để chặn publish khi form đã đổi). */
+function samePolicyValue(a: PolicyValue, b: PolicyValue): boolean {
+  return POLICY_FIELDS.every((field) => a[field.key] === b[field.key]);
+}
+
 function PolicyTab() {
   const queryClient = useQueryClient();
   const policy = useQuery({
@@ -367,11 +372,16 @@ function PolicyTab() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [previewResult, setPreviewResult] = useState<{
     valid: boolean;
+    digest: string;
+    expectedVersion: number;
+    value: PolicyValue;
     warnings: string[];
     diff: { field: string; from: number | null; to: number | null }[];
   } | null>(null);
   const [publishNotice, setPublishNotice] = useState<string | null>(null);
-  const [staleInfo, setStaleInfo] = useState<string | null>(null);
+  const [staleInfo, setStaleInfo] = useState<{ kind: 'version' | 'content'; message: string } | null>(
+    null,
+  );
 
   const active = policy.data?.active;
 
@@ -380,45 +390,86 @@ function PolicyTab() {
   if (active && loadedVersion !== active.version) {
     setLoadedVersion(active.version);
     setValue({ ...active.value });
+    // Bản active đổi thì preview + digest cũ hết hiệu lực.
     setPreviewResult(null);
+  }
+
+  /**
+   * Sửa nội dung sau preview → bỏ preview + digest cũ và tắt Phát hành. Đây là
+   * ràng buộc phía UI; backend vẫn kiểm lại `previewDigest` trước khi ghi.
+   */
+  function clearPreview(): void {
+    setPreviewResult(null);
+    setPublishNotice(null);
+    setStaleInfo((current) => (current?.kind === 'content' ? null : current));
+    publish.reset();
   }
 
   const preview = useMutation({
     mutationFn: () => {
-      if (!value) throw new Error('Chưa nhập giá trị.');
-      return previewPolicy(POLICY_KEY, { value });
+      if (!value || !active) throw new Error('Chưa đủ dữ liệu để xem trước.');
+      const previewed = { ...value };
+      return previewPolicy(POLICY_KEY, { value: previewed, expectedVersion: active.version }).then(
+        (result) => ({ result, previewed }),
+      );
     },
-    onSuccess: (result) => {
+    onSuccess: ({ result, previewed }) => {
       setPreviewResult({
         valid: result.valid,
+        digest: result.digest,
+        expectedVersion: result.expectedVersion,
+        value: previewed,
         warnings: result.warnings,
         diff: result.effectiveDiff.map((entry) => ({ ...entry })),
       });
       setPublishNotice(null);
     },
+    onError: (error) => {
+      // Preview dựa trên phiên bản nền cũ: không giữ preview của nội dung khác.
+      if (isApiError(error) && error.code === 'APPROVAL_STALE') {
+        setPreviewResult(null);
+        const details = (error.details ?? {}) as { currentVersion?: unknown };
+        setStaleInfo({
+          kind: 'version',
+          message: `Phiên bản policy đã thay đổi (hiện tại: v${String(details.currentVersion ?? '?')}). Hãy tải lại trước khi công bố.`,
+        });
+      }
+    },
   });
 
   const publish = useMutation({
     mutationFn: () => {
-      if (!value || !active) throw new Error('Chưa đủ dữ liệu để phát hành.');
+      // Chỉ phát hành đúng nội dung đã xem trước và digest server trả về cho nó.
+      if (!value || !previewResult) {
+        throw new Error('Cần xem trước đúng nội dung hiện tại trước khi phát hành.');
+      }
       return publishPolicy(POLICY_KEY, {
         value,
-        expectedVersion: active.version,
+        expectedVersion: previewResult.expectedVersion,
+        previewDigest: previewResult.digest,
         ...(note.trim() ? { note: note.trim() } : {}),
       });
     },
     onSuccess: (result) => {
       setPublishNotice(`Đã phát hành policy phiên bản ${result.version}.`);
       setPreviewResult(null);
+      setStaleInfo(null);
       setNote('');
       void queryClient.invalidateQueries({ queryKey: adminQueryKeys.policy(POLICY_KEY) });
     },
     onError: (error) => {
       if (isApiError(error) && error.code === 'APPROVAL_STALE') {
-        const details = (error.details ?? {}) as { currentVersion?: unknown };
-        setStaleInfo(
-          `Phiên bản policy đã thay đổi (hiện tại: v${String(details.currentVersion ?? '?')}). Hãy tải lại trước khi công bố.`,
-        );
+        // Digest của preview cũ không còn dùng được: buộc xem lại trước khi phát hành.
+        setPreviewResult(null);
+        const details = (error.details ?? {}) as { currentVersion?: unknown; reason?: unknown };
+        if (details.reason === 'preview_mismatch' || details.reason === 'preview_missing') {
+          setStaleInfo({ kind: 'content', message: getApiErrorMessage(error) });
+        } else {
+          setStaleInfo({
+            kind: 'version',
+            message: `Phiên bản policy đã thay đổi (hiện tại: v${String(details.currentVersion ?? '?')}). Hãy tải lại trước khi công bố.`,
+          });
+        }
       }
     },
   });
@@ -451,21 +502,38 @@ function PolicyTab() {
 
   const handlePreview = () => {
     setPublishNotice(null);
+    setStaleInfo(null);
     if (!validateValue()) return;
     preview.mutate();
   };
 
+  // Phát hành chỉ khả dụng khi có preview hợp lệ cho đúng value + version hiện tại.
+  const canPublish =
+    value !== null &&
+    previewResult !== null &&
+    previewResult.valid &&
+    previewResult.digest.length > 0 &&
+    previewResult.expectedVersion === active?.version &&
+    samePolicyValue(previewResult.value, value) &&
+    !publish.isPending;
+
   const handlePublish = () => {
     setPublishNotice(null);
     setStaleInfo(null);
+    if (!canPublish) return;
     if (!validateValue()) return;
     publish.mutate();
   };
 
   const handleReload = () => {
+    // Tải lại phải xóa cả lỗi 409 và preview cũ, nếu không người vận hành thấy
+    // thông báo cũ đi kèm dữ liệu mới.
     setStaleInfo(null);
     setPreviewResult(null);
+    setPublishNotice(null);
     setLoadedVersion(null);
+    publish.reset();
+    preview.reset();
     void queryClient.invalidateQueries({ queryKey: adminQueryKeys.policy(POLICY_KEY) });
   };
 
@@ -484,13 +552,18 @@ function PolicyTab() {
   return (
     <div className="stack">
       {staleInfo ? (
-        <Alert tone="warning" title="Policy đã thay đổi">
-          {staleInfo}
-          <div style={{ marginTop: '0.75rem' }}>
-            <Button variant="secondary" size="sm" onClick={handleReload}>
-              Tải lại
-            </Button>
-          </div>
+        <Alert
+          tone="warning"
+          title={staleInfo.kind === 'version' ? 'Policy đã thay đổi' : 'Nội dung chưa khớp preview'}
+        >
+          {staleInfo.message}
+          {staleInfo.kind === 'version' ? (
+            <div style={{ marginTop: '0.75rem' }}>
+              <Button variant="secondary" size="sm" onClick={handleReload}>
+                Tải lại
+              </Button>
+            </div>
+          ) : null}
         </Alert>
       ) : null}
       {publishNotice ? <Alert tone="success">{publishNotice}</Alert> : null}
@@ -516,6 +589,8 @@ function PolicyTab() {
               onChange={(event) => {
                 const next = Number(event.target.value);
                 setValue((current) => (current ? { ...current, [field.key]: next } : current));
+                // Đổi nội dung là preview cũ hết hiệu lực — không để phát hành giá trị chưa duyệt.
+                clearPreview();
               }}
             />
           ))}
@@ -533,12 +608,18 @@ function PolicyTab() {
             <Button variant="secondary" onClick={handlePreview} disabled={preview.isPending}>
               {preview.isPending ? 'Đang kiểm tra…' : 'Xem trước'}
             </Button>
-            <Button onClick={handlePublish} disabled={publish.isPending}>
+            <Button onClick={handlePublish} disabled={!canPublish}>
               {publish.isPending ? 'Đang phát hành…' : 'Phát hành'}
             </Button>
           </div>
+          {!canPublish ? (
+            <p className="adm-policy-note">
+              Phát hành chỉ bật khi nội dung hiện tại đã được xem trước; sửa bất kỳ trường nào sẽ
+              phải xem trước lại.
+            </p>
+          ) : null}
         </form>
-        {preview.isError ? (
+        {preview.isError && !staleInfo ? (
           <Alert tone="error" title="Không kiểm tra được">
             {getApiErrorMessage(preview.error)}
           </Alert>
@@ -547,7 +628,9 @@ function PolicyTab() {
           <div className="adm-policy-preview">
             {previewResult.valid ? (
               <Alert tone="success" title="Giá trị hợp lệ">
-                Preview không ghi gì vào hệ thống.
+                Preview không ghi gì vào hệ thống. Digest ràng buộc nội dung phát hành:{' '}
+                <code>{previewResult.digest.slice(0, 12)}…</code> trên phiên bản nền v
+                {previewResult.expectedVersion}.
               </Alert>
             ) : (
               <Alert tone="error" title="Giá trị không hợp lệ">Giá trị nhập chưa đạt điều kiện kiểm tra.</Alert>
@@ -593,7 +676,7 @@ function PolicyTab() {
             size="sm"
             onClick={() => {
               setValue({ ...policyData.defaults });
-              setPreviewResult(null);
+              clearPreview();
             }}
           >
             Điền giá trị mặc định

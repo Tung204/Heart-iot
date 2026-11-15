@@ -42,7 +42,7 @@ import {
   users,
 } from '../database/schema';import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
-import { PolicyService, computePolicyDigest } from '../policy/policy.service';
+import { PolicyService, canonicalPolicyJson, computePolicyDigest } from '../policy/policy.service';
 import { AppError } from '../common/app-error';
 import { decodeCursor, encodeCursor } from '../common/pagination';
 import { isUniqueViolation } from '../database/errors';
@@ -58,7 +58,10 @@ import { sha256 } from '../auth/password';
  * - Policy publish là CAS theo `expectedVersion` trong transaction `FOR UPDATE`;
  *   bản active cũ được chuyển sang trạng thái archive (enum schema hiện dùng
  *   `retired` vì `config_status` không có `archived`); không xóa lịch sử.
- * - Audit `policy.publish` không chứa value đầy đủ: chỉ key/version/digest (+note).
+ * - Preview trả digest gắn với (value, expectedVersion); publish bắt buộc gửi lại
+ *   `previewDigest`, thiếu/khác → 409, không ghi policy.
+ * - Audit `policy.publish` (success và conflict) không chứa value đầy đủ: chỉ
+ *   key/version/digest/lý do (+note).
  */
 
 // Ngưỡng hợp lý cho maxTelemetryPerMinute — cảnh báo khi preview vượt ngoài.
@@ -69,6 +72,16 @@ type PolicyConfigRow = typeof policyConfigs.$inferSelect;
 
 function approvalStale(message: string, details?: unknown): AppError {
   return new AppError('APPROVAL_STALE', message, 409, details);
+}
+
+/** Lý do 409 đã ghi trong details — dùng lại cho audit conflict. */
+function staleReason(error: AppError): string {
+  const details = error.details;
+  if (details && typeof details === 'object' && 'reason' in details) {
+    const reason = (details as { reason?: unknown }).reason;
+    if (typeof reason === 'string' && reason.length > 0) return reason;
+  }
+  return 'version_mismatch';
 }
 
 function isPolicyKey(key: string): key is PolicyKey {
@@ -130,6 +143,14 @@ const POLICY_FIELDS = [
   'lateEventMinutes',
   'maxTelemetryPerMinute',
 ] as const;
+
+/**
+ * Digest ràng buộc nội dung publish với đúng bản xem trước: sha256 của canonical JSON
+ * (thứ tự khóa cố định theo schema) + phiên bản nền. Không chứa secret — policy vốn công khai.
+ */
+export function computePolicyPreviewDigest(value: PolicyValue, expectedVersion: number): string {
+  return sha256(`${canonicalPolicyJson(value)}\nbase_version=${expectedVersion}`);
+}
 
 function policyDiff(from: PolicyValue, to: PolicyValue): Array<{ field: string; from: number; to: number }> {
   const entries: Array<{ field: string; from: number; to: number }> = [];
@@ -402,19 +423,37 @@ export class AdminService {
 
     // Pipe đã validate; parse lại để chắc chắn không có đường nào lọt giá trị lạ.
     const value = policyValueSchema.parse(input.value);
-    const digest = computePolicyDigest(value);
-    const warnings = buildPolicyWarnings(value);
     const current = await this.policy.getActive(key);
+
+    // Preview phải gắn với đúng phiên bản nền người vận hành đang xem.
+    if (input.expectedVersion !== current.version) {
+      throw approvalStale('Phiên bản policy đã thay đổi, hãy tải lại trước khi xem trước.', {
+        reason: 'version_mismatch',
+        currentVersion: current.version,
+        currentDigest: current.digest,
+      });
+    }
+
+    const digest = computePolicyPreviewDigest(value, input.expectedVersion);
+    const warnings = buildPolicyWarnings(value);
     const effectiveDiff = policyDiff(current.value, value);
 
-    return policyPreviewSchema.parse({ valid: true, value, digest, warnings, effectiveDiff });
+    return policyPreviewSchema.parse({
+      valid: true,
+      value,
+      digest,
+      expectedVersion: input.expectedVersion,
+      warnings,
+      effectiveDiff,
+    });
   }
 
   /**
-   * Publish CAS: expectedVersion phải bằng version active hiện tại, lệch → 409
-   * APPROVAL_STALE kèm currentVersion/currentDigest. Archive bản active cũ
-   * (enum schema: `retired`), insert bản mới `active` với digest canonical.
-   * Rollback = publish lại value cũ với version mới (lịch sử không bị xóa).
+   * Publish CAS: phải gửi `previewDigest` đúng cho (value, expectedVersion), sau đó
+   * expectedVersion phải bằng version active hiện tại. Thiếu/khác digest hoặc lệch
+   * version → 409 APPROVAL_STALE, ghi audit conflict và KHÔNG ghi policy.
+   * Archive bản active cũ (enum schema: `retired`), insert bản mới `active` với digest
+   * canonical. Rollback = publish lại value cũ với version mới (lịch sử không bị xóa).
    */
   async publishPolicy(
     user: UserSummary,
@@ -427,85 +466,108 @@ export class AdminService {
     const value = policyValueSchema.parse(input.value);
     const digest = computePolicyDigest(value);
 
-    const inserted = await this.db.transaction(async (tx) => {
-      const activeRows = await tx
-        .select()
-        .from(policyConfigs)
-        .where(
-          and(
-            eq(policyConfigs.key, key),
-            eq(policyConfigs.scope, 'global'),
-            eq(policyConfigs.status, 'active'),
-          ),
-        )
-        .orderBy(desc(policyConfigs.version))
-        .for('update')
-        .limit(1);
-      const activeRow = activeRows[0] ?? null;
+    // Cổng 1 — nội dung: publish phải khớp đúng bản đã xem trước. Không đọc/ghi DB
+    // trước khi qua cổng này, nên nội dung khác bản duyệt không thể tạo bản ghi mới.
+    const previewDigest = input.previewDigest?.trim() ?? '';
+    if (previewDigest !== computePolicyPreviewDigest(value, input.expectedVersion)) {
+      const reason = previewDigest ? 'preview_mismatch' : 'preview_missing';
+      await this.recordPublishConflict(user, key, input.expectedVersion, reason);
+      throw approvalStale(
+        'Nội dung đã thay đổi so với bản xem trước, hãy xem lại preview trước khi công bố.',
+        { reason, expectedVersion: input.expectedVersion },
+      );
+    }
 
-      const currentVersion = activeRow?.version ?? 0;
-      const currentDigest = activeRow?.digest ?? computePolicyDigest(DEFAULT_POLICY_VALUE);
-      if (input.expectedVersion !== currentVersion) {
-        throw approvalStale('Phiên bản policy đã thay đổi, hãy tải lại trước khi công bố.', {
-          currentVersion,
-          currentDigest,
-        });
-      }
+    let inserted: PolicyConfigRow;
+    try {
+      inserted = await this.db.transaction(async (tx) => {
+        const activeRows = await tx
+          .select()
+          .from(policyConfigs)
+          .where(
+            and(
+              eq(policyConfigs.key, key),
+              eq(policyConfigs.scope, 'global'),
+              eq(policyConfigs.status, 'active'),
+            ),
+          )
+          .orderBy(desc(policyConfigs.version))
+          .for('update')
+          .limit(1);
+        const activeRow = activeRows[0] ?? null;
 
-      const maxRows = await tx
-        .select({ m: max(policyConfigs.version) })
-        .from(policyConfigs)
-        .where(and(eq(policyConfigs.key, key), eq(policyConfigs.scope, 'global')));
-      const version = (maxRows[0]?.m ?? 0) + 1;
-
-      let row: PolicyConfigRow;
-      try {
-        const created = await tx
-          .insert(policyConfigs)
-          .values({
-            key,
-            scope: 'global',
-            version,
-            status: 'active',
-            value,
-            digest,
-            updatedByUserId: user.id,
-          })
-          .returning();
-        row = created[0] as PolicyConfigRow;
-      } catch (error) {
-        // Hai publish đồng thời khi chưa có bản active nào: unique (key, scope, version).
-        if (isUniqueViolation(error)) {
-          throw approvalStale('Phiên bản policy đã thay đổi trong lúc công bố, hãy thử lại.', {
+        const currentVersion = activeRow?.version ?? 0;
+        const currentDigest = activeRow?.digest ?? computePolicyDigest(DEFAULT_POLICY_VALUE);
+        if (input.expectedVersion !== currentVersion) {
+          throw approvalStale('Phiên bản policy đã thay đổi, hãy tải lại trước khi công bố.', {
+            reason: 'version_mismatch',
             currentVersion,
+            currentDigest,
           });
         }
-        throw error;
-      }
-      if (!row) throw new Error('Không thể tạo bản policy mới.');
 
-      if (activeRow) {
-        // Archive bản active cũ; enum config_status không có 'archived' nên dùng 'retired'.
-        await tx
-          .update(policyConfigs)
-          .set({ status: 'retired' })
-          .where(eq(policyConfigs.id, activeRow.id));
+        const maxRows = await tx
+          .select({ m: max(policyConfigs.version) })
+          .from(policyConfigs)
+          .where(and(eq(policyConfigs.key, key), eq(policyConfigs.scope, 'global')));
+        const version = (maxRows[0]?.m ?? 0) + 1;
+
+        let row: PolicyConfigRow;
+        try {
+          const created = await tx
+            .insert(policyConfigs)
+            .values({
+              key,
+              scope: 'global',
+              version,
+              status: 'active',
+              value,
+              digest,
+              updatedByUserId: user.id,
+            })
+            .returning();
+          row = created[0] as PolicyConfigRow;
+        } catch (error) {
+          // Hai publish đồng thời khi chưa có bản active nào: unique (key, scope, version).
+          if (isUniqueViolation(error)) {
+            throw approvalStale('Phiên bản policy đã thay đổi trong lúc công bố, hãy thử lại.', {
+              reason: 'publish_race',
+              currentVersion,
+            });
+          }
+          throw error;
+        }
+        if (!row) throw new Error('Không thể tạo bản policy mới.');
+
+        if (activeRow) {
+          // Archive bản active cũ; enum config_status không có 'archived' nên dùng 'retired'.
+          await tx
+            .update(policyConfigs)
+            .set({ status: 'retired' })
+            .where(eq(policyConfigs.id, activeRow.id));
+        }
+        await this.audit.record(
+          {
+            actorUserId: user.id,
+            actorKind: 'user',
+            action: 'policy.publish',
+            targetType: 'policy',
+            targetId: key,
+            outcome: 'success',
+            // Metadata không chứa value đầy đủ: chỉ key/version/digest (+note).
+            metadata: { key, version, digest, ...(input.note ? { note: input.note } : {}) },
+          },
+          tx,
+        );
+        return row;
+      });
+    } catch (error) {
+      // Transaction đã rollback (không có policy mới) — vẫn phải lưu audit conflict.
+      if (error instanceof AppError && error.code === 'APPROVAL_STALE') {
+        await this.recordPublishConflict(user, key, input.expectedVersion, staleReason(error));
       }
-      await this.audit.record(
-        {
-          actorUserId: user.id,
-          actorKind: 'user',
-          action: 'policy.publish',
-          targetType: 'policy',
-          targetId: key,
-          outcome: 'success',
-          // Metadata không chứa value đầy đủ: chỉ key/version/digest (+note).
-          metadata: { key, version, digest, ...(input.note ? { note: input.note } : {}) },
-        },
-        tx,
-      );
-      return row;
-    });
+      throw error;
+    }
 
     return policyPublishSchema.parse({
       key,
@@ -514,6 +576,24 @@ export class AdminService {
       status: 'active',
       publishedAt: inserted.createdAt.toISOString(),
       note: input.note ?? null,
+    });
+  }
+
+  /** Audit publish thất bại: chỉ key/phiên bản nền/lý do — không chứa value hay secret. */
+  private async recordPublishConflict(
+    user: UserSummary,
+    key: PolicyKey,
+    expectedVersion: number,
+    reason: string,
+  ): Promise<void> {
+    await this.audit.record({
+      actorUserId: user.id,
+      actorKind: 'user',
+      action: 'policy.publish',
+      targetType: 'policy',
+      targetId: key,
+      outcome: 'conflict',
+      metadata: { key, expectedVersion, reason },
     });
   }
 
