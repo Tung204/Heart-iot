@@ -172,12 +172,45 @@ test('danh sách cảnh báo hiển thị cảnh báo đang mở và đi tới c
   await expect(page.getByRole('button', { name: 'Tôi đang hỗ trợ' })).toBeVisible();
 });
 
-test('tổng quan hiển thị cảnh báo mở và đường dẫn tới lịch sử', async ({ page }) => {
+test('Sức khỏe hiển thị cảnh báo mở và đường dẫn về Hôm nay/lịch sử', async ({ page }) => {
   await mockApi(page);
   await page.goto('/app/overview');
 
-  await expect(page.getByRole('heading', { level: 1, name: /Tổng quan/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/overview$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Sức khỏe' })).toBeVisible();
+  // Đường dẫn quay lại màn Hôm nay (v4), không phải trợ lý/tổng quan v3.
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Đường dẫn' })
+      .getByRole('link', { name: '← Hôm nay' }),
+  ).toHaveAttribute('href', '/app');
+
   await expect(page.getByRole('heading', { name: 'Cảnh báo đang mở' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Xem tất cả cảnh báo →' })).toBeVisible();
-  await expect(page.getByRole('navigation').getByRole('link', { name: 'Lịch sử' }).first()).toBeVisible();
+  await expect(page.getByText('1 cần chú ý')).toBeVisible();
+  await expect(page.getByText('chưa có người xác nhận')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Nghi ngã — cần chú ý/ })).toHaveAttribute(
+    'href',
+    `/app/alerts/${INCIDENT.id}`,
+  );
+  await expect(page.getByRole('link', { name: 'Xem tất cả cảnh báo →' })).toHaveAttribute(
+    'href',
+    '/app/alerts',
+  );
+
+  // Vùng tổng hợp hôm nay vẫn có số liệu và lối sang lịch sử đo.
+  await expect(page.getByRole('heading', { name: 'Tổng hợp hôm nay' })).toBeVisible();
+  await expect(page.getByText('73 bpm')).toBeVisible();
+  await expect(page.getByText('3210 bước')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Xem lịch sử và biểu đồ →' })).toHaveAttribute(
+    'href',
+    '/app/history',
+  );
+
+  // Nav đầu tiên của khung là Hôm nay và trỏ về /app.
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Điều hướng ứng dụng' })
+      .first()
+      .getByRole('link', { name: 'Hôm nay' }),
+  ).toHaveAttribute('href', '/app');
 });
