@@ -49,7 +49,7 @@ export function useActiveSubjectId(): string | null {
 }
 
 /**
- * Hồ sơ đang xem hiệu lực: lựa chọn đã lưu nếu còn trong danh sách,
+ * Hồ sơ đang chọn hiệu lực: lựa chọn đã lưu nếu còn trong danh sách,
  * ngược lại tự dùng hồ sơ đầu tiên (KHÔNG ghi đè lựa chọn của người dùng).
  */
 export function useActiveSubject(subjects: SubjectSummary[] | undefined): SubjectSummary | null {

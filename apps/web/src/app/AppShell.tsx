@@ -210,14 +210,13 @@ function LogoutConfirm({
  * Menu tài khoản gọn thay cho khối Đăng xuất/Aa trần ở sidebar.
  * - Chỉ render một bản: sidebar ở desktop, topbar ở mobile.
  * - Tên + vai trò, không email; Tài khoản mở /app/settings.
- * - Studio chỉ chủ hồ sơ/admin; Quản trị chỉ admin.
+ * - Quản trị chỉ admin; không còn link Studio (route /app/studio giữ nguyên).
  * - Đóng bằng Escape/click ngoài; Escape trả focus về trigger.
  */
 function AccountMenu({
   user,
   roleLabel,
   isAdmin,
-  isStudioUser,
   placement,
   pending,
   logoutError,
@@ -226,7 +225,6 @@ function AccountMenu({
   user: { displayName: string } | undefined;
   roleLabel: string | null;
   isAdmin: boolean;
-  isStudioUser: boolean;
   placement: AccountPlacement;
   pending: boolean;
   logoutError: string | null;
@@ -375,16 +373,6 @@ function AccountMenu({
           >
             Tài khoản
           </NavLink>
-          {isStudioUser ? (
-            <NavLink
-              to="/app/studio"
-              role="menuitem"
-              className={accountLinkClass}
-              onClick={closeAfterNavigate}
-            >
-              Studio
-            </NavLink>
-          ) : null}
           {isAdmin ? (
             <NavLink
               to="/app/admin"
@@ -497,10 +485,6 @@ export function AppShell() {
   // giữ banner trong lúc chờ (status “connecting”) tới khi onopen reset về 0.
   const realtimeLost = subjectEvents.retryAttempt > 0 && subjectEvents.status !== 'revoked';
 
-  // Quyền hiển thị mục menu (backend vẫn là nơi kiểm quyền thật):
-  // Studio: chủ hồ sơ/admin. Quản trị: chỉ admin.
-  const isStudioUser = isAdmin || subjectsData.some((subject) => subject.role === 'owner');
-
   // Badge cảnh báo đang mở của hồ sơ đang xem: cùng query key với danh sách ngắn
   // trên Hôm nay nên hai nơi dùng chung một lần tải.
   const canSeeAlerts = Boolean(
@@ -576,7 +560,6 @@ export function AppShell() {
       user={user}
       roleLabel={roleLabel}
       isAdmin={isAdmin}
-      isStudioUser={isStudioUser}
       placement={isDesktop ? 'sidebar' : 'topbar'}
       pending={logout.isPending}
       logoutError={logoutError}
