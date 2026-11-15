@@ -50,7 +50,7 @@ const VISIBLE_STEP = 50;
  */
 const MAX_VISIBLE_ROWS = 400;
 
-const INITIAL_VISIBLE_ROWS = 20;
+const INITIAL_VISIBLE_ROWS = 10;
 
 const MINUTE_MS = 60_000;
 
@@ -154,7 +154,7 @@ function MeasurementsNotShared() {
     <EmptyState
       title="Chủ hồ sơ không chia sẻ số đo"
       description="Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo."
-      action={<ButtonLink to="/app/overview">Về tổng quan</ButtonLink>}
+      action={<ButtonLink to="/app/overview">← Sức khỏe</ButtonLink>}
     />
   );
 }
@@ -281,6 +281,26 @@ export function HistoryPage() {
   const visibleItems = useMemo(() => items.slice(0, visibleLimit), [items, visibleLimit]);
   const hasHiddenRows = items.length > visibleItems.length;
   const isCappedByWindow = hasHiddenRows && visibleLimit >= MAX_VISIBLE_ROWS;
+  // Một nút duy nhất: trước hết mở thêm dòng đã tải, khi đã hết dòng cục bộ mới
+  // tải trang tiếp theo từ máy chủ. Tránh hai nút “Hiện thêm”/“Tải thêm” cạnh nhau.
+  const canRevealMore = hasHiddenRows && visibleLimit < MAX_VISIBLE_ROWS;
+  const canFetchMore =
+    !canRevealMore && visibleLimit >= items.length && measurements.hasNextPage;
+  const loadMore = () => {
+    if (canRevealMore) {
+      setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS));
+      return;
+    }
+    if (!canFetchMore) return;
+    void measurements.fetchNextPage().then(() => {
+      setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS));
+    });
+  };
+  const loadMoreLabel = canRevealMore
+    ? `Hiện thêm ${Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng`
+    : measurements.isFetchingNextPage
+      ? 'Đang tải…'
+      : 'Tải thêm từ máy chủ';
   const measurementsForbidden =
     measurements.isError && isForbiddenError(measurements.error);
 
@@ -297,11 +317,13 @@ export function HistoryPage() {
   if (activeSubject && !canViewMeasurements) {
     return (
       <div className="stack">
+        <nav aria-label="Đường dẫn">
+          <Link to="/app/overview" className="breadcrumb">
+            ← Sức khỏe
+          </Link>
+        </nav>
         <header>
-          <h1 className="page-title">Lịch sử đo lường</h1>
-          <p className="page-lead">
-            Dữ liệu của hồ sơ <strong>{activeSubject.displayName}</strong>.
-          </p>
+          <h1 className="page-title">Lịch sử đo</h1>
         </header>
         <MeasurementsNotShared />
       </div>
@@ -310,13 +332,13 @@ export function HistoryPage() {
 
   return (
     <div className="stack">
+      <nav aria-label="Đường dẫn">
+        <Link to="/app/overview" className="breadcrumb">
+          ← Sức khỏe
+        </Link>
+      </nav>
       <header>
-        <h1 className="page-title">Lịch sử đo lường</h1>
-        <p className="page-lead">
-          Dữ liệu của hồ sơ{' '}
-          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong> trong khoảng bạn
-          chọn. Quyền hiện tại cho phép xem tối đa {historyDays} ngày.
-        </p>
+        <h1 className="page-title">Lịch sử đo</h1>
       </header>
 
       {measurementsForbidden ? null : (
@@ -362,13 +384,6 @@ export function HistoryPage() {
         </div>
       )}
 
-      {activeSubject ? (
-        <p className="field__hint">
-          Cửa sổ dữ liệu kết thúc lúc {formatDateTime(to)}. Bấm “Cập nhật khoảng” để lấy dữ
-          liệu mới hơn — trang không tự tải lại để giữ nguyên các trang bạn đã mở.
-        </p>
-      ) : null}
-
       {isClamped ? (
         <p className="field__hint">
           Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của
@@ -410,25 +425,30 @@ export function HistoryPage() {
           <p className="chart-hint-mobile">Vuốt ngang biểu đồ để xem đủ khoảng thời gian.</p>
           <MeasurementChart points={chartPoints} gaps={gaps} range={chartRange} />
 
-          {coverage ? (
-            <p className="metric-line">
-              Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận (mỗi{' '}
-              {coverage.expectedIntervalSeconds}s) · {gaps.length} khoảng thiếu ·
-              {unsynced > 0 ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian` : ' không có mẫu lệch đồng hồ'}
-            </p>
-          ) : null}
+          <details className="history-tech">
+            <summary>Chi tiết kỹ thuật</summary>
+            {coverage ? (
+              <p className="metric-line">
+                Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận ·{' '}
+                {gaps.length} khoảng thiếu ·
+                {unsynced > 0
+                  ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian`
+                  : ' không có mẫu lệch đồng hồ'}
+              </p>
+            ) : null}
 
-          {gaps.length > 0 ? (
-            <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
-              <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
-              {gaps.map((gap) => (
-                <p key={`${gap.from}-${gap.to}`} role="listitem">
-                  {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
-                  {GAP_REASON_LABELS[gap.reason]}
-                </p>
-              ))}
-            </div>
-          ) : null}
+            {gaps.length > 0 ? (
+              <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
+                <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
+                {gaps.map((gap) => (
+                  <p key={`${gap.from}-${gap.to}`} role="listitem">
+                    {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
+                    {GAP_REASON_LABELS[gap.reason]}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </details>
 
           {/* Chỉ render một biến thể theo breakpoint: trước đây cả bảng và thẻ cùng
               render rồi CSS ẩn một bên, gấp đôi số DOM node và công render. */}
@@ -450,8 +470,7 @@ export function HistoryPage() {
             >
               <table className="data-table">
                 <caption>
-                  Bảng dữ liệu đo — thay thế cho biểu đồ. Đang hiển thị{' '}
-                  {visibleItems.length}/{items.length} dòng.
+                  Bảng dữ liệu đo. Đang hiển thị {visibleItems.length}/{items.length} dòng.
                   {items.length > MAX_VISIBLE_ROWS
                     ? ` Tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần; tải CSV để xem toàn bộ ${items.length} dòng.`
                     : ''}
@@ -478,24 +497,15 @@ export function HistoryPage() {
             </div>
           )}
 
-          {hasHiddenRows ? (
+          {canRevealMore || canFetchMore ? (
             <div className="history-load-more">
               <Button
                 variant="secondary"
-                onClick={() =>
-                  setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS))
-                }
+                onClick={loadMore}
+                disabled={measurements.isFetchingNextPage}
               >
-                Hiện thêm {Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng
+                {loadMoreLabel}
               </Button>
-              {visibleLimit < MAX_VISIBLE_ROWS ? (
-                <Button variant="subtle" onClick={() => setVisibleRows(MAX_VISIBLE_ROWS)}>
-                  Hiện tới {MAX_VISIBLE_ROWS} dòng
-                </Button>
-              ) : null}
-              <span className="field__hint">
-                Đang hiện {visibleItems.length}/{items.length} dòng
-              </span>
             </div>
           ) : null}
 
@@ -508,23 +518,7 @@ export function HistoryPage() {
             </p>
           ) : null}
 
-          {measurements.hasNextPage ? (
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => void measurements.fetchNextPage()}
-                disabled={measurements.isFetchingNextPage}
-              >
-                {measurements.isFetchingNextPage ? 'Đang tải…' : 'Tải thêm từ máy chủ'}
-              </Button>
-            </div>
-          ) : null}
-
-          <p className="field__hint">
-            Dữ liệu hiển thị là dữ liệu mô phỏng. Số liệu trên trang không dùng để chẩn đoán hay
-            thay lời khuyên y tế.{' '}
-            <Link to="/app/overview">Về tổng quan</Link>
-          </p>
+          <p className="field__hint">Dữ liệu hiển thị là dữ liệu mô phỏng.</p>
         </>
       )}
     </div>

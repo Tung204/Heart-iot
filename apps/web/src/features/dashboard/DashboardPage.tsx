@@ -28,13 +28,6 @@ const FRESHNESS_TONES = {
   never: 'neutral',
 } as const;
 
-const HR_QUALITY_LABELS = {
-  valid: 'tín hiệu tốt',
-  poor_signal: 'tín hiệu kém',
-  not_worn: 'không đeo',
-  sensor_error: 'lỗi cảm biến',
-} as const;
-
 /** 403 là trạng thái quyền, không phải lỗi kỹ thuật: hiển thị thông điệp nghiệp vụ. */
 function isForbiddenError(error: unknown): boolean {
   return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
@@ -114,7 +107,7 @@ export function DashboardPage() {
     queryKey: subjectId
       ? queryKeys.dashboardOpenAlerts(subjectId)
       : ['subjects', 'none', 'alerts', 'dashboard'],
-    queryFn: ({ signal }) => (subjectId ? fetchOpenAlerts(subjectId, 5, signal) : null),
+    queryFn: ({ signal }) => (subjectId ? fetchOpenAlerts(subjectId, 20, signal) : null),
     enabled: Boolean(subjectId),
     staleTime: 15_000,
   });
@@ -142,29 +135,14 @@ export function DashboardPage() {
 
   return (
     <div className="stack dashboard">
+      <nav aria-label="Đường dẫn">
+        <Link to="/app" className="breadcrumb">
+          ← Hôm nay
+        </Link>
+      </nav>
+
       <header className="dashboard__header">
-        <div>
-          <p className="dashboard__eyebrow">
-            Tổng quan hôm nay · {today.split('-').reverse().join('/')}
-          </p>
-          <h1 className="page-title">
-            Tổng quan
-            {activeSubject ? (
-              <span className="dashboard__subject"> — {activeSubject.displayName}</span>
-            ) : null}
-          </h1>
-          <p className="page-lead">
-            Tình trạng thiết bị, dữ liệu mới nhất và cảnh báo đang mở của hồ sơ đang xem.
-          </p>
-        </div>
-        <div className="dashboard__header-actions">
-          <ButtonLink to="/app/history" variant="secondary" size="sm">
-            Lịch sử đo
-          </ButtonLink>
-          <ButtonLink to="/app/alerts" variant="subtle" size="sm">
-            Tất cả cảnh báo
-          </ButtonLink>
-        </div>
+        <h1 className="page-title">Sức khỏe</h1>
       </header>
 
       {/*
@@ -229,6 +207,9 @@ export function DashboardPage() {
             <h2 id="daily-summary-heading" className="section-title">
               Tổng hợp hôm nay
             </h2>
+            {summary.data?.source === 'synthetic' ? (
+              <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
+            ) : null}
           </div>
           {summary.isPending ? <RegionLoading label="Đang tải dữ liệu tổng quan…" /> : null}
           {summary.isError && isForbiddenError(summary.error) ? (
@@ -245,25 +226,20 @@ export function DashboardPage() {
           ) : null}
           {summary.data ? (
             <Card>
-              {summary.data.source === 'synthetic' ? (
-                <p className="demo-notice">
-                  <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
-                </p>
-              ) : null}
               <div className="metric-grid">
                 <div className="metric">
-                  <p className="metric__label">Nhịp tim</p>
+                  <p className="metric__label">Nhịp tim trung bình hôm nay</p>
                   {summary.data.heartRate ? (
                     <p className="metric__value">
                       {Math.round(summary.data.heartRate.avg)} bpm
                       <span className="metric__sub">
                         thấp {Math.round(summary.data.heartRate.min)} – cao{' '}
                         {Math.round(summary.data.heartRate.max)} ·{' '}
-                        {summary.data.heartRate.validSamples} mẫu hợp lệ
+                        {summary.data.heartRate.validSamples} lần đo hợp lệ
                       </span>
                     </p>
                   ) : (
-                    <p className="metric__value">Chưa có mẫu nhịp tim hợp lệ hôm nay</p>
+                    <p className="metric__value">Chưa có lần đo nhịp tim hợp lệ hôm nay</p>
                   )}
                 </div>
                 <div className="metric">
@@ -287,23 +263,14 @@ export function DashboardPage() {
                       : 'Chưa có thông tin pin'}
                   </p>
                 </div>
-                <div className="metric">
-                  <p className="metric__label">Độ phủ dữ liệu</p>
-                  <p className="metric__value">
-                    {summary.data.coverage.percent}%
-                    <span className="metric__sub">
-                      {summary.data.coverage.observedCount} mẫu đã nhận
-                    </span>
-                  </p>
-                </div>
               </div>
               <div className="dashboard-summary__footer">
                 <p className="metric-line">
-                  Cảnh báo hôm nay: {summary.data.incidents.total} (đã đóng{' '}
-                  {summary.data.incidents.resolved}) ·{' '}
                   {summary.data.lastSeenAt
-                    ? `dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
-                    : 'chưa nhận dữ liệu từ thiết bị'}
+                    ? `Dữ liệu mới nhất ${formatRelativeTime(summary.data.lastSeenAt)}`
+                    : 'Chưa nhận dữ liệu từ thiết bị'}
+                  {' · '}dữ liệu nhận được {summary.data.coverage.percent}% (
+                  {summary.data.coverage.observedCount} lần nhận)
                   {summary.data.gaps.length > 0
                     ? ` · ${summary.data.gaps.length} khoảng thiếu dữ liệu`
                     : ''}
@@ -358,24 +325,6 @@ export function DashboardPage() {
                     {device.healthDataVisible === false ? null : (
                       <>
                         <div>
-                          <dt>Nhịp tim gần nhất</dt>
-                          <dd>
-                            {device.lastHeartRateBpm !== null &&
-                            device.lastHeartRateQuality === 'valid' ? (
-                              <strong>{device.lastHeartRateBpm} bpm</strong>
-                            ) : (
-                              'chưa có mẫu hợp lệ'
-                            )}
-                            {device.lastHeartRateQuality &&
-                            device.lastHeartRateQuality !== 'valid' ? (
-                              <span className="metric-line__note">
-                                {' '}
-                                (tín hiệu {HR_QUALITY_LABELS[device.lastHeartRateQuality]})
-                              </span>
-                            ) : null}
-                          </dd>
-                        </div>
-                        <div>
                           <dt>Pin</dt>
                           <dd>
                             {device.batteryPercent !== null
@@ -409,12 +358,6 @@ export function DashboardPage() {
       </div>
 
       <RecentInsightsCard subjectId={subjectId} />
-
-      <Alert tone="info" title="Giới hạn cần biết">
-        Cảnh báo chỉ cập nhật khi trang web đang mở và còn kết nối với máy chủ. Hệ thống không gửi
-        thông báo khi đóng trình duyệt và không tự gọi cấp cứu. Dữ liệu hiển thị là dữ liệu mô
-        phỏng; số liệu trên trang không dùng để chẩn đoán hay thay lời khuyên y tế.
-      </Alert>
     </div>
   );
 }

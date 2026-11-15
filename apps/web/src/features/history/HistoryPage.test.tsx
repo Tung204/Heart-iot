@@ -226,12 +226,22 @@ describe('HistoryPage — không reset mỗi phút và giới hạn số dòng h
     renderPage(<HistoryPage />);
 
     const table = await screen.findByRole('table');
-    expect(captionOf(table)).toHaveTextContent('Đang hiển thị 20/40 dòng');
+    expect(captionOf(table)).toHaveTextContent('Đang hiển thị 10/40 dòng');
 
-    await user.click(screen.getByRole('button', { name: 'Tải thêm từ máy chủ' }));
+    // Một nút duy nhất: mở hết 40 dòng đã tải trước…
+    await user.click(screen.getByRole('button', { name: 'Hiện thêm 30 dòng' }));
     await waitFor(() => {
       expect(captionOf(screen.getByRole('table'))).toHaveTextContent(
-        'Đang hiển thị 20/65 dòng',
+        'Đang hiển thị 40/40 dòng',
+      );
+    });
+    // …rồi mới tải trang tiếp theo từ máy chủ, không có hai nút cạnh nhau.
+    const loadMoreButtons = screen.getAllByRole('button', { name: /Tải thêm từ máy chủ/ });
+    expect(loadMoreButtons).toHaveLength(1);
+    await user.click(loadMoreButtons[0]!);
+    await waitFor(() => {
+      expect(captionOf(screen.getByRole('table'))).toHaveTextContent(
+        'Đang hiển thị 65/65 dòng',
       );
     });
 
@@ -248,11 +258,11 @@ describe('HistoryPage — không reset mỗi phút và giới hạn số dòng h
 
     // Không có request mới: mốc "bây giờ" chỉ đổi nhãn, không đổi queryKey.
     expect(measurementCalls()).toEqual(urlsBefore);
-    expect(screen.getByRole('table')).toHaveTextContent('Đang hiển thị 20/65 dòng');
-    expect(screen.getAllByRole('row')).toHaveLength(21);
+    expect(screen.getByRole('table')).toHaveTextContent('Đang hiển thị 65/65 dòng');
+    expect(screen.getAllByRole('row')).toHaveLength(66);
   });
 
-  it('hiện thêm theo bước 50 dòng và dừng ở trần 400 dòng, chỉ rõ CSV để xem toàn bộ', async () => {
+  it('một nút Hiện thêm theo bước 50 dòng, dừng ở trần 400 dòng, chỉ rõ CSV để xem toàn bộ', async () => {
     const user = userEvent.setup();
     renderPage(
       <HistoryPage />,
@@ -265,16 +275,19 @@ describe('HistoryPage — không reset mỗi phút và giới hạn số dòng h
     );
 
     const table = await screen.findByRole('table');
-    expect(captionOf(table)).toHaveTextContent('Đang hiển thị 20/450 dòng');
-    expect(screen.getAllByRole('row')).toHaveLength(21);
+    expect(captionOf(table)).toHaveTextContent('Đang hiển thị 10/450 dòng');
+    expect(screen.getAllByRole('row')).toHaveLength(11);
 
-    await user.click(screen.getByRole('button', { name: 'Hiện thêm 50 dòng' }));
-    expect(screen.getAllByRole('row')).toHaveLength(71);
+    // Chỉ còn một nút "Hiện thêm"; mỗi lần 50 dòng tới trần 400.
+    for (let step = 0; step < 8; step += 1) {
+      const more = screen.queryByRole('button', { name: /Hiện thêm/ });
+      if (!more) break;
+      await user.click(more);
+    }
 
-    await user.click(screen.getByRole('button', { name: 'Hiện tới 400 dòng' }));
     expect(screen.getAllByRole('row')).toHaveLength(401);
-
-    // Không còn lối "Hiện tất cả" gây long task ~10 s; phần còn lại xem bằng CSV.
+    expect(screen.queryByRole('button', { name: /Hiện thêm/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Hiện tới/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Hiện tất cả/ })).not.toBeInTheDocument();
     expect(screen.getByText(/Dùng nút “Tải CSV” ở trên để xem toàn bộ 450 dòng đã tải/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tải CSV' }).getAttribute('href')).toContain(
@@ -316,7 +329,7 @@ describe('HistoryPage — không reset mỗi phút và giới hạn số dòng h
       await screen.findByRole('list', { name: 'Dữ liệu đo trong khoảng đã chọn' }),
     ).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(20);
+    expect(screen.getAllByRole('listitem')).toHaveLength(10);
   });
 });
 

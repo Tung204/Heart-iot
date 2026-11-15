@@ -67,6 +67,14 @@ function subjectRow(name: string): HTMLElement {
   return screen.getByText(name, { exact: true }).closest('li') as HTMLElement;
 }
 
+/** Thao tác quản trị hồ sơ nằm trong “Thêm thao tác”; mở đúng thẻ trước khi bấm. */
+async function openOwnerActions(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+): Promise<void> {
+  await user.click(within(subjectRow(name)).getByText('Thêm thao tác'));
+}
+
 describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', () => {
   it('mở form lưu trữ, chặn thiếu lý do/sai tên, gửi đúng body, chuyển hồ sơ sau khi thành công', async () => {
     let items = [OWNER_SUBJECT, SECOND_SUBJECT];
@@ -84,6 +92,7 @@ describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', 
 
     await screen.findByText('Bà Năm');
     const row = subjectRow('Bà Năm');
+    await openOwnerActions(user, 'Bà Năm');
     await user.click(within(row).getByRole('button', { name: 'Lưu trữ hồ sơ' }));
 
     expect(
@@ -152,6 +161,7 @@ describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', 
     const user = userEvent.setup();
 
     await screen.findByText('Bà Năm');
+    await openOwnerActions(user, 'Bà Năm');
     await user.click(
       within(subjectRow('Bà Năm')).getByRole('button', { name: 'Lưu trữ hồ sơ' }),
     );
@@ -185,6 +195,7 @@ describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', 
     const user = userEvent.setup();
 
     await screen.findByText('Bà Năm');
+    await openOwnerActions(user, 'Bà Năm');
     await user.click(
       within(subjectRow('Bà Năm')).getByRole('button', { name: 'Yêu cầu xóa dữ liệu' }),
     );

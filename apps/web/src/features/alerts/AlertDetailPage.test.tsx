@@ -152,6 +152,71 @@ describe('AlertDetailPage — xác nhận thất bại', () => {
   });
 });
 
+// F04 — hành động khẩn cấp phải đứng trước thao tác đổi trạng thái trong cây DOM
+// (viewport nhỏ đo riêng bằng trình duyệt).
+describe('AlertDetailPage — thứ tự hành động khẩn cấp', () => {
+  const CONTACT = {
+    id: '4f5d6a7b-8c9d-4e0f-8a1b-2c3d4e5f6a7b',
+    subjectId: SUBJECT.id,
+    name: 'Trần Thị An',
+    relationship: 'Con gái',
+    phone: '0900000000',
+    isPrimary: true,
+    createdAt: '2026-11-01T00:00:00.000Z',
+    updatedAt: '2026-11-01T00:00:00.000Z',
+  };
+
+  it('Gọi liên hệ khẩn cấp đứng trước Tôi đang hỗ trợ và Đóng cảnh báo', async () => {
+    renderDetail((url) => {
+      const u = url;
+      if (u.includes('/emergency-contacts')) {
+        return mockResponse({ items: [CONTACT] });
+      }
+      if (u.includes(`/alerts/${INCIDENT.id}`)) return mockResponse(DETAIL);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    const call = await screen.findByRole('link', { name: 'Gọi Trần Thị An' });
+    const support = screen.getByRole('button', { name: 'Tôi đang hỗ trợ' });
+    const close = screen.getByRole('button', { name: 'Đóng cảnh báo' });
+
+    expect(call).toHaveAttribute('href', 'tel:0900000000');
+    expect(
+      call.compareDocumentPosition(support) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      support.compareDocumentPosition(close) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('cảnh báo đã đóng → không đặt card Gọi trước "Cảnh báo đã kết thúc"', async () => {
+    let contactCalls = 0;
+    renderDetail((url) => {
+      const u = url;
+      if (u.includes('/emergency-contacts')) {
+        contactCalls += 1;
+        return mockResponse({ items: [CONTACT] });
+      }
+      if (u.includes(`/alerts/${INCIDENT.id}`)) {
+        return mockResponse({
+          ...DETAIL,
+          state: 'resolved',
+          resolvedAt: '2026-11-14T08:30:00.000Z',
+          resolutionReason: 'Đã hỗ trợ',
+          resolutionOutcome: 'supported',
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Cảnh báo đã kết thúc' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Gọi Trần Thị An' })).not.toBeInTheDocument();
+    expect(contactCalls).toBe(0);
+  });
+});
+
 // F-P2-4 / heading chi tiết cảnh báo phải tăng dần: H1 → H2, không nhảy H1 → H3.
 describe('AlertDetailPage — cấp heading', () => {
   it('thẻ hành động dùng H2 sau H1, không còn H3 trước mục Diễn biến', async () => {

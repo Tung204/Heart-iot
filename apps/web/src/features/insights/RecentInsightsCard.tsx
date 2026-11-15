@@ -36,8 +36,8 @@ function formatDayFull(date: string): string {
 function dayAriaLabel(day: DailyInsight): string {
   const date = formatDayFull(day.date);
   if (!day.hasData) return `Ngày ${date}: chưa có dữ liệu`;
-  if (!day.heartRate) return `Ngày ${date}: có mẫu đo nhưng không có nhịp tim hợp lệ`;
-  return `Ngày ${date}: nhịp tim trung bình ${day.heartRate.avg} bpm, ${day.heartRate.validSamples} mẫu hợp lệ`;
+  if (!day.heartRate) return `Ngày ${date}: có lần đo nhưng không có nhịp tim hợp lệ`;
+  return `Ngày ${date}: nhịp tim trung bình ${day.heartRate.avg} bpm, ${day.heartRate.validSamples} lần đo hợp lệ`;
 }
 
 function InsightChart({ data }: { data: InsightsResponse }) {
@@ -77,7 +77,7 @@ function InsightChart({ data }: { data: InsightsResponse }) {
         </ul>
       </div>
       <p className="insights-chart-block__caption">
-        Ngày không có mẫu nhịp tim hợp lệ hiển thị “—” và không được nội suy thành 0.
+        Ngày không có lần đo nhịp tim hợp lệ hiển thị “—” và không được nội suy thành 0.
       </p>
       <p className="insights-chart-block__hint">
         Cuộn ngang biểu đồ để xem thêm ngày.
@@ -99,11 +99,11 @@ function InsightMetrics({ data }: { data: InsightsResponse }) {
   return (
     <dl className="insights-metrics">
       <div className="insights-metric">
-        <dt className="insights-metric__label">Nhịp tim trung bình</dt>
+        <dt className="insights-metric__label">Nhịp tim trung bình {data.days.length} ngày</dt>
         <dd className="insights-metric__value">
           {data.summary.avgHeartRate !== null ? `${data.summary.avgHeartRate} bpm` : '—'}
           <span className="insights-metric__sub">
-            {validSamples > 0 ? `${validSamples} mẫu hợp lệ` : 'chưa có mẫu hợp lệ'}
+            {validSamples > 0 ? `${validSamples} lần đo hợp lệ` : 'chưa có lần đo hợp lệ'}
           </span>
         </dd>
       </div>
@@ -124,14 +124,14 @@ function InsightMetrics({ data }: { data: InsightsResponse }) {
         <dt className="insights-metric__label">Ngày có dữ liệu</dt>
         <dd className="insights-metric__value">
           {data.summary.dataDays}/{data.days.length}
-          <span className="insights-metric__sub">ngày có mẫu đo</span>
+          <span className="insights-metric__sub">ngày có dữ liệu</span>
         </dd>
       </div>
       <div className="insights-metric">
         <dt className="insights-metric__label">Độ phủ trung bình</dt>
         <dd className="insights-metric__value">
           {data.summary.avgCoveragePercent}%
-          <span className="insights-metric__sub">mẫu nhận được so với kỳ vọng</span>
+          <span className="insights-metric__sub">dữ liệu nhận được so với kỳ vọng</span>
         </dd>
       </div>
     </dl>
@@ -153,7 +153,7 @@ export function RecentInsightsCard({ subjectId }: { subjectId: string | null }) 
         <div className="insights-card__heading">
           <h2 className="insights-card__title">Xu hướng gần đây</h2>
           <p className="insights-card__lead">
-            Nhịp tim, vận động và độ phủ dữ liệu theo ngày trong khoảng bạn chọn.
+            Nhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.
           </p>
         </div>
         <div className="segmented insights-card__range" role="group" aria-label="Khoảng thời gian xu hướng">
@@ -193,8 +193,7 @@ export function RecentInsightsCard({ subjectId }: { subjectId: string | null }) 
         <>
           {data.summary.syntheticDays > 0 ? (
             <p className="insights-card__notice">
-              <StatusPill tone="sand">Dữ liệu mô phỏng</StatusPill>
-              <span>Có mẫu từ nguồn mô phỏng, không phải dữ liệu đo thật.</span>
+              <StatusPill tone="sand">Dữ liệu mô phỏng · không phải số đo thật</StatusPill>
             </p>
           ) : null}
           {query.isFetching ? (
@@ -206,7 +205,7 @@ export function RecentInsightsCard({ subjectId }: { subjectId: string | null }) 
           {isEmpty ? (
             <EmptyState
               title="Chưa có dữ liệu xu hướng"
-              description="Chưa nhận được mẫu đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu."
+              description="Chưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu."
               action={
                 <ButtonLink to="/app/history" variant="secondary" size="sm">
                   Mở lịch sử đo
@@ -225,10 +224,6 @@ export function RecentInsightsCard({ subjectId }: { subjectId: string | null }) 
                 </ul>
               ) : null}
               <div className="insights-card__footer">
-                <p className="insights-card__incidents">
-                  Cảnh báo trong kỳ: {data.summary.incidentsTotal} (đã đóng{' '}
-                  {data.summary.incidentsResolved})
-                </p>
                 <Link to="/app/history">Xem lịch sử và biểu đồ →</Link>
               </div>
             </>

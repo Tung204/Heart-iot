@@ -66,6 +66,9 @@ describe('AlertsPage', () => {
 
     const acknowledgeButton = await screen.findByRole('button', { name: 'Xác nhận' });
     await user.click(acknowledgeButton);
+    // F07: bước hỏi lại rõ ràng, chưa gọi API ở lần bấm đầu.
+    expect(screen.getByText('Bạn đã liên hệ và đang hỗ trợ?')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(
       await screen.findByText('Danh sách có thể chưa cập nhật'),
@@ -121,6 +124,7 @@ describe('AlertsPage — xác nhận thất bại', () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole('button', { name: 'Xác nhận' }));
+    await user.click(screen.getByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Chưa xác nhận được cảnh báo');
@@ -183,6 +187,7 @@ describe('AlertsPage — xác nhận thất bại', () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole('button', { name: 'Xác nhận' }));
+    await user.click(screen.getByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(await screen.findByText('Cảnh báo đã có người xác nhận')).toBeInTheDocument();
     expect(screen.getByText(/Trần Thị An đã xác nhận đang hỗ trợ/)).toBeInTheDocument();
@@ -268,6 +273,17 @@ describe('AlertsPage — quyền ghi cảnh báo', () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole('button', { name: 'Xác nhận' }));
+
+    // Lần bấm đầu chỉ mở câu hỏi xác nhận, chưa gửi POST.
+    expect(screen.getByText('Bạn đã liên hệ và đang hỗ trợ?')).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(([input, init]) =>
+        String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+        (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(false);
+
+    await user.click(screen.getByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(
       fetchMock.mock.calls.some(

@@ -183,7 +183,7 @@ function SessionRow({
       <div className="settings-session__actions">
         {session.current ? (
           <p className="settings-session__note">
-            Phiên bạn đang dùng. Dùng “Đăng xuất” trong menu tài khoản để kết thúc phiên này.
+            Phiên bạn đang dùng. Dùng nút “Đăng xuất” trong ứng dụng để kết thúc phiên này.
           </p>
         ) : confirming ? (
           <div className="confirm-box" role="group" aria-label="Xác nhận thu hồi phiên">

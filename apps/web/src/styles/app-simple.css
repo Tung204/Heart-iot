@@ -1,1 +1,410 @@
-/* Giao diện ứng dụng tối giản — worker app điền, lead nối import. */
+/* Giao diện ứng dụng tối giản — Hôm nay là màn mặc định, nav bốn mục.
+   Chỉ thêm phần giao diện mới; hành vi và quyền vẫn do component/API quyết định. */
+
+/* ---------- Khung: tên + vai trò, không email ---------- */
+
+.shell__user-role {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.shell__safety-note {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+/* ---------- Hôm nay ---------- */
+
+.today {
+  gap: var(--space-4);
+}
+
+.today__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.today-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-left: 4px solid var(--color-line-strong);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-card);
+}
+
+.today-status__text {
+  flex: 1 1 16rem;
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.today-status__action {
+  flex: none;
+}
+
+.today-status--alert {
+  border-left-color: var(--color-brick);
+  background: var(--color-brick-soft);
+}
+
+.today-status--calm {
+  border-left-color: var(--color-teal);
+}
+
+.today-status--error {
+  border-left-color: var(--color-brick-deep);
+}
+
+.today-ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-card);
+}
+
+.today-ask__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.today-ask__row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.today-ask__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 3rem;
+  max-height: 10rem;
+  resize: vertical;
+}
+
+.today-ask__row .button {
+  flex: none;
+}
+
+.today-ask__hint {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* Gợi ý ngắn, một hàng cuộn ngang; mép phải mờ để biết còn gợi ý khác. */
+.today-ask__suggestions {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: var(--space-2);
+  margin: 0;
+  padding-bottom: var(--space-1);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+}
+
+.today-ask__suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.today-ask__suggestions .ai-suggestion {
+  flex: none;
+  white-space: nowrap;
+}
+
+.today-thread {
+  margin-top: var(--space-1);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line);
+}
+
+.today-answer__sources {
+  margin-top: var(--space-3);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.today-answer__sources-label {
+  margin: 0 0 var(--space-1);
+  font-weight: 600;
+}
+
+.today-answer__sources ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.today-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.today-links__item {
+  color: var(--color-teal-deep);
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .today-links__item:hover {
+    text-decoration: underline;
+  }
+}
+
+.today__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 639px) {
+  .today .page-title {
+    font-size: var(--text-xl);
+  }
+  .today-status__text {
+    font-size: var(--text-lg);
+  }
+  .today-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+}
+
+/* ---------- Người thân: thẻ ngắn, thao tác phụ gập lại ---------- */
+
+.subject-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.subject-list__more {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.subject-list__more-summary {
+  cursor: pointer;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-1) 0;
+}
+
+.subject-list__more-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+/* ---------- P1/P2 v4-fix: trạng thái an toàn, menu Thêm, đăng xuất ---------- */
+
+/* F03 — dòng phụ cảnh báo độ tươi thiết bị, không bị chìm trong nền. */
+.today-status__detail {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--color-brick-deep);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.today-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* F01/F02 — câu quyền và nút gọi trong thẻ trạng thái dùng đúng cỡ chạm. */
+.today-status__action .button {
+  min-height: 44px;
+}
+
+/* F09 — mục Thêm chiếm đúng một phần tư bottom-nav, chạm >= 44px, không sát mép. */
+.shell__bottomnav > .shell__more {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.shell__bottomnav .shell__more-toggle {
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: var(--space-1);
+}
+
+/* F11 — popup một bản; đảm bảo không tràn ngang ở màn 360px. */
+.shell__more-menu {
+  max-width: min(16rem, calc(100vw - 1.5rem));
+}
+
+/* F15/R-09 — hỏi lại trước khi đăng xuất, cả sidebar lẫn topbar.
+   Bản topbar là một hàng riêng full-width dưới topbar-row, không nằm trong
+   cụm actions nên không đẩy mép phải ra ngoài màn 360/390. */
+.shell__logout-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2) 0;
+}
+
+.shell__logout-confirm-text {
+  margin: 0;
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.shell__logout-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.shell__logout-confirm--topbar {
+  flex: 1 1 100%;
+  width: 100%;
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-2);
+}
+
+.shell__logout-confirm--topbar .shell__logout-confirm-actions .button {
+  flex: 1 1 7rem;
+  min-height: 44px;
+}
+
+/* T02 — câu giới hạn y tế/nguồn của từng câu trả lời, không lẫn với nguồn số liệu. */
+.assistant-msg__disclaimer {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* F30 — chip gợi ý xuống dòng thay vì cắt sau mask ở 360px/chữ lớn. */
+.today-ask__suggestions {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  scrollbar-width: auto;
+  -ms-overflow-style: auto;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.today-ask__suggestions::-webkit-scrollbar {
+  display: block;
+  height: 0.5rem;
+}
+
+/* R-11 — nhãn nguồn cạnh khối Tổng hợp; cho hàng tiêu đề xuống dòng thay vì
+   ép tiêu đề “Tổng hợp hôm nay” vỡ chữ ở desktop hẹp. */
+.dashboard__primary .dashboard-section-head {
+  flex-wrap: wrap;
+}
+
+/* R-17 — nhãn nguồn trong card Xu hướng phải xuống dòng; một pill dài
+   nowrap từng đẩy trang rộng 404px ở 360/390 + chữ lớn. */
+.insights-card__notice {
+  min-width: 0;
+}
+
+.insights-card__notice .pill {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+/* R-19 — Hôm nay ở 360 + chữ lớn: thu gọn thẻ trạng thái và khối hỏi để nút
+   Gửi nằm trên bottom-nav. Hai hành động khẩn cấp xếp ngang, vẫn đủ 44px. */
+@media (max-width: 639px) {
+  .today {
+    gap: var(--space-3);
+  }
+  .today-status {
+    gap: var(--space-1) var(--space-2);
+    padding: var(--space-3);
+  }
+  .today-status__detail {
+    line-height: 1.35;
+  }
+  .today-status__action,
+  .today-status__actions {
+    width: 100%;
+  }
+  .today-status__action .button {
+    width: auto;
+  }
+  .today-status__actions .button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--space-3);
+  }
+  .today-ask {
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+  .today-ask__suggestions {
+    gap: var(--space-1) var(--space-2);
+  }
+}
+
+/* F21 — chi tiết kỹ thuật của Lịch sử gập lại, vẫn giữ dữ liệu độ phủ/khoảng thiếu. */
+.history-tech {
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-2);
+}
+
+.history-tech > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* F07 — bước hỏi lại trước khi xác nhận từ danh sách cảnh báo. */
+.alert-row__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.alert-row__confirm-question {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.alert-row__confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

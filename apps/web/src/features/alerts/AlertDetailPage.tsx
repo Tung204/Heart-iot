@@ -218,6 +218,23 @@ export function AlertDetailPage() {
         />
       ) : null}
 
+      {/*
+        F04 — khi cảnh báo còn hành động, liên hệ khẩn cấp đứng trước mọi thao
+        tác đổi trạng thái: trong viewport đầu 390/360, "Gọi" phải thấy được
+        trước "Tôi đang hỗ trợ" và "Đóng cảnh báo".
+        R-05 — cảnh báo đã kết thúc/hủy thì không đặt card Gọi lên trước kết quả:
+        không còn hành động khẩn cấp nào để ưu tiên.
+      */}
+      {isActionableState(alert.state) &&
+      alertSubject &&
+      viewerPermissions &&
+      (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
+        <EmergencyContactCard
+          subjectId={alert.subjectId}
+          isOwner={alertSubject.role === 'owner'}
+        />
+      ) : null}
+
       {isActionableState(alert.state) ? (
         <section
           className="card alert-detail__action-card"
@@ -343,10 +360,6 @@ export function AlertDetailPage() {
               </div>
             </form>
           ) : null}
-          <p className="field__hint">
-            Dữ liệu cảnh báo hiển thị là dữ liệu mô phỏng. Khi có người thân cần hỗ trợ khẩn cấp,
-            hãy gọi cấp cứu theo số khẩn cấp địa phương — ứng dụng không tự gọi.
-          </p>
         </section>
       ) : (
         <section className="card" aria-labelledby="alert-ended-heading">
@@ -362,18 +375,9 @@ export function AlertDetailPage() {
       )}
 
       {/*
-        Liên hệ khẩn cấp: chỉ tải khi người xem là chủ hồ sơ hoặc có quyền nhận cảnh báo.
-        Card tự ẩn khi lỗi tải để không chặn nội dung cảnh báo.
+        Liên hệ khẩn cấp chỉ được đặt phía trên khi cảnh báo còn hành động (F04).
+        Với cảnh báo đã kết thúc, phần diễn biến/hành động bên dưới mới là nội dung chính.
       */}
-      {alertSubject &&
-      viewerPermissions &&
-      (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
-        <EmergencyContactCard
-          subjectId={alert.subjectId}
-          isOwner={alertSubject.role === 'owner'}
-        />
-      ) : null}
-
       <section aria-labelledby="timeline-heading">
         <h2 id="timeline-heading" className="section-title">
           Diễn biến sự kiện

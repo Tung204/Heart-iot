@@ -152,7 +152,7 @@ export const MeasurementChart = memo(function MeasurementChart({
   const isDownsampled = drawnPoints.length < points.length;
   const ariaLabel =
     points.length > 0
-      ? `Biểu đồ nhịp tim: ${points.length} mẫu hợp lệ${isDownsampled ? `, vẽ rút gọn còn ${drawnPoints.length} điểm` : ''}, thấp nhất ${bounds.min} nhịp/phút, cao nhất ${bounds.max} nhịp/phút. Chi tiết từng mẫu ở bảng/danh sách dữ liệu bên dưới.`
+      ? `Biểu đồ nhịp tim: ${points.length} mẫu hợp lệ${isDownsampled ? `, vẽ rút gọn còn ${drawnPoints.length} điểm` : ''}, thấp nhất ${bounds.min} nhịp/phút, cao nhất ${bounds.max} nhịp/phút. Chi tiết từng lần đo ở bảng/danh sách dữ liệu bên dưới.`
       : 'Biểu đồ nhịp tim: chưa có mẫu hợp lệ để vẽ. Chi tiết ở bảng/danh sách dữ liệu bên dưới.';
 
   return (
@@ -161,7 +161,7 @@ export const MeasurementChart = memo(function MeasurementChart({
         className="chart__scroll"
         tabIndex={0}
         role="group"
-        aria-label="Biểu đồ nhịp tim có thể cuộn ngang. Dùng phím mũi tên trái/phải để xem các mốc thời gian; bảng dữ liệu bên dưới liệt kê từng mẫu."
+        aria-label="Biểu đồ nhịp tim có thể cuộn ngang. Dùng phím mũi tên trái/phải để xem các mốc thời gian; bảng dữ liệu bên dưới liệt kê từng lần đo."
       >
         <svg className="chart__svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={ariaLabel}>
           {/* Khoảng thiếu dữ liệu */}
@@ -248,7 +248,7 @@ export const MeasurementChart = memo(function MeasurementChart({
           {gaps.length > 0
             ? ` · ${gaps.length} khoảng thiếu dữ liệu (ô nền tô đậm)`
             : ''}
-          . Bảng/danh sách dữ liệu bên dưới liệt kê từng mẫu.
+          . Bảng/danh sách dữ liệu bên dưới liệt kê từng lần đo.
         </span>
       </figcaption>
     </figure>
