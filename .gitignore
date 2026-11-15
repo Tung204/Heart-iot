@@ -5,6 +5,9 @@
 *.pem
 *.key
 secrets/
+# Mật khẩu broker cho profile thử nghiệm mqtt-experimental (tạo cục bộ, không commit)
+infra/mosquitto/passwd
+infra/mosquitto/passwd.*
 
 # Local database PGlite
 .data/

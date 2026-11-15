@@ -1,0 +1,16 @@
+# ACL cho profile thử nghiệm "mqtt-experimental" — KHÔNG PHẢI BROKER PRODUCTION.
+#
+# Quy ước: username của client thiết bị PHẢI là device_id (UUID) đã cấp trong DB,
+# và mỗi device có mật khẩu riêng trong password_file (tạo cục bộ, không commit).
+# pattern %u thay bằng username, nên thiết bị chỉ chạm được topic của chính nó.
+#
+# Backend đọc telemetry của mọi thiết bị vì adapter hiện subscribe
+# v1/devices/+/telemetry. Backend KHÔNG được publish topic sự kiện/telemetry.
+
+user annhien-ingest
+topic read v1/devices/+/telemetry
+
+# Thiết bị: publish telemetry và đọc ACK của chính mình. Không publish topic
+# events/status (backend chưa ingest các topic đó) và không đọc telemetry thiết bị khác.
+pattern write v1/devices/%u/telemetry
+pattern read v1/devices/%u/acks

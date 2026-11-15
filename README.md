@@ -43,6 +43,16 @@ cd tools/simulator && npx tsx src/cli.ts demo --fast
 
 Simulator gửi telemetry/sự kiện ngã qua đúng đường thiết bị (`POST /api/v1/ingest/*`), không dùng cookie hay đường tắt quyền.
 
+### PostgreSQL và MQTT qua Docker (tùy chọn)
+
+Docker không bắt buộc cho demo. Chạy mặc định chỉ dựng PostgreSQL:
+
+```bash
+docker compose -f infra/compose.yaml up -d
+```
+
+`docker compose` mặc định **không** dựng MQTT: service `mosquitto` nằm sau profile `mqtt-experimental`, chỉ bind `127.0.0.1` và bắt buộc `password_file` + ACL theo `device_id`. Adapter MQTT hiện chỉ subscribe telemetry — chưa có ingest fall/SOS, chưa publish ACK — nên **không** dùng MQTT cho demo cảnh báo; `POST /api/v1/ingest/*` là đường duy nhất đang hỗ trợ. Cách tạo credential cục bộ, cách bật profile và giới hạn của broker: [`infra/README.md`](infra/README.md).
+
 ## Kiểm thử
 
 ```bash
@@ -54,6 +64,7 @@ cd tools/simulator && npm test            # node:test
 cd apps/web && pnpm test:e2e              # Playwright: cần web server; 2 test cảnh báo mock /api/v1
 python tools/docs/build.py --check        # HTML khớp nguồn Markdown/JSON
 node tools/docs/check-examples.mjs        # mọi payload mẫu parse bằng schema (cần pnpm build:contracts)
+node infra/check-mqtt-exposure.mjs        # broker không anonymous, 1883 không mở ra ngoài loopback
 ```
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại.
@@ -66,7 +77,7 @@ apps/
   web/                  React 19, Vite, TanStack Query, Vitest, Playwright
 packages/contracts/     Schema zod dùng chung cho API/web/simulator
 tools/simulator/        CLI giả lập thiết bị (telemetry, fall, queue retry)
-infra/                  compose PostgreSQL/Mosquitto tham khảo, chưa chạy trong lượt này
+infra/                  compose PostgreSQL (mặc định) + Mosquitto sau profile thử nghiệm, chưa chạy Docker trong lượt này
 docs/                   Thiết kế, yêu cầu, quyết định, HTML sinh từ Markdown
 reports/                Handoff, worklog, journal điều phối, báo cáo review
 ```
@@ -88,6 +99,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 
 - PGlite mở file DB độc quyền theo process: dừng API trước khi `pnpm seed`/migration.
 - Chưa kiểm PostgreSQL thật, nhiều instance, MQTT broker/ACL/ACK, Web Push/email.
+- MQTT không phải đường ingest được hỗ trợ: adapter chỉ subscribe telemetry, chưa có ingest `fall.*`/`sos.*` và chưa publish ACK (P0-2 mở); broker chỉ ở profile `mqtt-experimental`, chưa kiểm TLS/ACL với broker thật.
 - AI dài hạn (`agent_runs`/`run_steps` mới có bảng schema, chưa có runtime; planner/tool registry, scheduler) chưa triển khai.
 - Frontend đã tách chunk theo route (`React.lazy` + `Suspense`); lần build 15/11 không còn cảnh báo >500 kB, chunk lớn nhất ~265 kB — chưa đo trên mạng thật.
 - Không có số liệu đo thật, độ chính xác ngã, BOM hay thời lượng pin.
