@@ -45,6 +45,15 @@ export const telemetryEnvelopeSchema = z
         message: 'measured_at phải là null khi clock_status là unsynced',
       });
     }
+    // Chỉ `unsynced` mới được thiếu giờ đo: `synced` + null làm mất mốc thời gian
+    // thật và từng bị đọc như một snapshot không rõ nguồn (P2-3).
+    if (value.clock_status === 'synced' && value.measured_at === null) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['measured_at'],
+        message: 'measured_at bắt buộc khi clock_status là synced',
+      });
+    }
     if (value.quality.heart_rate !== 'valid' && value.metrics.heart_rate_bpm !== null) {
       ctx.addIssue({
         code: 'custom',
@@ -101,6 +110,14 @@ export const incidentEnvelopeSchema = z
         code: 'custom',
         path: ['measured_at'],
         message: 'measured_at phải là null khi clock_status là unsynced',
+      });
+    }
+    // Cùng bất biến với telemetry: sự kiện `synced` phải có mốc đo thật.
+    if (value.clock_status === 'synced' && value.measured_at === null) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['measured_at'],
+        message: 'measured_at bắt buộc khi clock_status là synced',
       });
     }
   });

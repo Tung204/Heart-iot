@@ -14,7 +14,9 @@ export class IngestController {
 
   /**
    * POST /ingest/telemetry — xác thực thiết bị bằng x-device-id + x-device-key.
-   * 202 kèm ack accepted/duplicate/rejected; 409 khi xung đột idempotency; 429 khi vượt rate.
+   * 202 kèm ack accepted/duplicate/rejected; mẫu cách ly trả accepted +
+   * `code=QUARANTINED` (không được dùng cho thống kê). 409 khi xung đột
+   * idempotency; 429 khi vượt rate.
    */
   @Post('ingest/telemetry')
   @HttpCode(202)
@@ -26,14 +28,17 @@ export class IngestController {
     const outcome = await this.ingest.ingest(device, envelope, 'http');
     const receivedAt = outcome.receivedAt.toISOString();
     if (outcome.kind === 'accepted') {
+      const quarantined = outcome.quarantineReason !== undefined;
       return ingestAckSchema.parse({
         status: 'accepted',
         sourceMessageId: envelope.message_id,
         receivedAt,
         incidentId: null,
         acceptedRevision: null,
-        code: null,
-        message: null,
+        code: quarantined ? 'QUARANTINED' : null,
+        message: quarantined
+          ? 'Bản tin đã được lưu tạm để kiểm tra thời gian đo; chưa dùng cho thống kê.'
+          : null,
       });
     }
     if (outcome.kind === 'duplicate') {

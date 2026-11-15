@@ -10,7 +10,7 @@ import { MeasurementsModule } from '../src/measurements/measurements.module';
 import { CSV_HEADER } from '../src/measurements/measurements.service';
 import { PolicyModule } from '../src/policy/policy.module';
 import { DB } from '../src/database/database';
-import { auditLogs, careLinks, incidents, subjects, telemetry } from '../src/database/schema';
+import { auditLogs, careLinks, deviceAssignments, incidents, subjects, telemetry } from '../src/database/schema';
 import {
   createAdmin,
   createModuleTestApp,
@@ -58,11 +58,18 @@ async function createClaimedDevice(ctx: TestContext, admin: TestUser, owner: Tes
     .set('Origin', TEST_ORIGIN)
     .send({ claimCode: created.body.claimCode });
   expect(claimed.status).toBe(201);
+  const assignmentId = claimed.body.assignmentId as string;
+  // Test gửi mẫu lịch sử ngay sau khi claim: lùi mốc assignment để các mẫu đó
+  // thật sự nằm trong assignment (mẫu trước assignment có test riêng bị cách ly).
+  await ctx.db
+    .update(deviceAssignments)
+    .set({ startedAt: new Date(Date.now() - 35 * 24 * 3600 * 1000) })
+    .where(eq(deviceAssignments.id, assignmentId));
   return {
     subjectId: subject.id,
     deviceId: created.body.device.id,
     deviceKey: created.body.deviceKey,
-    assignmentId: claimed.body.assignmentId,
+    assignmentId,
   };
 }
 
@@ -85,13 +92,17 @@ function makeEnvelope(deviceId: string, overrides: Partial<TelemetryEnvelope> = 
 }
 
 async function send(ctx: TestContext, fixture: Fixture, envelope: TelemetryEnvelope): Promise<void> {
-  const response = await request(ctx.app.getHttpServer())
+  const response = await sendRaw(ctx, fixture, envelope);
+  expect(response.status).toBe(202);
+  expect(response.body.status).toBe('accepted');
+}
+
+function sendRaw(ctx: TestContext, fixture: Fixture, envelope: TelemetryEnvelope) {
+  return request(ctx.app.getHttpServer())
     .post('/api/v1/ingest/telemetry')
     .set('x-device-id', fixture.deviceId)
     .set('x-device-key', fixture.deviceKey)
     .send(envelope);
-  expect(response.status).toBe(202);
-  expect(response.body.status).toBe('accepted');
 }
 
 describe('Đo lường: measurements, daily-summary, export.csv', () => {
@@ -423,6 +434,101 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
       `/api/v1/subjects/${fixture.subjectId}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
     );
     expect(denied.status).toBe(404);
+  });
+
+  it('mẫu tương lai: quá dung sai bị cách ly, trong dung sai chưa được tính; list/daily/export không vượt hiện tại', async () => {
+    const fixture = await createClaimedDevice(ctx, admin, owner, 'Hồ sơ tương lai');
+    const now = Date.now();
+    const normalAt = new Date(now - 2 * 60 * 1000);
+    await send(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        sequence: 0,
+        measured_at: normalAt.toISOString(),
+        metrics: { heart_rate_bpm: 72, steps_since_boot: 10 },
+        battery_percent: 60,
+      }),
+    );
+
+    // Vượt MAX_CLOCK_SKEW_SECONDS mặc định (120 s) → cách ly.
+    const futureBeyond = new Date(now + 10 * 60 * 1000);
+    const far = await sendRaw(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        sequence: 1,
+        measured_at: futureBeyond.toISOString(),
+        metrics: { heart_rate_bpm: 200, steps_since_boot: 9999 },
+        battery_percent: 100,
+      }),
+    );
+    expect(far.status).toBe(202);
+    expect(far.body.code).toBe('QUARANTINED');
+
+    // Trong dung sai đồng hồ: được lưu bình thường nhưng chưa được đọc cho tới
+    // khi `now` đi qua measured_at.
+    const futureWithin = new Date(now + 90 * 1000);
+    const near = await sendRaw(
+      ctx,
+      fixture,
+      makeEnvelope(fixture.deviceId, {
+        sequence: 2,
+        measured_at: futureWithin.toISOString(),
+        metrics: { heart_rate_bpm: 180, steps_since_boot: 8888 },
+        battery_percent: 99,
+      }),
+    );
+    expect(near.status).toBe(202);
+    expect(near.body.status).toBe('accepted');
+    expect(near.body.code).toBeNull();
+
+    const rows = await ctx.db
+      .select()
+      .from(telemetry)
+      .where(eq(telemetry.deviceId, fixture.deviceId));
+    const bySequence = new Map(rows.map((row) => [row.sequence, row]));
+    expect(bySequence.get(1)?.isQuarantined).toBe(true);
+    expect(bySequence.get(2)?.isQuarantined).toBe(false);
+
+    const from = new Date(now - 3600 * 1000).toISOString();
+    const to = new Date(now + 20 * 60 * 1000).toISOString();
+    const list = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/measurements?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(list.status).toBe(200);
+    expect(list.body.items).toHaveLength(1);
+    expect(list.body.items[0].measuredAt).toBe(normalAt.toISOString());
+    expect(list.body.coverage.observedCount).toBe(1);
+    expect(list.body.coverage.percent).toBeLessThanOrEqual(100);
+
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    const summary = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=${today}`,
+    );
+    expect(summary.status).toBe(200);
+    expect(summary.body.coverage.percent).toBeLessThanOrEqual(100);
+    if (summary.body.lastSeenAt !== null) {
+      expect(Date.parse(summary.body.lastSeenAt)).toBeLessThanOrEqual(Date.now());
+    }
+    expect(summary.body.heartRate?.max ?? null).not.toBe(200);
+    expect(summary.body.steps.total).not.toBe(9999);
+    expect(summary.body.batteryPercent).not.toBe(100);
+
+    const csv = await owner.agent.get(
+      `/api/v1/subjects/${fixture.subjectId}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(csv.status).toBe(200);
+    const csvLines = csv.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(csvLines).toHaveLength(2);
+    expect(csv.text).not.toContain(futureBeyond.toISOString());
+    expect(csv.text).not.toContain(futureWithin.toISOString());
+    expect(csvLines[1]?.startsWith(normalAt.toISOString())).toBe(true);
   });
 
   it('cursor không hợp lệ bị 422; khoảng > 31 ngày bị 422', async () => {
