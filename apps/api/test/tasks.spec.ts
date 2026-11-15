@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
 import {
   createModuleTestApp,
@@ -209,6 +209,19 @@ describe('Maintenance tasks (wave 3 be-admin)', () => {
 
   afterAll(async () => {
     await ctx.close();
+  });
+
+  // Task fixture bị T5/T6 đóng; trả lại trạng thái ban đầu trước mỗi test để
+  // thứ tự chạy (--randomize) không làm đổi kết quả T1/T2/T4/T7.
+  beforeEach(async () => {
+    await ctx.db
+      .update(maintenanceTasks)
+      .set({ status: 'open', closedAt: null, closeReason: null })
+      .where(inArray(maintenanceTasks.id, [taskHighDue, taskHighNoDue, taskMid, taskLow, unlinkedTask, secondDeviceTask]));
+    await ctx.db
+      .update(maintenanceTasks)
+      .set({ status: 'done', closedAt: new Date(Date.now() - 3600_000), closeReason: 'Đã hoàn tất.' })
+      .where(eq(maintenanceTasks.id, closedTask));
   });
 
   test('T1 (FR-11): chủ hồ sơ xem task open của hồ sơ mình, sắp priority desc, dueAt asc null cuối', async () => {

@@ -8,6 +8,7 @@ import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
 import { CSV_HEADER } from '../src/measurements/measurements.service';
+import { localDateKey } from '../src/measurements/insights';
 import { PolicyModule } from '../src/policy/policy.module';
 import { DB } from '../src/database/database';
 import { auditLogs, careLinks, deviceAssignments, incidents, subjects, telemetry } from '../src/database/schema';
@@ -326,7 +327,10 @@ describe('Đo lường: measurements, daily-summary, export.csv', () => {
     expect(response.body.steps.total).toBe(20);
 
     const future = await owner.agent.get(
-      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=2027-01-01`,
+      `/api/v1/subjects/${fixture.subjectId}/daily-summary?date=${localDateKey(
+        new Date(Date.now() + 2 * 24 * 3600 * 1000),
+        'Asia/Ho_Chi_Minh',
+      )}`,
     );
     expect(future.status).toBe(422);
   });

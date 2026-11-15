@@ -9,6 +9,8 @@ describe('Seed demo tổng hợp', () => {
 
   beforeAll(async () => {
     ctx = await createTestApp();
+    // Seed một lần để test nào chạy trước (--randomize) cũng có dữ liệu demo.
+    await seedDemo(ctx.db);
   });
 
   afterAll(async () => {

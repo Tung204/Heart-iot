@@ -22,7 +22,7 @@ import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DatabaseModule } from '../src/database/database.module';
 import { DB, type AppDb } from '../src/database/database';
 import { configureApp } from '../src/configure-app';
-import { ENV, loadEnv, resetEnvCacheForTests } from '../src/config/env';
+import { ENV, loadEnv } from '../src/config/env';
 import {
   aiSummaries,
   auditLogs,
@@ -35,11 +35,13 @@ import {
   telemetry,
 } from '../src/database/schema';
 import {
+  assertHermeticDatabase,
   registerUser,
   TEST_ORIGIN,
   type TestContext,
   type TestUser,
 } from './test-app';
+import { assertHermeticEnv, prepareHermeticTestEnv } from './test-env';
 
 /**
  * FR trợ lý AI (wave 2 be-ai): tóm tắt khoảng dữ liệu + hỏi đáp trên số liệu tổng hợp.
@@ -56,20 +58,8 @@ import {
 })
 class LocalTestInfraModule {}
 
-function prepareTestEnv(): void {
-  process.env.NODE_ENV = 'test';
-  process.env.PGLITE_MEMORY = 'true';
-  process.env.WEB_ORIGIN = TEST_ORIGIN;
-  delete process.env.DATABASE_URL;
-  delete process.env.AI_BASE_URL;
-  delete process.env.AI_API_KEY;
-  delete process.env.AI_MODEL;
-  delete process.env.MQTT_URL;
-  resetEnvCacheForTests();
-}
-
 async function buildAssistantApp(adapter?: AssistantAiAdapter): Promise<TestContext> {
-  prepareTestEnv();
+  prepareHermeticTestEnv();
   const builder = Test.createTestingModule({
     imports: [DatabaseModule, AuditModule, AccessModule, LocalTestInfraModule, AssistantModule],
   });
@@ -79,8 +69,10 @@ async function buildAssistantApp(adapter?: AssistantAiAdapter): Promise<TestCont
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication({ logger: false });
   const env = app.get<ReturnType<typeof loadEnv>>(ENV);
+  assertHermeticEnv(env);
   configureApp(app, env);
   await app.init();
+  assertHermeticDatabase(app);
   return {
     app,
     db: app.get<AppDb>(DB),
@@ -694,6 +686,13 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
     await ctx.close();
   });
 
+  // Mỗi test sở hữu state adapter + bản ghi AI của subject; không phụ thuộc thứ tự chạy.
+  beforeEach(async () => {
+    fake.calls.length = 0;
+    fake.mode = 'ok';
+    await ctx.db.delete(aiSummaries).where(eq(aiSummaries.subjectId, subjectId));
+  });
+
   it('summary qua adapter: provider/model đúng, facts gửi model không chứa email/tên', async () => {
     const response = await owner.agent.get(`/api/v1/subjects/${subjectId}/assistant/summary`);
     expect(response.status).toBe(200);
@@ -781,10 +780,13 @@ describe('Trợ lý AI — fake adapter (không gọi mạng thật)', () => {
     expect(askBadJson.body.provider).toBe('template');
     expect(askBadJson.body.degradedReason).toContain('không đúng cấu trúc');
 
-    // Bản ghi lưu vết của các lần fallback.
+    // Test tự sở hữu state: 4 lần gọi adapter lỗi, nhưng chỉ summary lưu
+    // ai_summaries (ask không ghi bảng này). Trước đây assertion >=4 sống nhờ
+    // bản ghi của test chạy trước, nên đỏ khi randomize.
+    expect(fake.calls).toHaveLength(4);
     const stored = await ctx.db.select().from(aiSummaries).where(eq(aiSummaries.subjectId, subjectId));
-    expect(stored.length).toBeGreaterThanOrEqual(4);
-    expect(stored.filter((row) => row.status === 'failed').length).toBeGreaterThanOrEqual(3);
+    expect(stored).toHaveLength(3);
+    expect(stored.every((row) => row.status === 'failed')).toBe(true);
 
     fake.mode = 'ok';
   });

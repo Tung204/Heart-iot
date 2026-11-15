@@ -9,6 +9,7 @@
     "start": "node dist/src/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:random": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --randomize",
     "test:watch": "jest --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/database/migrate-cli.ts",

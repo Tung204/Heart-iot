@@ -7,7 +7,7 @@ import type { AuthSession } from '@annhien/contracts/auth';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/configure-app';
-import { ENV, loadEnv, resetEnvCacheForTests } from '../src/config/env';
+import { ENV, loadEnv } from '../src/config/env';
 import { DB, DATABASE, type AppDb, type DatabaseHandle } from '../src/database/database';
 import { users } from '../src/database/schema';
 import { AuditModule } from '../src/access/audit.module';
@@ -16,8 +16,9 @@ import { AuthModule } from '../src/auth/auth.module';
 import { SessionGuard } from '../src/auth/session.guard';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DatabaseModule } from '../src/database/database.module';
+import { assertHermeticEnv, prepareHermeticTestEnv, TEST_ORIGIN } from './test-env';
 
-export const TEST_ORIGIN = 'http://localhost:5173';
+export { TEST_ORIGIN };
 
 export type TestContext = {
   app: INestApplication;
@@ -25,21 +26,24 @@ export type TestContext = {
   close: () => Promise<void>;
 };
 
-function prepareTestEnv(): void {
-  process.env.NODE_ENV = 'test';
-  process.env.PGLITE_MEMORY = 'true';
-  process.env.WEB_ORIGIN = TEST_ORIGIN;
-  delete process.env.DATABASE_URL;
-  resetEnvCacheForTests();
+/** Bảo đảm app test đã dựng DB in-memory, không lỡ dùng PostgreSQL thật. */
+export function assertHermeticDatabase(app: INestApplication): void {
+  const handle = app.get<DatabaseHandle>(DATABASE);
+  if (handle.kind !== 'pglite') {
+    throw new Error(`Test phải dùng PGlite in-memory, nhưng database kind=${handle.kind}.`);
+  }
 }
 
 async function buildTestApp(imports: Type<unknown>[]): Promise<TestContext> {
-  prepareTestEnv();
+  prepareHermeticTestEnv();
   const moduleRef = await Test.createTestingModule({ imports }).compile();
   const app = moduleRef.createNestApplication({ logger: false });
   const env = app.get<AppEnvLike>(ENV);
+  // Chặn trước app.init để không lỡ kết nối PostgreSQL/MQTT/AI thật.
+  assertHermeticEnv(env);
   configureApp(app, env);
   await app.init();
+  assertHermeticDatabase(app);
   return {
     app,
     db: app.get<AppDb>(DB),

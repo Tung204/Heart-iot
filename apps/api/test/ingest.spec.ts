@@ -9,6 +9,8 @@ import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
 import { MqttIngestService } from '../src/ingest/mqtt-ingest.service';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
+import { CSV_HEADER } from '../src/measurements/measurements.service';
+import { localDateKey } from '../src/measurements/insights';
 import { PolicyModule } from '../src/policy/policy.module';
 import { computePolicyDigest } from '../src/policy/policy.service';
 import { DB } from '../src/database/database';
@@ -399,7 +401,7 @@ describe('Ingest telemetry', () => {
     expect(list.body.gaps.every((gap: { reason: string }) => gap.reason !== 'quarantined')).toBe(true);
   });
 
-  it('chuyển chủ: mẫu trước assignment bị cách ly, mẫu cũ vẫn thuộc chủ cũ, không sang chủ mới', async () => {
+  it('T-03: chuyển chủ A→B — mẫu trước/giữa assignment bị cách ly, mẫu cũ thuộc A, B không thấy dữ liệu A', async () => {
     const ownerB = await registerUser(ctx.app, { displayName: 'Chủ mới' });
     const subjectA = await createSubject(ctx, owner.session.user.id);
     const subjectB = await createSubject(ctx, ownerB.session.user.id);
@@ -424,10 +426,11 @@ describe('Ingest telemetry', () => {
       .set({ startedAt: new Date(now - 3 * 3600 * 1000) })
       .where(eq(deviceAssignments.id, assignmentA));
 
+    const insideAMeasuredAt = new Date(now - 2 * 3600 * 1000).toISOString();
     const insideA = makeEnvelope(deviceId, {
       sequence: 20,
       boot_id: 'boot-transfer',
-      measured_at: new Date(now - 2 * 3600 * 1000).toISOString(),
+      measured_at: insideAMeasuredAt,
       metrics: { heart_rate_bpm: 61, steps_since_boot: 100 },
     });
     const acceptedA = await ingest(ctx, fixture, insideA);
@@ -470,10 +473,11 @@ describe('Ingest telemetry', () => {
       measured_at: new Date(now - 45 * 60 * 1000).toISOString(),
       metrics: { heart_rate_bpm: 57, steps_since_boot: 20 },
     });
+    const insideBMeasuredAt = new Date(now - 10 * 60 * 1000).toISOString();
     const insideB = makeEnvelope(deviceId, {
       sequence: 23,
       boot_id: 'boot-transfer',
-      measured_at: new Date(now - 10 * 60 * 1000).toISOString(),
+      measured_at: insideBMeasuredAt,
       metrics: { heart_rate_bpm: 63, steps_since_boot: 30 },
     });
 
@@ -506,7 +510,7 @@ describe('Ingest telemetry', () => {
     );
     expect(listA.status).toBe(200);
     expect(listA.body.items.map((item: { measuredAt: string }) => item.measuredAt)).toEqual([
-      insideA.measured_at,
+      insideAMeasuredAt,
     ]);
 
     const listB = await ownerB.agent.get(
@@ -514,8 +518,74 @@ describe('Ingest telemetry', () => {
     );
     expect(listB.status).toBe(200);
     expect(listB.body.items.map((item: { measuredAt: string }) => item.measuredAt)).toEqual([
-      insideB.measured_at,
+      insideBMeasuredAt,
     ]);
+
+    // daily-summary là đường đọc khác: chỉ thấy mẫu của đúng chủ, mẫu cách ly bị loại.
+    const summaryA = await owner.agent.get(
+      `/api/v1/subjects/${subjectA.id}/daily-summary?date=${localDateKey(new Date(insideAMeasuredAt), 'Asia/Ho_Chi_Minh')}`,
+    );
+    expect(summaryA.status).toBe(200);
+    expect(summaryA.body.heartRate).toMatchObject({
+      avg: 61,
+      min: 61,
+      max: 61,
+      validSamples: 1,
+      invalidSamples: 0,
+    });
+    expect(summaryA.body.coverage.observedCount).toBe(1);
+    expect(summaryA.body.lastSeenAt).toBe(insideAMeasuredAt);
+
+    const summaryB = await ownerB.agent.get(
+      `/api/v1/subjects/${subjectB.id}/daily-summary?date=${localDateKey(new Date(insideBMeasuredAt), 'Asia/Ho_Chi_Minh')}`,
+    );
+    expect(summaryB.status).toBe(200);
+    expect(summaryB.body.heartRate).toMatchObject({
+      avg: 63,
+      min: 63,
+      max: 63,
+      validSamples: 1,
+      invalidSamples: 0,
+    });
+    expect(summaryB.body.coverage.observedCount).toBe(1);
+    expect(summaryB.body.lastSeenAt).toBe(insideBMeasuredAt);
+
+    // export.csv cũng không rò mẫu của chủ kia hay mẫu cách ly.
+    const csvA = await owner.agent.get(
+      `/api/v1/subjects/${subjectA.id}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(csvA.status).toBe(200);
+    const csvALines = csvA.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(csvALines[0]).toBe(CSV_HEADER.join(','));
+    expect(csvALines).toHaveLength(2);
+    const csvAColumns = csvALines[1]!.split(',');
+    expect(csvAColumns[0]).toBe(insideAMeasuredAt);
+    expect(csvAColumns[2]).toBe('61');
+
+    const csvB = await ownerB.agent.get(
+      `/api/v1/subjects/${subjectB.id}/export.csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+    );
+    expect(csvB.status).toBe(200);
+    const csvBLines = csvB.text.replace(/^\uFEFF/, '').split('\r\n');
+    expect(csvBLines[0]).toBe(CSV_HEADER.join(','));
+    expect(csvBLines).toHaveLength(2);
+    const csvBColumns = csvBLines[1]!.split(',');
+    expect(csvBColumns[0]).toBe(insideBMeasuredAt);
+    expect(csvBColumns[2]).toBe('63');
+
+    // Trạng thái live: A không còn assignment mở; B chỉ thấy mẫu mới nhất của mình.
+    const statusA = await owner.agent.get(`/api/v1/subjects/${subjectA.id}/status`);
+    expect(statusA.status).toBe(200);
+    expect(statusA.body.devices).toHaveLength(0);
+
+    const statusB = await ownerB.agent.get(`/api/v1/subjects/${subjectB.id}/status`);
+    expect(statusB.status).toBe(200);
+    expect(statusB.body.devices).toHaveLength(1);
+    expect(statusB.body.devices[0]).toMatchObject({
+      deviceId,
+      lastHeartRateBpm: 63,
+      lastMeasuredAt: insideBMeasuredAt,
+    });
   });
 
   it('MQTT parser: topic không khớp device_id bị bỏ; hợp lệ thì gọi chung service ingest', async () => {
