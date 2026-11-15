@@ -28,6 +28,7 @@ Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần m�
 | [14 — Kế hoạch triển khai và trạng thái](14-ke-hoach-trien-khai-phan-mem.md) | Đã làm gì (v1/v2), chạy/kiểm thế nào, còn giới hạn nào, kết quả review và trạng thái xử lý ra sao? |
 | [Quyết định kiến trúc dự thảo](decisions/0001-dinh-huong-prototype.md) | Vì sao đề xuất các lựa chọn hiện tại, khi nào xem xét lại? |
 | [Quyết định nền tảng triển khai](decisions/0002-nen-tang-trien-khai.md) | Stack, PGlite/PostgreSQL, phiên cookie, SSE và phạm vi v1 đã chốt thế nào? |
+| [Quyết định trợ lý là trung tâm](decisions/0003-tro-ly-la-trung-tam.md) | Vì sao `/app` mặc định là trợ lý, dashboard xuống `/app/overview`, và cách giữ trung thực dữ liệu? |
 | [Review thiết kế v0.1](reviews/01-thiet-ke-v0.1.md) | Những điểm cần sửa/làm rõ trước khi triển khai, tình huống lỗi và giới hạn kiểm chứng? |
 | [Review nền tảng AI](reviews/02-nen-tang-ai-va-cau-hinh-dong.md) | Bốn khoảng trống Codex tìm được đã bổ sung thế nào, còn phải kiểm gì khi triển khai? |
 
