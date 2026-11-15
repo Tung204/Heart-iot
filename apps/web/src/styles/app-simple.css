@@ -229,3 +229,122 @@
   gap: var(--space-2);
   padding-top: var(--space-2);
 }
+
+/* ---------- P1/P2 v4-fix: trạng thái an toàn, menu Thêm, tìm kiếm ---------- */
+
+/* F03 — dòng phụ cảnh báo độ tươi thiết bị, không bị chìm trong nền. */
+.today-status__detail {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--color-brick-deep);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.today-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* F01/F02 — câu quyền và nút gọi trong thẻ trạng thái dùng đúng cỡ chạm. */
+.today-status__action .button {
+  min-height: 44px;
+}
+
+/* F09 — mục Thêm chiếm đúng một phần tư bottom-nav, chạm >= 44px, không sát mép. */
+.shell__bottomnav > .shell__more {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.shell__bottomnav .shell__more-toggle {
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: var(--space-1);
+}
+
+/* F11 — popup một bản; đảm bảo không tràn ngang ở màn 360px. */
+.shell__more-menu {
+  max-width: min(16rem, calc(100vw - 1.5rem));
+}
+
+/* F15 — hỏi lại trước khi đăng xuất, cả sidebar lẫn topbar. */
+.shell__logout-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.shell__logout-confirm-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.shell__logout-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* T02 — câu giới hạn y tế/nguồn của từng câu trả lời, không lẫn với nguồn số liệu. */
+.assistant-msg__disclaimer {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+/* F30 — chip gợi ý xuống dòng thay vì cắt sau mask ở 360px/chữ lớn. */
+.today-ask__suggestions {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  scrollbar-width: auto;
+  -ms-overflow-style: auto;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.today-ask__suggestions::-webkit-scrollbar {
+  display: block;
+  height: 0.5rem;
+}
+
+/* F21 — chi tiết kỹ thuật của Lịch sử gập lại, vẫn giữ dữ liệu độ phủ/khoảng thiếu. */
+.history-tech {
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-2);
+}
+
+.history-tech > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+/* F07 — bước hỏi lại trước khi xác nhận từ danh sách cảnh báo. */
+.alert-row__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.alert-row__confirm-question {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.alert-row__confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

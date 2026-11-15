@@ -20,19 +20,17 @@ function routeHandler(url: string) {
 // v4 — `/app` là Hôm nay; Sức khỏe chi tiết ở `/app/overview`, Lịch sử đo ở
 // `/app/history`. Các đường dẫn cũ vẫn mở đúng màn để không gãy deep link.
 describe('router — Hôm nay là mặc định của /app', () => {
-  it('/app → Hôm nay, có lối xem sức khỏe chi tiết và lịch sử đo', async () => {
+  it('/app → Hôm nay, một lối Sức khỏe 7 ngày (lịch sử nằm trong Sức khỏe)', async () => {
     renderApp('/app', routeHandler);
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Hôm nay' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Xem sức khỏe chi tiết →' }),
-    ).toHaveAttribute('href', '/app/overview');
-    expect(screen.getByRole('link', { name: 'Lịch sử đo →' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Sức khỏe 7 ngày →' })).toHaveAttribute(
       'href',
-      '/app/history',
+      '/app/overview',
     );
+    expect(screen.queryByRole('link', { name: /Lịch sử đo/ })).not.toBeInTheDocument();
   });
 
   it('/app/overview → Sức khỏe chi tiết, có đường về Hôm nay', async () => {

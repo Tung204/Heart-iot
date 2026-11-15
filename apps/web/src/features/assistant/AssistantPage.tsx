@@ -5,11 +5,14 @@ import type { AssistantAnswer } from '@annhien/contracts/assistant';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
 import { StatusPill } from '../../components/StatusPill';
-import { formatDateTime } from '../../lib/format';
+import { formatDateTime, formatTime } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { fetchOpenAlerts, fetchSubjectStatus } from '../dashboard/api';
+import { ALERT_TYPE_LABELS } from '../alerts/labels';
+import { toTelHref } from '../contacts/phone';
+import { useEmergencyContacts } from '../contacts/useEmergencyContacts';
 import { useMe } from '../auth/useAuth';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
@@ -30,6 +33,9 @@ const MEASUREMENTS_NOT_SHARED_TITLE = 'Chủ hồ sơ không chia sẻ số đo'
 const MEASUREMENTS_NOT_SHARED_TEXT =
   'Bạn chưa được xem số đo của hồ sơ này nên chưa thể hỏi trợ lý.';
 const TODAY_LIMIT_NOTE = 'Dữ liệu mô phỏng · không thay thế cấp cứu.';
+
+/** Ngưỡng dự phòng khi policy chưa tải được; server vẫn quyết định freshness. */
+const OFFLINE_FALLBACK_SECONDS = 300;
 
 /**
  * Badge nguồn trả lời — chữ là tín hiệu chính, màu chỉ hỗ trợ.
@@ -72,6 +78,7 @@ function AnswerView({ answer }: { answer: AssistantAnswer }) {
         ) : null}
       </div>
       <p className="ai-answer__text">{answer.answer}</p>
+      <p className="assistant-msg__disclaimer">{answer.disclaimer}</p>
       <SourcesList sources={answer.sources} />
     </div>
   );
@@ -93,6 +100,8 @@ type ConversationTurn = {
 type TodayStatus = {
   tone: 'calm' | 'alert' | 'muted' | 'error';
   text: string;
+  /** Dòng phụ cho tín hiệu an toàn (ví dụ thiết bị ngoại tuyến) khi thẻ chính là cảnh báo. */
+  detail?: string;
   action?: ReactNode;
 };
 
@@ -138,6 +147,17 @@ export function AssistantPage() {
     enabled: Boolean(subjectId) && canReceiveAlerts,
     staleTime: 15_000,
   });
+
+  // Chỉ tải liên hệ khi thật sự có cảnh báo mở và người xem có quyền nhận cảnh báo:
+  // không thêm request vô ích cho màn Hôm nay bình thường.
+  const openAlertItems = openAlerts.data?.items ?? [];
+  const contacts = useEmergencyContacts(subjectId ?? '', {
+    enabled: Boolean(subjectId) && canReceiveAlerts && openAlertItems.length > 0,
+  });
+  const primaryContact =
+    contacts.data?.items.find((contact) => contact.isPrimary) ??
+    contacts.data?.items[0] ??
+    null;
 
   const [question, setQuestion] = useState('');
   const [turns, setTurns] = useState<ConversationTurn[]>([]);
@@ -231,6 +251,34 @@ export function AssistantPage() {
       : latest;
   }, null);
 
+  /**
+   * Thiết bị ngoại tuyến hoặc dữ liệu cũ hơn ngưỡng policy.
+   * Dùng `asOf` của server làm mốc "bây giờ" để kết quả ổn định, không phụ thuộc
+   * đồng hồ trình duyệt; freshness do server tính vẫn là tín hiệu chính.
+   */
+  const deviceWarning = (() => {
+    if (!status.data || !canViewMeasurements || healthDataHidden) return null;
+    const seenDevices = status.data.devices.filter((device) => device.lastSeenAt !== null);
+    if (seenDevices.length === 0) return null;
+    const thresholdSeconds =
+      status.data.policy.value.offlineAfterSeconds ?? OFFLINE_FALLBACK_SECONDS;
+    const asOfMs = new Date(status.data.asOf).getTime();
+    const offline = status.data.devices.some(
+      (device) =>
+        device.online === false ||
+        device.freshness === 'offline' ||
+        device.freshness === 'stale' ||
+        (device.lastSeenAt !== null &&
+          asOfMs - new Date(device.lastSeenAt).getTime() > thresholdSeconds * 1000),
+    );
+    if (!offline) return null;
+    const latest = seenDevices.reduce<string>((current, device) => {
+      const seen = device.lastSeenAt as string;
+      return new Date(seen).getTime() > new Date(current).getTime() ? seen : current;
+    }, seenDevices[0]!.lastSeenAt as string);
+    return `Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(latest)}`;
+  })();
+
   /** Trạng thái đo khi không có cảnh báo nào cần báo (hoặc không xem được cảnh báo). */
   const measurementStatus = (): TodayStatus => {
     if (!canViewMeasurements || healthDataHidden) {
@@ -271,7 +319,10 @@ export function AssistantPage() {
   };
 
   const buildStatus = (): TodayStatus => {
-    if (!canReceiveAlerts) return measurementStatus();
+    // Thiếu quyền nhận cảnh báo là trạng thái quyền, không phải "không có cảnh báo".
+    if (!canReceiveAlerts) {
+      return { tone: 'muted', text: ALERTS_FORBIDDEN_TEXT };
+    }
     if (openAlerts.isPending) {
       return { tone: 'muted', text: 'Đang kiểm tra cảnh báo…' };
     }
@@ -289,12 +340,42 @@ export function AssistantPage() {
         ),
       };
     }
-    const count = openAlerts.data?.items.length ?? 0;
+    const count = openAlertItems.length;
     if (count > 0) {
+      const first = openAlertItems[0]!;
       return {
         tone: 'alert',
-        text: `Có ${count}${openAlerts.data?.nextCursor ? '+' : ''} cảnh báo chưa xử lý.`,
-        action: <ButtonLink to="/app/alerts">Xem cảnh báo</ButtonLink>,
+        text: `${ALERT_TYPE_LABELS[first.type]} lúc ${formatTime(first.detectedAt)} · ${count}${
+          openAlerts.data?.nextCursor ? '+' : ''
+        } cảnh báo đang mở.`,
+        detail: deviceWarning ?? undefined,
+        action: (
+          <div className="today-status__actions">
+            {primaryContact ? (
+              <a
+                className="button button--primary button--md"
+                href={toTelHref(primaryContact.phone)}
+                aria-label={`Gọi ${primaryContact.name}`}
+              >
+                Gọi
+              </a>
+            ) : null}
+            <ButtonLink to="/app/alerts" variant={primaryContact ? 'secondary' : 'primary'}>
+              Xem cảnh báo
+            </ButtonLink>
+          </div>
+        ),
+      };
+    }
+    if (deviceWarning) {
+      return {
+        tone: 'alert',
+        text: deviceWarning,
+        action: (
+          <ButtonLink to="/app/devices" variant="secondary" size="sm">
+            Kiểm tra thiết bị
+          </ButtonLink>
+        ),
       };
     }
     return measurementStatus();
@@ -318,6 +399,9 @@ export function AssistantPage() {
             aria-label="Trạng thái hôm nay"
           >
             <p className="today-status__text">{statusCard.text}</p>
+            {statusCard.detail ? (
+              <p className="today-status__detail">{statusCard.detail}</p>
+            ) : null}
             {statusCard.action ? (
               <div className="today-status__action">{statusCard.action}</div>
             ) : null}
@@ -343,7 +427,7 @@ export function AssistantPage() {
                   rows={1}
                   value={question}
                   onChange={(event) => setQuestion(event.target.value)}
-                  maxLength={600}
+                  maxLength={500}
                 />
                 <Button
                   type="submit"
@@ -377,7 +461,7 @@ export function AssistantPage() {
                   </Alert>
                 ) : isApiError(askError) && askError.code === 'RATE_LIMITED' ? (
                   <Alert tone="warning" title="Đã đạt giới hạn câu hỏi">
-                    {getApiErrorMessage(askError)}
+                    {getApiErrorMessage(askError)} Vui lòng thử lại sau vài phút.
                   </Alert>
                 ) : (
                   <Alert tone="error" title="Không trả lời được">
@@ -428,10 +512,7 @@ export function AssistantPage() {
 
           <nav className="today-links" aria-label="Xem thêm">
             <Link className="today-links__item" to="/app/overview">
-              Xem sức khỏe chi tiết →
-            </Link>
-            <Link className="today-links__item" to="/app/history">
-              Lịch sử đo →
+              Sức khỏe 7 ngày →
             </Link>
           </nav>
         </>

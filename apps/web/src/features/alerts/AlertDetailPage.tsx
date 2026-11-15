@@ -218,6 +218,20 @@ export function AlertDetailPage() {
         />
       ) : null}
 
+      {/*
+        F04 — liên hệ khẩn cấp đứng trước mọi hành động đổi trạng thái: trong
+        viewport đầu 390/360, "Gọi" phải thấy được trước "Tôi đang hỗ trợ" và
+        "Đóng cảnh báo". Card tự ẩn khi lỗi tải để không chặn nội dung cảnh báo.
+      */}
+      {alertSubject &&
+      viewerPermissions &&
+      (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
+        <EmergencyContactCard
+          subjectId={alert.subjectId}
+          isOwner={alertSubject.role === 'owner'}
+        />
+      ) : null}
+
       {isActionableState(alert.state) ? (
         <section
           className="card alert-detail__action-card"
@@ -358,18 +372,9 @@ export function AlertDetailPage() {
       )}
 
       {/*
-        Liên hệ khẩn cấp: chỉ tải khi người xem là chủ hồ sơ hoặc có quyền nhận cảnh báo.
-        Card tự ẩn khi lỗi tải để không chặn nội dung cảnh báo.
+        Liên hệ khẩn cấp đã được đặt phía trên (F04) để hành động gọi nằm trong
+        màn đầu; ở đây chỉ còn phần diễn biến, hành động và người nhận.
       */}
-      {alertSubject &&
-      viewerPermissions &&
-      (alertSubject.role === 'owner' || viewerPermissions.canReceiveAlerts) ? (
-        <EmergencyContactCard
-          subjectId={alert.subjectId}
-          isOwner={alertSubject.role === 'owner'}
-        />
-      ) : null}
-
       <section aria-labelledby="timeline-heading">
         <h2 id="timeline-heading" className="section-title">
           Diễn biến sự kiện

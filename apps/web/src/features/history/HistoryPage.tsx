@@ -364,12 +364,6 @@ export function HistoryPage() {
         </div>
       )}
 
-      {activeSubject ? (
-        <p className="field__hint">
-          Quyền hiện tại cho phép xem tối đa {historyDays} ngày.
-        </p>
-      ) : null}
-
       {isClamped ? (
         <p className="field__hint">
           Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của
@@ -411,25 +405,30 @@ export function HistoryPage() {
           <p className="chart-hint-mobile">Vuốt ngang biểu đồ để xem đủ khoảng thời gian.</p>
           <MeasurementChart points={chartPoints} gaps={gaps} range={chartRange} />
 
-          {coverage ? (
-            <p className="metric-line">
-              Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận (mỗi{' '}
-              {coverage.expectedIntervalSeconds}s) · {gaps.length} khoảng thiếu ·
-              {unsynced > 0 ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian` : ' không có mẫu lệch đồng hồ'}
-            </p>
-          ) : null}
+          <details className="history-tech">
+            <summary>Chi tiết kỹ thuật</summary>
+            {coverage ? (
+              <p className="metric-line">
+                Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận ·{' '}
+                {gaps.length} khoảng thiếu ·
+                {unsynced > 0
+                  ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian`
+                  : ' không có mẫu lệch đồng hồ'}
+              </p>
+            ) : null}
 
-          {gaps.length > 0 ? (
-            <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
-              <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
-              {gaps.map((gap) => (
-                <p key={`${gap.from}-${gap.to}`} role="listitem">
-                  {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
-                  {GAP_REASON_LABELS[gap.reason]}
-                </p>
-              ))}
-            </div>
-          ) : null}
+            {gaps.length > 0 ? (
+              <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
+                <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
+                {gaps.map((gap) => (
+                  <p key={`${gap.from}-${gap.to}`} role="listitem">
+                    {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
+                    {GAP_REASON_LABELS[gap.reason]}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </details>
 
           {/* Chỉ render một biến thể theo breakpoint: trước đây cả bảng và thẻ cùng
               render rồi CSS ẩn một bên, gấp đôi số DOM node và công render. */}
@@ -451,8 +450,7 @@ export function HistoryPage() {
             >
               <table className="data-table">
                 <caption>
-                  Bảng dữ liệu đo — thay thế cho biểu đồ. Đang hiển thị{' '}
-                  {visibleItems.length}/{items.length} dòng.
+                  Bảng dữ liệu đo. Đang hiển thị {visibleItems.length}/{items.length} dòng.
                   {items.length > MAX_VISIBLE_ROWS
                     ? ` Tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần; tải CSV để xem toàn bộ ${items.length} dòng.`
                     : ''}
@@ -479,7 +477,7 @@ export function HistoryPage() {
             </div>
           )}
 
-          {hasHiddenRows ? (
+          {hasHiddenRows && visibleLimit < MAX_VISIBLE_ROWS ? (
             <div className="history-load-more">
               <Button
                 variant="secondary"
@@ -489,14 +487,6 @@ export function HistoryPage() {
               >
                 Hiện thêm {Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng
               </Button>
-              {visibleLimit < MAX_VISIBLE_ROWS ? (
-                <Button variant="subtle" onClick={() => setVisibleRows(MAX_VISIBLE_ROWS)}>
-                  Hiện tới {MAX_VISIBLE_ROWS} dòng
-                </Button>
-              ) : null}
-              <span className="field__hint">
-                Đang hiện {visibleItems.length}/{items.length} dòng
-              </span>
             </div>
           ) : null}
 

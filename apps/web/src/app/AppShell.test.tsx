@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   Link,
@@ -249,12 +249,12 @@ describe('AppShell — điều hướng bốn mục', () => {
     expect(screen.queryByRole('link', { name: 'Lịch sử' })).not.toBeInTheDocument();
 
     await openMoreMenu(user);
-    expect(screen.getAllByRole('link', { name: 'Quản trị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Công việc' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Studio' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Thông báo' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Quản trị' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Công việc' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Studio' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Thông báo' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
   });
 
   it('chủ hồ sơ → nav chính có Hôm nay; menu phụ có Công việc, Studio nhưng KHÔNG có Quản trị', async () => {
@@ -265,9 +265,9 @@ describe('AppShell — điều hướng bốn mục', () => {
     expect(screen.getAllByRole('link', { name: 'Hôm nay' }).length).toBeGreaterThan(0);
     await openMoreMenu(user);
 
-    expect(screen.getAllByRole('link', { name: 'Công việc' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Studio' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('link', { name: 'Quản trị' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('menuitem', { name: 'Công việc' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Studio' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('menuitem', { name: 'Quản trị' })).not.toBeInTheDocument();
   });
 
   it('caregiver không có canViewAi/canReceiveAlerts → menu phụ chỉ Thiết bị/Thông báo/Cài đặt', async () => {
@@ -279,14 +279,15 @@ describe('AppShell — điều hướng bốn mục', () => {
     expect(screen.getAllByRole('link', { name: 'Hôm nay' }).length).toBeGreaterThan(0);
     await openMoreMenu(user);
 
-    const moreMenu = document.querySelector('.shell__sidebar .shell__more-menu');
-    expect(moreMenu).not.toBeNull();
+    const menus = document.querySelectorAll('.shell__more-menu');
+    expect(menus).toHaveLength(1);
+    const moreMenu = menus[0];
     expect(moreMenu?.querySelector('a[href="/app/assistant"]')).toBeNull();
-    expect(screen.getAllByRole('link', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Thông báo' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('link', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('link', { name: 'Công việc' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Studio' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('menuitem', { name: 'Thiết bị' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Thông báo' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('menuitem', { name: 'Cài đặt' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('menuitem', { name: 'Công việc' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: 'Studio' })).not.toBeInTheDocument();
   });
 
   it('desktop: ba liên kết đầu đúng thứ tự/route, mục thứ tư là nút Thêm', async () => {
@@ -303,7 +304,13 @@ describe('AppShell — điều hướng bốn mục', () => {
     expect(links[2]).toHaveAttribute('href', '/app/subjects');
 
     const nav = document.querySelector('.shell__sidebar .shell__nav');
-    expect(nav?.querySelector('button')?.textContent).toContain('Thêm');
+    expect(nav?.querySelectorAll('a')).toHaveLength(3);
+    // jsdom không có matchMedia → chế độ mobile: chỉ một nút Thêm, nằm ở bottom-nav.
+    const toggles = document.querySelectorAll('.shell__more-toggle');
+    expect(toggles).toHaveLength(1);
+    expect(toggles[0]).toHaveTextContent('Thêm');
+    expect(document.querySelector('.shell__bottomnav .shell__more-toggle')).not.toBeNull();
+    expect(nav?.querySelector('.shell__more-toggle')).toBeNull();
   });
 
   it('bottom-nav có đúng bốn mục, không nhét Tổng quan/Lịch sử/Trợ lý vào nav chính', async () => {
@@ -382,6 +389,116 @@ describe('AppShell — điều hướng bốn mục', () => {
       expect(link.querySelector('.shell__nav-badge')).not.toBeNull();
     }
   });
+
+  it('caregiver thiếu canReceiveAlerts → không tải cảnh báo, không có badge', async () => {
+    const { fetchMock } = renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
+    await screen.findByText('nội dung trang');
+    await waitFor(() =>
+      expect(document.querySelector('.shell__user-role')).toHaveTextContent('Người thân'),
+    );
+
+    expect(document.querySelector('.shell__nav-badge')).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([input]) => String(input).includes('/alerts?')),
+    ).toBe(false);
+  });
+});
+
+// F09/F11 — menu Thêm chỉ một bản trong DOM, đóng được bằng Escape/click ngoài,
+// aria-haspopup khớp role=menu và không bị nhân đôi theo hai thanh điều hướng.
+describe('AppShell — menu Thêm một bản, đóng được', () => {
+  afterEach(() => {
+    delete (window as { matchMedia?: unknown }).matchMedia;
+  });
+
+  function desktopMatchMedia() {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: (query: string) => ({
+        matches: query === '(min-width: 1024px)',
+        media: query,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  it('mở menu → đúng một .shell__more-menu, aria-haspopup="menu", Escape đóng và trả focus', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    const toggle = screen.getByRole('button', { name: 'Thêm' });
+    expect(toggle).toHaveAttribute('aria-haspopup', 'menu');
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(document.querySelectorAll('.shell__more-menu')).toHaveLength(1);
+    const menu = screen.getByRole('menu', { name: 'Mục khác' });
+    expect(within(menu).getAllByRole('menuitem').length).toBeGreaterThan(0);
+
+    await user.keyboard('{Escape}');
+    expect(document.querySelector('.shell__more-menu')).toBeNull();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
+  });
+
+  it('bấm ra ngoài đóng menu', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    await openMoreMenu(user);
+    expect(document.querySelector('.shell__more-menu')).not.toBeNull();
+
+    await user.click(document.body);
+    expect(document.querySelector('.shell__more-menu')).toBeNull();
+  });
+
+  it('desktop ≥1024px → menu nằm trong sidebar, bottom-nav không có bản thứ hai', async () => {
+    desktopMatchMedia();
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    await openMoreMenu(user);
+
+    expect(document.querySelector('.shell__sidebar .shell__more-menu')).not.toBeNull();
+    expect(document.querySelector('.shell__bottomnav .shell__more')).toBeNull();
+    expect(document.querySelectorAll('.shell__more-menu')).toHaveLength(1);
+  });
+});
+
+// F15 — đăng xuất phải hỏi lại, không kết thúc phiên từ một chạm.
+describe('AppShell — đăng xuất hỏi lại', () => {
+  function logoutCalls(fetchMock: ReturnType<typeof stubFetch>) {
+    return fetchMock.mock.calls.filter(([input]) => String(input).includes('/auth/logout'));
+  }
+
+  it('lần bấm đầu chỉ hỏi lại; Hủy giữ phiên; xác nhận mới gọi API', async () => {
+    const { fetchMock } = renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    await user.click(screen.getAllByRole('button', { name: 'Đăng xuất' })[0]!);
+    expect(screen.getByText('Đăng xuất khỏi tài khoản?')).toBeInTheDocument();
+    expect(logoutCalls(fetchMock)).toHaveLength(0);
+
+    await user.click(screen.getByRole('button', { name: 'Hủy' }));
+    expect(screen.queryByText('Đăng xuất khỏi tài khoản?')).not.toBeInTheDocument();
+    expect(logoutCalls(fetchMock)).toHaveLength(0);
+
+    await user.click(screen.getAllByRole('button', { name: 'Đăng xuất' })[0]!);
+    const group = screen.getByRole('group', { name: 'Xác nhận đăng xuất' });
+    await user.click(within(group).getByRole('button', { name: 'Đăng xuất' }));
+
+    await waitFor(() => expect(logoutCalls(fetchMock).length).toBeGreaterThan(0));
+  });
 });
 
 // P1-1 (review UX v2) — đổi pathname trong /app phải đưa người dùng về đầu nội
@@ -459,23 +576,20 @@ describe('AppShell — điều hướng đưa về đầu nội dung', () => {
   });
 });
 
-// P1-5 (review UX v2) — câu giới hạn cảnh báo phải có ở mọi breakpoint,
+// P1-5 (review UX v2) — câu giới hạn cảnh báo phải có ở mọi breakpoint
 // nhưng không lặp nhãn "Bản demo · dữ liệu mô phỏng" toàn trang (v3).
-describe('AppShell — giới hạn cảnh báo, không nhãn demo', () => {
-  it('giữ câu giới hạn cảnh báo cho mobile lẫn desktop và không còn nhãn demo', async () => {
+// F12 v4-fix: chỉ giữ một nơi ở màn Cảnh báo; khung không lặp ở sidebar/mobile.
+describe('AppShell — không lặp câu giới hạn cảnh báo', () => {
+  it('khung không lặp câu giới hạn cảnh báo và không có nhãn demo', async () => {
     renderShell({ user: OWNER_USER }, SUBJECTS);
     await screen.findByText('nội dung trang');
 
     expect(screen.queryByText(/bản demo/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/dữ liệu mô phỏng/i)).not.toBeInTheDocument();
-
-    const safetyNotes = screen.getAllByText('Cảnh báo chỉ cập nhật khi ứng dụng đang mở.');
-    expect(safetyNotes.length).toBeGreaterThanOrEqual(2);
-    // Một bản nằm trong sidebar (desktop), một bản nằm cuối nội dung (mobile).
-    expect(safetyNotes.some((note) => note.className.includes('shell__safety-note'))).toBe(true);
-    expect(safetyNotes.some((note) => note.className.includes('shell__mobile-safety-note'))).toBe(
-      true,
-    );
+    // Màn Cảnh báo (AlertsPage) là nơi duy nhất còn câu này.
+    expect(
+      screen.queryAllByText('Cảnh báo chỉ cập nhật khi ứng dụng đang mở.'),
+    ).toHaveLength(0);
   });
 });
 
@@ -497,20 +611,17 @@ describe('AppShell — badge thông báo chưa đọc', () => {
 
     const user = userEvent.setup();
     await openMoreMenu(user);
-    const links = await screen.findAllByRole('link', { name: /2 thông báo chưa đọc/ });
-    expect(links.length).toBeGreaterThanOrEqual(2);
+    const links = await screen.findAllByRole('menuitem', { name: /2 thông báo chưa đọc/ });
+    expect(links).toHaveLength(1);
     for (const link of links) {
       expect(link).toHaveAccessibleName(/Thông báo/);
       expect(link).toHaveTextContent('2 thông báo chưa đọc');
       expect(link.querySelector('.shell__nav-badge')).not.toBeNull();
     }
 
-    // Cả hai bản nav (desktop sidebar + mobile bottom-nav) đều có badge.
+    // Menu Thêm chỉ render một bản (mobile trong jsdom) và badge nằm trong đó.
     expect(
-      document.querySelector('.shell__sidebar a[href="/app/notifications"] .shell__nav-badge'),
-    ).not.toBeNull();
-    expect(
-      document.querySelector('.shell__bottomnav a[href="/app/notifications"] .shell__nav-badge'),
+      document.querySelector('.shell__more-menu a[href="/app/notifications"] .shell__nav-badge'),
     ).not.toBeNull();
     // Nút “Thêm” đang đóng vẫn có chấm báo để không mất tín hiệu trên mobile.
     expect(document.querySelector('.shell__more-toggle .shell__more-dot')).not.toBeNull();
@@ -527,8 +638,8 @@ describe('AppShell — badge thông báo chưa đọc', () => {
 
     const user = userEvent.setup();
     await openMoreMenu(user);
-    expect((await screen.findAllByRole('link', { name: 'Thông báo' })).length).toBeGreaterThanOrEqual(
-      2,
+    expect((await screen.findAllByRole('menuitem', { name: 'Thông báo' })).length).toBeGreaterThanOrEqual(
+      1,
     );
     expect(document.querySelector('.shell__nav-badge')).toBeNull();
   });
@@ -545,7 +656,7 @@ describe('AppShell — badge thông báo chưa đọc', () => {
 
     await openMoreMenu(user);
     const menuLinks = screen
-      .getAllByRole('link', { name: /1 thông báo chưa đọc/ })
+      .getAllByRole('menuitem', { name: /1 thông báo chưa đọc/ })
       .filter((link) => link.closest('.shell__more-menu'));
     expect(menuLinks.length).toBeGreaterThan(0);
   });
@@ -630,7 +741,7 @@ describe('AppShell — banner thông báo mới và mất SSE', () => {
     expect(await screen.findByText(/Có thông báo mới cho hồ sơ/)).toBeInTheDocument();
     await openMoreMenu(userEvent.setup());
     expect(
-      screen.getAllByRole('link', { name: /1 thông báo chưa đọc/ }).length,
+      screen.getAllByRole('menuitem', { name: /1 thông báo chưa đọc/ }).length,
     ).toBeGreaterThan(0);
   });
 

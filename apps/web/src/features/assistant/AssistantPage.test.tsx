@@ -3,7 +3,8 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssistantPage } from './AssistantPage';
 import { setActiveSubjectId } from '../subjects/selection';
-import { formatDateTime } from '../../lib/format';
+import { formatDateTime, formatTime } from '../../lib/format';
+import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
 import {
   errorEnvelope,
   INCIDENT,
@@ -65,6 +66,17 @@ const LAST_SEEN_TEXT = formatDateTime(SUBJECT_STATUS.devices[0]!.lastSeenAt);
 
 const NO_ALERTS = { items: [], nextCursor: null };
 
+const CONTACT = {
+  id: '4f5d6a7b-8c9d-4e0f-8a1b-2c3d4e5f6a7b',
+  subjectId: OWNER_SUBJECT.id,
+  name: 'Trần Thị An',
+  relationship: 'Con gái',
+  phone: '0900000000',
+  isPrimary: true,
+  createdAt: '2026-11-01T00:00:00.000Z',
+  updatedAt: '2026-11-01T00:00:00.000Z',
+};
+
 type Calls = { assistant: string[]; alerts: string[]; status: string[] };
 
 /** Harness nhỏ mô phỏng SubjectSwitcher: đổi hồ sơ không đổi pathname. */
@@ -87,6 +99,7 @@ function todayHandler(options: {
   subjects?: unknown[];
   status?: () => Response | Promise<Response>;
   alerts?: () => Response | Promise<Response>;
+  contacts?: () => Response | Promise<Response>;
   ask?: (init?: RequestInit) => Response | Promise<Response>;
   calls?: Calls;
 } = {}): FetchHandler {
@@ -103,6 +116,9 @@ function todayHandler(options: {
     if (u.includes('/alerts')) {
       calls?.alerts.push(u);
       return (options.alerts ?? (() => mockResponse(NO_ALERTS)))();
+    }
+    if (u.includes('/emergency-contacts')) {
+      return (options.contacts ?? (() => mockResponse({ items: [] })))();
     }
     if (u.includes('/assistant/ask')) {
       calls?.assistant.push(u);
@@ -164,18 +180,97 @@ describe('Hôm nay (/app)', () => {
     expect(notes).toHaveLength(1);
   });
 
-  it('có cảnh báo mở → câu ngắn + nút Xem cảnh báo, không hiện thời điểm dữ liệu', async () => {
+  it('có cảnh báo mở → nêu loại + giờ phát hiện và giữ link Xem cảnh báo', async () => {
     renderPage(
       <AssistantPage />,
       todayHandler({ alerts: () => mockResponse({ items: [INCIDENT], nextCursor: null }) }),
     );
 
-    expect(await screen.findByText('Có 1 cảnh báo chưa xử lý.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        `Nghi ngã lúc ${formatTime(INCIDENT.detectedAt)} · 1 cảnh báo đang mở.`,
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Xem cảnh báo' })).toHaveAttribute(
       'href',
       '/app/alerts',
     );
     expect(screen.queryByText(/Dữ liệu cập nhật/)).not.toBeInTheDocument();
+    // Không có liên hệ khẩn cấp thì không bịa nút Gọi.
+    expect(screen.queryByRole('link', { name: /^Gọi/ })).not.toBeInTheDocument();
+  });
+
+  it('có cảnh báo mở + liên hệ khẩn cấp → nút Gọi dùng đúng số đã lưu', async () => {
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        alerts: () => mockResponse({ items: [INCIDENT], nextCursor: null }),
+        contacts: () => mockResponse({ items: [CONTACT] }),
+      }),
+    );
+
+    const call = await screen.findByRole('link', { name: 'Gọi Trần Thị An' });
+    expect(call).toHaveAttribute('href', 'tel:0900000000');
+    expect(screen.getByRole('link', { name: 'Xem cảnh báo' })).toBeInTheDocument();
+  });
+
+  it('thiết bị ngoại tuyến → cảnh báo độ tươi, không nói "Không có cảnh báo mở"', async () => {
+    const asOf = '2026-11-15T12:15:00.000Z';
+    const lastSeenAt = '2026-11-15T08:12:00.000Z';
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        status: () =>
+          mockResponse({
+            ...SUBJECT_STATUS,
+            asOf,
+            devices: [
+              {
+                ...SUBJECT_STATUS.devices[0],
+                online: false,
+                freshness: 'offline',
+                lastSeenAt,
+              },
+            ],
+          }),
+      }),
+    );
+
+    expect(
+      await screen.findByText(`Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(lastSeenAt)}`),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Không có cảnh báo mở/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Kiểm tra thiết bị' })).toHaveAttribute(
+      'href',
+      '/app/devices',
+    );
+  });
+
+  it('lastSeenAt cũ hơn ngưỡng policy dù online → vẫn báo dữ liệu cũ', async () => {
+    const asOf = '2026-11-15T12:15:00.000Z';
+    const lastSeenAt = '2026-11-15T09:12:00.000Z';
+    renderPage(
+      <AssistantPage />,
+      todayHandler({
+        status: () =>
+          mockResponse({
+            ...SUBJECT_STATUS,
+            asOf,
+            devices: [
+              {
+                ...SUBJECT_STATUS.devices[0],
+                online: true,
+                freshness: 'live',
+                lastSeenAt,
+              },
+            ],
+          }),
+      }),
+    );
+
+    expect(
+      await screen.findByText(`Thiết bị ngoại tuyến · dữ liệu cuối ${formatTime(lastSeenAt)}`),
+    ).toBeInTheDocument();
   });
 
   it('không cảnh báo mở → một câu có thời gian cập nhật, không nút cảnh báo', async () => {
@@ -185,6 +280,15 @@ describe('Hôm nay (/app)', () => {
       await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`),
     ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Xem cảnh báo' })).not.toBeInTheDocument();
+  });
+
+  it('chỉ một liên kết phụ Sức khỏe 7 ngày; lịch sử nằm trong Sức khỏe', async () => {
+    renderPage(<AssistantPage />, todayHandler());
+
+    const link = await screen.findByRole('link', { name: 'Sức khỏe 7 ngày →' });
+    expect(link).toHaveAttribute('href', '/app/overview');
+    expect(screen.queryByRole('link', { name: /Lịch sử đo/ })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /Sức khỏe/ })).toHaveLength(1);
   });
 
   it('chưa nhận dữ liệu → nói rõ và mở đường kiểm tra thiết bị', async () => {
@@ -245,7 +349,7 @@ describe('Hôm nay (/app)', () => {
     expect(screen.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument();
   });
 
-  it('caregiver thiếu canReceiveAlerts → không gọi API cảnh báo', async () => {
+  it('caregiver thiếu canReceiveAlerts → nói rõ thiếu quyền, không gọi API cảnh báo', async () => {
     const calls = emptyCalls();
     const noAlerts = {
       ...OWNER_SUBJECT,
@@ -255,8 +359,9 @@ describe('Hôm nay (/app)', () => {
     renderPage(<AssistantPage />, todayHandler({ subjects: [noAlerts], calls }));
 
     expect(
-      await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`),
+      await screen.findByText('Bạn không có quyền xem cảnh báo của hồ sơ này.'),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/Không có cảnh báo mở/)).not.toBeInTheDocument();
     expect(calls.alerts).toHaveLength(0);
   });
 
@@ -287,6 +392,7 @@ describe('Hôm nay (/app)', () => {
     expect(await screen.findByRole('log')).toBeInTheDocument();
     expect(await screen.findByText('AI')).toBeInTheDocument();
     expect(screen.getByText(/dao động từ 62 đến 88 bpm/)).toBeInTheDocument();
+    expect(screen.getAllByText(ASSISTANT_DISCLAIMER).length).toBeGreaterThan(0);
     expect(screen.getByText('Nguồn số liệu')).toBeInTheDocument();
     expect(screen.getByText(/Telemetry 24h/)).toBeInTheDocument();
   });
@@ -315,6 +421,12 @@ describe('Hôm nay (/app)', () => {
     expect(screen.getByText('Dữ liệu mô phỏng')).toBeInTheDocument();
     // Chỉ một dòng giới hạn ở cuối trang, không lặp trong từng câu trả lời.
     expect(screen.getAllByText('Dữ liệu mô phỏng · không thay thế cấp cứu.')).toHaveLength(1);
+  });
+
+  it('ô hỏi giới hạn đúng 500 ký tự như schema', async () => {
+    renderPage(<AssistantPage />, todayHandler());
+
+    expect(await screen.findByLabelText(/^Câu hỏi/)).toHaveAttribute('maxlength', '500');
   });
 
   it('câu hỏi quá ngắn → lỗi field, không gọi API', async () => {
@@ -437,6 +549,7 @@ describe('Hôm nay (/app)', () => {
     expect(
       screen.getByText(/Bạn đã gửi quá nhiều câu hỏi, vui lòng thử lại sau./),
     ).toBeInTheDocument();
+    expect(screen.getByText(/Vui lòng thử lại sau vài phút./)).toBeInTheDocument();
   });
 
   it('hồ sơ không bật AI → nói rõ, không gọi API trợ lý', async () => {

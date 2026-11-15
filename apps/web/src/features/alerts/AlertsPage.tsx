@@ -39,6 +39,8 @@ export function AlertsPage() {
   const [ackFailure, setAckFailure] = useState<{ alertId: string; message: string } | null>(
     null,
   );
+  // F07: không xác nhận một chạm từ danh sách — mở bước hỏi lại trước khi gọi API.
+  const [confirmingAlertId, setConfirmingAlertId] = useState<string | null>(null);
 
   const alerts = useInfiniteQuery({
     queryKey: queryKeys.subjectAlerts(activeSubject?.id ?? 'none', stateFilter),
@@ -104,6 +106,7 @@ export function AlertsPage() {
     : null;
 
   const handleAcknowledge = (item: IncidentSummary) => {
+    setConfirmingAlertId(null);
     setConflictAlertId(null);
     setAckFailure(null);
     acknowledge.mutate({ alertId: item.id, version: item.version });
@@ -117,6 +120,7 @@ export function AlertsPage() {
           Cảnh báo của hồ sơ{' '}
           <strong>{activeSubject ? activeSubject.displayName : '—'}</strong>.
         </p>
+        <p className="field__hint">Cảnh báo chỉ cập nhật khi ứng dụng đang mở.</p>
       </header>
 
       <div className="segmented" role="group" aria-label="Lọc theo trạng thái">
@@ -277,14 +281,43 @@ export function AlertsPage() {
                     item.state === 'open' &&
                     !item.acknowledgedBy &&
                     canAcknowledge ? (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={acknowledge.isPending}
-                        onClick={() => handleAcknowledge(item)}
-                      >
-                        Xác nhận
-                      </Button>
+                      confirmingAlertId === item.id ? (
+                        <div
+                          className="alert-row__confirm"
+                          role="group"
+                          aria-label="Xác nhận hỗ trợ cảnh báo"
+                        >
+                          <p className="alert-row__confirm-question">
+                            Bạn đã liên hệ và đang hỗ trợ?
+                          </p>
+                          <div className="alert-row__confirm-actions">
+                            <Button
+                              size="sm"
+                              disabled={acknowledge.isPending}
+                              onClick={() => handleAcknowledge(item)}
+                            >
+                              Có, tôi đang hỗ trợ
+                            </Button>
+                            <Button
+                              variant="subtle"
+                              size="sm"
+                              disabled={acknowledge.isPending}
+                              onClick={() => setConfirmingAlertId(null)}
+                            >
+                              Hủy
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={acknowledge.isPending}
+                          onClick={() => setConfirmingAlertId(item.id)}
+                        >
+                          Xác nhận
+                        </Button>
+                      )
                     ) : null}
                     <ButtonLink to={`/app/alerts/${item.id}`} variant="subtle" size="sm">
                       Chi tiết

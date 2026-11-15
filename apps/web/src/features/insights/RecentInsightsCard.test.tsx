@@ -127,7 +127,7 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     expect(columns).toHaveLength(3);
     expect(columns[0]).toHaveAccessibleName('Ngày 13/11/2026: chưa có dữ liệu');
     expect(columns[1]).toHaveAccessibleName(
-      'Ngày 14/11/2026: nhịp tim trung bình 72.5 bpm, 3 mẫu hợp lệ',
+      'Ngày 14/11/2026: nhịp tim trung bình 72.5 bpm, 3 lần đo hợp lệ',
     );
     // Ngày thiếu hiển thị "—" (cả giá trị và cột), không vẽ cột 0.
     expect(within(columns[0]!).getAllByText('—').length).toBeGreaterThanOrEqual(1);
@@ -139,7 +139,7 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     ).toBeInTheDocument();
   });
 
-  it('có mẫu mô phỏng → chip "Dữ liệu mô phỏng"', async () => {
+  it('có mẫu mô phỏng → một nhãn nguồn "Dữ liệu mô phỏng · không phải số đo thật"', async () => {
     const response = makeResponse({
       days: [makeDay({ source: 'synthetic' })],
       summary: {
@@ -154,8 +154,9 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     });
     renderPage(<RecentInsightsCard subjectId={SUBJECT.id} />, () => mockResponse(response));
 
-    expect(await screen.findByText('Dữ liệu mô phỏng')).toBeInTheDocument();
-    expect(screen.getByText(/không phải dữ liệu đo thật/)).toBeInTheDocument();
+    expect(
+      await screen.findByText('Dữ liệu mô phỏng · không phải số đo thật'),
+    ).toBeInTheDocument();
   });
 
   it('đổi 7→30 ngày gọi đúng query và cập nhật aria-pressed', async () => {
@@ -205,7 +206,7 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     );
   });
 
-  it('giá trị null (không mẫu hợp lệ) không làm crash và hiển thị "—"', async () => {
+  it('giá trị null (không lần đo hợp lệ) không làm crash và hiển thị "—"', async () => {
     const response = makeResponse({
       days: [
         makeDay({
@@ -237,7 +238,7 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     expect(screen.getByText('Tổng bước').closest('div')).toHaveTextContent('chưa đủ dữ liệu bước');
     const chart = screen.getByRole('list', { name: 'Nhịp tim trung bình theo ngày' });
     expect(within(chart).getByRole('listitem')).toHaveAccessibleName(
-      /có mẫu đo nhưng không có nhịp tim hợp lệ/,
+      /có lần đo nhưng không có nhịp tim hợp lệ/,
     );
   });
 

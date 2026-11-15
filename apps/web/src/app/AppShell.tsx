@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
@@ -16,6 +16,28 @@ import { SubjectSwitcher } from '../features/subjects/SubjectSwitcher';
 import { queryKeys } from '../lib/query';
 
 type NavIconName = 'home' | 'alert' | 'person' | 'more' | 'admin';
+
+type MoreItem = { to: string; label: string; badge?: number };
+
+/** Một nguồn duy nhất cho menu "Thêm": desktop đặt ở sidebar, mobile ở bottom-nav. */
+function useIsDesktop(): boolean {
+  const supportsMediaQuery = () =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+  const [isDesktop, setIsDesktop] = useState(
+    () => supportsMediaQuery() && window.matchMedia('(min-width: 1024px)').matches,
+  );
+
+  useEffect(() => {
+    if (!supportsMediaQuery()) return;
+    const list = window.matchMedia('(min-width: 1024px)');
+    const update = (event: MediaQueryListEvent) => setIsDesktop(event.matches);
+    setIsDesktop(list.matches);
+    list.addEventListener('change', update);
+    return () => list.removeEventListener('change', update);
+  }, []);
+
+  return isDesktop;
+}
 
 /** Số cảnh báo đang mở tải cho badge điều hướng; cùng cỡ với danh sách trên Hôm nay. */
 const OPEN_ALERTS_LIMIT = 20;
@@ -122,6 +144,113 @@ function NavBadge({ count, label }: { count: number; label: string }) {
 }
 
 /**
+ * Nút đăng xuất có bước hỏi lại: một chạm không kết thúc phiên.
+ * Hai vị trí (sidebar desktop, topbar mobile) dùng cùng hành vi nhưng mỗi nơi
+ * giữ trạng thái xác nhận riêng; chỉ một vị trí hiển thị theo breakpoint.
+ */
+function LogoutControl({
+  pending,
+  className,
+  onLogout,
+}: {
+  pending: boolean;
+  className?: string;
+  onLogout: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (!confirming) {
+    return (
+      <Button
+        variant="subtle"
+        size="sm"
+        className={className}
+        onClick={() => setConfirming(true)}
+        disabled={pending}
+      >
+        Đăng xuất
+      </Button>
+    );
+  }
+
+  return (
+    <div className="shell__logout-confirm" role="group" aria-label="Xác nhận đăng xuất">
+      <p className="shell__logout-confirm-text">Đăng xuất khỏi tài khoản?</p>
+      <div className="shell__logout-confirm-actions">
+        <Button
+          variant="danger"
+          size="sm"
+          disabled={pending}
+          onClick={() => {
+            setConfirming(false);
+            onLogout();
+          }}
+        >
+          {pending ? 'Đang đăng xuất…' : 'Đăng xuất'}
+        </Button>
+        <Button variant="subtle" size="sm" disabled={pending} onClick={() => setConfirming(false)}>
+          Hủy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function MoreMenu({
+  items,
+  open,
+  unreadCount,
+  moreRef,
+  linkClass,
+  onToggle,
+  onClose,
+}: {
+  items: MoreItem[];
+  open: boolean;
+  unreadCount: number;
+  moreRef: RefObject<HTMLDivElement | null>;
+  linkClass: (args: { isActive: boolean }) => string;
+  onToggle: () => void;
+  onClose: () => void;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className={`shell__more${open ? ' is-open' : ''}`} ref={moreRef}>
+      <button
+        type="button"
+        className="shell__more-toggle"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls="shell-more-menu"
+        onClick={onToggle}
+      >
+        <NavIcon name="more" />
+        <span>Thêm</span>
+        {unreadCount > 0 ? <span className="shell__more-dot" aria-hidden="true" /> : null}
+      </button>
+      {open ? (
+        <div className="shell__more-menu" id="shell-more-menu" role="menu" aria-label="Mục khác">
+          {items.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={linkClass}
+              role="menuitem"
+              onClick={onClose}
+            >
+              {item.label}
+              <NavBadge
+                count={item.badge ?? 0}
+                label={`${item.badge ?? 0} thông báo chưa đọc`}
+              />
+            </NavLink>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+/**
  * Khung ứng dụng /app — bốn mục chính: Hôm nay, Cảnh báo, Người thân, Thêm.
  * - Mobile (<1024px): topbar + bottom-nav 4 mục.
  * - Desktop (≥1024px): sidebar bên trái.
@@ -145,6 +274,8 @@ export function AppShell() {
   const activeSubject = useActiveSubject(subjects.data);
   const user = me.data?.user;
   const [moreOpen, setMoreOpen] = useState(false);
+  const isDesktop = useIsDesktop();
+  const moreRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = user?.role === 'admin';
   const subjectsData = subjects.data ?? [];
@@ -230,6 +361,33 @@ export function AppShell() {
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `shell__nav-link${isActive ? ' is-active' : ''}`;
 
+  // Đóng menu Thêm khi đổi trang, khi bấm Escape hoặc bấm ra ngoài.
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMoreOpen(false);
+      moreRef.current?.querySelector<HTMLButtonElement>('.shell__more-toggle')?.focus();
+    };
+    const closeOnOutside = (event: Event) => {
+      if (!(event.target instanceof Node)) return;
+      if (moreRef.current?.contains(event.target)) return;
+      setMoreOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    document.addEventListener('pointerdown', closeOnOutside);
+    document.addEventListener('mousedown', closeOnOutside);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener('pointerdown', closeOnOutside);
+      document.removeEventListener('mousedown', closeOnOutside);
+    };
+  }, [moreOpen]);
+
   // Admin không có hồ sơ: chỉ Quản trị + Cài đặt; logo dẫn /app (router tự chuyển
   // sang /app/admin). Người dùng thường: Hôm nay, Cảnh báo, Người thân, Thêm.
   const navItems = adminOnly ? (
@@ -275,42 +433,17 @@ export function AppShell() {
   if (isStudioUser) moreItems.push({ to: '/app/studio', label: 'Studio' });
   if (isAdmin) moreItems.push({ to: '/app/admin', label: 'Quản trị' });
 
-  const moreMenu =
-    moreItems.length > 0 && !adminOnly ? (
-      <div className={`shell__more${moreOpen ? ' is-open' : ''}`}>
-        <button
-          type="button"
-          className="shell__more-toggle"
-          aria-expanded={moreOpen}
-          aria-haspopup="true"
-          onClick={() => setMoreOpen((value) => !value)}
-        >
-          <NavIcon name="more" />
-          <span>Thêm</span>
-          {notifications.unreadCount > 0 ? (
-            <span className="shell__more-dot" aria-hidden="true" />
-          ) : null}
-        </button>
-        {moreOpen ? (
-          <div className="shell__more-menu" aria-label="Mục khác">
-            {moreItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={navLinkClass}
-                onClick={() => setMoreOpen(false)}
-              >
-                {item.label}
-                <NavBadge
-                  count={item.badge ?? 0}
-                  label={`${item.badge ?? 0} thông báo chưa đọc`}
-                />
-              </NavLink>
-            ))}
-          </div>
-        ) : null}
-      </div>
-    ) : null;
+  const moreMenu = adminOnly ? null : (
+    <MoreMenu
+      items={moreItems}
+      open={moreOpen}
+      unreadCount={notifications.unreadCount}
+      moreRef={moreRef}
+      linkClass={navLinkClass}
+      onToggle={() => setMoreOpen((value) => !value)}
+      onClose={() => setMoreOpen(false)}
+    />
+  );
 
   // Trang Hôm nay tự đặt bộ chuyển hồ sơ ngay dưới tiêu đề; các trang khác dùng
   // bộ chuyển chung của khung để giữ một thanh ngữ cảnh duy nhất.
@@ -329,21 +462,16 @@ export function AppShell() {
         </div>
         <nav className="shell__nav" aria-label="Điều hướng ứng dụng">
           {navItems}
-          {moreMenu}
+          {isDesktop ? moreMenu : null}
         </nav>
-        <p className="shell__safety-note">Cảnh báo chỉ cập nhật khi ứng dụng đang mở.</p>
         <div className="shell__user">
           <p className="shell__user-name">{user?.displayName}</p>
           {roleLabel ? <p className="shell__user-role">{roleLabel}</p> : null}
-          <Button
-            variant="subtle"
-            size="sm"
+          <LogoutControl
+            pending={logout.isPending}
             className="shell__logout"
-            onClick={handleLogout}
-            disabled={logout.isPending}
-          >
-            {logout.isPending ? 'Đang đăng xuất…' : 'Đăng xuất'}
-          </Button>
+            onLogout={handleLogout}
+          />
           {logoutError ? (
             <p className="shell__error" role="alert">
               {logoutError}
@@ -363,15 +491,11 @@ export function AppShell() {
             </div>
             <div className="shell__topbar-actions">
               <TextSizeToggle />
-              <Button
-                variant="subtle"
-                size="sm"
+              <LogoutControl
+                pending={logout.isPending}
                 className="shell__topbar-logout"
-                onClick={handleLogout}
-                disabled={logout.isPending}
-              >
-                {logout.isPending ? 'Đang…' : 'Đăng xuất'}
-              </Button>
+                onLogout={handleLogout}
+              />
             </div>
           </div>
           {logoutError ? (
@@ -439,16 +563,12 @@ export function AppShell() {
                 <Outlet />
               </AppErrorBoundary>
             </div>
-            {/* Mobile không có sidebar: nhắc giới hạn an toàn ở cuối nội dung, không bị ẩn. */}
-            <p className="shell__mobile-safety-note">
-              Cảnh báo chỉ cập nhật khi ứng dụng đang mở.
-            </p>
           </div>
         </main>
 
         <nav className="shell__bottomnav" aria-label="Điều hướng ứng dụng">
           {navItems}
-          {moreMenu}
+          {isDesktop ? null : moreMenu}
         </nav>
       </div>
     </div>

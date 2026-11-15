@@ -230,11 +230,6 @@ export function DashboardPage() {
           ) : null}
           {summary.data ? (
             <Card>
-              {summary.data.source === 'synthetic' ? (
-                <p className="demo-notice">
-                  <StatusPill tone="sand">Nguồn: dữ liệu mô phỏng</StatusPill>
-                </p>
-              ) : null}
               <div className="metric-grid">
                 <div className="metric">
                   <p className="metric__label">Nhịp tim</p>
@@ -244,11 +239,11 @@ export function DashboardPage() {
                       <span className="metric__sub">
                         thấp {Math.round(summary.data.heartRate.min)} – cao{' '}
                         {Math.round(summary.data.heartRate.max)} ·{' '}
-                        {summary.data.heartRate.validSamples} mẫu hợp lệ
+                        {summary.data.heartRate.validSamples} lần đo hợp lệ
                       </span>
                     </p>
                   ) : (
-                    <p className="metric__value">Chưa có mẫu nhịp tim hợp lệ hôm nay</p>
+                    <p className="metric__value">Chưa có lần đo nhịp tim hợp lệ hôm nay</p>
                   )}
                 </div>
                 <div className="metric">
@@ -273,11 +268,11 @@ export function DashboardPage() {
                   </p>
                 </div>
                 <div className="metric">
-                  <p className="metric__label">Độ phủ dữ liệu</p>
+                  <p className="metric__label">Dữ liệu nhận được</p>
                   <p className="metric__value">
                     {summary.data.coverage.percent}%
                     <span className="metric__sub">
-                      {summary.data.coverage.observedCount} mẫu đã nhận
+                      {summary.data.coverage.observedCount} lần nhận
                     </span>
                   </p>
                 </div>
@@ -349,7 +344,7 @@ export function DashboardPage() {
                             device.lastHeartRateQuality === 'valid' ? (
                               <strong>{device.lastHeartRateBpm} bpm</strong>
                             ) : (
-                              'chưa có mẫu hợp lệ'
+                              'chưa có lần đo hợp lệ'
                             )}
                             {device.lastHeartRateQuality &&
                             device.lastHeartRateQuality !== 'valid' ? (
