@@ -54,6 +54,9 @@ const StudioViewsPage = lazy(() =>
 const SubjectsPage = lazy(() =>
   import('../features/subjects/SubjectsPage').then((m) => ({ default: m.SubjectsPage })),
 );
+const SettingsPage = lazy(() =>
+  import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
 
 /** Giữ fallback nhất quán khi chunk của route đang tải (mạng chậm/mất mạng). */
 function page(element: ReactNode): ReactNode {
@@ -64,7 +67,8 @@ function page(element: ReactNode): ReactNode {
  * Sơ đồ route:
  * - Công khai: / (landing), /login, /register, /invite/:token, * (404).
  * - Bảo vệ (/app): tổng quan, lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
- *   thiết bị, thông báo, trợ lý, công việc, Studio, quản trị. Route lạ → 404 trong khung.
+ *   thiết bị, thông báo, trợ lý, công việc, cài đặt, Studio, quản trị.
+ *   Route lạ → 404 trong khung.
  */
 export const appRoutes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
@@ -88,6 +92,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'notifications', element: page(<NotificationsPage />) },
           { path: 'assistant', element: page(<AssistantPage />) },
           { path: 'tasks', element: page(<TasksPage />) },
+          { path: 'settings', element: page(<SettingsPage />) },
           { path: 'admin', element: page(<AdminPage />) },
           { path: 'studio', element: page(<StudioViewsPage />) },
           { path: 'studio/:id', element: page(<StudioViewDetailPage />) },

@@ -97,6 +97,8 @@ async function createAlertFixture(ctx: TestContext): Promise<AlertFixture> {
       invitedByUserId: owner.session.user.id,
       permissions: FULL_PERMISSIONS,
       status: 'active',
+      // Fixture lịch sử: chia sẻ đã có trước các incident backdate trong T16/T15.
+      sharedFrom: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
       acceptedAt: new Date(),
     },
     {
@@ -105,6 +107,7 @@ async function createAlertFixture(ctx: TestContext): Promise<AlertFixture> {
       invitedByUserId: owner.session.user.id,
       permissions: NO_ALERT_PERMISSIONS,
       status: 'active',
+      sharedFrom: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
       acceptedAt: new Date(),
     },
   ]);

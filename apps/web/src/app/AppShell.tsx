@@ -151,6 +151,10 @@ export function AppShell() {
         <NavIcon name="admin" />
         <span>Quản trị</span>
       </NavLink>
+      <NavLink to="/app/settings" className={navLinkClass}>
+        <NavIcon name="person" />
+        <span>Cài đặt</span>
+      </NavLink>
     </>
   ) : (
     <>
@@ -188,6 +192,7 @@ export function AppShell() {
   }
   if (hasAiPermission) moreItems.push({ to: '/app/assistant', label: 'Trợ lý' });
   if (hasTasksPermission) moreItems.push({ to: '/app/tasks', label: 'Công việc' });
+  moreItems.push({ to: '/app/settings', label: 'Cài đặt tài khoản' });
   if (isStudioUser) moreItems.push({ to: '/app/studio', label: 'Studio' });
   if (isAdmin) moreItems.push({ to: '/app/admin', label: 'Quản trị' });
 

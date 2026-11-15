@@ -10,6 +10,7 @@ import { CareModule } from './care/care.module';
 import { ApiExceptionFilter } from './common/api-exception.filter';
 import { DatabaseModule } from './database/database.module';
 import { DevicesModule } from './devices/devices.module';
+import { EmergencyContactsModule } from './emergency-contacts/emergency-contacts.module';
 import { HealthModule } from './health/health.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { IngestModule } from './ingest/ingest.module';
@@ -32,6 +33,7 @@ import { SubjectsModule } from './subjects/subjects.module';
     SubjectsModule,
     CareModule,
     DevicesModule,
+    EmergencyContactsModule,
     IngestModule,
     MeasurementsModule,
     IncidentsModule,
