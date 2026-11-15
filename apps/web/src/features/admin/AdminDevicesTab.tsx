@@ -286,22 +286,10 @@ export function AdminDevicesTab() {
             {devices.isFetching ? 'Đang tải lại…' : 'Tải lại danh sách'}
           </Button>
         </div>
-        <p className="field__hint">
-          {policy.data
-            ? `Kết nối tính theo policy v${policy.data.active.version}: ngoại tuyến sau ${policy.data.active.value.offlineAfterSeconds} giây không nhận dữ liệu.`
-            : policy.isError
-              ? 'Không tải được policy nên trang chỉ hiển thị lần thấy cuối, không kết luận trực tuyến/ngoại tuyến.'
-              : 'Đang tải ngưỡng ngoại tuyến từ policy…'}
-        </p>
-        <p className="field__hint">
-          Trang quản trị không hiển thị dữ liệu sức khỏe. API quản trị hiện chưa trả chỉ số pin;
-          cột Pin ghi “chưa có thông tin” thay vì suy đoán.
-        </p>
-
         {items.length === 0 ? (
           <EmptyState
             title="Chưa có thiết bị nào"
-            description="Thiết bị được đăng ký qua quy trình triển khai sẽ xuất hiện tại đây để tạo mã gắn và đổi khóa."
+            description="Thiết bị đã đăng ký sẽ xuất hiện ở đây."
           />
         ) : (
           <ul className="adm-device-list" aria-label="Danh sách thiết bị">
@@ -329,6 +317,17 @@ export function AdminDevicesTab() {
                       <StatusPill tone={CONNECTION_TONES[connection]}>
                         {CONNECTION_LABELS[connection]}
                       </StatusPill>
+                      {connection === 'offline' && offlineAfterSeconds !== undefined ? (
+                        <span className="adm-device__connection-hint">
+                          Không nhận dữ liệu hơn {offlineAfterSeconds} giây nên được coi là ngoại
+                          tuyến.
+                        </span>
+                      ) : null}
+                      {connection === 'unknown' ? (
+                        <span className="adm-device__connection-hint">
+                          Chưa rõ vì chưa tải được ngưỡng ngoại tuyến từ chính sách.
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
@@ -337,9 +336,12 @@ export function AdminDevicesTab() {
                       <dt>Hồ sơ đang gắn</dt>
                       <dd>
                         {device.assignedSubjectId ? (
-                          <code className="adm-device__id" title={device.assignedSubjectId}>
-                            {device.assignedSubjectId}
-                          </code>
+                          <span className="adm-device__subject" title={device.assignedSubjectId}>
+                            Mã{' '}
+                            <code className="adm-device__id">
+                              {device.assignedSubjectId.slice(0, 8)}
+                            </code>
+                          </span>
                         ) : (
                           'Chưa gắn hồ sơ'
                         )}

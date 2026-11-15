@@ -63,6 +63,12 @@
   gap: var(--space-2);
 }
 
+.adm-device__connection-hint {
+  flex: 1 1 100%;
+  color: var(--color-ink-soft);
+  font-size: var(--text-xs);
+}
+
 .adm-device__facts {
   margin: 0;
   display: grid;
@@ -89,6 +95,13 @@
 .adm-device__id {
   font-size: var(--text-xs);
   overflow-wrap: anywhere;
+}
+
+.adm-device__subject {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
 }
 
 .adm-device__actions {
