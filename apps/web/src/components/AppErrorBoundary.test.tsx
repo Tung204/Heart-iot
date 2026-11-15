@@ -19,7 +19,10 @@ describe('AppErrorBoundary', () => {
     );
     expect(screen.getByRole('alert')).toHaveTextContent('Trang này chưa tải được');
     expect(screen.getByRole('button', { name: 'Tải lại trang' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Về tổng quan' })).toHaveAttribute('href', '/app');
+    expect(screen.getByRole('link', { name: 'Về tổng quan' })).toHaveAttribute(
+      'href',
+      '/app/overview',
+    );
     spy.mockRestore();
   });
 });

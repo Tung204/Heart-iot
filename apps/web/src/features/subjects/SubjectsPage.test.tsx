@@ -194,9 +194,9 @@ describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', 
         name: 'Ghi nhận yêu cầu xóa dữ liệu cho “Bà Năm”',
       }),
     ).toBeInTheDocument();
-    // Thông điệp giới hạn demo: chưa xóa ngay, chưa có job xóa tự động.
+    // Thông điệp giới hạn: chưa xóa ngay, chưa có job xóa tự động.
     expect(
-      screen.getByText(/Bản demo chưa có tác vụ xóa tự động hay thời hạn xử lý/),
+      screen.getByText(/Phiên bản hiện tại chưa có tác vụ xóa tự động hay thời hạn xử lý/),
     ).toBeInTheDocument();
     expect(screen.getByText('ghi nhận thủ công')).toBeInTheDocument();
 

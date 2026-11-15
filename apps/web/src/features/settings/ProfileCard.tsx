@@ -87,7 +87,8 @@ export function ProfileCard({ user }: ProfileCardProps) {
           error={fieldError}
         />
         <p className="settings-meta">
-          Email đăng nhập: <strong>{user.email}</strong>. Bản demo chưa hỗ trợ đổi email.
+          Email đăng nhập: <strong>{user.email}</strong>. Phiên bản hiện tại chưa hỗ trợ đổi
+          email.
         </p>
         <div className="settings-actions-row">
           <Button type="submit" disabled={update.isPending}>

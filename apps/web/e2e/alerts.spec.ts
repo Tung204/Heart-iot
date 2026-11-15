@@ -174,7 +174,7 @@ test('danh sách cảnh báo hiển thị cảnh báo đang mở và đi tới c
 
 test('tổng quan hiển thị cảnh báo mở và đường dẫn tới lịch sử', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/app');
+  await page.goto('/app/overview');
 
   await expect(page.getByRole('heading', { level: 1, name: /Tổng quan/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Cảnh báo đang mở' })).toBeVisible();

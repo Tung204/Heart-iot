@@ -66,7 +66,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Tạo tài khoản"
-      intro="Tạo tài khoản để bắt đầu theo dõi người thân trong bản demo An Nhiên."
+      intro="Tạo tài khoản để bắt đầu theo dõi người thân cùng An Nhiên."
       footer={
         <p className="auth-footer">
           Đã có tài khoản? <Link to="/login">Đăng nhập</Link>

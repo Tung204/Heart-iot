@@ -106,10 +106,10 @@ export function LoginPage() {
         </Button>
       </form>
       <details className="demo-accounts">
-        <summary>Tài khoản demo có sẵn</summary>
+        <summary>Tài khoản mẫu</summary>
         <p className="field__hint">
-          Chọn vai trò để điền nhanh email và mật khẩu demo. Dữ liệu trong bản demo là dữ liệu
-          mô phỏng.
+          Chọn vai trò để điền nhanh email và mật khẩu của tài khoản mẫu dùng để trải nghiệm. Dữ
+          liệu hiển thị trong ứng dụng là dữ liệu mô phỏng.
         </p>
         <div className="demo-accounts__list">
           {DEMO_ACCOUNTS.map((account) => (

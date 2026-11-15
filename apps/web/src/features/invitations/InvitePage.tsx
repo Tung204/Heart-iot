@@ -6,7 +6,6 @@ import { Button, ButtonLink } from '../../components/Button';
 import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
 import { SkipLink } from '../../components/SkipLink';
-import { StatusPill } from '../../components/StatusPill';
 import { formatDateTime } from '../../lib/format';
 import { getApiErrorMessage, isNotFoundError, isUnauthorizedError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
@@ -156,8 +155,9 @@ export function InvitePage() {
                   </div>
                 )}
               </div>
-              <p style={{ marginTop: '1.25rem' }}>
-                <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
+              <p className="field__hint">
+                Dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Quyền truy cập do chủ hồ sơ
+                quyết định và có thể bị thu hồi bất kỳ lúc nào.
               </p>
             </>
           ) : null}

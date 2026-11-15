@@ -38,7 +38,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
           <Button variant="secondary" onClick={() => window.location.reload()}>
             Tải lại trang
           </Button>
-          <ButtonLink to="/app" variant="subtle">
+          <ButtonLink to="/app/overview" variant="subtle">
             Về tổng quan
           </ButtonLink>
         </div>

@@ -65,7 +65,7 @@ function dashboardHandler(overrides: {
 describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng quan', () => {
   it('status/daily-summary lỗi 500 → cảnh báo đang mở vẫn hiển thị', async () => {
     renderApp(
-      '/app',
+      '/app/overview',
       dashboardHandler({ status: serverError, summary: serverError }),
     );
 
@@ -86,7 +86,7 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
 
   it('status/daily-summary đang tải → cảnh báo hiện ngay, mỗi vùng có loading riêng', async () => {
     renderApp(
-      '/app',
+      '/app/overview',
       dashboardHandler({ status: pending, summary: pending }),
     );
 
@@ -101,7 +101,7 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
   });
 
   it('chỉ cảnh báo lỗi → tổng hợp hôm nay vẫn hiển thị số liệu', async () => {
-    renderApp('/app', dashboardHandler({ alerts: serverError }));
+    renderApp('/app/overview', dashboardHandler({ alerts: serverError }));
 
     expect(await screen.findByText('Không tải được cảnh báo đang mở', {}, SLOW)).toBeInTheDocument();
     expect(await screen.findByText(/73 bpm/, {}, SLOW)).toBeInTheDocument();
@@ -111,7 +111,7 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
 
   it('không có cảnh báo mở → ghi rõ bằng chữ, không hiện số 0 giả', async () => {
     renderApp(
-      '/app',
+      '/app/overview',
       dashboardHandler({ alerts: () => mockResponse({ items: [], nextCursor: null }) }),
     );
 
@@ -144,7 +144,7 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
       ],
     };
     renderApp(
-      '/app',
+      '/app/overview',
       dashboardHandler({ status: () => mockResponse(redactedStatus), summary: forbidden }),
     );
 

@@ -7,7 +7,7 @@ export function AppNotFoundPage() {
     <EmptyState
       title="Không tìm thấy trang"
       description="Đường dẫn này không tồn tại trong ứng dụng hoặc đã được chuyển đi. Kiểm tra lại địa chỉ hoặc quay về tổng quan."
-      action={<ButtonLink to="/app">Về tổng quan</ButtonLink>}
+      action={<ButtonLink to="/app/overview">Về tổng quan</ButtonLink>}
     />
   );
 }

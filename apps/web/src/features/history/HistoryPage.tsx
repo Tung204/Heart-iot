@@ -154,7 +154,7 @@ function MeasurementsNotShared() {
     <EmptyState
       title="Chủ hồ sơ không chia sẻ số đo"
       description="Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo."
-      action={<ButtonLink to="/app">Về tổng quan</ButtonLink>}
+      action={<ButtonLink to="/app/overview">Về tổng quan</ButtonLink>}
     />
   );
 }
@@ -521,9 +521,9 @@ export function HistoryPage() {
           ) : null}
 
           <p className="field__hint">
-            Bản demo dùng dữ liệu mô phỏng. Số liệu trên trang không dùng để chẩn đoán hay thay
-            lời khuyên y tế.{' '}
-            <Link to="/app">Về tổng quan</Link>
+            Dữ liệu hiển thị là dữ liệu mô phỏng. Số liệu trên trang không dùng để chẩn đoán hay
+            thay lời khuyên y tế.{' '}
+            <Link to="/app/overview">Về tổng quan</Link>
           </p>
         </>
       )}

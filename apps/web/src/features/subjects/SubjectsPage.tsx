@@ -85,8 +85,8 @@ function DangerConsequences({ mode }: { mode: DangerMode }) {
         <li>Hồ sơ biến khỏi danh sách, tổng quan và cảnh báo của bạn và người thân.</li>
         <li>Mọi liên kết chia sẻ đang hiệu lực bị thu hồi ngay; stream đang mở sẽ đóng.</li>
         <li>
-          Số đo, cảnh báo và bản xuất <strong>không bị xóa</strong> — bản demo chưa có quy
-          trình xóa và không có hoàn tác trên giao diện.
+          Số đo, cảnh báo và bản xuất <strong>không bị xóa</strong> — phiên bản hiện tại chưa có
+          quy trình xóa và không có hoàn tác trên giao diện.
         </li>
       </ul>
     );
@@ -100,7 +100,7 @@ function DangerConsequences({ mode }: { mode: DangerMode }) {
         Yêu cầu chỉ được ghi vào nhật ký kiểm toán; dữ liệu số đo, cảnh báo, bản xuất,
         cache/backup vẫn còn.
       </li>
-      <li>Bản demo chưa có tác vụ xóa tự động hay thời hạn xử lý — người triển khai phải xử lý.</li>
+      <li>Phiên bản hiện tại chưa có tác vụ xóa tự động hay thời hạn xử lý — việc này cần được xử lý khi vận hành.</li>
     </ul>
   );
 }
@@ -403,7 +403,7 @@ export function SubjectsPage() {
                               Sửa tên
                             </Button>
                           ) : null}
-                          <ButtonLink to="/app" variant="subtle" size="sm">
+                          <ButtonLink to="/app/overview" variant="subtle" size="sm">
                             Xem tổng quan
                           </ButtonLink>
                           {isOwner ? (
@@ -599,7 +599,7 @@ export function SubjectsPage() {
         Lưu ý: dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Nếu bạn là người thân
         được mời xem hộ, quyền truy cập do chủ hồ sơ quyết định — hãy hỏi lại chủ hồ sơ nếu
         cần quyền khác.
-        {' '}<Link to="/app">Về tổng quan</Link>
+        {' '}<Link to="/app/overview">Về tổng quan</Link>
       </p>
     </div>
   );
