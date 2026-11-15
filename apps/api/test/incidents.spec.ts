@@ -1540,6 +1540,91 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     expect(outbox.some((row) => row.recipientUserId === fx.ownerBId)).toBe(true);
   });
 
+  it('T24: revision mới sau khi chuyển chủ không ghi vào incident của chủ cũ (assignment_mismatch)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const now = Date.now();
+    await db
+      .update(deviceAssignments)
+      .set({ startedAt: new Date(now - 10 * DAY_MS) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+
+    const localId = 'incident-t24-cross-owner';
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: localId,
+        event_type: 'fall.candidate',
+        event_revision: 1,
+        measured_at: new Date(now - 2 * 60_000).toISOString(),
+      }),
+    );
+    expect(candidate.body.status).toBe('accepted');
+    const incidentId = candidate.body.incidentId as string;
+
+    // Chuyển thiết bị sang B; A đóng trước khi sự kiện revision 2 được đo.
+    await db
+      .update(deviceAssignments)
+      .set({ endedAt: new Date(now - 60_000) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+    fixtureCounter += 1;
+    const ownerB = await registerUser(ctx.app, { displayName: `Chủ hồ sơ B ${fixtureCounter}` });
+    const subjectB = (
+      await db
+        .insert(subjects)
+        .values({
+          ownerUserId: ownerB.session.user.id,
+          displayName: `Người được theo dõi B ${fixtureCounter}`,
+        })
+        .returning()
+    )[0]!;
+    await db.insert(deviceAssignments).values({
+      deviceId: fx.deviceId,
+      subjectId: subjectB.id,
+      assignedByUserId: ownerB.session.user.id,
+      startedAt: new Date(now - 30_000),
+    });
+
+    const confirmed = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: localId,
+        event_type: 'fall.confirmed',
+        event_revision: 2,
+        measured_at: new Date().toISOString(),
+      }),
+    );
+    expect(confirmed.status).toBe(202);
+    expect(confirmed.body).toMatchObject({
+      status: 'rejected',
+      code: 'QUARANTINED',
+      incidentId: null,
+    });
+
+    // Incident cũ không đổi chủ/trạng thái và không nhận revision 2.
+    const incidentRows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(incidentRows[0]!.subjectId).toBe(fx.subjectId);
+    expect(incidentRows[0]!.assignmentId).toBe(fx.assignmentId);
+    expect(incidentRows[0]!.state).toBe('suspected');
+    expect(incidentRows[0]!.version).toBe(1);
+    const eventRows = await db
+      .select()
+      .from(incidentEvents)
+      .where(eq(incidentEvents.incidentId, incidentId));
+    expect(eventRows).toHaveLength(1);
+    expect(eventRows[0]!.eventRevision).toBe(1);
+
+    const audits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.quarantined'), eq(auditLogs.targetId, fx.deviceId)));
+    expect(audits).toHaveLength(1);
+    expect((audits[0]!.metadata as Record<string, unknown>)['reason']).toBe('assignment_mismatch');
+  });
+
   it('T18: SUSPECTED_TIMEOUT_MINUTES ngoài 1..120 bị từ chối khi đọc cấu hình', () => {
     const previous = process.env.SUSPECTED_TIMEOUT_MINUTES;
     try {

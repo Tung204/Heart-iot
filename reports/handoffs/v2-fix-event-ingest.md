@@ -4,7 +4,7 @@
 - **Worker:** fix-event-ingest (dispatched), worktree `C:/Users/nguye/orca/workspaces/DATN/fix-event-ingest`
 - **Nhánh:** `fix-event-ingest` (không merge, không push)
 - **Base:** `cddacc4 docs(orchestration): spec sự kiện và Studio theo mốc chia sẻ`
-- **Commit sửa:** `3f5b2000c61fa8869ace7427267e438631166f09`
+- **Commit sửa:** `3f5b2000c61fa8869ace7427267e438631166f09` (test T24 bổ sung ở commit kế tiếp trên cùng nhánh)
 - **Nguồn finding:** `reports/qa/v2-rev-security.md` mục P1-1 (đọc từ worktree `rev-v2-security` vì báo cáo chưa có trong nhánh này): `POST /ingest/events` gán sự kiện cũ cho chủ hiện tại và nhận timestamp tương lai.
 - **Hợp đồng tham chiếu:** `docs/03` mục “Mạng, đồng hồ và dữ liệu cũ” (gán bằng lịch sử assignment tại thời điểm xảy ra; không chắc thời gian thì cách ly), `docs/04` mục mô hình dữ liệu/telemetry (“không tự gán vào chủ hiện tại”), `docs/08` T-03.
 
@@ -42,7 +42,7 @@
 
 Helper `createReassignedFixture()`: thiết bị thuộc A đến 4 ngày trước, B mở từ 2 ngày trước, có khoảng trống ở giữa.
 
-5 test mới (T19–T23), tổng incidents spec **24 test**:
+5 test mới (T19–T23) và 1 test chặn ghi chéo chủ (T24), tổng incidents spec **25 test**:
 
 | Test | Nội dung |
 | --- | --- |
@@ -51,6 +51,7 @@ Helper `createReassignedFixture()`: thiết bị thuộc A đến 4 ngày trư�
 | T21 | `measured_at` +1 năm → `rejected`/`QUARANTINED`; audit reason `clock_skew_future`, `clockSkewSeconds > 120`. |
 | T22 | `measured_at` trong khoảng trống giữa A và B → `rejected`/`QUARANTINED`; audit reason `outside_assignment`. |
 | T23 | Sự kiện bình thường trong assignment B đang mở → `accepted`, incident thuộc B/`assignment_id` B; B thấy, A không thấy; outbox có chủ B. |
+| T24 | Incident tạo ở A, thiết bị chuyển B rồi gửi revision mới đo trong B → `rejected`/`QUARANTINED` lý do `assignment_mismatch`; incident A giữ nguyên chủ/trạng thái/version, không nhận event mới. |
 
 ## Kiểm chứng đã chạy
 
@@ -59,9 +60,9 @@ Helper `createReassignedFixture()`: thiết bị thuộc A đến 4 ngày trư�
 | `pnpm install --prefer-offline --frozen-lockfile` | 711 package, pass |
 | `pnpm build:contracts` | pass |
 | `pnpm --filter @annhien/api typecheck` | pass |
-| `jest --runInBand test/incidents.spec.ts` | **24/24 test pass**, 1 suite |
+| `jest --runInBand test/incidents.spec.ts` | **25/25 test pass**, 1 suite |
 | `jest --runInBand test/notifications.spec.ts test/sse.spec.ts` | **19/19 test pass**, 2 suite (đường ingest sự kiện dùng chung) |
-| `jest --runInBand` (toàn bộ API) | **20/20 suite, 197/197 test pass** |
+| `jest --runInBand` (toàn bộ API) | **20/20 suite, 198/198 test pass** |
 
 ## File thay đổi
 
