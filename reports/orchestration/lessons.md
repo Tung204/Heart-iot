@@ -36,3 +36,19 @@ hay checklist tiến độ; chi tiết và bằng chứng nằm ở các file ng
 
 - Lỗi không tái hiện thì ghi "chưa kết luận", không sửa mò và không đóng finding giả.
 - Chạy lại toàn bộ cổng sau thay đổi cuối, không dùng kết quả của lần chạy trước đó.
+
+## v2 (49 phiên)
+
+- **Spec trước, phiên sau:** mỗi worker cần phạm vi file được ghi, file cấm, DB/cổng riêng, lệnh phải
+  chạy và mẫu handoff. Reviewer chỉ đọc, không commit; feature/fix commit nhánh riêng. Lead giữ file ghép
+  toàn cục và chỉ merge sau khi đọc diff.
+- **Reviewer độc lập bắt lỗi test xanh không bắt:** sự kiện cũ sang chủ mới, Studio trước `sharedFrom`,
+  daily-summary cộng bước bắc gap, claim code cho thiết bị đang gán. Không thay review bằng test.
+- **`pnpm build` sau mỗi merge CSS:** Vite dev có thể vẫn chạy với cú pháp CSS hỏng; chỉ production build
+  mới fail. Build là cổng bắt buộc, không chỉ typecheck.
+- **Conflict phải giữ cả hai semantics:** publish vs quarantine test, health permission vs history
+  performance, a11y chart vs downsample. Giải xong phải chạy test của cả hai bên.
+- **Randomize và StrictMode tạo fail giả:** audit toàn cục phải scope `targetId`; request lặp dev-only
+  không được biến thành assertion “đúng 2 request”. Sửa test theo ý định, không nới hành vi.
+- **Visual gate sau cùng:** mở vai trò caregiver/admin, 390/360/chữ lớn; kiểm nút disabled có lý do,
+  link đúng vai trò, badge mobile, tràn ngang. Ảnh full-page có thể đặt nav sai vị trí.
