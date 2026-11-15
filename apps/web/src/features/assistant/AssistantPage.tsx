@@ -214,13 +214,13 @@ function AnswerView({ answer }: { answer: AssistantAnswer }) {
   );
 }
 
-/** Câu hỏi gợi ý ngắn, bám dữ liệu trợ lý thực sự nhận được. */
+/** Câu hỏi gợi ý ngắn, bám dữ liệu trợ lý thực sự nhận được.
+ * Nhãn hiển thị ngắn để vừa hàng gợi ý; câu hỏi đầy đủ vẫn được điền vào ô hỏi.
+ */
 const SUGGESTED_QUESTIONS = [
-  'Nhịp tim tuần này thế nào?',
-  'Có cảnh báo nào đang mở?',
-  'Pin thiết bị gần nhất còn bao nhiêu?',
-  'Lịch sử đo 7 ngày có gì đáng chú ý?',
-  'Hôm nay có gì người thân cần biết?',
+  { label: 'Nhịp tim?', question: 'Nhịp tim tuần này thế nào?' },
+  { label: 'Cảnh báo?', question: 'Có cảnh báo nào đang mở không?' },
+  { label: 'Pin?', question: 'Pin thiết bị gần nhất còn bao nhiêu?' },
 ];
 
 type ConversationTurn = {
@@ -642,12 +642,13 @@ export function AssistantPage() {
               <div className="ai-suggestions" aria-label="Gợi ý câu hỏi">
                 {SUGGESTED_QUESTIONS.map((suggestion) => (
                   <button
-                    key={suggestion}
+                    key={suggestion.label}
                     type="button"
                     className="ai-suggestion"
-                    onClick={() => setQuestion(suggestion)}
+                    title={suggestion.question}
+                    onClick={() => setQuestion(suggestion.question)}
                   >
-                    {suggestion}
+                    {suggestion.label}
                   </button>
                 ))}
               </div>

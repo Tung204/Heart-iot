@@ -3446,12 +3446,18 @@
   }
 }
 
-/* Gợi ý câu hỏi một hàng cuộn ngang: giữ ô hỏi gọn, không chiếm nửa màn hình. */
+/* Gợi ý câu hỏi: một hàng cuộn ngang, ẩn thanh cuộn để composer gọn và
+   không đẩy ô hỏi xuống; mép phải mờ nhẹ cho biết còn gợi ý khác. */
 .assistant-composer .ai-suggestions {
   flex-wrap: nowrap;
   overflow-x: auto;
   padding-bottom: var(--space-1);
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+}
+.assistant-composer .ai-suggestions::-webkit-scrollbar {
+  display: none;
 }
 .assistant-composer .ai-suggestion {
   flex: none;
