@@ -22,7 +22,15 @@ import { IncidentsModule } from '../src/incidents/incidents.module';
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { NotificationService } from '../src/notifications/notifications.service';
 import { RealtimeModule } from '../src/realtime/realtime.module';
-import { createModuleTestApp, registerUser, type TestContext, type TestUser } from './test-app';
+import {
+  createAdmin,
+  createModuleTestApp,
+  registerUser,
+  type TestContext,
+  type TestUser,
+} from './test-app';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const PERMISSIONS = {
   historyDays: 30,
@@ -150,6 +158,53 @@ async function openIncident(ctx: TestContext, fx: NotificationFixture, localId: 
   return confirmed.body.incidentId as string;
 }
 
+async function incidentDetectedAt(db: AppDb, incidentId: string): Promise<Date> {
+  const rows = await db.select({ detectedAt: incidents.detectedAt }).from(incidents).where(eq(incidents.id, incidentId));
+  return rows[0]!.detectedAt;
+}
+
+async function revokeCaregiverLink(db: AppDb, fx: NotificationFixture): Promise<void> {
+  await db
+    .update(careLinks)
+    .set({ status: 'revoked', revokedAt: new Date() })
+    .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)));
+}
+
+async function addCaregiverLink(
+  db: AppDb,
+  fx: NotificationFixture,
+  overrides: { sharedFrom?: Date; permissions?: typeof PERMISSIONS } = {},
+): Promise<void> {
+  await db.insert(careLinks).values({
+    subjectId: fx.subjectId,
+    caregiverUserId: fx.caregiverId,
+    invitedByUserId: fx.ownerId,
+    permissions: overrides.permissions ?? PERMISSIONS,
+    status: 'active',
+    sharedFrom: overrides.sharedFrom ?? new Date(),
+    acceptedAt: new Date(),
+  });
+}
+
+async function sentNotificationId(
+  db: AppDb,
+  incidentId: string,
+  recipientUserId: string,
+): Promise<string> {
+  const rows = await db
+    .select({ id: notificationOutbox.id })
+    .from(notificationOutbox)
+    .where(
+      and(
+        eq(notificationOutbox.incidentId, incidentId),
+        eq(notificationOutbox.recipientUserId, recipientUserId),
+        eq(notificationOutbox.status, 'sent'),
+      ),
+    );
+  expect(rows).toHaveLength(1);
+  return rows[0]!.id;
+}
+
 describe('Notifications: outbox worker + API trong ứng dụng (R-01, NFR-06)', () => {
   let ctx: TestContext;
   let db: AppDb;
@@ -267,5 +322,188 @@ describe('Notifications: outbox worker + API trong ứng dụng (R-01, NFR-06)',
     // Thông báo không tồn tại → 404.
     const missing = await fx.owner.agent.post(`/api/v1/notifications/${crypto.randomUUID()}/read`);
     expect(missing.status).toBe(404);
+  });
+
+  it('N4: caregiver accept lại sau incident chỉ thấy thông báo trong cửa sổ chia sẻ mới; owner vẫn thấy (NFR-01)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n4a');
+    await service.processPending(20);
+
+    const caregiverNotificationId = await sentNotificationId(db, incidentId, fx.caregiverId);
+    const ownerNotificationId = await sentNotificationId(db, incidentId, fx.ownerId);
+
+    // Thu hồi link cũ rồi accept lại sau khi incident đã xảy ra → sharedFrom mới muộn hơn incident.
+    await revokeCaregiverLink(db, fx);
+    await addCaregiverLink(db, fx, { sharedFrom: new Date() });
+
+    const caregiverList = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(caregiverList.status).toBe(200);
+    expect(caregiverList.body.items).toHaveLength(0);
+    expect(caregiverList.body.unreadCount).toBe(0);
+
+    const caregiverRead = await fx.caregiver.agent.post(
+      `/api/v1/notifications/${caregiverNotificationId}/read`,
+    );
+    expect(caregiverRead.status).toBe(404);
+
+    // Chủ hồ sơ không bị giới hạn bởi cửa sổ chia sẻ của người thân.
+    const ownerList = await fx.owner.agent.get('/api/v1/notifications');
+    expect(ownerList.body.items.map((item: { id: string }) => item.id)).toEqual([ownerNotificationId]);
+    expect(ownerList.body.unreadCount).toBe(1);
+  });
+
+  it('N5: thu hồi care link → list rỗng, unread 0, markRead 404 (NFR-01)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n5');
+    await service.processPending(20);
+    const caregiverNotificationId = await sentNotificationId(db, incidentId, fx.caregiverId);
+
+    await revokeCaregiverLink(db, fx);
+
+    const list = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(list.status).toBe(200);
+    expect(list.body.items).toHaveLength(0);
+    expect(list.body.unreadCount).toBe(0);
+    const read = await fx.caregiver.agent.post(`/api/v1/notifications/${caregiverNotificationId}/read`);
+    expect(read.status).toBe(404);
+  });
+
+  it('N6: markRead idempotent — đọc lại giữ nguyên readAt lần đầu, vẫn 204 (P2-4)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n6');
+    await service.processPending(20);
+    const notificationId = await sentNotificationId(db, incidentId, fx.ownerId);
+
+    const first = await fx.owner.agent.post(`/api/v1/notifications/${notificationId}/read`);
+    expect(first.status).toBe(204);
+    const firstList = await fx.owner.agent.get('/api/v1/notifications');
+    const firstReadAt = firstList.body.items[0].readAt as string;
+    expect(firstReadAt).not.toBeNull();
+    expect(firstList.body.unreadCount).toBe(0);
+
+    await new Promise((resolve) => setTimeout(resolve, 15));
+    const second = await fx.owner.agent.post(`/api/v1/notifications/${notificationId}/read`);
+    expect(second.status).toBe(204);
+    const secondList = await fx.owner.agent.get('/api/v1/notifications');
+    expect(secondList.body.items[0].readAt).toBe(firstReadAt);
+    expect(secondList.body.unreadCount).toBe(0);
+  });
+
+  it('N7: ranh giới sharedFrom — incident trước mốc chia sẻ bị ẩn và không đọc được, đúng mốc thì thấy (P2-1)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n7');
+    await service.processPending(20);
+    const detectedAt = await incidentDetectedAt(db, incidentId);
+    const notificationId = await sentNotificationId(db, incidentId, fx.caregiverId);
+
+    // Đúng mốc chia sẻ: incident detectedAt >= sharedFrom → còn thấy.
+    await db
+      .update(careLinks)
+      .set({ sharedFrom: detectedAt })
+      .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)));
+    const boundary = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(boundary.body.items.map((item: { id: string }) => item.id)).toEqual([notificationId]);
+
+    // Muộn hơn 1 ms: incident nằm trước mốc chia sẻ → không trả và markRead 404.
+    await db
+      .update(careLinks)
+      .set({ sharedFrom: new Date(detectedAt.getTime() + 1) })
+      .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)));
+    const hidden = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(hidden.body.items).toHaveLength(0);
+    expect(hidden.body.unreadCount).toBe(0);
+    const read = await fx.caregiver.agent.post(`/api/v1/notifications/${notificationId}/read`);
+    expect(read.status).toBe(404);
+  });
+
+  it('N8: historyDays — incident ngoài cửa sổ không thấy; unreadCount chỉ tính tập được phép (P2-1)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const oldIncidentId = await openIncident(ctx, fx, 'incident-n8-old');
+    const recentIncidentId = await openIncident(ctx, fx, 'incident-n8-recent');
+    await service.processPending(20);
+
+    // share từ 10 ngày trước, quyền chỉ xem 1 ngày → mốc hiệu lực = now - 1 ngày.
+    await db
+      .update(careLinks)
+      .set({ permissions: { ...PERMISSIONS, historyDays: 1 }, sharedFrom: new Date(Date.now() - 10 * DAY_MS) })
+      .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)));
+    await db
+      .update(incidents)
+      .set({ detectedAt: new Date(Date.now() - 25 * 60 * 60 * 1000) })
+      .where(eq(incidents.id, oldIncidentId));
+
+    const oldNotificationId = await sentNotificationId(db, oldIncidentId, fx.caregiverId);
+    const recentNotificationId = await sentNotificationId(db, recentIncidentId, fx.caregiverId);
+
+    const caregiverList = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(caregiverList.body.items.map((item: { id: string }) => item.id)).toEqual([recentNotificationId]);
+    expect(caregiverList.body.unreadCount).toBe(1);
+
+    const oldRead = await fx.caregiver.agent.post(`/api/v1/notifications/${oldNotificationId}/read`);
+    expect(oldRead.status).toBe(404);
+    const recentRead = await fx.caregiver.agent.post(
+      `/api/v1/notifications/${recentNotificationId}/read`,
+    );
+    expect(recentRead.status).toBe(204);
+
+    // Owner không bị giới hạn bởi historyDays của người thân.
+    const ownerList = await fx.owner.agent.get('/api/v1/notifications');
+    expect(ownerList.body.items).toHaveLength(2);
+    expect(ownerList.body.unreadCount).toBe(2);
+  });
+
+  it('N9: link còn active nhưng mất quyền receive_alerts → không thấy/không đọc được (NFR-01)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n9');
+    await service.processPending(20);
+    const notificationId = await sentNotificationId(db, incidentId, fx.caregiverId);
+
+    await db
+      .update(careLinks)
+      .set({ permissions: { ...PERMISSIONS, canReceiveAlerts: false } })
+      .where(and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)));
+
+    const list = await fx.caregiver.agent.get('/api/v1/notifications');
+    expect(list.body.items).toHaveLength(0);
+    expect(list.body.unreadCount).toBe(0);
+    const read = await fx.caregiver.agent.post(`/api/v1/notifications/${notificationId}/read`);
+    expect(read.status).toBe(404);
+
+    const ownerList = await fx.owner.agent.get('/api/v1/notifications');
+    expect(ownerList.body.items).toHaveLength(1);
+  });
+
+  it('N10: admin không có link với hồ sơ → không thấy thông báo và markRead 404 (NFR-01)', async () => {
+    const fx = await createNotificationFixture(ctx);
+    const incidentId = await openIncident(ctx, fx, 'incident-n10');
+    await service.processPending(20);
+    const ownerNotificationId = await sentNotificationId(db, incidentId, fx.ownerId);
+
+    const admin = await createAdmin(ctx.app, { email: `admin-notif-${crypto.randomUUID()}@example.test` });
+    // Dữ liệu cũ/lỗi có thể trỏ outbox tới admin; quyền hiện tại vẫn phải chặn.
+    const adminRow = (
+      await db
+        .insert(notificationOutbox)
+        .values({
+          incidentId,
+          revision: 99,
+          recipientUserId: admin.session.user.id,
+          channel: 'in_app',
+          status: 'sent',
+          sentAt: new Date(),
+          dedupeKey: `${incidentId}:99:${admin.session.user.id}:in_app:alert`,
+        })
+        .returning({ id: notificationOutbox.id })
+    )[0]!;
+
+    const list = await admin.agent.get('/api/v1/notifications');
+    expect(list.status).toBe(200);
+    expect(list.body.items).toHaveLength(0);
+    expect(list.body.unreadCount).toBe(0);
+
+    const adminOwnRead = await admin.agent.post(`/api/v1/notifications/${adminRow.id}/read`);
+    expect(adminOwnRead.status).toBe(404);
+    const otherRead = await admin.agent.post(`/api/v1/notifications/${ownerNotificationId}/read`);
+    expect(otherRead.status).toBe(404);
   });
 });
