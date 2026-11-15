@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import type { HeartRateQuality } from '@annhien/contracts';
-import type { MeasurementGap } from '@annhien/contracts/measurements';
+import type { MeasurementGap, MeasurementsResponse } from '@annhien/contracts/measurements';
 import { ButtonLink } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -18,6 +18,7 @@ import { useSubjects } from '../subjects/useSubjects';
 import { exportCsvUrl, fetchMeasurements } from './api';
 
 type RangeKey = '24h' | '7d' | '30d';
+type Measurement = MeasurementsResponse['items'][number];
 
 const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; hours: number }> = [
   { key: '24h', label: '24 giờ', hours: 24 },
@@ -40,25 +41,137 @@ const HR_QUALITY_LABELS: Record<HeartRateQuality, string> = {
 
 const PAGE_SIZE = 500;
 
+/** Số dòng hiện thêm mỗi lần bấm — đủ nhỏ để phản hồi dưới ngưỡng INP ở máy yếu. */
+const VISIBLE_STEP = 50;
+
+/**
+ * Trần số dòng render mỗi lần. "Hiện tất cả" 1.681 dòng từng khoá main thread ~11,6 s
+ * trên mobile (QA v2, P1-2). Toàn bộ dữ liệu vẫn xem được bằng CSV.
+ */
+const MAX_VISIBLE_ROWS = 400;
+
+const INITIAL_VISIBLE_ROWS = 20;
+
+const MINUTE_MS = 60_000;
+
+/** Cùng breakpoint với `table-wrap--history` / `measurement-cards` trong layout.css. */
+const COMPACT_VIEWPORT_QUERY = '(max-width: 767px)';
+
+/** Theo dõi breakpoint để chỉ render MỘT biến thể bảng hoặc thẻ. */
+function useMediaQuery(query: string): boolean {
+  const supportsMediaQuery = () =>
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function';
+
+  const [matches, setMatches] = useState(() => (supportsMediaQuery() ? window.matchMedia(query).matches : false));
+
+  useEffect(() => {
+    if (!supportsMediaQuery()) return;
+    const list = window.matchMedia(query);
+    const update = (event: MediaQueryListEvent) => setMatches(event.matches);
+    setMatches(list.matches);
+    list.addEventListener('change', update);
+    return () => list.removeEventListener('change', update);
+  }, [query]);
+
+  return matches;
+}
+
+const MeasurementTableRow = memo(function MeasurementTableRow({ item }: { item: Measurement }) {
+  return (
+    <tr>
+      <td>{item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}</td>
+      <td>
+        {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
+          <strong>{item.heartRateBpm} bpm</strong>
+        ) : (
+          '—'
+        )}
+      </td>
+      <td>
+        {HR_QUALITY_LABELS[item.heartRateQuality]}
+        {item.isQuarantined ? ' · bị cách ly' : ''}
+      </td>
+      <td>{item.stepsSinceBoot}</td>
+      <td>{item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}</td>
+      <td>
+        {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}{' '}
+        {item.measuredAt === null ? (
+          <StatusPill tone="neutral">Đồng hồ chưa đồng bộ</StatusPill>
+        ) : null}
+      </td>
+    </tr>
+  );
+});
+
+const MeasurementCardItem = memo(function MeasurementCardItem({ item }: { item: Measurement }) {
+  return (
+    <li className="measurement-card">
+      <div className="measurement-card__head">
+        <p className="measurement-card__time">
+          {item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}
+        </p>
+        {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}
+        {item.measuredAt === null ? <StatusPill tone="neutral">Chưa đồng bộ</StatusPill> : null}
+      </div>
+      <dl className="measurement-card__facts">
+        <div>
+          <dt>Nhịp tim</dt>
+          <dd>
+            {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
+              <strong>{item.heartRateBpm} bpm</strong>
+            ) : (
+              '—'
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Chất lượng</dt>
+          <dd>
+            {HR_QUALITY_LABELS[item.heartRateQuality]}
+            {item.isQuarantined ? ' · bị cách ly' : ''}
+          </dd>
+        </div>
+        <div>
+          <dt>Bước</dt>
+          <dd>{item.stepsSinceBoot}</dd>
+        </div>
+        <div>
+          <dt>Pin</dt>
+          <dd>{item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}</dd>
+        </div>
+      </dl>
+    </li>
+  );
+});
+
 /**
  * /app/history — lịch sử đo trong khoảng 24h/7 ngày/30 ngày (giới hạn theo quyền).
  * - Bảng dữ liệu + biểu đồ SVG có nhãn trục; bảng là phương án cho screen reader.
  * - Đánh dấu khoảng thiếu, mẫu nhận trễ, đồng hồ chưa đồng bộ.
  * - Không có dữ liệu → ghi rõ "Chưa có dữ liệu", không hiện số 0 giả.
+ * - Cửa sổ thời gian cố định theo lần chọn khoảng: không refetch/reset trang mỗi phút.
  */
 export function HistoryPage() {
   const subjects = useSubjects();
   const activeSubject = useActiveSubject(subjects.data);
   const [rangeKey, setRangeKey] = useState<RangeKey>('24h');
-  const [visibleRows, setVisibleRows] = useState(20);
+  const [visibleRows, setVisibleRows] = useState(INITIAL_VISIBLE_ROWS);
+  const isCompactViewport = useMediaQuery(COMPACT_VIEWPORT_QUERY);
 
-  // Mốc hiện tại được làm mới mỗi phút để cửa sổ 24h không bị "đóng băng".
+  // "Bây giờ" chỉ dùng cho nhãn/gợi ý và trạng thái nút theo thời gian — KHÔNG đưa
+  // vào queryKey. Trước đây mỗi phút `now` đổi làm from/to đổi, useInfiniteQuery bỏ
+  // toàn bộ pages đã tải và refetch ~112 kB/phút cho mỗi tab đang mở (QA v2, P1-1).
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    const timer = window.setInterval(() => setNow(Date.now()), MINUTE_MS);
     return () => window.clearInterval(timer);
   }, []);
-  useEffect(() => setNow(Date.now()), [rangeKey]);
+
+  // Mốc cửa sổ dữ liệu: chỉ đổi khi người dùng chọn khoảng khác hoặc bấm
+  // "Cập nhật khoảng". Nhờ vậy `from`/`to` (và queryKey) ổn định, trang đã tải
+  // không bị mất khi đồng hồ chạy tiếp.
+  const [rangeAnchor, setRangeAnchor] = useState(() => Date.now());
+
   const rangeOption =
     RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
   const historyDays = activeSubject?.permissions.historyDays ?? 1;
@@ -72,16 +185,17 @@ export function HistoryPage() {
   const { from, to } = useMemo(
     () =>
       clampRangeToHistoryDays(
-        now - clampedHours * 3600 * 1000,
-        now,
+        rangeAnchor - clampedHours * 3600 * 1000,
+        rangeAnchor,
         historyDays,
         sharedFromMs,
       ),
-    [now, clampedHours, historyDays, sharedFromMs],
+    [rangeAnchor, clampedHours, historyDays, sharedFromMs],
   );
 
+  // Đổi khoảng (đã xử lý ở selectRange) hoặc đổi hồ sơ thì quay về cửa sổ 20 dòng đầu.
   useEffect(() => {
-    setVisibleRows(20);
+    setVisibleRows(INITIAL_VISIBLE_ROWS);
   }, [rangeKey, activeSubject?.id]);
 
   const measurements = useInfiniteQuery({
@@ -100,7 +214,54 @@ export function HistoryPage() {
     getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,
     enabled: Boolean(activeSubject),
     staleTime: 30_000,
+    // Lịch sử là ảnh chụp theo khoảng, không phải bảng realtime: không refetch định kỳ
+    // và không tải lại cả 4 trang khi quay lại tab. Người dùng bấm "Cập nhật khoảng".
+    refetchOnWindowFocus: false,
   });
+
+  const selectRange = (key: RangeKey) => {
+    setRangeKey(key);
+    setRangeAnchor(Date.now());
+    setVisibleRows(INITIAL_VISIBLE_ROWS);
+  };
+
+  const refreshWindow = () => {
+    setRangeAnchor(Date.now());
+    setVisibleRows(INITIAL_VISIBLE_ROWS);
+  };
+
+  const pages = measurements.data?.pages;
+  const items = useMemo(() => (pages ?? []).flatMap((page) => page?.items ?? []), [pages]);
+  const chartPoints = useMemo(() => {
+    const points: ChartPoint[] = [];
+    for (const item of items) {
+      if (
+        item.measuredAt !== null &&
+        item.heartRateBpm !== null &&
+        item.heartRateQuality === 'valid'
+      ) {
+        points.push({ measuredAt: item.measuredAt, heartRateBpm: item.heartRateBpm });
+      }
+    }
+    return points;
+  }, [items]);
+  // Object mới mỗi render sẽ vô hiệu hoá memo của MeasurementChart.
+  const chartRange = useMemo(
+    () => ({ from: new Date(from).toISOString(), to: new Date(to).toISOString() }),
+    [from, to],
+  );
+
+  const coverage = pages?.[0]?.coverage;
+  const gaps = pages?.[0]?.gaps ?? [];
+  const unsynced = pages?.[0]?.excludedUnsyncedCount ?? 0;
+
+  const isClamped = clampedHours < rangeOption.hours;
+  const isShareClamped =
+    sharedFromMs !== null && rangeAnchor - clampedHours * 3600 * 1000 < sharedFromMs;
+  const visibleLimit = Math.min(visibleRows, MAX_VISIBLE_ROWS);
+  const visibleItems = useMemo(() => items.slice(0, visibleLimit), [items, visibleLimit]);
+  const hasHiddenRows = items.length > visibleItems.length;
+  const isCappedByWindow = hasHiddenRows && visibleLimit >= MAX_VISIBLE_ROWS;
 
   if (!activeSubject && !subjects.isPending && !subjects.isError) {
     return (
@@ -111,27 +272,6 @@ export function HistoryPage() {
       />
     );
   }
-
-  const pages = measurements.data?.pages ?? [];
-  const items = pages.flatMap((page) => page?.items ?? []);
-  const coverage = pages[0]?.coverage;
-  const gaps = pages[0]?.gaps ?? [];
-  const unsynced = pages[0]?.excludedUnsyncedCount ?? 0;
-
-  const chartPoints: ChartPoint[] = items
-    .filter(
-      (item): item is typeof item & { measuredAt: string; heartRateBpm: number } =>
-        item.measuredAt !== null &&
-        item.heartRateBpm !== null &&
-        item.heartRateQuality === 'valid',
-    )
-    .map((item) => ({ measuredAt: item.measuredAt, heartRateBpm: item.heartRateBpm }));
-
-  const isClamped = clampedHours < rangeOption.hours;
-  const isShareClamped =
-    sharedFromMs !== null && now - clampedHours * 3600 * 1000 < sharedFromMs;
-  const visibleItems = items.slice(0, visibleRows);
-  const hasHiddenRows = items.length > visibleItems.length;
 
   return (
     <div className="stack">
@@ -164,13 +304,16 @@ export function HistoryPage() {
                 aria-pressed={rangeKey === option.key}
                 disabled={!allowed}
                 title={allowed ? undefined : disabledReason}
-                onClick={() => setRangeKey(option.key)}
+                onClick={() => selectRange(option.key)}
               >
                 {option.label}
               </button>
             );
           })}
         </div>
+        <Button variant="subtle" size="sm" onClick={refreshWindow}>
+          Cập nhật khoảng
+        </Button>
         {activeSubject ? (
           <a
             className="button button--secondary button--sm"
@@ -181,6 +324,13 @@ export function HistoryPage() {
           </a>
         ) : null}
       </div>
+
+      {activeSubject ? (
+        <p className="field__hint">
+          Cửa sổ dữ liệu kết thúc lúc {formatDateTime(to)}. Bấm “Cập nhật khoảng” để lấy dữ
+          liệu mới hơn — trang không tự tải lại để giữ nguyên các trang bạn đã mở.
+        </p>
+      ) : null}
 
       {isClamped ? (
         <p className="field__hint">
@@ -217,11 +367,7 @@ export function HistoryPage() {
       ) : (
         <>
           <p className="chart-hint-mobile">Vuốt ngang biểu đồ để xem đủ khoảng thời gian.</p>
-          <MeasurementChart
-            points={chartPoints}
-            gaps={gaps}
-            range={{ from: new Date(from).toISOString(), to: new Date(to).toISOString() }}
-          />
+          <MeasurementChart points={chartPoints} gaps={gaps} range={chartRange} />
 
           {coverage ? (
             <p className="metric-line">
@@ -243,113 +389,82 @@ export function HistoryPage() {
             </div>
           ) : null}
 
-          <div className="table-wrap table-wrap--history" role="region" aria-label="Bảng dữ liệu đo" tabIndex={0}>
-            <table className="data-table">
-              <caption>
-                Bảng dữ liệu đo — thay thế cho biểu đồ. Đang hiển thị {visibleItems.length}/
-                {items.length} dòng.
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Thời điểm đo</th>
-                  <th scope="col">Nhịp tim</th>
-                  <th scope="col">Chất lượng</th>
-                  <th scope="col">Bước (từ khởi động)</th>
-                  <th scope="col">Pin</th>
-                  <th scope="col">Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleItems.map((item) => (
-                  <tr key={`${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}`}>
-                    <td>{item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}</td>
-                    <td>
-                      {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
-                        <strong>{item.heartRateBpm} bpm</strong>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td>
-                      {HR_QUALITY_LABELS[item.heartRateQuality]}
-                      {item.isQuarantined ? ' · bị cách ly' : ''}
-                    </td>
-                    <td>{item.stepsSinceBoot}</td>
-                    <td>
-                      {item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}
-                    </td>
-                    <td>
-                      {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}{' '}
-                      {item.measuredAt === null ? (
-                        <StatusPill tone="neutral">Đồng hồ chưa đồng bộ</StatusPill>
-                      ) : null}
-                    </td>
+          {/* Chỉ render một biến thể theo breakpoint: trước đây cả bảng và thẻ cùng
+              render rồi CSS ẩn một bên, gấp đôi số DOM node và công render. */}
+          {isCompactViewport ? (
+            <ul className="measurement-cards" aria-label="Dữ liệu đo trong khoảng đã chọn">
+              {visibleItems.map((item, index) => (
+                <MeasurementCardItem
+                  key={`card-${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}-${index}`}
+                  item={item}
+                />
+              ))}
+            </ul>
+          ) : (
+            <div
+              className="table-wrap table-wrap--history"
+              role="region"
+              aria-label="Bảng dữ liệu đo"
+              tabIndex={0}
+            >
+              <table className="data-table">
+                <caption>
+                  Bảng dữ liệu đo — thay thế cho biểu đồ. Đang hiển thị{' '}
+                  {visibleItems.length}/{items.length} dòng.
+                  {items.length > MAX_VISIBLE_ROWS
+                    ? ` Tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần; tải CSV để xem toàn bộ ${items.length} dòng.`
+                    : ''}
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Thời điểm đo</th>
+                    <th scope="col">Nhịp tim</th>
+                    <th scope="col">Chất lượng</th>
+                    <th scope="col">Bước (từ khởi động)</th>
+                    <th scope="col">Pin</th>
+                    <th scope="col">Ghi chú</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <ul className="measurement-cards" aria-label="Dữ liệu đo gần nhất">
-            {visibleItems.map((item) => (
-              <li
-                key={`card-${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}`}
-                className="measurement-card"
-              >
-                <div className="measurement-card__head">
-                  <p className="measurement-card__time">
-                    {item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}
-                  </p>
-                  {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}
-                  {item.measuredAt === null ? (
-                    <StatusPill tone="neutral">Chưa đồng bộ</StatusPill>
-                  ) : null}
-                </div>
-                <dl className="measurement-card__facts">
-                  <div>
-                    <dt>Nhịp tim</dt>
-                    <dd>
-                      {item.heartRateBpm !== null && item.heartRateQuality === 'valid' ? (
-                        <strong>{item.heartRateBpm} bpm</strong>
-                      ) : (
-                        '—'
-                      )}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Chất lượng</dt>
-                    <dd>
-                      {HR_QUALITY_LABELS[item.heartRateQuality]}
-                      {item.isQuarantined ? ' · bị cách ly' : ''}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Bước</dt>
-                    <dd>{item.stepsSinceBoot}</dd>
-                  </div>
-                  <div>
-                    <dt>Pin</dt>
-                    <dd>
-                      {item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}
-                    </dd>
-                  </div>
-                </dl>
-              </li>
-            ))}
-          </ul>
+                </thead>
+                <tbody>
+                  {visibleItems.map((item, index) => (
+                    <MeasurementTableRow
+                      key={`${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}-${index}`}
+                      item={item}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {hasHiddenRows ? (
             <div className="history-load-more">
-              <Button variant="secondary" onClick={() => setVisibleRows((count) => count + 20)}>
-                Hiện thêm 20 dòng
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setVisibleRows((count) => Math.min(count + VISIBLE_STEP, MAX_VISIBLE_ROWS))
+                }
+              >
+                Hiện thêm {Math.min(VISIBLE_STEP, items.length - visibleItems.length)} dòng
               </Button>
-              <Button variant="subtle" onClick={() => setVisibleRows(items.length)}>
-                Hiện tất cả {items.length} dòng
-              </Button>
+              {visibleLimit < MAX_VISIBLE_ROWS ? (
+                <Button variant="subtle" onClick={() => setVisibleRows(MAX_VISIBLE_ROWS)}>
+                  Hiện tới {MAX_VISIBLE_ROWS} dòng
+                </Button>
+              ) : null}
               <span className="field__hint">
                 Đang hiện {visibleItems.length}/{items.length} dòng
               </span>
             </div>
+          ) : null}
+
+          {items.length > MAX_VISIBLE_ROWS ? (
+            <p className="field__hint">
+              {isCappedByWindow
+                ? `Đã hiện tối đa ${MAX_VISIBLE_ROWS}/${items.length} dòng để trang phản hồi nhanh. `
+                : `Trang chỉ hiện tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần. `}
+              Dùng nút “Tải CSV” ở trên để xem toàn bộ {items.length} dòng đã tải.
+            </p>
           ) : null}
 
           {measurements.hasNextPage ? (

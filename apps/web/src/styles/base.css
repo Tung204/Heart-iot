@@ -144,7 +144,8 @@ textarea {
 /* Thương hiệu */
 .brand {
   font-family: var(--font-display);
-  font-weight: 700;
+  /* 600 thay vì 700: Newsreader chỉ nạp một weight, giảm 1 file font/lần tải (P1-3). */
+  font-weight: 600;
   font-size: 1.875rem;
   line-height: 1.1;
   color: var(--color-ink);
