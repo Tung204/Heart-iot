@@ -4,9 +4,11 @@ Package `@annhien/contracts` giữ **zod schema + type** dùng cho API, web và 
 
 ## Trạng thái
 
-- Đã có schema chạy được cho: lõi (enum/lỗi/phân trang), auth, telemetry/incident envelope, incident event/ack.
-- Các miền còn lại (subjects, care, devices, measurements, incidents API, assistant, tasks, studio, admin, policies) do wave tương ứng bổ sung theo `docs/14-ke-hoach-trien-khai-phan-mem.md`.
+- Đã có schema chạy được cho **15 miền nghiệp vụ** (auth, subjects, care, devices, telemetry/incident envelope, measurements, incidents API, notifications, assistant, tasks, studio, admin, policies, insights, contacts) cộng lõi enum/lỗi/phân trang, và được `apps/api`, `apps/web`, `tools/simulator` import qua subpath.
+- Trong đó `insights`, `contacts` và phần mở rộng `auth`/`tasks` mới là **nền hợp đồng cho v2** (commit `0d669a1`); chưa có endpoint/UI dùng, không được báo là tính năng đã giao.
+- Ba payload trong `examples/` được kiểm parse bằng schema tương ứng: `pnpm build:contracts && node tools/docs/check-examples.mjs`. Script fail nếu thêm file mẫu mà chưa khai báo schema, nên mẫu lỗi không lọt qua.
 - **Chưa có OpenAPI máy sinh.** Khi bổ sung phải sinh từ schema/service hoặc một nguồn duy nhất; không viết tay bản thứ hai rồi để lệch.
+- `ingestAckSchema` là response HTTP của ingest. Adapter MQTT hiện chỉ subscribe telemetry nên **chưa publish ACK**; contract MQTT đầy đủ vẫn là thiết kế trong `docs/04`.
 
 ## Dùng trong code
 
@@ -31,13 +33,14 @@ API dùng `ZodValidationPipe` để parse request; response quan trọng cũng n
 - `incident_id` do thiết bị sinh chỉ duy nhất trong namespace thiết bị; server khóa theo `(device_id, incident_id)`.
 - Enum mới/thay đổi enum là thay đổi hợp đồng; phải xem xét version, migration và phía firmware/simulator.
 - Không đưa credential, token hay dữ liệu sức khỏe người thật vào file mẫu/test.
+- Mỗi file trong `examples/` phải khai báo schema kiểm trong `tools/docs/check-examples.mjs`; giữ mẫu parse được thay vì mô tả một hợp đồng cũ.
 
 ## Payload mẫu
 
 | Ví dụ | Ý nghĩa |
 | --- | --- |
 | [telemetry.v1.json](examples/telemetry.v1.json) | Một mẫu BPM và tổng bước trong boot, kèm chất lượng/đồng hồ |
-| [fall-confirmed.v1.json](examples/fall-confirmed.v1.json) | Thiết bị xác nhận sau cửa sổ hủy; đủ thông tin để xử lý nếu candidate đến sau |
-| [event-ack.v1.json](examples/event-ack.v1.json) | Backend xác nhận đã lưu bản tin incident |
+| [fall-confirmed.v1.json](examples/fall-confirmed.v1.json) | Thiết bị xác nhận sau cửa sổ hủy; đủ thông tin để xử lý nếu candidate đến sau (`incident_type`, `evidence.wear_location/motion_quality/heart_rate_quality/heart_rate_bpm`) |
+| [event-ack.v1.json](examples/event-ack.v1.json) | Backend xác nhận đã lưu bản tin incident; camelCase đúng `ingestAckSchema`, `incidentId` là UUID server (khác `incident_id` do thiết bị sinh) |
 
 Quy tắc trường, idempotency, MQTT và API nằm ở [đặc tả dữ liệu](../../docs/04-du-lieu-va-giao-tiep.md) và [kế hoạch v1](../../docs/14-ke-hoach-trien-khai-phan-mem.md).

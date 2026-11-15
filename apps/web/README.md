@@ -16,7 +16,7 @@ pnpm dev        # Vite dev (cổng 5173), proxy /api → http://localhost:3000
 pnpm typecheck  # tsc --noEmit
 pnpm test       # Vitest + Testing Library (không cần server)
 pnpm build      # typecheck + vite build
-pnpm test:e2e   # Playwright (cần dev server + API đang chạy)
+pnpm test:e2e   # Playwright (cần dev server web; 2 test cảnh báo mock /api/v1, không cần API thật)
 ```
 
 Nếu build lỗi do contracts chưa build: chạy `pnpm --filter @annhien/contracts build` ở root.
@@ -48,7 +48,7 @@ src/
   lib/          api client, query keys + xử lý 401 tập trung, validation, format
   styles/       tokens.css, base.css, layout.css (design tokens An Nhiên)
   test/         setup Vitest + helpers
-e2e/            smoke Playwright
+e2e/            smoke + alerts Playwright
 ```
 
 ## Sơ đồ route
@@ -79,8 +79,10 @@ e2e/            smoke Playwright
   hồ sơ/chia sẻ, thiết bị, thông báo, trợ lý, công việc, Studio draft→preview→publish→rollback,
   quản trị + policy CAS + audit; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
 - **Hiệu năng:** route sau đăng nhập dùng `React.lazy` + `Suspense`; build tách trang thành chunk
-  riêng (Admin/Studio/History/Assistant…) thay vì một bundle duy nhất.
-- **Kiểm:** 19 file/72 test Vitest, `pnpm build` sạch cảnh báo chunk >500 kB, E2E 4/4 khi API chạy.
-  Số test có thể tăng; luôn chạy lại thay vì tin README.
+  riêng (Admin/Studio/History/Assistant…) thay vì một bundle duy nhất — lần build 15/11 có chunk lớn
+  nhất ~265 kB và không còn cảnh báo >500 kB (chưa đo trên mạng thật).
+- **Kiểm:** 20 file/73 test Vitest (lần chạy của review v2 tại `8434d66`; HEAD sau đó chỉ thêm schema
+  contracts), `pnpm build` sạch cảnh báo chunk >500 kB, E2E 4/4 chỉ cần web server: 2 smoke tải trang
+  công khai, 2 test cảnh báo mock toàn bộ `/api/v1/**`. Số test có thể tăng; luôn chạy lại thay vì tin README.
 - **Chưa có:** Web Push khi đóng trình duyệt, PWA/native, dữ liệu sức khỏe thật, firmware/đo thật.
   Cảnh báo chỉ hiển thị khi trang đang mở; không tự gọi cấp cứu.

@@ -1,6 +1,6 @@
 # Dữ liệu và giao tiếp
 
-**Trạng thái:** hợp đồng dự thảo v1; chưa phải OpenAPI/JSON Schema đã thực thi. Ví dụ hợp lệ về cấu trúc JSON ở [packages/contracts](../packages/contracts/README.md), chỉ dùng dữ liệu tổng hợp.
+**Trạng thái:** hợp đồng v1. Envelope telemetry, sự kiện incident và ACK đã được zod schema trong [`packages/contracts`](../packages/contracts/README.md) thực thi; OpenAPI/JSON Schema máy sinh từ một nguồn **chưa có**, nên khi tài liệu và schema lệch thì schema là nguồn kiểm. Ba payload mẫu trong `packages/contracts/examples` parse được bằng schema tương ứng (`pnpm build:contracts` rồi `node tools/docs/check-examples.mjs`), chỉ dùng dữ liệu tổng hợp.
 
 ## Mô hình dữ liệu
 
@@ -15,7 +15,7 @@
 | `incidents` | id, assignment_id, type, state, last_revision, detected_at, resolved_at | State transition kiểm tra trong transaction; không cho sự kiện cũ mở lại incident đã đóng |
 | `incident_events` | message_id, incident_id, event_revision, type, payload, received_at | Lưu lịch sử bất biến; unique incident_id + event_revision |
 | `alert_actions` | incident_id, actor_id, action, reason, created_at | Ai xác nhận/đóng và vì sao; bảo vệ tranh chấp bằng version/transaction |
-| `notification_outbox` | incident_id, revision, recipient_id, channel, status, attempts, next_attempt_at | Unique theo incident/revision/người nhận/kênh; kiểm quyền lại lúc gửi |
+| `notification_outbox` | incident_id, revision, recipient_id, channel, kind, status, attempts, next_attempt_at | Unique theo incident/revision/người nhận/kênh/**loại** (`kind`: `alert`/`update`), hiện thực bằng `dedupe_key`; kiểm quyền lại lúc gửi |
 | `ai_summaries` | subject_id, period, aggregate_ref, source_ids, model_version, status | Chỉ lưu theo chính sách được đồng ý; mất quyền thì không đọc lại qua cache |
 | `audit_logs` | actor_id, action, target_ref, outcome, created_at | Không chứa toàn bộ payload sức khỏe, credentials hay prompt riêng tư |
 
@@ -75,29 +75,34 @@ Sự kiện dùng envelope như telemetry, thay `metrics` bằng `incident_id`, 
 
 `evidence.algorithm_version`, vị trí đeo và cờ chất lượng giúp giải thích nguyên nhân; không gọi một điểm heuristic là “xác suất té ngã” nếu chưa hiệu chuẩn.
 
-ACK gồm `source_message_id`, `incident_id`, `accepted_revision`, `status`, `received_at`. `accepted` nghĩa server đã ghi bền; `duplicate` nghĩa bản tin giống hệt đã được ghi. `rejected` kèm mã lý do để không retry vô hạn. Thiết bị chỉ xóa sự kiện khỏi hàng đợi sau ACK accepted/duplicate đúng định danh; bản tin bị reject chuyển vùng lỗi hữu hạn để kiểm tra.
+ACK dùng camelCase như mọi response HTTP: `status` (`accepted`/`duplicate`/`rejected`), `sourceMessageId`, `receivedAt`, `incidentId` (ID server dạng UUID, khác `incident_id` do thiết bị sinh), `acceptedRevision` và `code`/`message` (`null` khi không lỗi). `accepted` nghĩa server đã ghi bền; `duplicate` nghĩa bản tin giống hệt đã được ghi; `rejected` kèm `code` lý do để không retry vô hạn. Thiết bị chỉ xóa sự kiện khỏi hàng đợi sau ACK accepted/duplicate đúng định danh; bản tin bị reject chuyển vùng lỗi hữu hạn để kiểm tra. Schema thực thi là `ingestAckSchema`; adapter MQTT hiện chỉ subscribe telemetry nên **chưa publish ACK** — xem [docs/14](14-ke-hoach-trien-khai-phan-mem.md) mục 11.
 
 Nếu revision mới tới trước revision cũ, server lưu lịch sử và áp dụng transition hợp lệ theo revision mới; bản cũ tới sau không làm lùi trạng thái. Hai payload khác nhau cùng revision là lỗi giao thức cần audit. Chuyển `cancelled` sang `open` bằng dữ liệu cũ bị cấm.
 
-## API dự kiến
+## API v1
 
-Prefix `/api/v1`; đây là inventory thiết kế, chưa có endpoint chạy.
+Prefix `/api/v1`. Phần lớn endpoint dưới đây **đã chạy** trong `apps/api` (NestJS) và được web/simulator dùng; chỉ dòng ghi rõ "chưa triển khai" là thiết kế. Bảng rút gọn theo nhóm — danh sách đầy đủ lấy từ controller trong `apps/api/src/*/*.controller.ts`, request/response chi tiết ở `packages/contracts`.
 
-| Nhóm | Endpoint minh họa | Kiểm quyền/hành vi |
+| Nhóm | Endpoint | Trạng thái / kiểm quyền |
 | --- | --- | --- |
-| Phiên | `POST /auth/register`, `/auth/login`, `/auth/logout`; `GET /me` | Session cookie bảo vệ phù hợp, rate limit, CSRF với thao tác dùng cookie; chốt cơ chế khi chọn stack |
-| Hồ sơ | `GET /subjects`, `GET /subjects/{id}` | Chỉ hồ sơ sở hữu/được chia sẻ |
-| Chia sẻ | `POST /subjects/{id}/invitations`; `POST /invitations/{token}/accept`; `DELETE /subjects/{id}/care-links/{link_id}` | Chủ hồ sơ tạo/thu hồi; token dùng một lần, có hạn; không ghi token vào log |
-| Thiết bị | `POST /devices/claim`; `POST /devices/{id}/release` | Bằng chứng ghép thiết bị dùng một lần; assignment được đóng/mở đúng thời điểm |
-| Chỉ số | `GET /subjects/{id}/measurements?from=&to=&cursor=` | Giới hạn khoảng, pagination và quyền lịch sử |
-| Tổng hợp | `GET /subjects/{id}/daily-summary?date=` | Trả coverage, khoảng thiếu và timezone bên cạnh giá trị |
-| Cảnh báo | `GET /subjects/{id}/alerts`; `POST /alerts/{id}/acknowledge`; `POST /alerts/{id}/resolve` | Quyền hỗ trợ; đóng phải có reason; dùng version và idempotency key |
-| Realtime | `GET /subjects/{id}/events` nếu chọn SSE | Xác thực stream, thu hồi quyền, reconnect bằng cursor/snapshot |
-| AI | `POST /subjects/{id}/assistant/summary` | Kiểm quyền trước tổng hợp và trước trả kết quả; giới hạn dữ liệu/chi phí |
-| Dữ liệu cá nhân | `POST /subjects/{id}/exports`; `POST /subjects/{id}/deletion-requests` | Chủ hồ sơ hoặc đại diện được xác minh; export có hạn; theo dõi tiến trình xóa |
-| Admin | `GET /admin/devices`, `GET /admin/audit` | Quyền quản trị; không cung cấp payload sức khỏe mặc định |
+| Health | `GET /health` | Đã có; công khai, trả trạng thái DB và AI |
+| Phiên | `POST /auth/register`, `/auth/login`, `/auth/logout`; `GET /me` | Đã có; cookie HttpOnly + SameSite=Lax, kiểm Origin cho thao tác ghi, rate limit đăng nhập sai |
+| Hồ sơ | `GET/POST /subjects`, `GET/PATCH /subjects/:id`, `GET /subjects/:id/status` | Đã có; chỉ hồ sơ sở hữu/được chia sẻ |
+| Chia sẻ | `GET/POST /subjects/:id/invitations`; `GET /invitations/:token`; `POST /invitations/:token/accept`; `GET /subjects/:id/care-links`; `DELETE /subjects/:id/care-links/:linkId` | Đã có; chủ hồ sơ tạo/thu hồi; token dùng một lần, có hạn; không ghi token vào log |
+| Thiết bị | `POST /subjects/:id/devices/claim`; `GET /subjects/:id/devices`; `POST /devices/:id/release` | Đã có; bằng chứng ghép thiết bị dùng một lần; assignment đóng/mở đúng thời điểm |
+| Thiết bị (admin) | `GET/POST /admin/devices`; `POST /admin/devices/:id/claim-code`; `POST /admin/devices/:id/rotate-key` | Đã có; khóa thiết bị không trả lại dạng thô sau khi tạo |
+| Ingest | `POST /ingest/telemetry`, `POST /ingest/events` (header `x-device-id`, `x-device-key`) | Đã có; xác thực khóa thiết bị, không dùng cookie người dùng |
+| Đo | `GET /subjects/:id/measurements?from=&to=&cursor=`; `GET /subjects/:id/daily-summary?date=`; `GET /subjects/:id/export.csv` | Đã có; giới hạn khoảng, pagination và quyền lịch sử |
+| Cảnh báo | `GET /subjects/:id/alerts`; `GET /alerts/:id`; `POST /alerts/:id/acknowledge`; `POST /alerts/:id/resolve` | Đã có; ack/resolve compare-and-set; 403 khi có link nhưng thiếu quyền nhận cảnh báo, 404 khi không có link hoặc incident đang `suspected` |
+| Realtime | `GET /subjects/:id/events` (SSE) | Đã có; xác thực stream, kiểm lại quyền mỗi vòng, reconnect bằng cursor/`Last-Event-ID` |
+| Thông báo | `GET /notifications`; `POST /notifications/:id/read` | Đã có; outbox giao trong ứng dụng |
+| AI | `GET /subjects/:id/assistant/summary`; `POST /subjects/:id/assistant/ask` | Đã có; kiểm quyền trước tổng hợp và trước trả kết quả; fallback template khi chưa cấu hình provider |
+| Bảo trì | `GET /maintenance-tasks`; `POST /maintenance-tasks/:id/close` | Đã có; đóng task cần lý do |
+| Studio | `GET/POST /workspace-views`; `GET /workspace-views/:id`; `PUT /workspace-views/:id/draft`; `POST /workspace-views/:id/previews`; `POST /workspace-views/:id/publications`; `POST /workspace-views/:id/rollback`; `GET /workspace-views/:id/publications`; `GET /workspace-views/:id/data` | Đã có; preview chỉ đọc, publish CAS `baseRevision + digest` |
+| Admin | `GET /admin/users`; `PATCH /admin/users/:id/status`; `GET /admin/audit`; `GET /admin/policies/:key`; `POST /admin/policies/:key/previews`; `PUT /admin/policies/:key`; `GET /admin/overview` | Đã có; không cấp payload sức khỏe mặc định cho admin kỹ thuật |
+| Dữ liệu cá nhân | `POST /subjects/:id/exports`; `POST /subjects/:id/deletion-requests` | **Chưa triển khai** trong v1: hiện chỉ có `GET /subjects/:id/export.csv`; yêu cầu xóa mới ghi audit, chưa có quy trình xóa xuyên backup/cache (xem [docs/14](14-ke-hoach-trien-khai-phan-mem.md) mục 2) |
 
-Lỗi API dùng envelope `{ "code": "...", "message": "...", "request_id": "..." }`; không trả stack trace hoặc thông tin hồ sơ khác. Dùng `401` khi không có phiên, `403` khi bị cấm theo chính sách, `409` khi xung đột trạng thái/version theo contract nghiệp vụ, `422` khi payload không phù hợp hợp đồng, `429` khi vượt giới hạn. Nếu dùng conditional update với `If-Match`/strong ETag, precondition không thỏa thì trả `412 Precondition Failed`, không thay bằng `409`. Quy ước này đối chiếu RFC 9110; endpoint phải nói rõ ETag thuộc tài nguyên nào, xem [đặc tả AI, mục 9](13-dac-ta-thuc-thi-ai-va-cau-hinh.md). Với tài nguyên riêng tư cần thống nhất cách dùng `404` để tránh dò tồn tại.
+Lỗi API dùng envelope `{ "code": "...", "message": "...", "requestId": "..." }`; không trả stack trace hoặc thông tin hồ sơ khác. Dùng `401` khi không có phiên, `403` khi bị cấm theo chính sách, `409` khi xung đột trạng thái/version theo contract nghiệp vụ, `422` khi payload không phù hợp hợp đồng, `429` khi vượt giới hạn. Nếu dùng conditional update với `If-Match`/strong ETag, precondition không thỏa thì trả `412 Precondition Failed`, không thay bằng `409`. Quy ước này đối chiếu RFC 9110; endpoint phải nói rõ ETag thuộc tài nguyên nào, xem [đặc tả AI, mục 9](13-dac-ta-thuc-thi-ai-va-cau-hinh.md). Với cảnh báo, quy ước đã chạy ở v1.1: có link hồ sơ nhưng thiếu `canReceiveAlerts` → `403`; không có link hoặc incident đang `suspected` → `404` để không dò tồn tại.
 
 ## Retention và xóa
 

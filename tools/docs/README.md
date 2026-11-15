@@ -30,6 +30,17 @@ tools/docs/.venv/bin/python tools/docs/build.py --check
 
 Thư mục `.venv` đã được loại khỏi Git. HTML đầu ra được giữ trong repository để mở trực tiếp. `--check` không ghi file, kiểm liên kết/ID và phát hiện HTML chưa cập nhật theo nguồn, kể cả thay đổi CSS/JS/template.
 
+## Kiểm payload mẫu bằng schema
+
+`build.py` chỉ kiểm **cú pháp** JSON của file mẫu. Để kiểm cấu trúc theo schema đang thực thi trong `packages/contracts`:
+
+```bash
+pnpm build:contracts
+node tools/docs/check-examples.mjs
+```
+
+Script đọc mọi file `packages/contracts/examples/*.json`, ánh xạ sang `telemetryEnvelopeSchema`/`incidentEnvelopeSchema`/`ingestAckSchema`. Thêm file mẫu mới mà chưa khai báo schema sẽ fail thay vì bỏ qua. Chạy cả hai lệnh trước khi commit thay đổi tài liệu/hợp đồng: `--check` không thay kiểm schema.
+
 ## Sơ đồ và kiểm chứng
 
 Ba khối Mermaid hiện có được chuyển thành các luồng quan hệ HTML có hướng và nhãn, giữ đầy đủ các cạnh của sơ đồ nguồn. Người đọc có thể mở mã Mermaid gốc bên dưới. Bộ sinh chỉ hỗ trợ cú pháp đang dùng: `flowchart LR`, `stateDiagram-v2`, `erDiagram` với quan hệ `1 → 0..n`; cú pháp mới chưa hỗ trợ sẽ làm build lỗi rõ ràng, không âm thầm bỏ cạnh.

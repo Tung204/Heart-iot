@@ -30,7 +30,7 @@ Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm
 | T-13 | FR-12 | Trình duyệt đóng/tắt quyền push/kênh lỗi | Chỉ công bố hỗ trợ ở nền tảng đã kiểm; trạng thái thất bại không bị coi đã nhận |
 | T-14 | NFR-07 | Đo chuỗi timestamp khi dashboard online | Báo p50/p95 và số mẫu; tách cửa sổ hủy, truyền mạng, xử lý, hiển thị |
 
-T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng là mục tiêu dự kiến; chưa có test executable hoặc kết quả đạt.
+T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng vẫn là **mục tiêu**: một phần đã có test tự động ở lớp sở hữu hành vi (ví dụ `apps/api/test/incidents.spec.ts` cho state machine/dedupe/ack-resolve, `apps/api/test/measurements.spec.ts` cho coverage và quyền lịch sử, `apps/api/test/care.spec.ts` cho mời/thu hồi; số suite/test hiện tại ở `README.md` mục Kiểm thử), phần còn lại chưa có test hoặc chưa có kết quả đạt. Test của một module không chứng minh phép kiểm liên thành phần (phần cứng, Web Push, độ trễ mạng thật) đã đạt.
 
 ## Bổ sung cho AI thực thi và cấu hình động
 

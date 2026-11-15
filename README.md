@@ -4,7 +4,7 @@
 
 Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ, web responsive cho người dùng/người thân/quản trị, simulator thiết bị và bộ dữ liệu demo tổng hợp. Thiết kế gốc nằm trong `docs/`; kế hoạch và trạng thái triển khai ở [docs/14](docs/14-ke-hoach-trien-khai-phan-mem.md).
 
-> **Trạng thái 14/11/2026:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push và chưa được giảng viên nghiệm thu. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
+> **Trạng thái 15/11/2026:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push và chưa được giảng viên nghiệm thu. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
 
 ## Chạy nhanh
 
@@ -51,7 +51,9 @@ pnpm -r typecheck
 cd apps/api && pnpm test                  # Jest, PGlite in-memory
 cd apps/web && pnpm test && pnpm build    # Vitest + build production
 cd tools/simulator && npm test            # node:test
-cd apps/web && pnpm test:e2e              # Playwright (cần web/API đang chạy)
+cd apps/web && pnpm test:e2e              # Playwright: cần web server; 2 test cảnh báo mock /api/v1
+python tools/docs/build.py --check        # HTML khớp nguồn Markdown/JSON
+node tools/docs/check-examples.mjs        # mọi payload mẫu parse bằng schema (cần pnpm build:contracts)
 ```
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại.
@@ -69,7 +71,7 @@ docs/                   Thiết kế, yêu cầu, quyết định, HTML sinh t�
 reports/                Handoff, worklog, journal điều phối, báo cáo review
 ```
 
-Backend là modular monolith: `auth`, `access`, `subjects`, `care`, `devices`, `ingest`, `measurements`, `incidents`, `notifications`, `realtime`, `studio`, `assistant`, `maintenance`, `admin`. UI và trợ lý dùng chung service nghiệp vụ; AI không nằm trên đường cảnh báo.
+Backend là modular monolith: `auth`, `access`, `subjects`, `care`, `devices`, `ingest`, `measurements`, `incidents`, `notifications`, `realtime`, `studio`, `assistant`, `maintenance`, `admin`, `policy`, `health`. UI và trợ lý dùng chung service nghiệp vụ; AI không nằm trên đường cảnh báo.
 
 ## Quyết định kỹ thuật chính
 
@@ -86,8 +88,8 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 
 - PGlite mở file DB độc quyền theo process: dừng API trước khi `pnpm seed`/migration.
 - Chưa kiểm PostgreSQL thật, nhiều instance, MQTT broker/ACL/ACK, Web Push/email.
-- AI dài hạn (`agent_runs`, planner/tool registry, scheduler) chưa triển khai.
-- Frontend chưa code-split; bundle còn >500 kB.
+- AI dài hạn (`agent_runs`/`run_steps` mới có bảng schema, chưa có runtime; planner/tool registry, scheduler) chưa triển khai.
+- Frontend đã tách chunk theo route (`React.lazy` + `Suspense`); lần build 15/11 không còn cảnh báo >500 kB, chunk lớn nhất ~265 kB — chưa đo trên mạng thật.
 - Không có số liệu đo thật, độ chính xác ngã, BOM hay thời lượng pin.
 
 ## Đọc tiếp
