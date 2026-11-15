@@ -19,6 +19,7 @@ import { getApiErrorMessage, isNotFoundError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { useSubjects } from '../subjects/useSubjects';
+import { EmergencyContactsSection } from '../contacts/EmergencyContactsSection';
 import {
   createInvitation,
   fetchCareLinks,
@@ -419,6 +420,9 @@ export function SharePage() {
         )}
         {revoke.isError ? <Alert tone="error">{getApiErrorMessage(revoke.error)}</Alert> : null}
       </section>
+
+      {/* Sau phần chia sẻ: chủ hồ sơ quản lý người sẽ được gọi khi có cảnh báo. */}
+      <EmergencyContactsSection subjectId={id} />
 
       <p>
         <ButtonLink to="/app/subjects" variant="subtle" size="sm">
