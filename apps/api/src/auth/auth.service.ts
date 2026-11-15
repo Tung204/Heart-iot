@@ -28,10 +28,24 @@ export type AuthenticatedSession = {
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 10;
 
+/**
+ * Đổi mật khẩu dùng cùng ngưỡng/cửa sổ với login nhưng bucket riêng theo user id:
+ * sai `currentPassword` 10 lần/15 phút sẽ bị 429 cho tới hết cửa sổ (kể cả khi
+ * nhập đúng sau đó), tránh brute-force mật khẩu hiện tại từ một phiên bị chiếm.
+ * Bucket tách khỏi login để không khóa đăng nhập của chính user hay user khác.
+ */
+const PASSWORD_CHANGE_WINDOW_MS = LOGIN_WINDOW_MS;
+const PASSWORD_CHANGE_MAX_ATTEMPTS = LOGIN_MAX_ATTEMPTS;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   private readonly loginAttempts = new Map<string, { count: number; firstAt: number }>();
+  /**
+   * Bộ đếm trong bộ nhớ, chỉ đúng trong một tiến trình API. Demo một process
+   * chấp nhận; khi chạy nhiều instance phải chuyển sang store chia sẻ (Redis/DB).
+   */
+  private readonly passwordChangeAttempts = new Map<string, { count: number; firstAt: number }>();
 
   constructor(
     @Inject(DB) private readonly db: AppDb,
@@ -156,9 +170,15 @@ export class AuthService {
     currentSessionId: string,
     input: ChangePasswordInput,
   ): Promise<{ revokedSessions: number }> {
+    // Đếm trước khi verify để nhiều request song song không vượt ngưỡng;
+    // hết ngưỡng thì 429 trước khi đọc/kiểm mật khẩu, không đổi gì.
+    this.reservePasswordChangeAttempt(userId);
     const rows = await this.db.select().from(users).where(eq(users.id, userId)).limit(1);
     const user = rows[0];
-    if (!user) throw AppError.notFound('Không tìm thấy tài khoản.');
+    if (!user) {
+      this.passwordChangeAttempts.delete(userId);
+      throw AppError.notFound('Không tìm thấy tài khoản.');
+    }
 
     if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
       await this.audit.record({
@@ -173,6 +193,10 @@ export class AuthService {
       // 400 (không phải 422): payload đúng hợp đồng, sai thông tin xác thực hiện tại.
       throw new AppError('VALIDATION_FAILED', 'Mật khẩu hiện tại không đúng.', 400);
     }
+
+    // Xác minh đúng currentPassword (kể cả khi newPassword trùng cũ) chứng minh
+    // người dùng biết mật khẩu hiện tại → reset bộ đếm; đổi thành công cũng đi qua đây.
+    this.passwordChangeAttempts.delete(userId);
 
     // verify với hash hiện tại cũng bao trùm trường hợp chuỗi giống hệt.
     if (await verifyPassword(input.newPassword, user.passwordHash)) {
@@ -399,6 +423,28 @@ export class AuthService {
     }
     entry.count += 1;
     this.logger.warn(`Đăng nhập sai cho ${emailNormalized}: ${entry.count} lần trong cửa sổ 15 phút`);
+  }
+
+  /**
+   * Cùng ngưỡng/cửa sổ với login nhưng bucket riêng theo user id và đếm trước khi
+   * verify, nên 10 request song song cũng không vượt ngưỡng. Hết ngưỡng thì 429
+   * trước khi kiểm mật khẩu (kể cả khi nhập đúng) cho tới hết cửa sổ. Không ghi
+   * audit cho lần bị chặn để tránh khuếch đại ghi DB từ request 429 lặp lại; các
+   * lần sai thực tế vẫn được audit.
+   */
+  private reservePasswordChangeAttempt(userId: string): void {
+    const now = Date.now();
+    const entry = this.passwordChangeAttempts.get(userId);
+    if (!entry || now - entry.firstAt > PASSWORD_CHANGE_WINDOW_MS) {
+      this.passwordChangeAttempts.set(userId, { count: 1, firstAt: now });
+      return;
+    }
+    if (entry.count >= PASSWORD_CHANGE_MAX_ATTEMPTS) {
+      throw AppError.rateLimited(
+        'Quá nhiều lần nhập sai mật khẩu hiện tại. Thử lại sau 15 phút.',
+      );
+    }
+    entry.count += 1;
   }
 }
 
