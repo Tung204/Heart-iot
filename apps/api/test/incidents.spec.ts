@@ -68,6 +68,7 @@ type AlertFixture = {
   outsider: TestUser;
   subjectId: string;
   deviceId: string;
+  assignmentId: string;
   deviceKey: string;
 };
 
@@ -120,11 +121,16 @@ async function createAlertFixture(ctx: TestContext): Promise<AlertFixture> {
       })
       .returning()
   )[0]!;
-  await db.insert(deviceAssignments).values({
-    deviceId: deviceRow.id,
-    subjectId: subjectRow.id,
-    assignedByUserId: owner.session.user.id,
-  });
+  const assignmentRow = (
+    await db
+      .insert(deviceAssignments)
+      .values({
+        deviceId: deviceRow.id,
+        subjectId: subjectRow.id,
+        assignedByUserId: owner.session.user.id,
+      })
+      .returning()
+  )[0]!;
 
   return {
     owner,
@@ -136,6 +142,7 @@ async function createAlertFixture(ctx: TestContext): Promise<AlertFixture> {
     outsider,
     subjectId: subjectRow.id,
     deviceId: deviceRow.id,
+    assignmentId: assignmentRow.id,
     deviceKey,
   };
 }
@@ -165,6 +172,36 @@ function makeEnvelope(fx: AlertFixture, overrides: Partial<IncidentEnvelope> = {
     },
     ...overrides,
   };
+}
+
+/** Tạo incident trực tiếp trong DB với detectedAt/state xác định — dùng cho test ranh giới lịch sử. */
+async function insertIncidentRow(
+  ctx: TestContext,
+  fx: AlertFixture,
+  input: {
+    state: 'open' | 'acknowledged' | 'resolved' | 'cancelled' | 'unconfirmed';
+    detectedAt: Date;
+    resolutionReason?: string | null;
+  },
+): Promise<string> {
+  const db = ctx.app.get<AppDb>(DB);
+  const rows = await db
+    .insert(incidents)
+    .values({
+      subjectId: fx.subjectId,
+      assignmentId: fx.assignmentId,
+      deviceId: fx.deviceId,
+      deviceIncidentId: `incident-history-${crypto.randomUUID()}`,
+      type: 'fall',
+      state: input.state,
+      lastRevision: 1,
+      detectedAt: input.detectedAt,
+      lastEventAt: input.detectedAt,
+      resolutionReason: input.resolutionReason ?? null,
+      resolvedAt: input.state === 'resolved' ? input.detectedAt : null,
+    })
+    .returning();
+  return rows[0]!.id;
 }
 
 async function postEvent(
@@ -748,6 +785,94 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     expect(list.status).toBe(200);
     expect(list.body.items).toHaveLength(1);
     expect(list.body.items[0]).toMatchObject({ id: incidentId, state: 'open', type: 'sos' });
+  });
+
+  it('T13: caregiver historyDays=1 + vừa accept → ẩn cảnh báo đã đóng trước mốc, giữ cảnh báo mở kèm cờ, detail 403/200 (FR-02, docs/04)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const now = Date.now();
+    const sharedFrom = new Date(now - 60 * 60 * 1000);
+    await db
+      .update(careLinks)
+      .set({ sharedFrom, permissions: { ...FULL_PERMISSIONS, historyDays: 1 } })
+      .where(
+        and(eq(careLinks.subjectId, fx.subjectId), eq(careLinks.caregiverUserId, fx.caregiverId)),
+      );
+
+    const openBefore = await insertIncidentRow(ctx, fx, {
+      state: 'open',
+      detectedAt: new Date(now - 3 * 3600 * 1000),
+    });
+    const acknowledgedBefore = await insertIncidentRow(ctx, fx, {
+      state: 'acknowledged',
+      detectedAt: new Date(now - 2 * 3600 * 1000),
+    });
+    const resolvedBefore = await insertIncidentRow(ctx, fx, {
+      state: 'resolved',
+      detectedAt: new Date(now - 2 * 3600 * 1000),
+      resolutionReason: 'Đã gọi điện xác nhận an toàn (trước khi chia sẻ).',
+    });
+    const cancelledBefore = await insertIncidentRow(ctx, fx, {
+      state: 'cancelled',
+      detectedAt: new Date(now - 90 * 60 * 1000),
+    });
+    const unconfirmedBefore = await insertIncidentRow(ctx, fx, {
+      state: 'unconfirmed',
+      detectedAt: new Date(now - 90 * 60 * 1000),
+    });
+    const resolvedAfter = await insertIncidentRow(ctx, fx, {
+      state: 'resolved',
+      detectedAt: new Date(now - 10 * 60 * 1000),
+      resolutionReason: 'Đã xử lý sau khi chia sẻ.',
+    });
+
+    // Cảnh báo đang hoạt động trước mốc: vẫn thấy (an toàn hiện tại) nhưng có cờ.
+    const openList = await fx.caregiver.agent.get(
+      `/api/v1/subjects/${fx.subjectId}/alerts?state=open`,
+    );
+    expect(openList.status).toBe(200);
+    const openItems = openList.body.items as Array<{ id: string; startedBeforeShare?: boolean }>;
+    expect(openItems.find((item) => item.id === openBefore)).toMatchObject({
+      id: openBefore,
+      startedBeforeShare: true,
+    });
+    expect(openItems.find((item) => item.id === acknowledgedBefore)).toMatchObject({
+      id: acknowledgedBefore,
+      startedBeforeShare: true,
+    });
+
+    // Cảnh báo đã đóng trước mốc bị ẩn khỏi lịch sử; bản đóng sau mốc vẫn thấy.
+    const closedList = await fx.caregiver.agent.get(
+      `/api/v1/subjects/${fx.subjectId}/alerts?state=closed`,
+    );
+    expect(closedList.status).toBe(200);
+    expect(closedList.body.items.map((item: { id: string }) => item.id)).toEqual([resolvedAfter]);
+    expect(closedList.body.items[0].startedBeforeShare).toBeUndefined();
+
+    // Detail: đóng trước mốc → 403 kèm effectiveFrom, không lộ resolutionReason.
+    const closedDetail = await fx.caregiver.agent.get(`/api/v1/alerts/${resolvedBefore}`);
+    expect(closedDetail.status).toBe(403);
+    expect(closedDetail.body.code).toBe('FORBIDDEN');
+    expect(closedDetail.body.details.effectiveFrom).toBe(sharedFrom.toISOString());
+    expect(JSON.stringify(closedDetail.body)).not.toContain('trước khi chia sẻ');
+
+    // Detail: đang mở trước mốc → 200 + cờ, không có lý do kết thúc.
+    const openDetail = await fx.caregiver.agent.get(`/api/v1/alerts/${openBefore}`);
+    expect(openDetail.status).toBe(200);
+    expect(openDetail.body.startedBeforeShare).toBe(true);
+    expect(openDetail.body.resolutionReason).toBeNull();
+
+    // Owner không bị giới hạn bởi sharedFrom/historyDays và không nhận cờ.
+    const ownerClosed = await fx.owner.agent.get(
+      `/api/v1/subjects/${fx.subjectId}/alerts?state=closed`,
+    );
+    expect(ownerClosed.status).toBe(200);
+    expect(ownerClosed.body.items.map((item: { id: string }) => item.id)).toEqual(
+      expect.arrayContaining([resolvedAfter, cancelledBefore, unconfirmedBefore, resolvedBefore]),
+    );
+    const ownerDetail = await fx.owner.agent.get(`/api/v1/alerts/${resolvedBefore}`);
+    expect(ownerDetail.status).toBe(200);
+    expect(ownerDetail.body.resolutionReason).toBe('Đã gọi điện xác nhận an toàn (trước khi chia sẻ).');
+    expect(ownerDetail.body.startedBeforeShare).toBeUndefined();
   });
 
   it('T12: thiết bị chưa được gán vào hồ sơ bị từ chối rõ ràng (DEVICE_NOT_CLAIMED)', async () => {

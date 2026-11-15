@@ -189,6 +189,11 @@ export function AlertsPage() {
                   {item.resolutionReason ? (
                     <p className="alert-row__reason">Kết quả: {item.resolutionReason}</p>
                   ) : null}
+                  {item.startedBeforeShare ? (
+                    <p className="field__hint">
+                      Bắt đầu trước khi bạn được chia sẻ quyền — vẫn đang mở
+                    </p>
+                  ) : null}
                 </div>
                 <div className="alert-row__side">
                   <StatusPill

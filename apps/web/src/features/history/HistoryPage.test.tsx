@@ -73,3 +73,84 @@ describe('HistoryPage — chưa có dữ liệu', () => {
     expect(screen.getByText(/7 mẫu đồng hồ chưa đồng bộ/)).toBeInTheDocument();
   });
 });
+
+// FR-02/FR-05 — caregiver mới accept: cửa sổ yêu cầu không được bắt đầu trước sharedFrom.
+describe('HistoryPage — cửa sổ chia sẻ của người thân', () => {
+  const emptyMeasurements = () =>
+    ({
+      items: [],
+      nextCursor: null,
+      coverage: {
+        from: '2026-11-13T09:00:00.000Z',
+        to: '2026-11-14T09:00:00.000Z',
+        expectedIntervalSeconds: 15,
+        observedCount: 0,
+        expectedCount: 5760,
+        percent: 0,
+      },
+      gaps: [],
+      excludedUnsyncedCount: 0,
+    }) as const;
+
+  const caregiver = (sharedFrom: string, historyDays: number) => ({
+    ...SUBJECT,
+    role: 'caregiver',
+    sharedFrom,
+    permissions: { ...SUBJECT.permissions, historyDays },
+  });
+
+  function renderWithSubject(subject: Record<string, unknown>, onMeasurements: (url: string) => void) {
+    return renderPage(<HistoryPage />, (url) => {
+      const u = String(url);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [subject] });
+      if (u.includes(`/subjects/${SUBJECT.id}/measurements`)) {
+        onMeasurements(u);
+        return mockResponse(emptyMeasurements());
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+  }
+
+  it('sharedFrom trong 24 giờ: from và CSV bắt đầu tại sharedFrom, không gửi sớm hơn', async () => {
+    const sharedFrom = new Date(Date.now() - 6 * 3600 * 1000).toISOString();
+    const measurementUrls: string[] = [];
+    renderWithSubject(caregiver(sharedFrom, 7), (url) => measurementUrls.push(url));
+
+    expect(await screen.findByText('Chưa có dữ liệu')).toBeInTheDocument();
+    expect(measurementUrls.length).toBeGreaterThan(0);
+
+    const measurementUrl = new URL(measurementUrls[0]!, 'http://localhost');
+    const from = new Date(measurementUrl.searchParams.get('from')!).getTime();
+    expect(from).toBeGreaterThanOrEqual(new Date(sharedFrom).getTime());
+    expect(from - new Date(sharedFrom).getTime()).toBeLessThan(5_000);
+    expect(screen.getByText(/Dữ liệu chỉ bắt đầu từ/)).toBeInTheDocument();
+
+    const csvLink = screen.getByRole('link', { name: 'Tải CSV' });
+    const csvUrl = new URL(csvLink.getAttribute('href')!, 'http://localhost');
+    expect(csvUrl.searchParams.get('from')).toBe(measurementUrl.searchParams.get('from'));
+    expect(csvUrl.searchParams.get('to')).toBe(measurementUrl.searchParams.get('to'));
+  });
+
+  it('khoảng bao trùm trước sharedFrom bị disable kèm giải thích', async () => {
+    const sharedFrom = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
+    const measurementUrls: string[] = [];
+    renderWithSubject(caregiver(sharedFrom, 7), (url) => measurementUrls.push(url));
+
+    expect(await screen.findByText('Chưa có dữ liệu')).toBeInTheDocument();
+
+    const sevenDays = screen.getByRole('button', { name: '7 ngày' });
+    expect(sevenDays).toBeDisabled();
+    expect(sevenDays.getAttribute('title')).toMatch(/Chỉ xem được dữ liệu từ/);
+
+    const thirtyDays = screen.getByRole('button', { name: '30 ngày' });
+    expect(thirtyDays).toBeDisabled();
+
+    const twentyFourHours = screen.getByRole('button', { name: '24 giờ' });
+    expect(twentyFourHours).toBeEnabled();
+
+    // Khoảng 24 giờ vẫn nằm sau mốc chia sẻ nên from = now - 24h (> sharedFrom).
+    const measurementUrl = new URL(measurementUrls[0]!, 'http://localhost');
+    const from = new Date(measurementUrl.searchParams.get('from')!).getTime();
+    expect(from).toBeGreaterThan(new Date(sharedFrom).getTime());
+  });
+});

@@ -77,6 +77,9 @@ export const OUT_OF_SCOPE_ANSWER =
 export const AI_UNAVAILABLE_ANSWER =
   'Trợ lý AI hiện chưa sẵn sàng nên chưa thể trả lời câu hỏi. Bạn có thể xem tóm tắt số liệu đo trong mục Tóm tắt của hồ sơ, hoặc thử lại sau khi trợ lý được bật.';
 
+export const NO_DATA_ANSWER =
+  'Chưa có dữ liệu đo, cảnh báo hay công việc bảo trì nào trong khoảng trợ lý được phép đọc, nên tôi chưa thể trả lời câu hỏi này. Bạn có thể thử lại sau khi thiết bị gửi dữ liệu mới.';
+
 const OUT_OF_SCOPE_PATTERNS = [
   'chẩn đoán',
   'chuẩn đoán',
@@ -330,10 +333,15 @@ export class AssistantService {
     this.enforceRateLimit(userId);
 
     const now = new Date();
-    const from = new Date(now.getTime() - ASK_WINDOW_MS);
-    // Cùng kiểm quyền như summary: người ngoài → 404; ngoài lịch sử/thẩm quyền → 403.
-    const { access } = await this.access.requireHistory(userId, subjectId, from);
+    // Cửa sổ 7 ngày nhưng không bắt đầu trước mốc chia sẻ: link vừa accept vẫn hỏi được
+    // (cửa sổ ngắn hơn), không trả 403 chỉ vì sharedFrom mới.
+    const { access, effectiveFrom } = await this.access.requireHistory(
+      userId,
+      subjectId,
+      undefined,
+    );
     this.access.assertAction(access, 'view_ai');
+    const from = new Date(Math.max(now.getTime() - ASK_WINDOW_MS, effectiveFrom.getTime()));
 
     const sources = this.buildSources(from, now);
 
@@ -353,6 +361,26 @@ export class AssistantService {
     }
 
     const aggregate = await this.gatherFacts(subjectId, from, now);
+
+    // Không có dữ liệu trong cửa sổ (có thể vì vừa được chia sẻ): trả lời trung thực bằng
+    // mẫu xác định, không gọi model để tránh suy đoán/bịa số.
+    const hasAnyData =
+      aggregate.samples > 0 ||
+      Object.keys(aggregate.alerts.byState).length > 0 ||
+      aggregate.tasks.open > 0;
+    if (!hasAnyData) {
+      await this.auditAsk(userId, subjectId, 'template', 'degraded', 'no_data_in_window');
+      return {
+        answer: NO_DATA_ANSWER,
+        status: 'degraded',
+        provider: 'template',
+        model: null,
+        disclaimer: ASSISTANT_DISCLAIMER,
+        sources,
+        degradedReason:
+          'Chưa có dữ liệu trong khoảng trợ lý được phép đọc nên không gọi AI để tránh suy đoán.',
+      };
+    }
 
     if (!this.ai.isConfigured()) {
       await this.auditAsk(userId, subjectId, 'template', 'degraded', 'ai_not_configured');

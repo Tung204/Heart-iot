@@ -189,6 +189,12 @@ export function AlertDetailPage() {
           {alert.device.serial ? `(${alert.device.serial})` : ''}
           {alert.late ? ' · cảnh báo nhận trễ' : ''}
         </p>
+        {alert.startedBeforeShare ? (
+          <Alert tone="info" title="Cảnh báo bắt đầu trước khi bạn được chia sẻ quyền">
+            Cảnh báo này vẫn đang mở nên được hiển thị như trạng thái an toàn hiện tại.
+            Lịch sử chi tiết trước thời điểm bạn được chia sẻ quyền không được cung cấp.
+          </Alert>
+        ) : null}
         {alert.resolutionReason || alert.resolutionOutcome ? (
           <p className="page-lead">
             Kết quả:{' '}

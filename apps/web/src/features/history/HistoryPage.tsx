@@ -63,10 +63,21 @@ export function HistoryPage() {
     RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
   const historyDays = activeSubject?.permissions.historyDays ?? 1;
   const maxHours = historyDays * 24;
+  // Người thân mới accept: dữ liệu chỉ được xem từ `sharedFrom`, không phải toàn bộ 24 giờ.
+  const sharedFromMs =
+    activeSubject?.role === 'caregiver' && activeSubject.sharedFrom
+      ? new Date(activeSubject.sharedFrom).getTime()
+      : null;
   const clampedHours = Math.min(rangeOption.hours, Math.max(24, maxHours));
   const { from, to } = useMemo(
-    () => clampRangeToHistoryDays(now - clampedHours * 3600 * 1000, now, historyDays),
-    [now, clampedHours, historyDays],
+    () =>
+      clampRangeToHistoryDays(
+        now - clampedHours * 3600 * 1000,
+        now,
+        historyDays,
+        sharedFromMs,
+      ),
+    [now, clampedHours, historyDays, sharedFromMs],
   );
 
   useEffect(() => {
@@ -117,6 +128,8 @@ export function HistoryPage() {
     .map((item) => ({ measuredAt: item.measuredAt, heartRateBpm: item.heartRateBpm }));
 
   const isClamped = clampedHours < rangeOption.hours;
+  const isShareClamped =
+    sharedFromMs !== null && now - clampedHours * 3600 * 1000 < sharedFromMs;
   const visibleItems = items.slice(0, visibleRows);
   const hasHiddenRows = items.length > visibleItems.length;
 
@@ -134,7 +147,15 @@ export function HistoryPage() {
       <div className="history-toolbar">
         <div className="segmented" role="group" aria-label="Chọn khoảng thời gian">
           {RANGE_OPTIONS.map((option) => {
-            const allowed = option.hours <= maxHours;
+            const allowedByHistory = option.hours <= maxHours;
+            // Khoảng đầy đủ bắt đầu trước mốc chia sẻ thì không xem được trọn vẹn:
+            // disable kèm giải thích thay vì để người dùng gặp lỗi 403.
+            const allowedByShare =
+              sharedFromMs === null || now - option.hours * 3600 * 1000 >= sharedFromMs;
+            const allowed = allowedByHistory && allowedByShare;
+            const disabledReason = !allowedByHistory
+              ? `Quyền chỉ cho xem ${historyDays} ngày`
+              : `Chỉ xem được dữ liệu từ ${activeSubject?.sharedFrom ? formatDateTime(activeSubject.sharedFrom) : 'mốc chia sẻ quyền'} — khoảng ${option.label} bắt đầu trước mốc này`;
             return (
               <button
                 key={option.key}
@@ -142,7 +163,7 @@ export function HistoryPage() {
                 className={`segmented__item${rangeKey === option.key ? ' is-active' : ''}`}
                 aria-pressed={rangeKey === option.key}
                 disabled={!allowed}
-                title={allowed ? undefined : `Quyền chỉ cho xem ${historyDays} ngày`}
+                title={allowed ? undefined : disabledReason}
                 onClick={() => setRangeKey(option.key)}
               >
                 {option.label}
@@ -165,6 +186,13 @@ export function HistoryPage() {
         <p className="field__hint">
           Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của
           bạn.
+        </p>
+      ) : null}
+
+      {isShareClamped && activeSubject?.sharedFrom ? (
+        <p className="field__hint">
+          Dữ liệu chỉ bắt đầu từ {formatDateTime(activeSubject.sharedFrom)} — thời điểm bạn
+          được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.
         </p>
       ) : null}
 
