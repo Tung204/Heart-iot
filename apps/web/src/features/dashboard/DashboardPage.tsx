@@ -11,6 +11,7 @@ import { formatDateTime, formatRelativeTime, todayInTimeZone } from '../../lib/f
 import { getApiErrorMessage } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useMe } from '../auth/useAuth';
+import { RecentInsightsCard } from '../insights/RecentInsightsCard';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
 import { fetchDailySummary, fetchOpenAlerts, fetchSubjectStatus } from './api';
@@ -339,6 +340,8 @@ export function DashboardPage() {
               )}
             </aside>
           </div>
+
+          <RecentInsightsCard subjectId={subjectId} />
 
           <Alert tone="info" title="Giới hạn của bản demo">
             Cảnh báo chỉ hiển thị khi trang web đang mở và kết nối với máy chủ. Bản demo không

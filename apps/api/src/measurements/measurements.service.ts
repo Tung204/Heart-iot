@@ -8,6 +8,7 @@ import type {
   MeasurementPoint,
   MeasurementsResponse,
 } from '@annhien/contracts/measurements';
+import type { InsightsQuery, InsightsResponse } from '@annhien/contracts/insights';
 import { DB, type AppDb } from '../database/database';
 import {
   deviceAssignments,
@@ -20,6 +21,15 @@ import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
 import { decodeCursor } from '../common/pagination';
 import { PolicyService } from '../policy/policy.service';
+import {
+  buildDailyInsights,
+  buildInsightDayWindows,
+  buildInsightNotes,
+  coverageCounts,
+  summarizeInsights,
+  type InsightIncidentRow,
+  type InsightTelemetryRow,
+} from './insights';
 import { zonedDayToUtcRange } from './time-utils';
 
 /**
@@ -215,6 +225,94 @@ export class MeasurementsService {
   }
 
   // ---------------------------------------------------------------------------
+  // GET /subjects/:id/insights
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Xu hướng 7..30 ngày (FR-05). Một query telemetry + một query incidents cho cả
+   * cửa sổ; không gọi dailySummary nhiều lần.
+   *
+   * Quyền: `requireHistory` không truyền `from` nên cửa sổ sớm hơn mốc chia sẻ bị
+   * **cắt** thay vì 403; ngày hoàn toàn trước mốc chia sẻ vẫn trả về dạng rỗng.
+   * Ngày đang diễn ra chỉ tính tới hiện tại.
+   */
+  async insights(
+    userId: string,
+    subjectId: string,
+    query: InsightsQuery,
+  ): Promise<InsightsResponse> {
+    const now = new Date();
+    const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
+    const timezone = access.subject.timezone;
+    const windows = buildInsightDayWindows(query.days, now, timezone);
+    const firstWindow = windows[0];
+    if (!firstWindow) throw AppError.validation('Khoảng ngày không hợp lệ.');
+
+    // Cắt cả truy vấn theo mốc chia sẻ: dữ liệu trước đó không rời khỏi DB.
+    const queryFrom = new Date(Math.max(firstWindow.from.getTime(), effectiveFrom.getTime()));
+    const assignmentIds = await this.assignmentIdsForSubject(subjectId);
+    const policy = await this.policy.getActive();
+    const intervalSeconds = policy.value.heartbeatIntervalSeconds;
+    const hasWindow = queryFrom.getTime() <= now.getTime();
+
+    const [telemetryRows, incidentRows] = await Promise.all([
+      assignmentIds.length === 0 || !hasWindow
+        ? Promise.resolve([] as InsightTelemetryRow[])
+        : this.db
+            .select({
+              measuredAt: telemetry.measuredAt,
+              bootId: telemetry.bootId,
+              metrics: telemetry.metrics,
+              quality: telemetry.quality,
+              source: telemetry.source,
+            })
+            .from(telemetry)
+            .where(
+              and(
+                inArray(telemetry.assignmentId, assignmentIds),
+                isNotNull(telemetry.measuredAt),
+                gte(telemetry.measuredAt, queryFrom),
+                lte(telemetry.measuredAt, now),
+              ),
+            )
+            .orderBy(asc(telemetry.measuredAt), asc(telemetry.id)),
+      !hasWindow
+        ? Promise.resolve([] as InsightIncidentRow[])
+        : this.db
+            .select({ detectedAt: incidents.detectedAt, state: incidents.state })
+            .from(incidents)
+            .where(
+              and(
+                eq(incidents.subjectId, subjectId),
+                gte(incidents.detectedAt, queryFrom),
+                lte(incidents.detectedAt, now),
+              ),
+            )
+            .orderBy(asc(incidents.detectedAt)),
+    ]);
+
+    const days = buildDailyInsights({
+      windows,
+      telemetryRows,
+      incidentRows,
+      effectiveFrom,
+      now,
+      intervalSeconds,
+    });
+    const summary = summarizeInsights(days);
+
+    return {
+      subjectId,
+      timezone,
+      from: firstWindow.from.toISOString(),
+      to: now.toISOString(),
+      days,
+      summary,
+      notes: buildInsightNotes(days, summary),
+    };
+  }
+
+  // ---------------------------------------------------------------------------
   // GET /subjects/:id/export.csv
   // ---------------------------------------------------------------------------
 
@@ -378,11 +476,8 @@ function computeCoverage(
   intervalSeconds: number,
   observedCount: number,
 ): Coverage {
-  const expectedCount = Math.max(
-    1,
-    Math.floor((to.getTime() - from.getTime()) / (intervalSeconds * 1000)),
-  );
-  const percent = Math.min(100, Math.round((observedCount / expectedCount) * 1000) / 10);
+  // Một công thức duy nhất với insights (coverageCounts), tránh lệch cách tính.
+  const { percent, expectedCount } = coverageCounts(from, to, intervalSeconds, observedCount);
   return {
     from: from.toISOString(),
     to: to.toISOString(),
