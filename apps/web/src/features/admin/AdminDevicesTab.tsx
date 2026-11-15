@@ -286,22 +286,10 @@ export function AdminDevicesTab() {
             {devices.isFetching ? 'Đang tải lại…' : 'Tải lại danh sách'}
           </Button>
         </div>
-        <p className="field__hint">
-          {policy.data
-            ? `Kết nối tính theo policy v${policy.data.active.version}: ngoại tuyến sau ${policy.data.active.value.offlineAfterSeconds} giây không nhận dữ liệu.`
-            : policy.isError
-              ? 'Không tải được policy nên trang chỉ hiển thị lần thấy cuối, không kết luận trực tuyến/ngoại tuyến.'
-              : 'Đang tải ngưỡng ngoại tuyến từ policy…'}
-        </p>
-        <p className="field__hint">
-          Trang quản trị không hiển thị dữ liệu sức khỏe. API quản trị hiện chưa trả chỉ số pin;
-          cột Pin ghi “chưa có thông tin” thay vì suy đoán.
-        </p>
-
         {items.length === 0 ? (
           <EmptyState
             title="Chưa có thiết bị nào"
-            description="Thiết bị được đăng ký qua quy trình triển khai sẽ xuất hiện tại đây để tạo mã gắn và đổi khóa."
+            description="Thiết bị đã đăng ký sẽ xuất hiện ở đây."
           />
         ) : (
           <ul className="adm-device-list" aria-label="Danh sách thiết bị">

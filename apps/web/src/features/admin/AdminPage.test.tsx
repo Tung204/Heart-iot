@@ -181,7 +181,7 @@ describe('AdminPage', () => {
     expect(adminCalls).toHaveLength(0);
   });
 
-  it('admin → tổng quan hiển thị số liệu đúng', async () => {
+  it('admin → tổng quan chỉ bốn số chính và khối cần chú ý', async () => {
     renderPage(<AdminPage />, (url) => {
       const u = url;
       if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
@@ -189,13 +189,115 @@ describe('AdminPage', () => {
       return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
     });
 
-    expect(await screen.findByText('Người dùng đang hoạt động')).toBeInTheDocument();
+    expect(await screen.findByText('Người dùng hoạt động')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Thiết bị trực tuyến')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText('Thiết bị ngoại tuyến')).toBeInTheDocument();
-    expect(screen.getByText('Thông báo đang chờ gửi')).toBeInTheDocument();
+    expect(screen.getByText('Cảnh báo đang mở')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('Thông báo lỗi')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+
+    expect(screen.getByRole('heading', { name: 'Cần chú ý' })).toBeInTheDocument();
+    expect(screen.getByText('1 cảnh báo đang mở')).toBeInTheDocument();
+    expect(screen.getByText('3 thiết bị ngoại tuyến')).toBeInTheDocument();
+    expect(screen.queryByText(/thông báo gửi lỗi/)).not.toBeInTheDocument();
+
+    // Không còn 9 nhóm số cũ.
+    expect(screen.queryByText('Hồ sơ')).not.toBeInTheDocument();
+    expect(screen.queryByText('Công việc đang mở')).not.toBeInTheDocument();
+    expect(screen.queryByText('Thông báo đang chờ gửi')).not.toBeInTheDocument();
+    expect(screen.queryByText('Người dùng đã khóa')).not.toBeInTheDocument();
+  });
+
+  it('tổng quan: không có bất thường thì không hiện Cần chú ý', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) {
+        return mockResponse({
+          ...OVERVIEW,
+          devices: { online: 4, offline: 0 },
+          alerts: { open: 0 },
+          outbox: { pending: 0, failed: 0 },
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText('Người dùng hoạt động')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Cần chú ý' })).not.toBeInTheDocument();
+  });
+
+  it('người dùng: khóa tài khoản phải nhập lý do, gửi đúng body và báo ngắn', async () => {
+    const patchBodies: unknown[] = [];
+    let status = 'active';
+    renderPage(<AdminPage />, (url, init) => {
+      const u = url;
+      const method = init?.method ?? 'GET';
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes(`/admin/users/${PLAIN_USER.id}/status`) && method === 'PATCH') {
+        patchBodies.push(init?.body ? JSON.parse(String(init.body)) : null);
+        status = 'disabled';
+        return mockResponse({ ...PLAIN_USER, status });
+      }
+      if (u.includes('/admin/users?')) {
+        return mockResponse({
+          items: [ADMIN, { ...PLAIN_USER, status }],
+          nextCursor: null,
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Người dùng' }));
+    await user.click(await screen.findByRole('button', { name: 'Tạm khóa' }));
+    await user.click(screen.getByRole('button', { name: 'Xác nhận tạm khóa' }));
+
+    expect(
+      await screen.findByText('Vui lòng nhập lý do thay đổi trạng thái.'),
+    ).toBeInTheDocument();
+    expect(patchBodies).toHaveLength(0);
+
+    await user.type(screen.getByLabelText(/Lý do/), 'Vi phạm quy định sử dụng');
+    await user.click(screen.getByRole('button', { name: 'Xác nhận tạm khóa' }));
+
+    await waitFor(() => expect(patchBodies).toHaveLength(1));
+    expect(patchBodies[0]).toEqual({
+      status: 'disabled',
+      reason: 'Vi phạm quy định sử dụng',
+    });
+    expect(
+      await screen.findByText('Đã tạm khóa tài khoản Ngọc.'),
+    ).toBeInTheDocument();
+    // Bảng tải lại với trạng thái mới và nút đổi thành Kích hoạt.
+    const table = screen.getByRole('table');
+    await waitFor(() => expect(within(table).getByText('Đã khóa')).toBeInTheDocument());
+    expect(within(table).getByRole('button', { name: 'Kích hoạt' })).toBeInTheDocument();
+  });
+
+  it('khung trang: bốn tab chính và hai mục Nâng cao', async () => {
+    renderPage(<AdminPage />, (url) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/overview')) return mockResponse(OVERVIEW);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    expect(await screen.findByRole('heading', { name: 'Quản trị', level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('Theo dõi hệ thống và xử lý tài khoản.')).toBeInTheDocument();
+    for (const label of ['Tổng quan', 'Người dùng', 'Thiết bị', 'Nâng cao']) {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Nâng cao' }));
+    expect(screen.getByRole('button', { name: 'Chính sách' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'Nhật ký' })).toBeInTheDocument();
   });
 
   it('policy: Xem trước hiện warnings + diff; Phát hành gửi expectedVersion + note', async () => {
@@ -219,12 +321,13 @@ describe('AdminPage', () => {
     const user = userEvent.setup();
 
     // Chuyển tab policy rồi đợi form nạp giá trị active.
-    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
     expect(await screen.findByDisplayValue('15')).toBeInTheDocument();
 
-    await user.clear(screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)'));
-    await user.type(screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)'), '20');
-    await user.type(screen.getByLabelText('Ghi chú phát hành (tùy chọn)'), 'Điều chỉnh chu kỳ gửi');
+    await user.clear(screen.getByLabelText('Chu kỳ nhịp tim (giây)'));
+    await user.type(screen.getByLabelText('Chu kỳ nhịp tim (giây)'), '20');
+    await user.type(screen.getByLabelText('Ghi chú phát hành'), 'Điều chỉnh chu kỳ gửi');
 
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
     expect(
@@ -248,7 +351,7 @@ describe('AdminPage', () => {
       previewDigest: PREVIEW_DIGEST,
       note: 'Điều chỉnh chu kỳ gửi',
     });
-    expect(await screen.findByText(/Đã phát hành policy phiên bản 3/)).toBeInTheDocument();
+    expect(await screen.findByText(/Đã phát hành chính sách phiên bản 3/)).toBeInTheDocument();
   });
 
   it('policy publish 409 APPROVAL_STALE → hiện version hiện tại + nút tải lại', async () => {
@@ -277,7 +380,8 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
     // Phải preview trước — nút Phát hành bị khóa nếu chưa có preview đúng nội dung.
@@ -287,7 +391,7 @@ describe('AdminPage', () => {
     await user.click(screen.getByRole('button', { name: 'Phát hành' }));
 
     expect(
-      await screen.findByText('Phiên bản policy đã thay đổi (hiện tại: v3). Hãy tải lại trước khi công bố.'),
+      await screen.findByText('Phiên bản chính sách đã thay đổi (hiện tại: v3). Hãy tải lại trước khi phát hành.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tải lại' })).toBeInTheDocument();
     expect(publishCalls).toBe(1);
@@ -315,7 +419,8 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
     // Publish không preview → bị khóa, không gọi API.
@@ -325,7 +430,7 @@ describe('AdminPage', () => {
     expect(publishBodies).toHaveLength(0);
     expect(previewBodies).toHaveLength(0);
 
-    const heartbeatField = screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)');
+    const heartbeatField = screen.getByLabelText('Chu kỳ nhịp tim (giây)');
     await user.clear(heartbeatField);
     await user.type(heartbeatField, '20');
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
@@ -375,13 +480,14 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('button', { name: 'Chính sách' }));
     await screen.findByDisplayValue('15');
 
-    const heartbeatField = screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)');
+    const heartbeatField = screen.getByLabelText('Chu kỳ nhịp tim (giây)');
     await user.clear(heartbeatField);
     await user.type(heartbeatField, '20');
-    await user.type(screen.getByLabelText('Ghi chú phát hành (tùy chọn)'), 'Điều chỉnh chu kỳ gửi');
+    await user.type(screen.getByLabelText('Ghi chú phát hành'), 'Điều chỉnh chu kỳ gửi');
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
     expect(await screen.findByText(/Giá trị hợp lệ/)).toBeInTheDocument();
 
@@ -402,9 +508,9 @@ describe('AdminPage', () => {
       expect(screen.getByRole('button', { name: 'Phát hành' })).toBeEnabled(),
     );
     await user.click(screen.getByRole('button', { name: 'Phát hành' }));
-    expect(await screen.findByText(/Đã phát hành policy phiên bản 3/)).toBeInTheDocument();
+    expect(await screen.findByText(/Đã phát hành chính sách phiên bản 3/)).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText(/Giá trị hợp lệ/)).not.toBeInTheDocument());
-    expect(screen.getByLabelText('Ghi chú phát hành (tùy chọn)')).toHaveValue('');
+    expect(screen.getByLabelText('Ghi chú phát hành')).toHaveValue('');
     expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
     expect(publishCalls).toBe(2);
     expect(publishBodies[0]).toEqual({
@@ -443,10 +549,11 @@ describe('AdminPage', () => {
     });
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Audit' }));
+    await user.click(await screen.findByRole('button', { name: 'Nâng cao' }));
+    await user.click(screen.getByRole('button', { name: 'Nhật ký' }));
     expect(await screen.findByText('admin.user.disable')).toBeInTheDocument();
     expect(screen.getByText('Thành công')).toBeInTheDocument();
-    await user.click(screen.getByText('Chi tiết kỹ thuật'));
+    await user.click(screen.getByText('Xem chi tiết'));
     expect(screen.getByText(/"reason": "Tài khoản spam"/)).toBeInTheDocument();
   });
 
@@ -454,11 +561,10 @@ describe('AdminPage', () => {
     const calls: DeviceCall[] = [];
     renderPage(<AdminPage />, deviceHandler({ calls }));
 
-    // 4 tab cũ vẫn còn, tab mặc định vẫn là Tổng quan.
+    // Bốn tab chính vẫn còn, tab mặc định vẫn là Tổng quan.
     expect(await screen.findByRole('button', { name: 'Tổng quan' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Người dùng' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Chính sách thiết bị' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Audit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nâng cao' })).toBeInTheDocument();
 
     const { list, firstItem } = await openDevicesTab();
     expect(await within(firstItem).findByText('SN-ADMIN-001')).toBeInTheDocument();
