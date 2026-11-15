@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
 import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
+import { sha256 } from '../src/auth/password';
 import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';
@@ -159,7 +160,7 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
     expect(claimExpired.status).toBe(422);
   });
 
-  it('thiết bị đã gán thì chủ hồ sơ khác không claim được (409); người được chia sẻ không phải chủ bị 403', async () => {
+  it('thiết bị đã gán: cấp claim code bị 409, không ghi đè; sau release cấp mã mới mới dùng được', async () => {
     const subject1 = await createSubject(ctx, owner.session.user.id, 'Hồ sơ 1');
     const other = await registerUser(ctx.app, { displayName: 'Chủ khác' });
     const subject2 = await createSubject(ctx, other.session.user.id, 'Hồ sơ 2');
@@ -168,18 +169,26 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
     const first = await claimDevice(owner, subject1.id, created.claimCode);
     expect(first.status).toBe(201);
 
-    // Chủ hồ sơ 2 không claim được thiết bị đã gán.
+    // Chủ hồ sơ 2 không claim được thiết bị đã gán bằng mã đã dùng.
     const conflict = await claimDevice(other, subject2.id, created.claimCode);
     expect(conflict.status).toBe(422);
 
-    // Cấp claim code mới cho chính thiết bị đó, chủ hồ sơ 2 cố claim → 409.
+    // Thiết bị đang gán: admin không được cấp mã mới, không ghi đè hash/expiresAt.
     const newCodeRes = await admin.agent
       .post(`/api/v1/admin/devices/${created.device.id}/claim-code`)
       .set('Origin', TEST_ORIGIN);
-    expect(newCodeRes.status).toBe(201);
-    const secondTry = await claimDevice(other, subject2.id, newCodeRes.body.claimCode);
-    expect(secondTry.status).toBe(409);
-    expect(secondTry.body.code).toBe('CONFLICT');
+    expect(newCodeRes.status).toBe(409);
+    expect(newCodeRes.body.code).toBe('CONFLICT');
+    expect(newCodeRes.body.message).toContain(
+      'Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã',
+    );
+    expect(newCodeRes.body.details).toEqual({ code: 'DEVICE_ALREADY_ASSIGNED' });
+    const blocked = await ctx.db
+      .select({ claimCodeHash: devices.claimCodeHash, claimCodeExpiresAt: devices.claimCodeExpiresAt })
+      .from(devices)
+      .where(eq(devices.id, created.device.id));
+    expect(blocked[0]?.claimCodeHash).toBeNull();
+    expect(blocked[0]?.claimCodeExpiresAt).toBeNull();
 
     // Người được chia sẻ (caregiver) không phải chủ hồ sơ → 403.
     const caregiver = await registerUser(ctx.app, { displayName: 'Người thân' });
@@ -190,11 +199,26 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
       permissions: DEFAULT_CARE_PERMISSIONS,
       status: 'active',
     });
-    const thirdCodeRes = await admin.agent
+
+    // Sau release thiết bị không còn gán: cấp mã mới thành công; caregiver vẫn 403,
+    // chủ hồ sơ 2 claim được.
+    const releaseRes = await owner.agent
+      .post(`/api/v1/devices/${created.device.id}/release`)
+      .set('Origin', TEST_ORIGIN)
+      .send({});
+    expect(releaseRes.status).toBe(200);
+    const afterReleaseCode = await admin.agent
       .post(`/api/v1/admin/devices/${created.device.id}/claim-code`)
       .set('Origin', TEST_ORIGIN);
-    const caregiverClaim = await claimDevice(caregiver, subject2.id, thirdCodeRes.body.claimCode);
+    expect(afterReleaseCode.status).toBe(201);
+    const caregiverClaim = await claimDevice(
+      caregiver,
+      subject2.id,
+      afterReleaseCode.body.claimCode,
+    );
     expect(caregiverClaim.status).toBe(403);
+    const secondTry = await claimDevice(other, subject2.id, afterReleaseCode.body.claimCode);
+    expect(secondTry.status).toBe(201);
   });
 
   it('xoay khóa: khóa cũ bị 401, khóa mới gửi telemetry được', async () => {
@@ -705,6 +729,78 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
     const withNewCode = await claimDevice(owner, subject.id, newCodeRes.body.claimCode);
     expect(withNewCode.status).toBe(201);
     expect(withNewCode.body.device.id).toBe(created.device.id);
+  });
+
+  it('release vô hiệu hóa claim code đang chờ; mã cấp sau release dùng được một lần', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    // Không được cấp mã khi thiết bị đang gán.
+    const blocked = await admin.agent
+      .post(`/api/v1/admin/devices/${created.device.id}/claim-code`)
+      .set('Origin', TEST_ORIGIN);
+    expect(blocked.status).toBe(409);
+    expect(blocked.body.details).toEqual({ code: 'DEVICE_ALREADY_ASSIGNED' });
+
+    // Mô phỏng dữ liệu cũ: mã đang chờ được tạo trong lúc thiết bị đã gán (lỗi P2-2).
+    const staleCode = 'LEGACY234';
+    await ctx.db
+      .update(devices)
+      .set({
+        claimCodeHash: sha256(staleCode),
+        claimCodeExpiresAt: new Date(Date.now() + 5 * 60_000),
+      })
+      .where(eq(devices.id, created.device.id));
+
+    const release = await owner.agent
+      .post(`/api/v1/devices/${created.device.id}/release`)
+      .set('Origin', TEST_ORIGIN)
+      .send({});
+    expect(release.status).toBe(200);
+
+    const afterRelease = await ctx.db
+      .select({ claimCodeHash: devices.claimCodeHash, claimCodeExpiresAt: devices.claimCodeExpiresAt })
+      .from(devices)
+      .where(eq(devices.id, created.device.id));
+    expect(afterRelease[0]?.claimCodeHash).toBeNull();
+    expect(afterRelease[0]?.claimCodeExpiresAt).toBeNull();
+    const staleClaim = await claimDevice(owner, subject.id, staleCode);
+    expect(staleClaim.status).toBe(422);
+
+    // Cấp mã mới sau release: claim thành công một lần, dùng lại bị 422.
+    const fresh = await admin.agent
+      .post(`/api/v1/admin/devices/${created.device.id}/claim-code`)
+      .set('Origin', TEST_ORIGIN);
+    expect(fresh.status).toBe(201);
+    const freshClaim = await claimDevice(owner, subject.id, fresh.body.claimCode);
+    expect(freshClaim.status).toBe(201);
+    const reuse = await claimDevice(owner, subject.id, fresh.body.claimCode);
+    expect(reuse.status).toBe(422);
+  });
+
+  it('hai admin cấp claim code đồng thời cho thiết bị đang gán: cả hai 409, hash vẫn null', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    const attempt = () =>
+      admin.agent
+        .post(`/api/v1/admin/devices/${created.device.id}/claim-code`)
+        .set('Origin', TEST_ORIGIN);
+    const [first, second] = await Promise.all([attempt(), attempt()]);
+    expect([first.status, second.status]).toEqual([409, 409]);
+    expect(first.body.details).toEqual({ code: 'DEVICE_ALREADY_ASSIGNED' });
+    expect(second.body.details).toEqual({ code: 'DEVICE_ALREADY_ASSIGNED' });
+
+    const rows = await ctx.db
+      .select({ claimCodeHash: devices.claimCodeHash, claimCodeExpiresAt: devices.claimCodeExpiresAt })
+      .from(devices)
+      .where(eq(devices.id, created.device.id));
+    expect(rows[0]?.claimCodeHash).toBeNull();
+    expect(rows[0]?.claimCodeExpiresAt).toBeNull();
   });
 
   it('tài khoản admin bị thu hồi quyền không dùng được route admin', async () => {

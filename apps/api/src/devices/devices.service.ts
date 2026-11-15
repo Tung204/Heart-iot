@@ -114,24 +114,60 @@ export class DevicesService {
     };
   }
 
+  /**
+   * Cấp claim code mới cho thiết bị **chưa gắn hồ sơ**.
+   * Thiết bị đang có assignment mở phải bị từ chối 409 và giữ nguyên code cũ
+   * (thường là `null` vì claim đã dùng code) — không tạo mã có thể dùng lại sau release.
+   * Khóa dòng thiết bị trong transaction để hai request cấp mã không ghi đè lẫn nhau
+   * và để request cấp mã thấy assignment do claim/release vừa commit.
+   */
   async issueClaimCode(user: UserSummary, deviceId: string): Promise<NewClaimCodeResult> {
     this.access.requireAdmin(user);
-    const device = await this.findDevice(deviceId);
-    const claimCode = generateClaimCode();
-    const expiresAt = new Date(Date.now() + CLAIM_CODE_TTL_MS);
-    await this.db
-      .update(devices)
-      .set({ claimCodeHash: sha256(claimCode), claimCodeExpiresAt: expiresAt, updatedAt: new Date() })
-      .where(eq(devices.id, device.id));
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'device.claim_code_issued',
-      targetType: 'device',
-      targetId: device.id,
-      outcome: 'success',
+
+    return this.db.transaction(async (tx) => {
+      const rows = await tx
+        .select()
+        .from(devices)
+        .where(eq(devices.id, deviceId))
+        .for('update')
+        .limit(1);
+      const device = rows[0];
+      if (!device) throw AppError.notFound('Không tìm thấy thiết bị.');
+
+      const open = await tx
+        .select({ id: deviceAssignments.id })
+        .from(deviceAssignments)
+        .where(and(eq(deviceAssignments.deviceId, device.id), isNull(deviceAssignments.endedAt)))
+        .limit(1);
+      if (open.length > 0) {
+        throw AppError.conflict('Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.', {
+          code: 'DEVICE_ALREADY_ASSIGNED',
+        });
+      }
+
+      const claimCode = generateClaimCode();
+      const expiresAt = new Date(Date.now() + CLAIM_CODE_TTL_MS);
+      await tx
+        .update(devices)
+        .set({
+          claimCodeHash: sha256(claimCode),
+          claimCodeExpiresAt: expiresAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(devices.id, device.id));
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'device.claim_code_issued',
+          targetType: 'device',
+          targetId: device.id,
+          outcome: 'success',
+        },
+        tx,
+      );
+      return { claimCode, expiresAt: expiresAt.toISOString() };
     });
-    return { claimCode, expiresAt: expiresAt.toISOString() };
   }
 
   async rotateDeviceKey(user: UserSummary, deviceId: string): Promise<{ deviceKey: string }> {
@@ -282,22 +318,39 @@ export class DevicesService {
     }
 
     const endedAt = new Date();
-    await this.db
-      .update(deviceAssignments)
-      .set({ endedAt })
-      .where(and(eq(deviceAssignments.id, assignment.id), isNull(deviceAssignments.endedAt)));
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'device.release',
-      targetType: 'device',
-      targetId: device.id,
-      outcome: 'success',
-      metadata: {
-        subjectId: assignment.subjectId,
-        assignmentId: assignment.id,
-        reason: reason?.trim() || null,
-      },
+    await this.db.transaction(async (tx) => {
+      // Đóng đúng assignment đang mở đã đọc ở trên; release đồng thời khác sẽ
+      // không khớp điều kiện `endedAt is null` và nhận 404 thay vì ghi đè.
+      const closed = await tx
+        .update(deviceAssignments)
+        .set({ endedAt })
+        .where(and(eq(deviceAssignments.id, assignment.id), isNull(deviceAssignments.endedAt)))
+        .returning({ id: deviceAssignments.id });
+      if (closed.length === 0) {
+        throw AppError.notFound('Thiết bị không có phiên gán đang mở.');
+      }
+      // Claim code đang chờ (nếu có, kể cả dữ liệu cũ do lỗi trước đây) phải
+      // mất hiệu lực khi thiết bị không còn gắn hồ sơ.
+      await tx
+        .update(devices)
+        .set({ claimCodeHash: null, claimCodeExpiresAt: null, updatedAt: endedAt })
+        .where(eq(devices.id, device.id));
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'device.release',
+          targetType: 'device',
+          targetId: device.id,
+          outcome: 'success',
+          metadata: {
+            subjectId: assignment.subjectId,
+            assignmentId: assignment.id,
+            reason: reason?.trim() || null,
+          },
+        },
+        tx,
+      );
     });
     return {
       assignmentId: assignment.id,
