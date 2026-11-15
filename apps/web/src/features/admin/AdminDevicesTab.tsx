@@ -8,7 +8,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import type { PillTone } from '../../components/StatusPill';
-import { getApiErrorMessage } from '../../lib/api';
+import { getApiErrorMessage, isConflictError } from '../../lib/api';
 import { formatDateTime, formatRelativeTime } from '../../lib/format';
 import {
   adminQueryKeys,
@@ -155,6 +155,7 @@ export function AdminDevicesTab() {
   const [secret, setSecret] = useState<OneTimeSecret | null>(null);
   const [copyState, setCopyState] = useState<CopyState>('idle');
   const [rotateTargetId, setRotateTargetId] = useState<string | null>(null);
+  const claimHintBaseId = useId();
 
   const devices = useQuery({
     queryKey: adminQueryKeys.devices,
@@ -181,6 +182,11 @@ export function AdminDevicesTab() {
         expiresAt: result.expiresAt,
       });
       setCopyState('idle');
+    },
+    // UI có thể đang hiển thị danh sách cũ: server từ chối vì thiết bị đã gắn hồ sơ
+    // thì tải lại để nút khóa đúng trạng thái thay vì lặp lại lời gọi.
+    onError: (error) => {
+      if (isConflictError(error)) void devices.refetch();
     },
   });
 
@@ -306,6 +312,8 @@ export function AdminDevicesTab() {
               const relativeSeen = formatRelativeTime(device.lastSeenAt);
               const claimPending = issueClaim.isPending && issueClaim.variables?.id === device.id;
               const rotatePending = rotate.isPending && rotate.variables?.id === device.id;
+              const assigned = device.assignedSubjectId !== null;
+              const claimHintId = `${claimHintBaseId}-${device.id}`;
 
               return (
                 <li key={device.id} className="adm-device">
@@ -365,10 +373,16 @@ export function AdminDevicesTab() {
                       variant="secondary"
                       size="sm"
                       onClick={() => startClaimCode(device)}
-                      disabled={issueClaim.isPending || rotate.isPending}
+                      disabled={assigned || issueClaim.isPending || rotate.isPending}
+                      aria-describedby={assigned ? claimHintId : undefined}
                     >
                       {claimPending ? 'Đang tạo mã…' : 'Tạo mã gắn thiết bị'}
                     </Button>
+                    {assigned ? (
+                      <p id={claimHintId} className="field__hint adm-device__claim-hint">
+                        Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.
+                      </p>
+                    ) : null}
                     {rotateTargetId === device.id ? (
                       <div
                         className="adm-device__confirm"

@@ -90,6 +90,7 @@ const POLICY_PUBLISH = {
 
 const ASSIGNED_SUBJECT_ID = '2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b';
 const FIRST_DEVICE_ID = '3f4d5a6b-7c8d-4e9f-8a1b-2c3d4e5f6a7b';
+const SECOND_DEVICE_ID = '4f5d6a7b-8c9d-4e0f-9a1b-2c3d4e5f6a7b';
 
 const DEVICE_LIST = {
   items: [
@@ -104,7 +105,7 @@ const DEVICE_LIST = {
       assignedSubjectId: ASSIGNED_SUBJECT_ID,
     },
     {
-      id: '4f5d6a7b-8c9d-4e0f-9a1b-2c3d4e5f6a7b',
+      id: SECOND_DEVICE_ID,
       serial: 'SN-ADMIN-002',
       label: 'Thiết bị dự phòng',
       status: 'active',
@@ -488,9 +489,10 @@ describe('AdminPage', () => {
   it('tab Thiết bị: tạo claim code qua endpoint admin, hiện mã một lần, copy có phản hồi và ẩn được', async () => {
     const calls: DeviceCall[] = [];
     renderPage(<AdminPage />, deviceHandler({ calls }));
-    const { user, firstItem } = await openDevicesTab();
+    const { user, list } = await openDevicesTab();
+    const unassignedItem = within(list).getAllByRole('listitem')[1] as HTMLElement;
 
-    await user.click(within(firstItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+    await user.click(within(unassignedItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
 
     expect(await screen.findByText('ABC234567')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Mã gắn thiết bị mới' })).toHaveFocus();
@@ -503,7 +505,7 @@ describe('AdminPage', () => {
       calls.some(
         (call) =>
           call.method === 'POST' &&
-          call.url.endsWith(`/admin/devices/${FIRST_DEVICE_ID}/claim-code`),
+          call.url.endsWith(`/admin/devices/${SECOND_DEVICE_ID}/claim-code`),
       ),
     ).toBe(true);
 
@@ -558,6 +560,103 @@ describe('AdminPage', () => {
     expect(screen.getByText('Máy chủ quản trị đang lỗi.')).toBeInTheDocument();
   });
 
+  it('tab Thiết bị: thiết bị đang gắn khóa nút tạo mã kèm lý do; tải lại sau khi gỡ thì mở lại', async () => {
+    let assigned = true;
+    let deviceGets = 0;
+    const calls: DeviceCall[] = [];
+    renderPage(<AdminPage />, (url, init) => {
+      const method = init?.method ?? 'GET';
+      if (url.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (url.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      if (url.includes('/claim-code')) {
+        calls.push({ url, method });
+        return mockResponse(CLAIM_CODE);
+      }
+      if (url.includes('/admin/devices')) {
+        deviceGets += 1;
+        calls.push({ url, method });
+        return mockResponse({
+          items: [
+            {
+              ...DEVICE_LIST.items[0],
+              assignedSubjectId: assigned ? ASSIGNED_SUBJECT_ID : null,
+            },
+            DEVICE_LIST.items[1],
+          ],
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    const { user, firstItem } = await openDevicesTab();
+    const claimButton = within(firstItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' });
+    expect(claimButton).toBeDisabled();
+    const hint = within(firstItem).getByText(
+      'Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.',
+    );
+    expect(claimButton).toHaveAttribute('aria-describedby', hint.id);
+
+    // Nút bị khóa thì không gọi API cấp mã.
+    await user.click(claimButton);
+    expect(calls.some((call) => call.url.includes('/claim-code'))).toBe(false);
+    expect(deviceGets).toBe(1);
+
+    // Thiết bị được gỡ (ví dụ chủ hồ sơ release ở tab khác) → tải lại danh sách
+    // thì nút mở và lý do biến mất.
+    assigned = false;
+    await user.click(screen.getByRole('button', { name: 'Tải lại danh sách' }));
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('list', { name: 'Danh sách thiết bị' })).getAllByRole('listitem')[0],
+      ).not.toHaveTextContent('Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.'),
+    );
+    const refreshedList = screen.getByRole('list', { name: 'Danh sách thiết bị' });
+    const refreshedFirst = within(refreshedList).getAllByRole('listitem')[0] as HTMLElement;
+    expect(within(refreshedFirst).getByRole('button', { name: 'Tạo mã gắn thiết bị' })).toBeEnabled();
+    expect(within(refreshedFirst).queryByText(/hãy gỡ trước khi tạo mã/)).not.toBeInTheDocument();
+
+    await user.click(within(refreshedFirst).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+    expect(await screen.findByText(CLAIM_CODE.claimCode)).toBeInTheDocument();
+    expect(deviceGets).toBeGreaterThanOrEqual(2);
+  });
+
+  it('tab Thiết bị: server 409 vì thiết bị vừa được gắn thì báo lý do và tải lại danh sách', async () => {
+    let deviceGets = 0;
+    renderPage(<AdminPage />, (url, init) => {
+      const method = init?.method ?? 'GET';
+      if (url.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (url.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      if (url.includes('/claim-code')) {
+        return mockResponse(
+          {
+            code: 'CONFLICT',
+            message: 'Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.',
+            requestId: 'test-req-claim-guard',
+            details: { code: 'DEVICE_ALREADY_ASSIGNED' },
+          },
+          409,
+        );
+      }
+      if (url.includes('/admin/devices')) {
+        deviceGets += 1;
+        return mockResponse(DEVICE_LIST);
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    const { user, list } = await openDevicesTab();
+    const unassignedItem = within(list).getAllByRole('listitem')[1] as HTMLElement;
+    await user.click(within(unassignedItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(within(alert).getByText('Không tạo được mã gắn thiết bị')).toBeInTheDocument();
+    expect(
+      within(alert).getByText('Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.'),
+    ).toBeInTheDocument();
+    // 409 làm danh sách tải lại để nút khóa đúng trạng thái mới.
+    await waitFor(() => expect(deviceGets).toBeGreaterThanOrEqual(2));
+  });
+
   it('tab Thiết bị: lỗi tạo claim code hiện thông báo, không hiện mã giả', async () => {
     renderPage(
       <AdminPage />,
@@ -566,9 +665,10 @@ describe('AdminPage', () => {
           mockResponse(errorEnvelope('Không tạo được mã lúc này.', 'INTERNAL'), 500),
       }),
     );
-    const { user, firstItem } = await openDevicesTab();
+    const { user, list } = await openDevicesTab();
+    const unassignedItem = within(list).getAllByRole('listitem')[1] as HTMLElement;
 
-    await user.click(within(firstItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+    await user.click(within(unassignedItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
 
     expect(await screen.findByText('Không tạo được mã gắn thiết bị')).toBeInTheDocument();
     expect(screen.getByText('Không tạo được mã lúc này.')).toBeInTheDocument();
