@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AdminPage } from './AdminPage';
 import { errorEnvelope, mockResponse, renderPage } from '../../test/utils';
+import type { FetchHandler } from '../../test/utils';
 
 const ADMIN = {
   id: '0f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b',
@@ -83,6 +84,77 @@ const POLICY_PUBLISH = {
   publishedAt: '2026-11-14T10:00:00.000Z',
   note: 'Điều chỉnh chu kỳ gửi',
 };
+
+const ASSIGNED_SUBJECT_ID = '2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b';
+const FIRST_DEVICE_ID = '3f4d5a6b-7c8d-4e9f-8a1b-2c3d4e5f6a7b';
+
+const DEVICE_LIST = {
+  items: [
+    {
+      id: FIRST_DEVICE_ID,
+      serial: 'SN-ADMIN-001',
+      label: 'Vòng tay Bà Năm',
+      status: 'active',
+      firmwareVersion: '1.4.2',
+      lastSeenAt: new Date(Date.now() - 30_000).toISOString(),
+      createdAt: '2026-11-01T00:00:00.000Z',
+      assignedSubjectId: ASSIGNED_SUBJECT_ID,
+    },
+    {
+      id: '4f5d6a7b-8c9d-4e0f-9a1b-2c3d4e5f6a7b',
+      serial: 'SN-ADMIN-002',
+      label: 'Thiết bị dự phòng',
+      status: 'active',
+      firmwareVersion: null,
+      lastSeenAt: null,
+      createdAt: '2026-11-02T00:00:00.000Z',
+      assignedSubjectId: null,
+    },
+  ],
+};
+
+const CLAIM_CODE = {
+  claimCode: 'ABC234567',
+  expiresAt: '2026-11-15T10:15:00.000Z',
+};
+
+const ROTATED_KEY = { deviceKey: 'devkey_test_abcdefghijklmnop' };
+
+type DeviceCall = { url: string; method: string };
+
+/** Handler cho tab Thiết bị: mặc định trả danh sách + policy + mã/khóa thành công. */
+function deviceHandler(options: {
+  devicesResponse?: () => Response;
+  claimResponse?: () => Response;
+  rotateResponse?: () => Response;
+  calls?: DeviceCall[];
+} = {}): FetchHandler {
+  return (url, init) => {
+    const method = init?.method ?? 'GET';
+    if (url.endsWith('/me')) return mockResponse({ user: ADMIN });
+    if (url.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+    if (url.includes('/claim-code')) {
+      options.calls?.push({ url, method });
+      return options.claimResponse ? options.claimResponse() : mockResponse(CLAIM_CODE);
+    }
+    if (url.includes('/rotate-key')) {
+      options.calls?.push({ url, method });
+      return options.rotateResponse ? options.rotateResponse() : mockResponse(ROTATED_KEY);
+    }
+    if (url.includes('/admin/devices')) {
+      options.calls?.push({ url, method });
+      return options.devicesResponse ? options.devicesResponse() : mockResponse(DEVICE_LIST);
+    }
+    return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+  };
+}
+
+async function openDevicesTab() {
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+  const list = await screen.findByRole('list', { name: 'Danh sách thiết bị' });
+  return { user, list, firstItem: within(list).getAllByRole('listitem')[0] as HTMLElement };
+}
 
 // Wave 4 — admin: chặn non-admin, tổng quan, policy preview/publish CAS.
 describe('AdminPage', () => {
@@ -239,5 +311,145 @@ describe('AdminPage', () => {
     expect(screen.getByText('Thành công')).toBeInTheDocument();
     await user.click(screen.getByText('Chi tiết kỹ thuật'));
     expect(screen.getByText(/"reason": "Tài khoản spam"/)).toBeInTheDocument();
+  });
+
+  it('tab Thiết bị: tải GET /admin/devices, hiển thị serial/hồ sơ/firmware/lần thấy cuối, không có dữ liệu sức khỏe', async () => {
+    const calls: DeviceCall[] = [];
+    renderPage(<AdminPage />, deviceHandler({ calls }));
+
+    // 4 tab cũ vẫn còn, tab mặc định vẫn là Tổng quan.
+    expect(await screen.findByRole('button', { name: 'Tổng quan' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Người dùng' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Chính sách thiết bị' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Audit' })).toBeInTheDocument();
+
+    const { list, firstItem } = await openDevicesTab();
+    expect(await within(firstItem).findByText('SN-ADMIN-001')).toBeInTheDocument();
+    expect(within(firstItem).getByText('Vòng tay Bà Năm')).toBeInTheDocument();
+    expect(within(firstItem).getByText(ASSIGNED_SUBJECT_ID)).toBeInTheDocument();
+    expect(within(firstItem).getByText('1.4.2')).toBeInTheDocument();
+    expect(within(firstItem).getAllByText(/Chưa có thông tin pin/).length).toBeGreaterThan(0);
+    expect(within(firstItem).getByText('Trực tuyến')).toBeInTheDocument();
+
+    const secondItem = within(list).getAllByRole('listitem')[1] as HTMLElement;
+    expect(within(secondItem).getByText('Chưa gắn hồ sơ')).toBeInTheDocument();
+    expect(within(secondItem).getByText('Chưa báo cáo')).toBeInTheDocument();
+    expect(within(secondItem).getAllByText('Chưa từng kết nối').length).toBeGreaterThan(0);
+
+    // Không hiển thị nhịp tim/BPM hay trường sức khỏe nào.
+    expect(screen.queryByText(/bpm/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/nhịp tim/i)).not.toBeInTheDocument();
+
+    // Chỉ gọi list + policy; không gọi endpoint sức khỏe.
+    expect(
+      calls.some(
+        (call) => call.method === 'GET' && call.url.endsWith('/admin/devices'),
+      ),
+    ).toBe(true);
+    expect(calls.every((call) => !call.url.includes('/subjects/'))).toBe(true);
+  });
+
+  it('tab Thiết bị: tạo claim code qua endpoint admin, hiện mã một lần, copy có phản hồi và ẩn được', async () => {
+    const calls: DeviceCall[] = [];
+    renderPage(<AdminPage />, deviceHandler({ calls }));
+    const { user, firstItem } = await openDevicesTab();
+
+    await user.click(within(firstItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+
+    expect(await screen.findByText('ABC234567')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Mã gắn thiết bị mới' })).toHaveFocus();
+    expect(screen.getByText('Chỉ hiển thị một lần')).toBeInTheDocument();
+    expect(
+      screen.getByText('Không chia sẻ mã này qua email, tin nhắn hay ảnh chụp màn hình.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Mã hết hạn lúc/)).toBeInTheDocument();
+    expect(
+      calls.some(
+        (call) =>
+          call.method === 'POST' &&
+          call.url.endsWith(`/admin/devices/${FIRST_DEVICE_ID}/claim-code`),
+      ),
+    ).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: 'Sao chép mã' }));
+    expect(await screen.findByText(/Đã sao chép vào bộ nhớ tạm/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Đã sao chép' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Tôi đã lưu, ẩn đi' }));
+    expect(screen.queryByText('ABC234567')).not.toBeInTheDocument();
+  });
+
+  it('tab Thiết bị: rotate key phải xác nhận trước, sau đó hiện khóa mới một lần', async () => {
+    const calls: DeviceCall[] = [];
+    renderPage(<AdminPage />, deviceHandler({ calls }));
+    const { user, firstItem } = await openDevicesTab();
+
+    await user.click(within(firstItem).getByRole('button', { name: 'Đổi khóa thiết bị' }));
+    expect(calls.some((call) => call.url.includes('/rotate-key'))).toBe(false);
+    expect(
+      screen.getByRole('group', { name: `Xác nhận đổi khóa cho thiết bị SN-ADMIN-001` }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/không gửi được dữ liệu cho đến khi cấu hình khóa mới/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Xác nhận đổi khóa' }));
+
+    expect(await screen.findByText(ROTATED_KEY.deviceKey)).toBeInTheDocument();
+    expect(screen.getByText('Khóa thiết bị mới')).toBeInTheDocument();
+    expect(
+      screen.getByText('Không chia sẻ khóa này qua email, tin nhắn hay ảnh chụp màn hình.'),
+    ).toBeInTheDocument();
+    expect(
+      calls.filter(
+        (call) =>
+          call.method === 'POST' &&
+          call.url.endsWith(`/admin/devices/${FIRST_DEVICE_ID}/rotate-key`),
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('tab Thiết bị: lỗi tải danh sách hiện ErrorState có thông báo', async () => {
+    renderPage(
+      <AdminPage />,
+      deviceHandler({
+        devicesResponse: () =>
+          mockResponse(errorEnvelope('Máy chủ quản trị đang lỗi.', 'INTERNAL'), 500),
+      }),
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+
+    expect(await screen.findByText('Không tải được danh sách thiết bị')).toBeInTheDocument();
+    expect(screen.getByText('Máy chủ quản trị đang lỗi.')).toBeInTheDocument();
+  });
+
+  it('tab Thiết bị: lỗi tạo claim code hiện thông báo, không hiện mã giả', async () => {
+    renderPage(
+      <AdminPage />,
+      deviceHandler({
+        claimResponse: () =>
+          mockResponse(errorEnvelope('Không tạo được mã lúc này.', 'INTERNAL'), 500),
+      }),
+    );
+    const { user, firstItem } = await openDevicesTab();
+
+    await user.click(within(firstItem).getByRole('button', { name: 'Tạo mã gắn thiết bị' }));
+
+    expect(await screen.findByText('Không tạo được mã gắn thiết bị')).toBeInTheDocument();
+    expect(screen.getByText('Không tạo được mã lúc này.')).toBeInTheDocument();
+    expect(screen.queryByText('Chỉ hiển thị một lần')).not.toBeInTheDocument();
+  });
+
+  it('tab Thiết bị: danh sách rỗng hiện EmptyState', async () => {
+    renderPage(
+      <AdminPage />,
+      deviceHandler({
+        devicesResponse: () => mockResponse({ items: [] }),
+      }),
+    );
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Thiết bị' }));
+
+    expect(await screen.findByText('Chưa có thiết bị nào')).toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Danh sách thiết bị' })).not.toBeInTheDocument();
   });
 });
