@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, gt, isNull } from 'drizzle-orm';
+import { and, asc, eq, gt, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { UserSummary } from '@annhien/contracts';
 import type {
   ClaimResult,
@@ -318,6 +318,11 @@ export class DevicesService {
     return result;
   }
 
+  /**
+   * Bản đo mới nhất theo giờ đo của mẫu đã đồng bộ giờ và không bị cách ly.
+   * Sắp `measured_at desc nulls last, received_at desc, id desc` để mẫu đến trễ
+   * không thay thế mẫu mới hơn. Bỏ mẫu thiếu `measured_at` vì không có mốc đo tin cậy.
+   */
   private async loadLastTelemetry(deviceId: string, assignmentId: string): Promise<LastTelemetryView> {
     const rows = await this.db
       .select({
@@ -329,8 +334,18 @@ export class DevicesService {
         firmwareVersion: telemetry.firmwareVersion,
       })
       .from(telemetry)
-      .where(and(eq(telemetry.deviceId, deviceId), eq(telemetry.assignmentId, assignmentId)))
-      .orderBy(desc(telemetry.receivedAt))
+      .where(
+        and(
+          eq(telemetry.deviceId, deviceId),
+          eq(telemetry.assignmentId, assignmentId),
+          eq(telemetry.clockStatus, 'synced'),
+          eq(telemetry.isQuarantined, false),
+          isNotNull(telemetry.measuredAt),
+        ),
+      )
+      .orderBy(
+        sql`${telemetry.measuredAt} desc nulls last, ${telemetry.receivedAt} desc, ${telemetry.id} desc`,
+      )
       .limit(1);
     return rows[0] ?? null;
   }

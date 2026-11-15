@@ -359,6 +359,100 @@ describe('Thiết bị: tạo, claim, release, trạng thái', () => {
     expect(offline.body.devices[0].online).toBe(false);
   });
 
+  it('mẫu đến trễ không thay mẫu mới: trạng thái lấy theo measured_at của mẫu mới nhất', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    // Tương đương kịch bản QA 23:54 (mới) rồi 23:35 (cũ) đến trễ; dùng mốc
+    // tương đối để mẫu "mới" không rơi vào tương lai (P1-1 chưa sửa).
+    const now = Date.now();
+    const newerMeasuredAt = new Date(now - 5_000).toISOString();
+    const olderMeasuredAt = new Date(now - 19 * 60_000).toISOString();
+    const newerMessageId = crypto.randomUUID();
+    const olderMessageId = crypto.randomUUID();
+
+    const newer = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        message_id: newerMessageId,
+        sequence: 1,
+        measured_at: newerMeasuredAt,
+        metrics: { heart_rate_bpm: 70, steps_since_boot: 120 },
+        battery_percent: 80,
+      }),
+    );
+    expect(newer.status).toBe(202);
+    expect(newer.body.status).toBe('accepted');
+
+    // Mẫu cũ hơn được nhận sau (đến trễ) — không được thay mẫu mới.
+    const olderLate = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        message_id: olderMessageId,
+        sequence: 2,
+        measured_at: olderMeasuredAt,
+        metrics: { heart_rate_bpm: 50, steps_since_boot: 90 },
+        battery_percent: 20,
+      }),
+    );
+    expect(olderLate.status).toBe(202);
+    expect(olderLate.body.status).toBe('accepted');
+    const olderRows = await ctx.db
+      .select({ isLate: telemetry.isLate })
+      .from(telemetry)
+      .where(eq(telemetry.messageId, olderMessageId));
+    expect(olderRows[0]?.isLate).toBe(true);
+
+    const status = await owner.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(status.status).toBe(200);
+    expect(status.body.devices[0]).toMatchObject({
+      freshness: 'live',
+      online: true,
+      lastHeartRateBpm: 70,
+      lastHeartRateQuality: 'valid',
+      batteryPercent: 80,
+      lastMeasuredAt: newerMeasuredAt,
+      clockStatus: 'synced',
+    });
+  });
+
+  it('không có mẫu synced hợp lệ: trả null/stale, không lấy giờ nhận làm giờ đo', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const created = await adminCreateDevice(ctx, admin);
+    const claimed = await claimDevice(owner, subject.id, created.claimCode);
+    expect(claimed.status).toBe(201);
+
+    const unsynced = await ingest(
+      ctx,
+      created.device.id,
+      created.deviceKey,
+      makeEnvelope(created.device.id, {
+        clock_status: 'unsynced',
+        measured_at: null,
+        battery_percent: 55,
+      }),
+    );
+    expect(unsynced.status).toBe(202);
+    expect(unsynced.body.status).toBe('accepted');
+
+    const status = await owner.agent.get(`/api/v1/subjects/${subject.id}/status`);
+    expect(status.status).toBe(200);
+    expect(status.body.devices[0]).toMatchObject({
+      online: true,
+      freshness: 'stale',
+      lastHeartRateBpm: null,
+      lastMeasuredAt: null,
+      batteryPercent: null,
+      clockStatus: 'unknown',
+    });
+  });
+
   it('claim code mới thay thế code cũ: code cũ không còn dùng được', async () => {
     const subject = await createSubject(ctx, owner.session.user.id);
     const created = await adminCreateDevice(ctx, admin);
