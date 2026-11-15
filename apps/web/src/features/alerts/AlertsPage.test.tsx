@@ -7,6 +7,7 @@ import {
   INCIDENT,
   mockResponse,
   renderPage,
+  stubFetch,
   SUBJECT,
   USER,
 } from '../../test/utils';
@@ -187,5 +188,94 @@ describe('AlertsPage — xác nhận thất bại', () => {
     expect(screen.getByText(/Trần Thị An đã xác nhận đang hỗ trợ/)).toBeInTheDocument();
     expect(screen.queryByText(/Danh sách dưới đây có thể cũ/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument();
+  });
+});
+
+// P1-2 / quyền ghi cảnh báo: xác nhận nhanh cần cả canReceiveAlerts lẫn canAcknowledge.
+function caregiverSubject(permissions: Partial<typeof SUBJECT.permissions>) {
+  return {
+    ...SUBJECT,
+    role: 'caregiver',
+    permissions: { ...SUBJECT.permissions, ...permissions },
+  };
+}
+
+describe('AlertsPage — quyền ghi cảnh báo', () => {
+  it('thiếu canReceiveAlerts dù canAcknowledge=true → ẩn nút Xác nhận và nêu lý do', async () => {
+    stubFetch((url) => {
+      const target = String(url);
+      if (target.endsWith('/subjects')) {
+        return mockResponse({
+          items: [caregiverSubject({ canReceiveAlerts: false, canAcknowledge: true })],
+        });
+      }
+      if (target.includes(`/subjects/${SUBJECT.id}/alerts`)) {
+        return mockResponse({ items: [INCIDENT], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    renderPage(<AlertsPage />);
+
+    expect(await screen.findByRole('link', { name: 'Chi tiết' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument();
+    expect(screen.getByText(/không chia sẻ quyền nhận cảnh báo/)).toBeInTheDocument();
+    expect(screen.getByText('Đang mở', { selector: '.pill' })).toBeInTheDocument();
+  });
+
+  it('thiếu canAcknowledge nhưng có canReceiveAlerts → ẩn nút và nói rõ thiếu quyền xác nhận', async () => {
+    stubFetch((url) => {
+      const target = String(url);
+      if (target.endsWith('/subjects')) {
+        return mockResponse({
+          items: [caregiverSubject({ canReceiveAlerts: true, canAcknowledge: false })],
+        });
+      }
+      if (target.includes(`/subjects/${SUBJECT.id}/alerts`)) {
+        return mockResponse({ items: [INCIDENT], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    renderPage(<AlertsPage />);
+
+    expect(await screen.findByRole('link', { name: 'Chi tiết' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Xác nhận' })).not.toBeInTheDocument();
+    expect(screen.getByText('Bạn không có quyền xác nhận cảnh báo này.')).toBeInTheDocument();
+    expect(screen.queryByText(/không chia sẻ quyền nhận cảnh báo/)).not.toBeInTheDocument();
+  });
+
+  it('đủ canReceiveAlerts + canAcknowledge → nút Xác nhận hiện và gọi API', async () => {
+    const fetchMock = stubFetch((url, init) => {
+      const target = String(url);
+      if (target.endsWith('/subjects')) {
+        return mockResponse({
+          items: [caregiverSubject({ canReceiveAlerts: true, canAcknowledge: true })],
+        });
+      }
+      if (target.includes(`/alerts/${INCIDENT.id}/acknowledge`) && init?.method === 'POST') {
+        return mockResponse({
+          ...INCIDENT,
+          state: 'acknowledged',
+          version: 3,
+          acknowledgedBy: { userId: USER.id, displayName: 'Trần Thị An' },
+        });
+      }
+      if (target.includes(`/subjects/${SUBJECT.id}/alerts`)) {
+        return mockResponse({ items: [INCIDENT], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    renderPage(<AlertsPage />);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Xác nhận' }));
+
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(true);
+    expect(screen.queryByText(/không chia sẻ quyền nhận cảnh báo/)).not.toBeInTheDocument();
   });
 });

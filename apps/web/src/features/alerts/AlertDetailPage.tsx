@@ -139,8 +139,12 @@ export function AlertDetailPage() {
   }
 
   const alert = detail.data;
-  const canAcknowledge = viewerPermissions?.canAcknowledge ?? false;
-  const canResolve = viewerPermissions?.canResolve ?? false;
+  // Ghi cảnh báo cần **cả** quyền nhận cảnh báo và quyền hành động tương ứng
+  // (`canAcknowledge`/`canResolve` không suy ra `canReceiveAlerts`). Ẩn nút khi
+  // chắc chắn API sẽ trả 403 và nói rõ lý do thay vì để người dùng bấm rồi lỗi.
+  const canReceiveAlerts = viewerPermissions?.canReceiveAlerts ?? false;
+  const canAcknowledge = canReceiveAlerts && (viewerPermissions?.canAcknowledge ?? false);
+  const canResolve = canReceiveAlerts && (viewerPermissions?.canResolve ?? false);
 
   const handleResolveSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -232,12 +236,18 @@ export function AlertDetailPage() {
           ) : (
             <p>Chưa có người xác nhận hỗ trợ.</p>
           )}
+          {viewerPermissions && !canReceiveAlerts ? (
+            <p className="field__hint">
+              Chủ hồ sơ không chia sẻ quyền nhận cảnh báo với bạn, nên bạn không thể xác nhận
+              hoặc đóng cảnh báo này. Liên hệ chủ hồ sơ nếu bạn cần được cấp quyền.
+            </p>
+          ) : null}
           <div className="alert-detail__actions">
             {!alert.acknowledgedBy && alert.state === 'open' && canAcknowledge ? (
               <Button onClick={() => acknowledge.mutate()} disabled={acknowledge.isPending}>
                 {acknowledge.isPending ? 'Đang gửi…' : 'Tôi đang hỗ trợ'}
               </Button>
-            ) : !alert.acknowledgedBy && alert.state === 'open' ? (
+            ) : !alert.acknowledgedBy && alert.state === 'open' && canReceiveAlerts ? (
               <p className="field__hint">
                 Bạn không có quyền xác nhận cảnh báo này (do chủ hồ sơ cài đặt).
               </p>
@@ -246,11 +256,11 @@ export function AlertDetailPage() {
               <Button variant="secondary" onClick={() => setResolveOpen((v) => !v)}>
                 {resolveOpen ? 'Thu gọn' : 'Đóng cảnh báo'}
               </Button>
-            ) : (
+            ) : canReceiveAlerts ? (
               <p className="field__hint">
                 Bạn không có quyền đóng cảnh báo — hãy liên hệ chủ hồ sơ.
               </p>
-            )}
+            ) : null}
           </div>
           {acknowledge.isError && !isConflictError(acknowledge.error) ? (
             <Alert tone="error" title="Chưa gửi được xác nhận">
