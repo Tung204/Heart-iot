@@ -249,6 +249,73 @@ async function backdateIncident(db: AppDb, incidentId: string, minutesAgo: numbe
     .where(eq(incidents.id, incidentId));
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+type ReassignedFixture = AlertFixture & {
+  ownerB: TestUser;
+  ownerBId: string;
+  subjectB: string;
+  assignmentB: string;
+  assignmentAStartedAt: Date;
+  assignmentAEndedAt: Date;
+  timeInA: Date;
+  timeInGap: Date;
+  timeBeforeFirst: Date;
+};
+
+/**
+ * Thiết bị đã chuyển từ hồ sơ A sang B: A kết thúc 4 ngày trước, B mở từ 2 ngày
+ * trước, ở giữa là khoảng chưa gán. Dùng để kiểm T-03 cho đường sự kiện.
+ */
+async function createReassignedFixture(ctx: TestContext): Promise<ReassignedFixture> {
+  const fx = await createAlertFixture(ctx);
+  const db = ctx.app.get<AppDb>(DB);
+  const now = Date.now();
+
+  const assignmentAStartedAt = new Date(now - 10 * DAY_MS);
+  const assignmentAEndedAt = new Date(now - 4 * DAY_MS);
+  await db
+    .update(deviceAssignments)
+    .set({ startedAt: assignmentAStartedAt, endedAt: assignmentAEndedAt })
+    .where(eq(deviceAssignments.id, fx.assignmentId));
+
+  fixtureCounter += 1;
+  const ownerB = await registerUser(ctx.app, { displayName: `Chủ hồ sơ B ${fixtureCounter}` });
+  const subjectB = (
+    await db
+      .insert(subjects)
+      .values({
+        ownerUserId: ownerB.session.user.id,
+        displayName: `Người được theo dõi B ${fixtureCounter}`,
+      })
+      .returning()
+  )[0]!;
+  const assignmentB = (
+    await db
+      .insert(deviceAssignments)
+      .values({
+        deviceId: fx.deviceId,
+        subjectId: subjectB.id,
+        assignedByUserId: ownerB.session.user.id,
+        startedAt: new Date(now - 2 * DAY_MS),
+      })
+      .returning()
+  )[0]!;
+
+  return {
+    ...fx,
+    ownerB,
+    ownerBId: ownerB.session.user.id,
+    subjectB: subjectB.id,
+    assignmentB: assignmentB.id,
+    assignmentAStartedAt,
+    assignmentAEndedAt,
+    timeInA: new Date(now - 5 * DAY_MS),
+    timeInGap: new Date(now - 3 * DAY_MS),
+    timeBeforeFirst: new Date(now - 11 * DAY_MS),
+  };
+}
+
 describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-01/R-02)', () => {
   let ctx: TestContext;
   let db: AppDb;
@@ -1188,6 +1255,374 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
       .where(eq(notificationOutbox.incidentId, incidentId));
     expect(outboxRows).toHaveLength(2);
     expect(outboxRows.every((row) => row.dedupeKey.endsWith(':alert'))).toBe(true);
+  });
+
+  it('T19: sự kiện trong assignment A sau khi chuyển B thuộc A; gửi lại vẫn duplicate đúng incident (T-03)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const now = Date.now();
+    await db
+      .update(deviceAssignments)
+      .set({ startedAt: new Date(now - 10 * DAY_MS) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+
+    // Bản tin được accepted khi A còn giữ thiết bị.
+    const acceptedWhileAOpen = makeEnvelope(fx, {
+      incident_id: 'incident-t19-before-transfer',
+      event_type: 'fall.confirmed',
+      event_revision: 1,
+      measured_at: new Date(now - 5 * DAY_MS).toISOString(),
+    });
+    const first = await postEvent(ctx, fx.deviceId, fx.deviceKey, acceptedWhileAOpen);
+    expect(first.status).toBe(202);
+    expect(first.body.status).toBe('accepted');
+    const firstIncidentId = first.body.incidentId as string;
+
+    // Chuyển thiết bị sang B: đóng A, mở assignment B.
+    await db
+      .update(deviceAssignments)
+      .set({ endedAt: new Date(now - 4 * DAY_MS) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+    fixtureCounter += 1;
+    const ownerB = await registerUser(ctx.app, { displayName: `Chủ hồ sơ B ${fixtureCounter}` });
+    const subjectB = (
+      await db
+        .insert(subjects)
+        .values({
+          ownerUserId: ownerB.session.user.id,
+          displayName: `Người được theo dõi B ${fixtureCounter}`,
+        })
+        .returning()
+    )[0]!;
+    await db.insert(deviceAssignments).values({
+      deviceId: fx.deviceId,
+      subjectId: subjectB.id,
+      assignedByUserId: ownerB.session.user.id,
+      startedAt: new Date(now - 2 * DAY_MS),
+    });
+
+    // Gửi lại bản tin đã accepted trước khi chuyển chủ: vẫn duplicate, cùng incident A.
+    const replay = await postEvent(ctx, fx.deviceId, fx.deviceKey, acceptedWhileAOpen);
+    expect(replay.status).toBe(202);
+    expect(replay.body.status).toBe('duplicate');
+    expect(replay.body.incidentId).toBe(firstIncidentId);
+
+    // Sự kiện mới có measured_at trong assignment A, nhận sau khi B đã giữ thiết bị.
+    const afterTransfer = makeEnvelope(fx, {
+      incident_id: 'incident-t19-after-transfer',
+      event_type: 'fall.confirmed',
+      event_revision: 1,
+      measured_at: new Date(now - 6 * DAY_MS).toISOString(),
+    });
+    const second = await postEvent(ctx, fx.deviceId, fx.deviceKey, afterTransfer);
+    expect(second.status).toBe(202);
+    expect(second.body.status).toBe('accepted');
+    const secondIncidentId = second.body.incidentId as string;
+
+    const rows = await db
+      .select()
+      .from(incidents)
+      .where(inArray(incidents.id, [firstIncidentId, secondIncidentId]));
+    expect(rows).toHaveLength(2);
+    for (const row of rows) {
+      expect(row.subjectId).toBe(fx.subjectId);
+      expect(row.assignmentId).toBe(fx.assignmentId);
+    }
+
+    // Chủ mới không thấy dữ liệu/cảnh báo của assignment cũ.
+    const bList = await ownerB.agent.get(`/api/v1/subjects/${subjectB.id}/alerts`);
+    expect(bList.status).toBe(200);
+    expect(bList.body.items).toHaveLength(0);
+
+    const aList = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
+    expect(aList.status).toBe(200);
+    const aIds = (aList.body.items as Array<{ id: string }>).map((item) => item.id);
+    expect(aIds).toEqual(expect.arrayContaining([firstIncidentId, secondIncidentId]));
+
+    // Thông báo của incident cũ chỉ tới người nhận của hồ sơ A.
+    const outbox = await db
+      .select()
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, secondIncidentId));
+    expect(outbox.length).toBeGreaterThan(0);
+    expect(outbox.every((row) => row.recipientUserId !== ownerB.session.user.id)).toBe(true);
+  });
+
+  it('T20: trước assignment đầu tiên hoặc measured_at null → rejected QUARANTINED, không incident/outbox/SSE; audit không lộ HR/phone', async () => {
+    const fx = await createReassignedFixture(ctx);
+    const evidence = {
+      algorithm_version: 'demo-1',
+      wear_location: 'wrist',
+      motion_quality: 'valid' as const,
+      heart_rate_quality: 'valid' as const,
+      heart_rate_bpm: 188,
+      notes: '0901234567',
+    };
+
+    const beforeFirst = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: 'incident-t20-before-first',
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+        measured_at: fx.timeBeforeFirst.toISOString(),
+        evidence,
+      }),
+    );
+    expect(beforeFirst.status).toBe(202);
+    expect(beforeFirst.body).toMatchObject({
+      status: 'rejected',
+      code: 'QUARANTINED',
+      incidentId: null,
+      acceptedRevision: null,
+    });
+    expect(beforeFirst.body.message).toMatch(/cách ly/);
+
+    const nullTime = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: 'incident-t20-null-time',
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+        measured_at: null,
+        clock_status: 'unsynced',
+        evidence,
+      }),
+    );
+    expect(nullTime.status).toBe(202);
+    expect(nullTime.body).toMatchObject({ status: 'rejected', code: 'QUARANTINED', incidentId: null });
+
+    const localIds = ['incident-t20-before-first', 'incident-t20-null-time'];
+    const incidentRows = await db
+      .select()
+      .from(incidents)
+      .where(and(eq(incidents.deviceId, fx.deviceId), inArray(incidents.deviceIncidentId, localIds)));
+    expect(incidentRows).toHaveLength(0);
+
+    // Không có outbox/SSE trỏ tới incident rác (không có incident nào được tạo).
+    const outboxRows = await db
+      .select({ id: notificationOutbox.id })
+      .from(notificationOutbox)
+      .innerJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
+      .where(and(eq(incidents.deviceId, fx.deviceId), inArray(incidents.deviceIncidentId, localIds)));
+    expect(outboxRows).toHaveLength(0);
+    const realtimeRows = await db
+      .select({ id: realtimeEvents.id })
+      .from(realtimeEvents)
+      .where(inArray(realtimeEvents.subjectId, [fx.subjectId, fx.subjectB]));
+    expect(realtimeRows).toHaveLength(0);
+
+    const audits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.quarantined'), eq(auditLogs.targetId, fx.deviceId)));
+    expect(audits).toHaveLength(2);
+    expect(audits.every((row) => row.outcome === 'failed')).toBe(true);
+    const reasons = audits.map((row) => (row.metadata as Record<string, unknown>)['reason']);
+    expect(reasons).toEqual(expect.arrayContaining(['before_first_assignment', 'missing_measured_at']));
+    for (const row of audits) {
+      const metadata = row.metadata as Record<string, unknown>;
+      expect(metadata['reason']).toEqual(expect.any(String));
+      expect(metadata['heart_rate_bpm']).toBeUndefined();
+      expect(metadata['evidence']).toBeUndefined();
+      expect(JSON.stringify(metadata)).not.toContain('188');
+      expect(JSON.stringify(metadata)).not.toContain('0901234567');
+    }
+  });
+
+  it('T21: measured_at tương lai quá MAX_CLOCK_SKEW_SECONDS → rejected QUARANTINED, audit clock_skew_future (T-03)', async () => {
+    const fx = await createReassignedFixture(ctx);
+    const measuredAt = new Date(Date.now() + 365 * DAY_MS);
+    const res = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: 'incident-t21-future',
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+        measured_at: measuredAt.toISOString(),
+      }),
+    );
+    expect(res.status).toBe(202);
+    expect(res.body).toMatchObject({
+      status: 'rejected',
+      code: 'QUARANTINED',
+      incidentId: null,
+      acceptedRevision: null,
+    });
+
+    const incidentRows = await db
+      .select()
+      .from(incidents)
+      .where(and(eq(incidents.deviceId, fx.deviceId), eq(incidents.deviceIncidentId, 'incident-t21-future')));
+    expect(incidentRows).toHaveLength(0);
+
+    const audits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.quarantined'), eq(auditLogs.targetId, fx.deviceId)));
+    expect(audits).toHaveLength(1);
+    const metadata = audits[0]!.metadata as Record<string, unknown>;
+    expect(metadata['reason']).toBe('clock_skew_future');
+    expect(metadata['clockSkewSeconds']).toBeGreaterThan(120);
+  });
+
+  it('T22: measured_at rơi vào khoảng chưa gán giữa hai assignment → rejected QUARANTINED, audit outside_assignment (T-03)', async () => {
+    const fx = await createReassignedFixture(ctx);
+    const res = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: 'incident-t22-gap',
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+        measured_at: fx.timeInGap.toISOString(),
+      }),
+    );
+    expect(res.status).toBe(202);
+    expect(res.body).toMatchObject({ status: 'rejected', code: 'QUARANTINED', incidentId: null });
+
+    const incidentRows = await db
+      .select()
+      .from(incidents)
+      .where(and(eq(incidents.deviceId, fx.deviceId), eq(incidents.deviceIncidentId, 'incident-t22-gap')));
+    expect(incidentRows).toHaveLength(0);
+
+    const audits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.quarantined'), eq(auditLogs.targetId, fx.deviceId)));
+    expect(audits).toHaveLength(1);
+    expect((audits[0]!.metadata as Record<string, unknown>)['reason']).toBe('outside_assignment');
+  });
+
+  it('T23: sự kiện bình thường trong assignment đang mở vẫn accepted và thuộc chủ hiện tại', async () => {
+    const fx = await createReassignedFixture(ctx);
+    const measuredAt = new Date(Date.now() - 60_000);
+    const res = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: 'incident-t23-normal',
+        event_type: 'fall.confirmed',
+        event_revision: 1,
+        measured_at: measuredAt.toISOString(),
+      }),
+    );
+    expect(res.status).toBe(202);
+    expect(res.body.status).toBe('accepted');
+    const incidentId = res.body.incidentId as string;
+
+    const rows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.subjectId).toBe(fx.subjectB);
+    expect(rows[0]!.assignmentId).toBe(fx.assignmentB);
+    expect(rows[0]!.detectedAt.getTime()).toBe(measuredAt.getTime());
+
+    const bList = await fx.ownerB.agent.get(`/api/v1/subjects/${fx.subjectB}/alerts`);
+    expect(bList.status).toBe(200);
+    expect((bList.body.items as Array<{ id: string }>).map((item) => item.id)).toContain(incidentId);
+
+    const aList = await fx.owner.agent.get(`/api/v1/subjects/${fx.subjectId}/alerts`);
+    expect(aList.status).toBe(200);
+    expect((aList.body.items as Array<{ id: string }>).map((item) => item.id)).not.toContain(incidentId);
+
+    const outbox = await db
+      .select()
+      .from(notificationOutbox)
+      .where(eq(notificationOutbox.incidentId, incidentId));
+    expect(outbox.some((row) => row.recipientUserId === fx.ownerBId)).toBe(true);
+  });
+
+  it('T24: revision mới sau khi chuyển chủ không ghi vào incident của chủ cũ (assignment_mismatch)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const now = Date.now();
+    await db
+      .update(deviceAssignments)
+      .set({ startedAt: new Date(now - 10 * DAY_MS) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+
+    const localId = 'incident-t24-cross-owner';
+    const candidate = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: localId,
+        event_type: 'fall.candidate',
+        event_revision: 1,
+        measured_at: new Date(now - 2 * 60_000).toISOString(),
+      }),
+    );
+    expect(candidate.body.status).toBe('accepted');
+    const incidentId = candidate.body.incidentId as string;
+
+    // Chuyển thiết bị sang B; A đóng trước khi sự kiện revision 2 được đo.
+    await db
+      .update(deviceAssignments)
+      .set({ endedAt: new Date(now - 60_000) })
+      .where(eq(deviceAssignments.id, fx.assignmentId));
+    fixtureCounter += 1;
+    const ownerB = await registerUser(ctx.app, { displayName: `Chủ hồ sơ B ${fixtureCounter}` });
+    const subjectB = (
+      await db
+        .insert(subjects)
+        .values({
+          ownerUserId: ownerB.session.user.id,
+          displayName: `Người được theo dõi B ${fixtureCounter}`,
+        })
+        .returning()
+    )[0]!;
+    await db.insert(deviceAssignments).values({
+      deviceId: fx.deviceId,
+      subjectId: subjectB.id,
+      assignedByUserId: ownerB.session.user.id,
+      startedAt: new Date(now - 30_000),
+    });
+
+    const confirmed = await postEvent(
+      ctx,
+      fx.deviceId,
+      fx.deviceKey,
+      makeEnvelope(fx, {
+        incident_id: localId,
+        event_type: 'fall.confirmed',
+        event_revision: 2,
+        measured_at: new Date().toISOString(),
+      }),
+    );
+    expect(confirmed.status).toBe(202);
+    expect(confirmed.body).toMatchObject({
+      status: 'rejected',
+      code: 'QUARANTINED',
+      incidentId: null,
+    });
+
+    // Incident cũ không đổi chủ/trạng thái và không nhận revision 2.
+    const incidentRows = await db.select().from(incidents).where(eq(incidents.id, incidentId));
+    expect(incidentRows[0]!.subjectId).toBe(fx.subjectId);
+    expect(incidentRows[0]!.assignmentId).toBe(fx.assignmentId);
+    expect(incidentRows[0]!.state).toBe('suspected');
+    expect(incidentRows[0]!.version).toBe(1);
+    const eventRows = await db
+      .select()
+      .from(incidentEvents)
+      .where(eq(incidentEvents.incidentId, incidentId));
+    expect(eventRows).toHaveLength(1);
+    expect(eventRows[0]!.eventRevision).toBe(1);
+
+    const audits = await db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, 'incident.quarantined'), eq(auditLogs.targetId, fx.deviceId)));
+    expect(audits).toHaveLength(1);
+    expect((audits[0]!.metadata as Record<string, unknown>)['reason']).toBe('assignment_mismatch');
   });
 
   it('T18: SUSPECTED_TIMEOUT_MINUTES ngoài 1..120 bị từ chối khi đọc cấu hình', () => {
