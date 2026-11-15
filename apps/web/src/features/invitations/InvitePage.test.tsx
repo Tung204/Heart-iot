@@ -36,6 +36,9 @@ describe('InvitePage', () => {
     const home = screen.getByRole('link', { name: 'Về trang chủ' });
     expect(home).toHaveAttribute('href', '/');
     expect(home).toHaveClass('button');
+    // Header công khai dùng tên trung tính, không còn tên tự đặt.
+    expect(screen.getByRole('link', { name: 'Theo dõi sức khỏe' })).toHaveAttribute('href', '/');
+    expect(screen.queryByText(/An Nhiên/)).toBeNull();
     expect(screen.getAllByText('Dữ liệu mô phỏng · không thay thế cấp cứu.')).toHaveLength(1);
   });
 

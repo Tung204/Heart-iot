@@ -22,7 +22,8 @@ describe('LandingPage', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Người thân ở nhà, mình vẫn an tâm' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText('An Nhiên').length).toBeGreaterThan(0);
+    // Không còn tên tự đặt trong nội dung trang.
+    expect(screen.queryByText(/An Nhiên/)).toBeNull();
 
     // Mỗi đích đúng một link: header chỉ logo, hero là nơi duy nhất có CTA.
     const registerLinks = await screen.findAllByRole('link', { name: 'Tạo tài khoản' });
@@ -36,6 +37,7 @@ describe('LandingPage', () => {
     expect(header).not.toBeNull();
     if (header) {
       expect(within(header).getAllByRole('link')).toHaveLength(1);
+      expect(within(header).getByRole('link', { name: 'Theo dõi sức khỏe' })).toBeInTheDocument();
       expect(within(header).queryByRole('link', { name: 'Đăng nhập' })).toBeNull();
     }
 
@@ -65,7 +67,9 @@ describe('LandingPage', () => {
       ).toBeInTheDocument();
     }
 
-    expect(screen.getByRole('heading', { level: 2, name: 'An Nhiên làm gì' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Theo dõi sức khỏe làm gì' }),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
     expect(screen.getByRole('heading', { level: 3, name: 'Theo dõi' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 3, name: 'Báo khi cần' })).toBeInTheDocument();
@@ -78,7 +82,7 @@ describe('LandingPage', () => {
     expect(screen.getByText('Hỏi trợ lý AI về số liệu của người thân.')).toBeInTheDocument();
 
     // Các khối copy dài của bản cũ đã bỏ hẳn.
-    expect(screen.queryByRole('heading', { name: 'Vì sao An Nhiên?' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: /An Nhiên/ })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Cách hoạt động' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Trợ lý ở trung tâm' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Ranh giới an toàn' })).toBeNull();

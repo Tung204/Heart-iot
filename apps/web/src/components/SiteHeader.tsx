@@ -6,7 +6,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="container site-header__inner">
         <Link to="/" className="brand">
-          An Nhiên
+          Theo dõi sức khỏe
         </Link>
       </div>
     </header>

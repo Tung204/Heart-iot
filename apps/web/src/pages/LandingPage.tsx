@@ -122,8 +122,8 @@ export function LandingPage() {
                 Người thân ở nhà, mình vẫn an tâm
               </h1>
               <p className="hero__lead">
-                An Nhiên ghi nhịp tim và vận động từ thiết bị đeo của người thân, rồi báo
-                bạn khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
+                Theo dõi sức khỏe người thân từ xa: nhịp tim và vận động từ thiết bị đeo,
+                báo bạn khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
               </p>
               {me.isPending ? (
                 // Đang kiểm phiên: chỉ báo tải, không render CTA để CTA không nhấp nháy.
@@ -178,7 +178,7 @@ export function LandingPage() {
         <section className="section landing-section" aria-labelledby="capabilities-heading">
           <div className="container">
             <h2 id="capabilities-heading" className="section-title">
-              An Nhiên làm gì
+              Theo dõi sức khỏe làm gì
             </h2>
             <ul className="capabilities" role="list">
               {CAPABILITIES.map((item, index) => (

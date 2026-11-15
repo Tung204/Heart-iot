@@ -80,7 +80,7 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Tạo tài khoản"
-      intro="Theo dõi người thân cùng An Nhiên."
+      intro="Theo dõi sức khỏe người thân cùng trợ lý AI."
       footer={
         <p className="auth-footer">
           Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
