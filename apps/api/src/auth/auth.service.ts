@@ -1,6 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { and, eq, gt, isNull, sql } from 'drizzle-orm';
-import type { LoginInput, RegisterInput } from '@annhien/contracts/auth';
+import { and, desc, eq, gt, isNull, ne, sql } from 'drizzle-orm';
+import {
+  sessionListSchema,
+  type ChangePasswordInput,
+  type LoginInput,
+  type RegisterInput,
+  type SessionList,
+  type UpdateProfileInput,
+} from '@annhien/contracts/auth';
 import type { UserSummary } from '@annhien/contracts';
 import { ENV, type AppEnv } from '../config/env';
 import { DB } from '../database/database';
@@ -112,6 +119,194 @@ export class AuthService {
       outcome: 'success',
     });
     return { token: session.token, expiresAt: session.expiresAt, user: toUserSummary(user) };
+  }
+
+  /**
+   * Đổi tên hiển thị của chính người đang đăng nhập.
+   * Schema hợp đồng đã trim + giới hạn 1..120 ký tự; ở đây vẫn trim lần nữa
+   * để service không phụ thuộc đường gọi (controller/AI tool đều đi qua đây).
+   */
+  async updateProfile(userId: string, input: UpdateProfileInput): Promise<UserSummary> {
+    const rows = await this.db
+      .update(users)
+      .set({ displayName: input.displayName.trim(), updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    const row = rows[0];
+    if (!row) throw AppError.notFound('Không tìm thấy tài khoản.');
+    await this.audit.record({
+      actorUserId: userId,
+      actorKind: 'user',
+      action: 'auth.profile_update',
+      targetType: 'user',
+      targetId: userId,
+      outcome: 'success',
+      metadata: { field: 'displayName' },
+    });
+    return toUserSummary(row);
+  }
+
+  /**
+   * Đổi mật khẩu: xác minh mật khẩu hiện tại, lưu hash mới và thu hồi mọi phiên
+   * khác trong cùng transaction — phiên đang dùng được giữ để không đăng xuất.
+   * Không ghi mật khẩu/hash vào audit hay log.
+   */
+  async changePassword(
+    userId: string,
+    currentSessionId: string,
+    input: ChangePasswordInput,
+  ): Promise<{ revokedSessions: number }> {
+    const rows = await this.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const user = rows[0];
+    if (!user) throw AppError.notFound('Không tìm thấy tài khoản.');
+
+    if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
+      await this.audit.record({
+        actorUserId: userId,
+        actorKind: 'user',
+        action: 'auth.password_change',
+        targetType: 'user',
+        targetId: userId,
+        outcome: 'failed',
+        metadata: { reason: 'current_password_mismatch' },
+      });
+      // 400 (không phải 422): payload đúng hợp đồng, sai thông tin xác thực hiện tại.
+      throw new AppError('VALIDATION_FAILED', 'Mật khẩu hiện tại không đúng.', 400);
+    }
+
+    // verify với hash hiện tại cũng bao trùm trường hợp chuỗi giống hệt.
+    if (await verifyPassword(input.newPassword, user.passwordHash)) {
+      await this.audit.record({
+        actorUserId: userId,
+        actorKind: 'user',
+        action: 'auth.password_change',
+        targetType: 'user',
+        targetId: userId,
+        outcome: 'failed',
+        metadata: { reason: 'same_password' },
+      });
+      throw new AppError('VALIDATION_FAILED', 'Mật khẩu mới phải khác mật khẩu hiện tại.', 400);
+    }
+
+    const passwordHash = await hashPassword(input.newPassword);
+    const revokedSessions = await this.db.transaction(async (tx) => {
+      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, userId));
+      const revoked = await tx
+        .update(sessions)
+        .set({ revokedAt: new Date() })
+        .where(
+          and(
+            eq(sessions.userId, userId),
+            isNull(sessions.revokedAt),
+            ne(sessions.id, currentSessionId),
+          ),
+        )
+        .returning({ id: sessions.id });
+      await this.audit.record(
+        {
+          actorUserId: userId,
+          actorKind: 'user',
+          action: 'auth.password_change',
+          targetType: 'user',
+          targetId: userId,
+          outcome: 'success',
+          metadata: { revokedSessions: revoked.length },
+        },
+        tx,
+      );
+      return revoked.length;
+    });
+    return { revokedSessions };
+  }
+
+  /** Chỉ phiên còn hiệu lực của chính mình; mới nhất trước; không trả token. */
+  async listSessions(userId: string, currentSessionId: string): Promise<SessionList> {
+    const rows = await this.db
+      .select({ id: sessions.id, createdAt: sessions.createdAt, expiresAt: sessions.expiresAt })
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          isNull(sessions.revokedAt),
+          gt(sessions.expiresAt, new Date()),
+        ),
+      )
+      .orderBy(desc(sessions.createdAt), desc(sessions.id));
+    return sessionListSchema.parse({
+      items: rows.map((row) => ({
+        id: row.id,
+        createdAt: row.createdAt.toISOString(),
+        expiresAt: row.expiresAt.toISOString(),
+        current: row.id === currentSessionId,
+      })),
+    });
+  }
+
+  /**
+   * Thu hồi một phiên của chính mình. Phiên hiện tại bị từ chối 400.
+   * Phiên không thuộc mình hoặc không tồn tại → 404 (không lộ sự tồn tại).
+   * Phiên đã thu hồi trước đó coi như đích idempotent: 204, không audit lặp.
+   */
+  async revokeOwnSession(
+    userId: string,
+    currentSessionId: string,
+    sessionId: string,
+  ): Promise<void> {
+    if (sessionId === currentSessionId) {
+      throw new AppError(
+        'VALIDATION_FAILED',
+        'Không thể thu hồi phiên đang dùng. Dùng "Đăng xuất" nếu muốn kết thúc phiên này.',
+        400,
+      );
+    }
+    const rows = await this.db
+      .select({ id: sessions.id, revokedAt: sessions.revokedAt })
+      .from(sessions)
+      .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) throw AppError.notFound('Không tìm thấy phiên đăng nhập.');
+    if (row.revokedAt !== null) return;
+    // Điều kiện revokedAt null ở UPDATE để hai request đồng thời không audit lặp.
+    const revoked = await this.db
+      .update(sessions)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId), isNull(sessions.revokedAt)))
+      .returning({ id: sessions.id });
+    if (revoked.length === 0) return;
+    await this.audit.record({
+      actorUserId: userId,
+      actorKind: 'user',
+      action: 'auth.session_revoke',
+      targetType: 'session',
+      targetId: sessionId,
+      outcome: 'success',
+    });
+  }
+
+  /** Thu hồi tất cả phiên khác của chính mình; trả số phiên đã thu hồi. */
+  async revokeOtherSessions(userId: string, currentSessionId: string): Promise<number> {
+    const revoked = await this.db
+      .update(sessions)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          isNull(sessions.revokedAt),
+          ne(sessions.id, currentSessionId),
+        ),
+      )
+      .returning({ id: sessions.id });
+    await this.audit.record({
+      actorUserId: userId,
+      actorKind: 'user',
+      action: 'auth.sessions_revoke_others',
+      targetType: 'user',
+      targetId: userId,
+      outcome: 'success',
+      metadata: { revokedSessions: revoked.length },
+    });
+    return revoked.length;
   }
 
   async logout(token: string | undefined): Promise<void> {
