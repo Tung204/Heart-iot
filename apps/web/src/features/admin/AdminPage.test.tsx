@@ -67,10 +67,13 @@ const POLICY_STATE = {
   ],
 };
 
+const PREVIEW_DIGEST = 'a'.repeat(64);
+
 const POLICY_PREVIEW = {
   valid: true,
   value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 },
-  digest: null,
+  digest: PREVIEW_DIGEST,
+  expectedVersion: 2,
   warnings: ['Chu kỳ gửi 20 giây làm tăng lưu lượng telemetry khoảng 33%.'],
   effectiveDiff: [{ field: 'heartbeatIntervalSeconds', from: 15, to: 20 }],
 };
@@ -159,13 +162,17 @@ describe('AdminPage', () => {
         (_, element) => element?.tagName === 'LI' && element.textContent === 'heartbeatIntervalSeconds: 15 → 20',
       ).length,
     ).toBe(1);
-    expect(previewBodies[0]).toEqual({ value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 } });
+    expect(previewBodies[0]).toEqual({
+      value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 },
+      expectedVersion: 2,
+    });
 
     await user.click(screen.getByRole('button', { name: 'Phát hành' }));
     await waitFor(() => expect(publishBodies).toHaveLength(1));
     expect(publishBodies[0]).toEqual({
       value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 },
       expectedVersion: 2,
+      previewDigest: PREVIEW_DIGEST,
       note: 'Điều chỉnh chu kỳ gửi',
     });
     expect(await screen.findByText(/Đã phát hành policy phiên bản 3/)).toBeInTheDocument();
@@ -177,6 +184,9 @@ describe('AdminPage', () => {
       const u = url;
       const method = init?.method ?? 'GET';
       if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/policies/device_runtime/previews')) {
+        return mockResponse(POLICY_PREVIEW);
+      }
       if (u.includes('/admin/policies/device_runtime') && method === 'PUT') {
         publishCalls += 1;
         return mockResponse(
@@ -184,7 +194,7 @@ describe('AdminPage', () => {
             code: 'APPROVAL_STALE',
             message: 'Phiên bản policy đã thay đổi, hãy tải lại trước khi công bố.',
             requestId: 'test-req-stale',
-            details: { currentVersion: 3, currentDigest: 'digest-v3-abcdef' },
+            details: { reason: 'version_mismatch', currentVersion: 3, currentDigest: 'digest-v3-abcdef' },
           },
           409,
         );
@@ -197,6 +207,10 @@ describe('AdminPage', () => {
     await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
     await screen.findByDisplayValue('15');
 
+    // Phải preview trước — nút Phát hành bị khóa nếu chưa có preview đúng nội dung.
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+    expect(await screen.findByText(/Giá trị hợp lệ/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Phát hành' }));
 
     expect(
@@ -204,6 +218,128 @@ describe('AdminPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tải lại' })).toBeInTheDocument();
     expect(publishCalls).toBe(1);
+    // Preview/digest đã bị bỏ sau 409: Phát hành khóa lại.
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
+  });
+
+  it('policy: sửa field sau preview → hủy preview + digest, khóa Phát hành, không gửi PUT', async () => {
+    const previewBodies: unknown[] = [];
+    const publishBodies: unknown[] = [];
+    renderPage(<AdminPage />, (url, init) => {
+      const u = url;
+      const method = init?.method ?? 'GET';
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/policies/device_runtime/previews')) {
+        previewBodies.push(init?.body ? JSON.parse(String(init.body)) : null);
+        return mockResponse(POLICY_PREVIEW);
+      }
+      if (u.includes('/admin/policies/device_runtime') && method === 'PUT') {
+        publishBodies.push(init?.body ? JSON.parse(String(init.body)) : null);
+        return mockResponse(POLICY_PUBLISH);
+      }
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await screen.findByDisplayValue('15');
+
+    // Publish không preview → bị khóa, không gọi API.
+    const publishButton = screen.getByRole('button', { name: 'Phát hành' });
+    expect(publishButton).toBeDisabled();
+    await user.click(publishButton);
+    expect(publishBodies).toHaveLength(0);
+    expect(previewBodies).toHaveLength(0);
+
+    const heartbeatField = screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)');
+    await user.clear(heartbeatField);
+    await user.type(heartbeatField, '20');
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+    expect(await screen.findByText(/Giá trị hợp lệ/)).toBeInTheDocument();
+    expect(previewBodies[0]).toEqual({
+      value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 },
+      expectedVersion: 2,
+    });
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeEnabled();
+
+    // Sửa tiếp sau preview → preview cũ (đang hiện 20) hết hiệu lực, Phát hành khóa.
+    await user.clear(heartbeatField);
+    await user.type(heartbeatField, '55');
+    await waitFor(() => expect(screen.queryByText(/Giá trị hợp lệ/)).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
+    expect(publishBodies).toHaveLength(0);
+  });
+
+  it('policy: 409 digest lệch → giữ form, báo nội dung đã thay đổi, preview lại rồi publish thành công', async () => {
+    const publishBodies: unknown[] = [];
+    let publishCalls = 0;
+    renderPage(<AdminPage />, (url, init) => {
+      const u = url;
+      const method = init?.method ?? 'GET';
+      if (u.endsWith('/me')) return mockResponse({ user: ADMIN });
+      if (u.includes('/admin/policies/device_runtime/previews')) {
+        return mockResponse(POLICY_PREVIEW);
+      }
+      if (u.includes('/admin/policies/device_runtime') && method === 'PUT') {
+        publishCalls += 1;
+        publishBodies.push(init?.body ? JSON.parse(String(init.body)) : null);
+        if (publishCalls === 1) {
+          return mockResponse(
+            {
+              code: 'APPROVAL_STALE',
+              message: 'Nội dung đã thay đổi so với bản xem trước, hãy xem lại preview trước khi công bố.',
+              requestId: 'test-req-content',
+              details: { reason: 'preview_mismatch', expectedVersion: 2 },
+            },
+            409,
+          );
+        }
+        return mockResponse(POLICY_PUBLISH);
+      }
+      if (u.includes('/admin/policies/device_runtime')) return mockResponse(POLICY_STATE);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Chính sách thiết bị' }));
+    await screen.findByDisplayValue('15');
+
+    const heartbeatField = screen.getByLabelText('Chu kỳ gửi nhịp tim (giây)');
+    await user.clear(heartbeatField);
+    await user.type(heartbeatField, '20');
+    await user.type(screen.getByLabelText('Ghi chú phát hành (tùy chọn)'), 'Điều chỉnh chu kỳ gửi');
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+    expect(await screen.findByText(/Giá trị hợp lệ/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Phát hành' }));
+    expect(
+      await screen.findByText(
+        'Nội dung đã thay đổi so với bản xem trước, hãy xem lại preview trước khi công bố.',
+      ),
+    ).toBeInTheDocument();
+    // Giữ nguyên nội dung đang sửa, chỉ bỏ preview/digest cũ.
+    expect(screen.getByDisplayValue('20')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xem trước' })).toBeEnabled();
+
+    // Preview lại rồi publish lần hai → thành công và reset form preview/note.
+    await user.click(screen.getByRole('button', { name: 'Xem trước' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Phát hành' })).toBeEnabled(),
+    );
+    await user.click(screen.getByRole('button', { name: 'Phát hành' }));
+    expect(await screen.findByText(/Đã phát hành policy phiên bản 3/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/Giá trị hợp lệ/)).not.toBeInTheDocument());
+    expect(screen.getByLabelText('Ghi chú phát hành (tùy chọn)')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Phát hành' })).toBeDisabled();
+    expect(publishCalls).toBe(2);
+    expect(publishBodies[0]).toEqual({
+      value: { ...POLICY_VALUE, heartbeatIntervalSeconds: 20 },
+      expectedVersion: 2,
+      previewDigest: PREVIEW_DIGEST,
+      note: 'Điều chỉnh chu kỳ gửi',
+    });
   });
 
   it('audit: hiển thị bản ghi với metadata trong details (text)', async () => {

@@ -12,6 +12,7 @@ import {
   type TestUser,
 } from './test-app';
 import { AdminModule } from '../src/admin/admin.module';
+import { computePolicyPreviewDigest } from '../src/admin/admin.service';
 import { PolicyModule } from '../src/policy/policy.module';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import {
@@ -51,6 +52,25 @@ const BASE_POLICY: PolicyValue = {
 
 function policyWith(patch: Partial<PolicyValue>): PolicyValue {
   return { ...BASE_POLICY, ...patch };
+}
+
+const POLICY_PATH = '/api/v1/admin/policies/device_runtime';
+
+/** POST preview với phiên bản nền do người vận hành đang xem. */
+function previewPolicy(actor: TestUser, value: PolicyValue, expectedVersion: number) {
+  return actor.agent
+    .post(`${POLICY_PATH}/previews`)
+    .set('Origin', TEST_ORIGIN)
+    .send({ value, expectedVersion });
+}
+
+/** PUT publish — body tùy ý để kiểm cả trường hợp thiếu/lệch digest. */
+function publishPolicy(actor: TestUser, body: Record<string, unknown>) {
+  return actor.agent.put(POLICY_PATH).set('Origin', TEST_ORIGIN).send(body);
+}
+
+async function readPolicy(actor: TestUser) {
+  return actor.agent.get(POLICY_PATH).set('Origin', TEST_ORIGIN);
 }
 
 describe('Admin (wave 3 be-admin)', () => {
@@ -278,70 +298,75 @@ describe('Admin (wave 3 be-admin)', () => {
   // Policy động
   // ---------------------------------------------------------------------------
 
-  test('T4 (FR-13): preview validate không ghi DB; value sai 422; warning đúng cặp ngưỡng', async () => {
+  test('T4 (FR-13): preview validate không ghi DB; digest gắn value + version nền; value sai 422; warning đúng cặp ngưỡng', async () => {
     const before = await ctx.db.select({ total: count() }).from(policyConfigs);
 
-    const preview = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: policyWith({ heartbeatIntervalSeconds: 20 }) });
+    const previewValue = policyWith({ heartbeatIntervalSeconds: 20 });
+    const preview = await previewPolicy(admin, previewValue, 0);
     expect(preview.status).toBe(200);
     expect(preview.body.valid).toBe(true);
     expect(preview.body.value.heartbeatIntervalSeconds).toBe(20);
     expect(preview.body.digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(preview.body.expectedVersion).toBe(0);
     expect(preview.body.effectiveDiff).toEqual([
       { field: 'heartbeatIntervalSeconds', from: 15, to: 20 },
     ]);
+    // Chỉ trả các trường đã công bố của policy; digest là sha256 của canonical value
+    // + version nền nên đổi version nền là đổi digest.
+    expect(Object.keys(preview.body as Record<string, unknown>).sort()).toEqual(
+      ['digest', 'effectiveDiff', 'expectedVersion', 'valid', 'value', 'warnings'].sort(),
+    );
+    expect(preview.body.digest).toBe(computePolicyPreviewDigest(previewValue, 0));
+    expect(preview.body.digest).not.toBe(computePolicyPreviewDigest(previewValue, 1));
+    const repeated = await previewPolicy(admin, previewValue, 0);
+    expect(repeated.status).toBe(200);
+    expect(repeated.body.digest).toBe(preview.body.digest);
 
     const after = await ctx.db.select({ total: count() }).from(policyConfigs);
     expect(after[0]?.total).toBe(before[0]?.total);
 
+    // Bản nền lệch bản active → 409, không ghi DB.
+    const staleBase = await previewPolicy(admin, previewValue, 1);
+    expect(staleBase.status).toBe(409);
+    expect(staleBase.body.code).toBe('APPROVAL_STALE');
+    expect(staleBase.body.details.reason).toBe('version_mismatch');
+    expect(staleBase.body.details.currentVersion).toBe(0);
+
     // Giá trị sai → 422.
-    const invalid = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: policyWith({ heartbeatIntervalSeconds: 4 }) });
+    const invalid = await previewPolicy(admin, policyWith({ heartbeatIntervalSeconds: 4 }), 0);
     expect(invalid.status).toBe(422);
     expect(invalid.body.code).toBe('VALIDATION_FAILED');
 
     // Cảnh báo theo cặp ngưỡng.
-    const warnOffline = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({
-        value: policyWith({ heartbeatIntervalSeconds: 60, offlineAfterSeconds: 30 }),
-      });
+    const warnOffline = await previewPolicy(
+      admin,
+      policyWith({ heartbeatIntervalSeconds: 60, offlineAfterSeconds: 30 }),
+      0,
+    );
     expect(warnOffline.status).toBe(200);
     expect(warnOffline.body.warnings.join('\n')).toContain('offlineAfterSeconds');
 
-    const warnFresh = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({
-        value: policyWith({ offlineAfterSeconds: 45, dataFreshAfterSeconds: 120 }),
-      });
+    const warnFresh = await previewPolicy(
+      admin,
+      policyWith({ offlineAfterSeconds: 45, dataFreshAfterSeconds: 120 }),
+      0,
+    );
     expect(warnFresh.status).toBe(200);
     expect(warnFresh.body.warnings.join('\n')).toContain('dataFreshAfterSeconds');
 
-    const warnLow = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: policyWith({ maxTelemetryPerMinute: 5 }) });
+    const warnLow = await previewPolicy(admin, policyWith({ maxTelemetryPerMinute: 5 }), 0);
     expect(warnLow.status).toBe(200);
     expect(warnLow.body.warnings.join('\n')).toContain('quá thấp');
 
-    const warnHigh = await admin.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: policyWith({ maxTelemetryPerMinute: 5000 }) });
+    const warnHigh = await previewPolicy(admin, policyWith({ maxTelemetryPerMinute: 5000 }), 0);
     expect(warnHigh.status).toBe(200);
     expect(warnHigh.body.warnings.join('\n')).toContain('quá cao');
 
-    const notAdmin = await regular1.agent
-      .post('/api/v1/admin/policies/device_runtime/previews')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: BASE_POLICY });
+    const notAdmin = await previewPolicy(regular1, BASE_POLICY, 0);
     expect(notAdmin.status).toBe(403);
+
+    const afterAll = await ctx.db.select({ total: count() }).from(policyConfigs);
+    expect(afterAll[0]?.total).toBe(before[0]?.total);
   });
 
   test('T5 (FR-13): publish CAS — version lệch 409; archive bản cũ; audit; history; rollback', async () => {
@@ -357,10 +382,18 @@ describe('Admin (wave 3 be-admin)', () => {
     expect(Array.isArray(initial.body.history)).toBe(true);
 
     const v1 = policyWith({ heartbeatIntervalSeconds: 20 });
-    const publish1 = await admin.agent
-      .put('/api/v1/admin/policies/device_runtime')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: v1, expectedVersion: 0 });
+    const v30 = policyWith({ heartbeatIntervalSeconds: 30 });
+    // Preview cho cả hai giá trị trên cùng bản nền v0 (trước khi publish v1).
+    const previewV1 = await previewPolicy(admin, v1, 0);
+    const previewV30 = await previewPolicy(admin, v30, 0);
+    expect(previewV1.status).toBe(200);
+    expect(previewV30.status).toBe(200);
+
+    const publish1 = await publishPolicy(admin, {
+      value: v1,
+      expectedVersion: 0,
+      previewDigest: previewV1.body.digest,
+    });
     expect(publish1.status).toBe(200);
     expect(publish1.body.version).toBe(1);
     expect(publish1.body.status).toBe('active');
@@ -375,25 +408,31 @@ describe('Admin (wave 3 be-admin)', () => {
     expect(after1.body.history.length).toBe(1);
     expect(after1.body.history[0].version).toBe(1);
 
-    // Version lệch → 409 APPROVAL_STALE kèm currentVersion/currentDigest.
-    const stale = await admin.agent
-      .put('/api/v1/admin/policies/device_runtime')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: policyWith({ heartbeatIntervalSeconds: 30 }), expectedVersion: 0 });
+    // Version lệch → 409 APPROVAL_STALE kèm currentVersion/currentDigest (digest vẫn khớp
+    // bản preview ở v0 nên lỗi đến từ CAS version).
+    const stale = await publishPolicy(admin, {
+      value: v30,
+      expectedVersion: 0,
+      previewDigest: previewV30.body.digest,
+    });
     expect(stale.status).toBe(409);
     expect(stale.body.code).toBe('APPROVAL_STALE');
+    expect(stale.body.details.reason).toBe('version_mismatch');
     expect(stale.body.details.currentVersion).toBe(1);
     expect(stale.body.details.currentDigest).toBe(publish1.body.digest);
 
     // Publish v2 thành công → v1 bị archive (retired), không xóa.
-    const publish2 = await admin.agent
-      .put('/api/v1/admin/policies/device_runtime')
-      .set('Origin', TEST_ORIGIN)
-      .send({
-        value: policyWith({ heartbeatIntervalSeconds: 30 }),
-        expectedVersion: 1,
-        note: 'Tăng tần suất nhịp tim.',
-      });
+    const previewV2 = await previewPolicy(admin, v30, 1);
+    expect(previewV2.status).toBe(200);
+    expect(previewV2.body.effectiveDiff).toEqual([
+      { field: 'heartbeatIntervalSeconds', from: 20, to: 30 },
+    ]);
+    const publish2 = await publishPolicy(admin, {
+      value: v30,
+      expectedVersion: 1,
+      previewDigest: previewV2.body.digest,
+      note: 'Tăng tần suất nhịp tim.',
+    });
     expect(publish2.status).toBe(200);
     expect(publish2.body.version).toBe(2);
     expect(publish2.body.note).toBe('Tăng tần suất nhịp tim.');
@@ -407,13 +446,14 @@ describe('Admin (wave 3 be-admin)', () => {
     expect(rows.find((row) => row.version === 1)?.status).toBe('retired');
     expect(rows.find((row) => row.version === 2)?.status).toBe('active');
 
-    // Audit policy.publish không chứa value đầy đủ.
+    // Audit policy.publish (success) không chứa value đầy đủ; 409 ở trên đã ghi conflict.
     const auditRows = await ctx.db
       .select()
       .from(auditLogs)
       .where(eq(auditLogs.action, 'policy.publish'));
-    expect(auditRows.length).toBe(2);
-    for (const row of auditRows) {
+    const successRows = auditRows.filter((row) => row.outcome === 'success');
+    expect(successRows.length).toBe(2);
+    for (const row of successRows) {
       const metadata = row.metadata as Record<string, unknown>;
       expect(metadata['key']).toBe('device_runtime');
       expect(typeof metadata['version']).toBe('number');
@@ -421,6 +461,7 @@ describe('Admin (wave 3 be-admin)', () => {
       expect(metadata['value']).toBeUndefined();
       expect(JSON.stringify(metadata)).not.toContain('heartbeatIntervalSeconds');
     }
+    expect(auditRows.some((row) => row.outcome === 'conflict')).toBe(true);
 
     // History giữ 2 bản, rollback = publish lại value cũ với version mới.
     const after2 = await admin.agent
@@ -429,10 +470,14 @@ describe('Admin (wave 3 be-admin)', () => {
     expect(after2.body.active.version).toBe(2);
     expect(after2.body.history.length).toBe(2);
 
-    const rollback = await admin.agent
-      .put('/api/v1/admin/policies/device_runtime')
-      .set('Origin', TEST_ORIGIN)
-      .send({ value: v1, expectedVersion: 2, note: 'Rollback về v1.' });
+    const previewRollback = await previewPolicy(admin, v1, 2);
+    expect(previewRollback.status).toBe(200);
+    const rollback = await publishPolicy(admin, {
+      value: v1,
+      expectedVersion: 2,
+      previewDigest: previewRollback.body.digest,
+      note: 'Rollback về v1.',
+    });
     expect(rollback.status).toBe(200);
     expect(rollback.body.version).toBe(3);
 
@@ -453,6 +498,84 @@ describe('Admin (wave 3 be-admin)', () => {
       .get('/api/v1/admin/policies/khong-co-key-nay')
       .set('Origin', TEST_ORIGIN);
     expect(unknown.status).toBe(404);
+  });
+
+  test('T5b (FR-13): publish thiếu previewDigest → 409, không ghi policy, audit conflict không lộ value', async () => {
+    const state = await readPolicy(admin);
+    const currentVersion = state.body.active.version as number;
+    const before = await ctx.db.select({ total: count() }).from(policyConfigs);
+
+    const missing = await publishPolicy(admin, {
+      value: policyWith({ heartbeatIntervalSeconds: 22 }),
+      expectedVersion: currentVersion,
+    });
+    expect(missing.status).toBe(409);
+    expect(missing.body.code).toBe('APPROVAL_STALE');
+    expect(missing.body.details.reason).toBe('preview_missing');
+    expect(missing.body.message.toLowerCase()).toContain('nội dung đã thay đổi');
+    expect(missing.body.message.toLowerCase()).toContain('xem lại preview');
+
+    const after = await ctx.db.select({ total: count() }).from(policyConfigs);
+    expect(after[0]?.total).toBe(before[0]?.total);
+    const unchanged = await readPolicy(admin);
+    expect(unchanged.body.active.version).toBe(currentVersion);
+    expect(unchanged.body.active.value.heartbeatIntervalSeconds).toBe(
+      state.body.active.value.heartbeatIntervalSeconds,
+    );
+
+    // Audit conflict chỉ có key/version nền/lý do — không có value hay secret.
+    const conflicts = (
+      await ctx.db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.action, 'policy.publish'))
+        .orderBy(asc(auditLogs.id))
+    ).filter((row) => row.outcome === 'conflict');
+    expect(conflicts.length).toBeGreaterThan(0);
+    const last = conflicts[conflicts.length - 1]!;
+    expect(last.targetType).toBe('policy');
+    expect(last.targetId).toBe('device_runtime');
+    const metadata = last.metadata as Record<string, unknown>;
+    expect(metadata['reason']).toBe('preview_missing');
+    expect(metadata['expectedVersion']).toBe(currentVersion);
+    expect(metadata['value']).toBeUndefined();
+    expect(JSON.stringify(metadata)).not.toContain('heartbeatIntervalSeconds');
+    expect(JSON.stringify(last)).not.toContain('credentialHash');
+  });
+
+  test('T5c (FR-13): preview cũ + value mới → 409 nội dung đã thay đổi; digest gắn version nền', async () => {
+    const state = await readPolicy(admin);
+    const currentVersion = state.body.active.version as number;
+    const previewed = policyWith({ heartbeatIntervalSeconds: 40 });
+    const preview = await previewPolicy(admin, previewed, currentVersion);
+    expect(preview.status).toBe(200);
+    expect(preview.body.expectedVersion).toBe(currentVersion);
+
+    const before = await ctx.db.select({ total: count() }).from(policyConfigs);
+    const changed = policyWith({ heartbeatIntervalSeconds: 45 });
+    const res = await publishPolicy(admin, {
+      value: changed,
+      expectedVersion: currentVersion,
+      previewDigest: preview.body.digest,
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('APPROVAL_STALE');
+    expect(res.body.details.reason).toBe('preview_mismatch');
+    expect(res.body.message.toLowerCase()).toContain('nội dung đã thay đổi');
+    expect(res.body.message.toLowerCase()).toContain('xem lại preview');
+
+    const after = await ctx.db.select({ total: count() }).from(policyConfigs);
+    expect(after[0]?.total).toBe(before[0]?.total);
+    expect((await readPolicy(admin)).body.active.version).toBe(currentVersion);
+
+    // Digest của value cũ không dùng được cho phiên bản nền khác.
+    const replay = await publishPolicy(admin, {
+      value: previewed,
+      expectedVersion: currentVersion + 1,
+      previewDigest: preview.body.digest,
+    });
+    expect(replay.status).toBe(409);
+    expect(replay.body.details.reason).toBe('preview_mismatch');
   });
 
   // ---------------------------------------------------------------------------
@@ -551,21 +674,29 @@ describe('Admin (wave 3 be-admin)', () => {
 
     const valueA = policyWith({ heartbeatIntervalSeconds: 25 });
     const valueB = policyWith({ heartbeatIntervalSeconds: 35 });
+    // Cả hai admin đều preview trên cùng bản nền hiện tại trước khi publish đồng thời.
+    const previewA = await previewPolicy(admin, valueA, currentVersion);
+    const previewB = await previewPolicy(admin, valueB, currentVersion);
+    expect(previewA.status).toBe(200);
+    expect(previewB.status).toBe(200);
     const [resultA, resultB] = await Promise.all([
-      admin.agent
-        .put('/api/v1/admin/policies/device_runtime')
-        .set('Origin', TEST_ORIGIN)
-        .send({ value: valueA, expectedVersion: currentVersion }),
-      admin.agent
-        .put('/api/v1/admin/policies/device_runtime')
-        .set('Origin', TEST_ORIGIN)
-        .send({ value: valueB, expectedVersion: currentVersion }),
+      publishPolicy(admin, {
+        value: valueA,
+        expectedVersion: currentVersion,
+        previewDigest: previewA.body.digest,
+      }),
+      publishPolicy(admin, {
+        value: valueB,
+        expectedVersion: currentVersion,
+        previewDigest: previewB.body.digest,
+      }),
     ]);
 
     const statuses = [resultA.status, resultB.status].sort((a, b) => a - b);
     expect(statuses).toEqual([200, 409]);
     const failed = resultA.status === 409 ? resultA : resultB;
     expect(failed.body.code).toBe('APPROVAL_STALE');
+    expect(['version_mismatch', 'publish_race']).toContain(failed.body.details.reason);
 
     const activeRows = await ctx.db
       .select()

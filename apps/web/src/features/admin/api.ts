@@ -90,10 +90,10 @@ export async function fetchPolicyState(key: string, signal?: AbortSignal): Promi
   return parseResponse(policyStateSchema, data);
 }
 
-/** POST /admin/policies/:key/previews — chỉ validate, không ghi DB. */
+/** POST /admin/policies/:key/previews — chỉ validate/sinh digest, không ghi DB. */
 export async function previewPolicy(
   key: string,
-  input: { value: unknown },
+  input: { value: unknown; expectedVersion: number },
 ): Promise<PolicyPreview> {
   const data = await apiRequest<unknown>(`/admin/policies/${key}/previews`, {
     method: 'POST',
@@ -102,10 +102,13 @@ export async function previewPolicy(
   return parseResponse(policyPreviewSchema, data);
 }
 
-/** PUT /admin/policies/:key — publish CAS theo expectedVersion; 409 APPROVAL_STALE. */
+/**
+ * PUT /admin/policies/:key — publish CAS theo expectedVersion + previewDigest;
+ * 409 APPROVAL_STALE khi version lệch hoặc nội dung khác bản đã xem trước.
+ */
 export async function publishPolicy(
   key: string,
-  input: { value: unknown; expectedVersion: number; note?: string },
+  input: { value: unknown; expectedVersion: number; previewDigest: string; note?: string },
 ): Promise<PolicyPublish> {
   const data = await apiRequest<unknown>(`/admin/policies/${key}`, {
     method: 'PUT',
