@@ -119,10 +119,6 @@ export function DevicesPage() {
     <div className="stack">
       <header>
         <h1 className="page-title">Thiết bị</h1>
-        <p className="page-lead">
-          Trạng thái và quản lý thiết bị đeo của hồ sơ{' '}
-          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong>.
-        </p>
       </header>
 
       <section aria-labelledby="device-list-heading">
@@ -140,7 +136,7 @@ export function DevicesPage() {
         ) : devices.data && devices.data.items.length === 0 ? (
           <EmptyState
             title="Chưa gắn thiết bị nào"
-            description="Dùng mã gắn thiết bị (claim code) nhận từ thiết bị đeo hoặc bộ dụng cụ để kết nối."
+            description="Dùng mã gắn trên thiết bị để kết nối."
           />
         ) : (
           <ul className="device-list">
@@ -225,13 +221,8 @@ export function DevicesPage() {
             </Button>
           ) : null}
         </div>
-        {!showClaimForm ? (
-          <p className="field__hint">
-            Mỗi hồ sơ có thể gắn một thiết bị đeo. Tháo gắn thiết bị cũ trước khi gắn thiết bị
-            khác.
-          </p>
-        ) : (
-        <Card description="Nhập mã gắn thiết bị (9 ký tự, không dùng số 0/1) từ thiết bị đeo. Mã chỉ dùng được một lần và hết hạn sau 15 phút.">
+        {!showClaimForm ? null : (
+        <Card description="Mã 9 ký tự in trên thiết bị; dùng một lần và hết hạn sau 15 phút.">
           <form className="claim-form" onSubmit={handleClaim} noValidate>
             <TextField
               id="claim-code"

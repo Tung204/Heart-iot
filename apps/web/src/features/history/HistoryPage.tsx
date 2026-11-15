@@ -154,7 +154,7 @@ function MeasurementsNotShared() {
     <EmptyState
       title="Chủ hồ sơ không chia sẻ số đo"
       description="Chủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo."
-      action={<ButtonLink to="/app/overview">Về tổng quan</ButtonLink>}
+      action={<ButtonLink to="/app/overview">← Sức khỏe</ButtonLink>}
     />
   );
 }
@@ -297,11 +297,13 @@ export function HistoryPage() {
   if (activeSubject && !canViewMeasurements) {
     return (
       <div className="stack">
+        <nav aria-label="Đường dẫn">
+          <Link to="/app/overview" className="breadcrumb">
+            ← Sức khỏe
+          </Link>
+        </nav>
         <header>
-          <h1 className="page-title">Lịch sử đo lường</h1>
-          <p className="page-lead">
-            Dữ liệu của hồ sơ <strong>{activeSubject.displayName}</strong>.
-          </p>
+          <h1 className="page-title">Lịch sử đo</h1>
         </header>
         <MeasurementsNotShared />
       </div>
@@ -310,13 +312,13 @@ export function HistoryPage() {
 
   return (
     <div className="stack">
+      <nav aria-label="Đường dẫn">
+        <Link to="/app/overview" className="breadcrumb">
+          ← Sức khỏe
+        </Link>
+      </nav>
       <header>
-        <h1 className="page-title">Lịch sử đo lường</h1>
-        <p className="page-lead">
-          Dữ liệu của hồ sơ{' '}
-          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong> trong khoảng bạn
-          chọn. Quyền hiện tại cho phép xem tối đa {historyDays} ngày.
-        </p>
+        <h1 className="page-title">Lịch sử đo</h1>
       </header>
 
       {measurementsForbidden ? null : (
@@ -364,8 +366,7 @@ export function HistoryPage() {
 
       {activeSubject ? (
         <p className="field__hint">
-          Cửa sổ dữ liệu kết thúc lúc {formatDateTime(to)}. Bấm “Cập nhật khoảng” để lấy dữ
-          liệu mới hơn — trang không tự tải lại để giữ nguyên các trang bạn đã mở.
+          Quyền hiện tại cho phép xem tối đa {historyDays} ngày.
         </p>
       ) : null}
 
@@ -520,11 +521,7 @@ export function HistoryPage() {
             </div>
           ) : null}
 
-          <p className="field__hint">
-            Dữ liệu hiển thị là dữ liệu mô phỏng. Số liệu trên trang không dùng để chẩn đoán hay
-            thay lời khuyên y tế.{' '}
-            <Link to="/app/overview">Về tổng quan</Link>
-          </p>
+          <p className="field__hint">Dữ liệu hiển thị là dữ liệu mô phỏng.</p>
         </>
       )}
     </div>

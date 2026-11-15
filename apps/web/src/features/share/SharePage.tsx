@@ -209,11 +209,7 @@ export function SharePage() {
   return (
     <div className="stack">
       <header>
-        <h1 className="page-title">Chia sẻ với người thân</h1>
-        <p className="page-lead">
-          Mời người thân cùng xem dữ liệu và nhận cảnh báo. Chỉ chủ hồ sơ mời và thu hồi được;
-          quyền có hiệu lực từ khi người được mời chấp nhận.
-        </p>
+        <h1 className="page-title">Chia sẻ quyền xem</h1>
       </header>
 
       {invitations.isError && isNotFoundError(invitations.error) ? (
@@ -319,9 +315,7 @@ export function SharePage() {
               ))}
             </fieldset>
             <p className="field__hint">
-              Người được mời có thể tải dữ liệu đo ra tệp CSV và giữ bản sao sau khi bạn thu
-              hồi quyền. Thu hồi chặn truy cập tiếp theo, không thu hồi được bản đã tải hoặc
-              đã chụp lại.
+              Người được mời có thể tải CSV và giữ bản sao sau khi bạn thu hồi quyền.
             </p>
             {create.isError ? (
               <Alert tone="error">{getApiErrorMessage(create.error)}</Alert>

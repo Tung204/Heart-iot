@@ -343,10 +343,6 @@ export function AlertDetailPage() {
               </div>
             </form>
           ) : null}
-          <p className="field__hint">
-            Dữ liệu cảnh báo hiển thị là dữ liệu mô phỏng. Khi có người thân cần hỗ trợ khẩn cấp,
-            hãy gọi cấp cứu theo số khẩn cấp địa phương — ứng dụng không tự gọi.
-          </p>
         </section>
       ) : (
         <section className="card" aria-labelledby="alert-ended-heading">

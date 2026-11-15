@@ -114,7 +114,7 @@ export function DashboardPage() {
     queryKey: subjectId
       ? queryKeys.dashboardOpenAlerts(subjectId)
       : ['subjects', 'none', 'alerts', 'dashboard'],
-    queryFn: ({ signal }) => (subjectId ? fetchOpenAlerts(subjectId, 5, signal) : null),
+    queryFn: ({ signal }) => (subjectId ? fetchOpenAlerts(subjectId, 20, signal) : null),
     enabled: Boolean(subjectId),
     staleTime: 15_000,
   });
@@ -142,29 +142,14 @@ export function DashboardPage() {
 
   return (
     <div className="stack dashboard">
+      <nav aria-label="Đường dẫn">
+        <Link to="/app" className="breadcrumb">
+          ← Hôm nay
+        </Link>
+      </nav>
+
       <header className="dashboard__header">
-        <div>
-          <p className="dashboard__eyebrow">
-            Tổng quan hôm nay · {today.split('-').reverse().join('/')}
-          </p>
-          <h1 className="page-title">
-            Tổng quan
-            {activeSubject ? (
-              <span className="dashboard__subject"> — {activeSubject.displayName}</span>
-            ) : null}
-          </h1>
-          <p className="page-lead">
-            Tình trạng thiết bị, dữ liệu mới nhất và cảnh báo đang mở của hồ sơ đang xem.
-          </p>
-        </div>
-        <div className="dashboard__header-actions">
-          <ButtonLink to="/app/history" variant="secondary" size="sm">
-            Lịch sử đo
-          </ButtonLink>
-          <ButtonLink to="/app/alerts" variant="subtle" size="sm">
-            Tất cả cảnh báo
-          </ButtonLink>
-        </div>
+        <h1 className="page-title">Sức khỏe</h1>
       </header>
 
       {/*
@@ -409,12 +394,6 @@ export function DashboardPage() {
       </div>
 
       <RecentInsightsCard subjectId={subjectId} />
-
-      <Alert tone="info" title="Giới hạn cần biết">
-        Cảnh báo chỉ cập nhật khi trang web đang mở và còn kết nối với máy chủ. Hệ thống không gửi
-        thông báo khi đóng trình duyệt và không tự gọi cấp cứu. Dữ liệu hiển thị là dữ liệu mô
-        phỏng; số liệu trên trang không dùng để chẩn đoán hay thay lời khuyên y tế.
-      </Alert>
     </div>
   );
 }

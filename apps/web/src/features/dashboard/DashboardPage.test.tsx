@@ -79,8 +79,9 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
     ).toBeInTheDocument();
     expect(screen.getByText('Không tải được trạng thái thiết bị')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 1, name: /Tổng quan/ }),
+      screen.getByRole('heading', { level: 1, name: 'Sức khỏe' }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '← Hôm nay' })).toHaveAttribute('href', '/app');
     expect(screen.queryByText(/Đang tải dữ liệu tổng quan/)).not.toBeInTheDocument();
   });
 

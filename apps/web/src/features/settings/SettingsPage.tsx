@@ -35,11 +35,7 @@ export function SettingsPage() {
   return (
     <div className="stack">
       <header>
-        <h1 className="page-title">Cài đặt tài khoản</h1>
-        <p className="page-lead">
-          Đổi tên hiển thị, mật khẩu và kiểm soát những thiết bị đang đăng nhập vào tài khoản
-          của bạn.
-        </p>
+        <h1 className="page-title">Cài đặt</h1>
       </header>
 
       <ProfileCard user={me.data.user} />

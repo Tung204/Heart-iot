@@ -115,8 +115,7 @@ export function AlertsPage() {
         <h1 className="page-title">Cảnh báo</h1>
         <p className="page-lead">
           Cảnh báo của hồ sơ{' '}
-          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong>. Người thân có
-          quyền sẽ nhận cảnh báo tương ứng theo cài đặt chia sẻ.
+          <strong>{activeSubject ? activeSubject.displayName : '—'}</strong>.
         </p>
       </header>
 

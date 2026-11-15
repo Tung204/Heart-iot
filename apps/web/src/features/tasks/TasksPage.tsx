@@ -329,11 +329,7 @@ export function TasksPage() {
     <div className="stack">
       <header className="tasks-header">
         <div className="tasks-header__text">
-          <h1 className="page-title">Công việc bảo trì</h1>
-          <p className="page-lead">
-            Công việc gắn với thiết bị của hồ sơ bạn theo dõi. Chủ hồ sơ có thể tạo việc mới và
-            đóng công việc kèm lý do; người thân chỉ xem.
-          </p>
+          <h1 className="page-title">Công việc</h1>
         </div>
         {canCreate ? (
           <Button
@@ -364,7 +360,6 @@ export function TasksPage() {
       {createOpen ? (
         <Card
           title="Tạo việc bảo trì"
-          description="Chọn hồ sơ và thiết bị đang gắn, mô tả việc cần làm. Việc mới ở trạng thái Mở."
           className="task-create-card"
         >
           <form
@@ -380,14 +375,10 @@ export function TasksPage() {
                 <label className="field__label" htmlFor="task-create-subject">
                   Hồ sơ
                 </label>
-                <p className="field__hint" id="task-create-subject-hint">
-                  Chỉ hiện hồ sơ bạn sở hữu.
-                </p>
                 <select
                   id="task-create-subject"
                   className="field__input"
                   value={createSubjectId ?? ''}
-                  aria-describedby="task-create-subject-hint"
                   onChange={(event) => {
                     setCreateSubjectId(event.target.value);
                     setCreateDeviceId('');

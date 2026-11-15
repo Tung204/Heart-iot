@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import type { ZodIssue } from 'zod';
 import {
   archiveSubjectSchema,
@@ -304,10 +303,7 @@ export function SubjectsPage() {
   return (
     <div className="stack">
       <header>
-        <h1 className="page-title">Hồ sơ người được theo dõi</h1>
-        <p className="page-lead">
-          Tạo hồ sơ cho người cần theo dõi, sửa tên và mời người thân cùng xem.
-        </p>
+        <h1 className="page-title">Người thân</h1>
       </header>
 
       {items.length === 0 ? (
@@ -322,8 +318,8 @@ export function SubjectsPage() {
       ) : (
         <>
           <section aria-labelledby="subject-list-heading">
-            <h2 id="subject-list-heading" className="section-title">
-              Hồ sơ của bạn
+            <h2 id="subject-list-heading" className="visually-hidden">
+              Danh sách người thân
             </h2>
             {archiveNotice ? (
               <Alert tone="success" title="Đã lưu trữ hồ sơ">
@@ -349,95 +345,93 @@ export function SubjectsPage() {
                 return (
                   <li key={item.id} className="subject-list__item">
                     <div className="subject-list__info">
-                      <p className="subject-list__name">
-                        {item.displayName}
-                        {item.role === 'caregiver' ? (
-                          <StatusPill tone="sand" className="subject-list__badge">
-                            Người thân xem hộ
-                          </StatusPill>
-                        ) : (
-                          <StatusPill tone="teal" className="subject-list__badge">
-                            Chủ hồ sơ
-                          </StatusPill>
-                        )}
-                      </p>
+                      <p className="subject-list__name">{item.displayName}</p>
                       <p className="subject-list__meta">
-                        Múi giờ {item.timezone} · Xem lịch sử tối đa{' '}
-                        {item.permissions.historyDays} ngày · Nhận cảnh báo:{' '}
-                        {item.permissions.canReceiveAlerts ? 'có' : 'không'}
+                        <StatusPill tone={item.role === 'caregiver' ? 'sand' : 'teal'}>
+                          {item.role === 'caregiver' ? 'Người thân xem hộ' : 'Chủ hồ sơ'}
+                        </StatusPill>
+                        {item.permissions.canReceiveAlerts ? ' · nhận cảnh báo' : ''}
                       </p>
                     </div>
                     <div className="subject-list__actions">
-                      {editingId === item.id ? (
-                        <div className="subject-list__edit">
-                          <SubjectForm
-                            mode="edit"
-                            initial={{ displayName: item.displayName, timezone: item.timezone }}
-                            pending={update.isPending}
-                            submitLabel="Lưu"
-                            onCancel={() => setEditingId(null)}
-                            onSubmit={(values) => update.mutate({ id: item.id, input: values })}
-                          />
-                          {update.isError ? (
-                            <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <>
-                          {isOwner ? (
-                            <ButtonLink
-                              to={`/app/subjects/${item.id}/share`}
-                              variant="secondary"
-                              size="sm"
-                            >
-                              Chia sẻ
-                            </ButtonLink>
-                          ) : null}
-                          {isOwner ? (
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => setEditingId(item.id)}
-                              aria-label={`Sửa tên hồ sơ ${item.displayName}`}
-                            >
-                              Sửa tên
-                            </Button>
-                          ) : null}
-                          <ButtonLink to="/app/overview" variant="subtle" size="sm">
-                            Xem tổng quan
-                          </ButtonLink>
-                          {isOwner ? (
-                            <div className="subject-danger-actions" role="group" aria-label="Thao tác dữ liệu">
+                      <ButtonLink to="/app/overview" variant="secondary" size="sm">
+                        Xem sức khỏe
+                      </ButtonLink>
+                      {isOwner ? (
+                        <ButtonLink
+                          to={`/app/subjects/${item.id}/share`}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Chia sẻ
+                        </ButtonLink>
+                      ) : null}
+                      <ButtonLink to="/app/devices" variant="subtle" size="sm">
+                        Thiết bị
+                      </ButtonLink>
+                      {isOwner ? (
+                        editingId === item.id ? (
+                          <div className="subject-list__edit">
+                            <SubjectForm
+                              mode="edit"
+                              initial={{ displayName: item.displayName, timezone: item.timezone }}
+                              pending={update.isPending}
+                              submitLabel="Lưu"
+                              onCancel={() => setEditingId(null)}
+                              onSubmit={(values) => update.mutate({ id: item.id, input: values })}
+                            />
+                            {update.isError ? (
+                              <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <details className="subject-list__more">
+                            <summary className="subject-list__more-summary">Thêm thao tác</summary>
+                            <div className="subject-list__more-body">
                               <Button
-                                variant="danger-quiet"
+                                variant="subtle"
                                 size="sm"
-                                aria-expanded={dangerOpen && dangerTarget?.mode === 'archive'}
-                                aria-controls={
-                                  dangerOpen && dangerTarget?.mode === 'archive'
-                                    ? panelId
-                                    : undefined
-                                }
-                                onClick={() => openDangerForm(item, 'archive')}
+                                onClick={() => setEditingId(item.id)}
+                                aria-label={`Sửa tên hồ sơ ${item.displayName}`}
                               >
-                                Lưu trữ hồ sơ
+                                Sửa tên
                               </Button>
-                              <Button
-                                variant="danger-quiet"
-                                size="sm"
-                                aria-expanded={dangerOpen && dangerTarget?.mode === 'deletion'}
-                                aria-controls={
-                                  dangerOpen && dangerTarget?.mode === 'deletion'
-                                    ? panelId
-                                    : undefined
-                                }
-                                onClick={() => openDangerForm(item, 'deletion')}
+                              <div
+                                className="subject-danger-actions"
+                                role="group"
+                                aria-label="Thao tác dữ liệu"
                               >
-                                Yêu cầu xóa dữ liệu
-                              </Button>
+                                <Button
+                                  variant="danger-quiet"
+                                  size="sm"
+                                  aria-expanded={dangerOpen && dangerTarget?.mode === 'archive'}
+                                  aria-controls={
+                                    dangerOpen && dangerTarget?.mode === 'archive'
+                                      ? panelId
+                                      : undefined
+                                  }
+                                  onClick={() => openDangerForm(item, 'archive')}
+                                >
+                                  Lưu trữ hồ sơ
+                                </Button>
+                                <Button
+                                  variant="danger-quiet"
+                                  size="sm"
+                                  aria-expanded={dangerOpen && dangerTarget?.mode === 'deletion'}
+                                  aria-controls={
+                                    dangerOpen && dangerTarget?.mode === 'deletion'
+                                      ? panelId
+                                      : undefined
+                                  }
+                                  onClick={() => openDangerForm(item, 'deletion')}
+                                >
+                                  Yêu cầu xóa dữ liệu
+                                </Button>
+                              </div>
                             </div>
-                          ) : null}
-                        </>
-                      )}
+                          </details>
+                        )
+                      ) : null}
                     </div>
 
                     {isOwner && dangerOpen && dangerTarget ? (
@@ -562,7 +556,7 @@ export function SubjectsPage() {
           <section aria-labelledby="subject-create-heading">
             <div className="section-heading-row">
               <h2 id="subject-create-heading" className="section-title">
-                Thêm người cần theo dõi
+                Thêm người
               </h2>
               <Button
                 variant={createOpen ? 'subtle' : 'secondary'}
@@ -585,22 +579,10 @@ export function SubjectsPage() {
                   />
                 </Card>
               </div>
-            ) : (
-              <p className="field__hint">
-                Mỗi hồ sơ cần một tên hiển thị; hệ thống tự dùng múi giờ mặc định của bạn. Bạn có
-                thể mời người thân sau khi tạo.
-              </p>
-            )}
+            ) : null}
           </section>
         </>
       )}
-
-      <p className="subjects-page__note">
-        Lưu ý: dữ liệu hiển thị trong ứng dụng là dữ liệu mô phỏng. Nếu bạn là người thân
-        được mời xem hộ, quyền truy cập do chủ hồ sơ quyết định — hãy hỏi lại chủ hồ sơ nếu
-        cần quyền khác.
-        {' '}<Link to="/app/overview">Về tổng quan</Link>
-      </p>
     </div>
   );
 }

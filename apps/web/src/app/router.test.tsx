@@ -17,35 +17,38 @@ function routeHandler(url: string) {
   return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
 }
 
-// v3 — `/app` mở không gian trợ lý (trung tâm); dashboard chi tiết ở `/app/overview`.
-describe('router — trợ lý là mặc định của /app', () => {
-  it('/app → trợ lý', async () => {
+// v4 — `/app` là Hôm nay; Sức khỏe chi tiết ở `/app/overview`, Lịch sử đo ở
+// `/app/history`. Các đường dẫn cũ vẫn mở đúng màn để không gãy deep link.
+describe('router — Hôm nay là mặc định của /app', () => {
+  it('/app → Hôm nay, có lối xem sức khỏe chi tiết và lịch sử đo', async () => {
     renderApp('/app', routeHandler);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Trợ lý' }),
+      await screen.findByRole('heading', { level: 1, name: 'Hôm nay' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: /Quản lý hồ sơ/ }),
-    ).toHaveAttribute('href', '/app/subjects');
+      screen.getByRole('link', { name: 'Xem sức khỏe chi tiết →' }),
+    ).toHaveAttribute('href', '/app/overview');
+    expect(screen.getByRole('link', { name: 'Lịch sử đo →' })).toHaveAttribute(
+      'href',
+      '/app/history',
+    );
   });
 
-  it('/app/overview → tổng quan chi tiết', async () => {
+  it('/app/overview → Sức khỏe chi tiết, có đường về Hôm nay', async () => {
     renderApp('/app/overview', routeHandler);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: /Tổng quan/ }),
+      await screen.findByRole('heading', { level: 1, name: 'Sức khỏe' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { level: 1, name: /Tổng quan/ }),
-    ).not.toHaveTextContent('Trợ lý');
+    expect(screen.getByRole('link', { name: '← Hôm nay' })).toHaveAttribute('href', '/app');
   });
 
-  it('/app/assistant vẫn mở trợ lý (đường dẫn cũ không gãy)', async () => {
+  it('/app/assistant vẫn mở Hôm nay (đường dẫn cũ không gãy)', async () => {
     renderApp('/app/assistant', routeHandler);
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Trợ lý' }),
+      await screen.findByRole('heading', { level: 1, name: 'Hôm nay' }),
     ).toBeInTheDocument();
   });
 
