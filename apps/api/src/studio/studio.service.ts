@@ -254,7 +254,11 @@ export class StudioService {
    *   và count trả rỗng/0, không 403 toàn view.
    */
   private async renderSubjectData(userId: string, subjectId: string): Promise<StudioData> {
-    const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
+    const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
+      userId,
+      subjectId,
+      null,
+    );
     const subject = access.subject;
     const policy = (await this.policy.getActive()).value;
     const now = new Date();

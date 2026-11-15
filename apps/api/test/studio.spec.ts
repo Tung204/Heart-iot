@@ -1381,6 +1381,51 @@ describe('Studio workspace views — draft → preview → publish → rollback 
     ]);
   });
 
+  it('T13b: data — caregiver thiếu canViewMeasurements bị 403, không đọc số đo qua Studio', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id, 'Bà Không Xem Số Đo');
+    const { deviceId, assignmentId } = await seedDeviceWithTelemetry(ctx, owner, subject.id, [77]);
+    const caregiver = await registerUser(ctx.app, { displayName: 'Không xem số đo' });
+    await shareSubject(ctx, owner, subject.id, caregiver, {
+      sharedFrom: new Date(Date.now() - 3600_000),
+      permissions: { ...DEFAULT_CARE_PERMISSIONS, canViewMeasurements: false },
+    });
+
+    const created = await createView(owner.agent, {
+      key: 'view-khong-so-do',
+      name: 'View không số đo',
+      scope: 'subject',
+      subjectId: subject.id,
+      config: makeConfig(DEFAULT_WIDGETS),
+    });
+    expect(created.status).toBe(201);
+    const createdBody = created.body as ViewBody;
+    const published = await owner.agent
+      .post(`/api/v1/workspace-views/${createdBody.id}/publications`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        draftRevision: createdBody.draftRevision,
+        digest: createdBody.draftDigest,
+        baseRevision: 0,
+        note: 'Công bố view không số đo',
+      });
+    expect(published.status).toBe(201);
+
+    const denied = await caregiver.agent
+      .get(`/api/v1/workspace-views/${createdBody.id}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(denied.status).toBe(403);
+    expect(JSON.stringify(denied.body)).not.toContain('77');
+
+    const ownerData = await owner.agent
+      .get(`/api/v1/workspace-views/${createdBody.id}/data`)
+      .set('Origin', TEST_ORIGIN);
+    expect(ownerData.status).toBe(200);
+    expect(ownerData.body.data.metrics.heartRateBpm).toBe(77);
+
+    expect(deviceId).toBeTruthy();
+    expect(assignmentId).toBeTruthy();
+  });
+
   it('T13: data — caregiver thiếu canReceiveAlerts vẫn xem dữ liệu khác, alerts/count rỗng thay vì 403', async () => {
     const subject = await createSubject(ctx, owner.session.user.id, 'Bà Không Nhận Cảnh Báo');
     const { deviceId, assignmentId } = await seedDeviceWithTelemetry(ctx, owner, subject.id, []);
