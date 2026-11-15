@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
 import { AppErrorBoundary } from '../components/AppErrorBoundary';
@@ -15,6 +15,28 @@ import { SubjectSwitcher } from '../features/subjects/SubjectSwitcher';
 import { queryKeys } from '../lib/query';
 
 type NavIconName = 'home' | 'history' | 'alert' | 'device' | 'bell' | 'person' | 'more' | 'admin';
+
+/**
+ * Đưa người dùng về đầu nội dung khi đổi trang trong /app.
+ * - Chỉ chạy khi `pathname` đổi; đổi query param cùng trang không cuộn.
+ * - POP (tải lần đầu/reload, back/forward) và URL có `#hash`: không can thiệp,
+ *   để trình duyệt tự khôi phục vị trí hoặc cuộn tới đúng mục được chỉ định.
+ */
+function useResetScrollOnNavigate() {
+  const { pathname, hash } = useLocation();
+  const navigationType = useNavigationType();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (navigationType === 'POP' || hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    // focus main để trình đọc màn hình đọc từ đầu trang; preventScroll giữ cuộn ở đầu.
+    mainRef.current?.focus({ preventScroll: true });
+    // Cố ý chỉ phụ thuộc `pathname`: đổi query param/hash không được tự cuộn.
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return mainRef;
+}
 
 function NavIcon({ name }: { name: NavIconName }) {
   const paths: Record<NavIconName, ReactNode> = {
@@ -93,6 +115,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const mainRef = useResetScrollOnNavigate();
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [revokedInfo, setRevokedInfo] = useState<{ subjectId: string; name: string } | null>(null);
 
@@ -235,6 +258,10 @@ export function AppShell() {
           <p className="shell__tagline">Theo dõi người thân</p>
         </div>
         <StatusPill tone="sand">Bản demo · dữ liệu mô phỏng</StatusPill>
+        {/* Đặt ở đầu sidebar để không bị cắt khi sidebar cao hơn màn hình. */}
+        <p className="shell__safety-note">
+          Cảnh báo chỉ hiển thị khi trang đang mở. Bản demo không tự gọi cấp cứu.
+        </p>
         <nav className="shell__nav" aria-label="Điều hướng ứng dụng">
           {navItems}
           {moreMenu}
@@ -258,9 +285,6 @@ export function AppShell() {
           ) : null}
           <TextSizeToggle />
         </div>
-        <p className="shell__safety-note">
-          Cảnh báo chỉ hiển thị khi trang đang mở. Bản demo không tự gọi cấp cứu.
-        </p>
       </aside>
 
       <div className="shell__body">
@@ -270,7 +294,6 @@ export function AppShell() {
               <Link to="/app" className="brand">
                 An Nhiên
               </Link>
-              <span className="shell__mobile-demo">Bản demo</span>
             </div>
             <div className="shell__topbar-actions">
               <TextSizeToggle />
@@ -285,6 +308,8 @@ export function AppShell() {
               </Button>
             </div>
           </div>
+          {/* Nhãn demo luôn đọc được trên mobile, không chỉ logo “Bản demo”. */}
+          <p className="shell__mobile-demo">Bản demo · dữ liệu mô phỏng</p>
           {logoutError ? (
             <p className="shell__error" role="alert">
               {logoutError}
@@ -292,7 +317,7 @@ export function AppShell() {
           ) : null}
         </header>
 
-        <main id="main" tabIndex={-1} className="shell__main">
+        <main id="main" ref={mainRef} tabIndex={-1} className="shell__main">
           <div className="shell__content">
             {revokedInfo ? (
               <Alert tone="warning" title="Bạn đã mất quyền xem hồ sơ">
@@ -314,6 +339,11 @@ export function AppShell() {
             <AppErrorBoundary key={location.pathname}>
               <Outlet />
             </AppErrorBoundary>
+            {/* Mobile không có sidebar: nhắc giới hạn demo ở cuối nội dung, không bị ẩn. */}
+            <p className="shell__mobile-safety-note">
+              Cảnh báo chỉ hiển thị khi trang đang mở và kết nối với máy chủ. Bản demo không tự
+              gọi cấp cứu.
+            </p>
           </div>
         </main>
 
