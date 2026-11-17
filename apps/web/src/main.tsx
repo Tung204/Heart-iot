@@ -1,10 +1,15 @@
+// Thứ tự một nguồn: tokens -> base -> primitive -> CSS nghiệp vụ (legacy) -> shell.
+// Selector foundation chỉ định nghĩa ở base/primitives/shell; layout.css còn
+// phần feature đang chờ lane W2/W3 chuyển sang stylesheet theo owner.
 import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/base.css';
+import './components/primitives.css';
 import './styles/layout.css';
 import './styles/public-simple.css';
 import './styles/app-simple.css';
 import './styles/admin-simple.css';
+import './styles/shell.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';

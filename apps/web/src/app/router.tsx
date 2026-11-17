@@ -66,7 +66,8 @@ function page(element: ReactNode): ReactNode {
  * - Bảo vệ (/app): `/app` mở không gian trợ lý (trung tâm), tổng quan chi tiết
  *   ở `/app/overview`; sau đó là lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
  *   thiết bị, trợ lý (giữ đường dẫn cũ), công việc, cài đặt, Studio, quản trị.
- *   `/app/notifications` chuyển sang `/app/alerts` vì thông báo đã gộp vào cảnh báo.
+ *   `/app/notifications` chuyển sang `/app/alerts?view=notifications` (inbox thật
+ *   của NotificationsPage, không chỉ về danh sách cảnh báo).
  *   Route lạ → 404 trong khung.
  */
 export const appRoutes: RouteObject[] = [
@@ -89,7 +90,7 @@ export const appRoutes: RouteObject[] = [
           { path: 'subjects', element: page(<SubjectsPage />) },
           { path: 'subjects/:id/share', element: page(<SharePage />) },
           { path: 'devices', element: page(<DevicesPage />) },
-          { path: 'notifications', element: <Navigate to="/app/alerts" replace /> },
+          { path: 'notifications', element: <Navigate to="/app/alerts?view=notifications" replace /> },
           { path: 'assistant', element: page(<AssistantPage />) },
           { path: 'tasks', element: page(<TasksPage />) },
           { path: 'settings', element: page(<SettingsPage />) },

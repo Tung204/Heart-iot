@@ -42,17 +42,20 @@ function todayHandler(options: { subjects?: () => Response } = {}) {
   };
 }
 
-// v6 — dòng ngữ cảnh hồ sơ trên Hôm nay thay card "Hồ sơ đang xem" full-width.
-describe('Dòng ngữ cảnh hồ sơ (Hôm nay)', () => {
+// v7 — dòng ngữ cảnh "Người được theo dõi" do shell render trên H1, thay card
+// "Hồ sơ đang xem" full-width. Accessible name cố định, select ≥44px.
+describe('Dòng ngữ cảnh hồ sơ (shell)', () => {
   afterEach(() => {
     setActiveSubjectId(null);
   });
 
-  it('một hồ sơ: chỉ hiện tên dưới H1, không card/nhãn "Hồ sơ đang xem"/link quản lý', async () => {
+  it('một hồ sơ: dòng "Theo dõi: Bà Năm" trên H1, không card/nhãn "Hồ sơ đang xem"/link quản lý', async () => {
     renderApp('/app', todayHandler());
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Hôm nay' })).toBeInTheDocument();
-    expect(await screen.findByText('Bà Năm')).toBeInTheDocument();
+    const context = await screen.findByRole('group', { name: 'Người được theo dõi' });
+    expect(context).toHaveTextContent('Theo dõi:');
+    expect(context).toHaveTextContent('Bà Năm');
     expect(screen.queryByText(/Hồ sơ đang xem/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Quản lý và chia sẻ' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Danh sách hồ sơ' })).not.toBeInTheDocument();
@@ -67,8 +70,11 @@ describe('Dòng ngữ cảnh hồ sơ (Hôm nay)', () => {
       todayHandler({ subjects: () => mockResponse({ items: [CAREGIVER_SUBJECT] }) }),
     );
 
-    const contextLine = (await screen.findByText('Bà Năm')).closest('.subject-context');
+    const contextLine = (await screen.findByRole('group', { name: 'Người được theo dõi' })).closest(
+      '.subject-context',
+    );
     expect(contextLine).not.toBeNull();
+    expect(contextLine).toHaveTextContent('Bà Năm');
     expect(contextLine).toHaveTextContent('Người thân');
   });
 
@@ -79,7 +85,7 @@ describe('Dòng ngữ cảnh hồ sơ (Hôm nay)', () => {
     );
     const user = userEvent.setup();
 
-    const select = await screen.findByRole('combobox', { name: 'Chọn hồ sơ' });
+    const select = await screen.findByRole('combobox', { name: 'Người được theo dõi' });
     expect(select).toHaveValue(SUBJECT.id);
     // Tên hồ sơ đang xem không lặp lại thành chữ riêng ngoài select.
     expect(document.querySelector('.subject-context__name')).toBeNull();

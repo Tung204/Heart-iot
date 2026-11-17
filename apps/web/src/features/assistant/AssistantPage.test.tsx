@@ -3,6 +3,7 @@ import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AssistantPage } from './AssistantPage';
 import { setActiveSubjectId } from '../subjects/selection';
+import { SubjectContextLine } from '../subjects/SubjectSwitcher';
 import { formatDateTime, formatTime } from '../../lib/format';
 import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
 import {
@@ -79,13 +80,17 @@ const CONTACT = {
 
 type Calls = { assistant: string[]; alerts: string[]; status: string[] };
 
-/** Harness nhỏ mô phỏng dòng ngữ cảnh: đổi hồ sơ không đổi pathname. */
+/**
+ * Harness nhỏ: dòng ngữ cảnh (do shell render ở sản phẩm) + đổi hồ sơ không
+ * đổi pathname. AssistantPage không tự render dòng này từ v7.
+ */
 function SwitchHarness() {
   return (
     <>
       <button type="button" onClick={() => setActiveSubjectId(SECOND_SUBJECT.id)}>
         Đổi hồ sơ
       </button>
+      <SubjectContextLine />
       <AssistantPage />
     </>
   );
@@ -157,8 +162,7 @@ describe('Hôm nay (/app)', () => {
     renderPage(<AssistantPage />, todayHandler({ calls }));
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Hôm nay' })).toBeInTheDocument();
-    expect(screen.getByText('Bà Năm')).toBeInTheDocument();
-    // v6: dòng ngữ cảnh gọn thay card “Hồ sơ đang xem”; không lặp nhãn/link quản lý.
+    // v7: dòng ngữ cảnh hồ sơ do shell render (AppShell/routeScope), không nằm trong page.
     expect(screen.queryByText(/Hồ sơ đang xem/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Quản lý và chia sẻ' })).not.toBeInTheDocument();
     expect(await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`)).toBeInTheDocument();
@@ -542,9 +546,14 @@ describe('Hôm nay (/app)', () => {
     expect(screen.getAllByText('Bạn')).toHaveLength(2);
   });
 
-  it('nhiều hồ sơ: select trên Hôm nay đổi hồ sơ đang xem và xóa hội thoại cũ', async () => {
+  // v7: dòng chọn hồ sơ do shell render; harness giữ nguyên cặp component để
+  // vẫn kiểm hành vi "đổi hồ sơ → hội thoại cũ biến mất".
+  it('nhiều hồ sơ: select "Người được theo dõi" đổi hồ sơ và xóa hội thoại cũ', async () => {
     renderPage(
-      <AssistantPage />,
+      <>
+        <SubjectContextLine />
+        <AssistantPage />
+      </>,
       todayHandler({
         subjects: [OWNER_SUBJECT, SECOND_SUBJECT],
         ask: () => mockResponse({ ...READY_ANSWER, answer: 'Câu trả lời của hồ sơ đầu tiên.' }),
@@ -557,7 +566,7 @@ describe('Hôm nay (/app)', () => {
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
     expect(await screen.findByText('Câu trả lời của hồ sơ đầu tiên.')).toBeInTheDocument();
 
-    const select = screen.getByRole('combobox', { name: 'Chọn hồ sơ' });
+    const select = screen.getByRole('combobox', { name: 'Người được theo dõi' });
     await user.selectOptions(select, SECOND_SUBJECT.id);
 
     await waitFor(() =>

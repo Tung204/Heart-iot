@@ -139,4 +139,47 @@ describe('useSubjectEvents — trạng thái kết nối', () => {
     expect(source.closed).toBe(true);
     expect(onRevoked).toHaveBeenCalledWith(SUBJECT_ID);
   });
+
+  it('revoked B khi cache còn A → chỉ dọn B, không remove toàn bộ alerts/hộp thư A', () => {
+    const OTHER = '2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b';
+    const onRevoked = vi.fn();
+    const { queryClient, Wrapper } = createWrapper();
+    // Cache của A (hồ sơ khác) còn sống trong lúc stream của B bị thu hồi.
+    queryClient.setQueryData(['subjects', OTHER, 'status'], { asOf: 'a' });
+    queryClient.setQueryData(['alerts', 'incident-a'], { id: 'incident-a', subjectId: OTHER });
+    queryClient.setQueryData(['subjects', SUBJECT_ID, 'status'], { asOf: 'b' });
+    queryClient.setQueryData(['alerts', 'incident-b'], {
+      id: 'incident-b',
+      subjectId: SUBJECT_ID,
+    });
+    queryClient.setQueryData(['notifications'], {
+      items: [
+        { id: 'n-a', subjectId: OTHER, readAt: null },
+        { id: 'n-b', subjectId: SUBJECT_ID, readAt: null },
+      ],
+      unreadCount: 2,
+    });
+
+    const { result } = renderHook(() => useSubjectEvents(SUBJECT_ID, { onRevoked }), {
+      wrapper: Wrapper,
+    });
+    act(() => FakeEventSource.instances[0]!.emit('revoked', {}));
+
+    expect(result.current.status).toBe('revoked');
+    expect(queryClient.getQueryData(['subjects', SUBJECT_ID, 'status'])).toBeUndefined();
+    expect(queryClient.getQueryData(['alerts', 'incident-b'])).toBeUndefined();
+
+    // A còn nguyên.
+    expect(queryClient.getQueryData(['subjects', OTHER, 'status'])).toEqual({ asOf: 'a' });
+    expect(queryClient.getQueryData(['alerts', 'incident-a'])).toEqual({
+      id: 'incident-a',
+      subjectId: OTHER,
+    });
+    const inbox = queryClient.getQueryData<{
+      items: Array<{ id: string }>;
+      unreadCount: number;
+    }>(['notifications']);
+    expect(inbox?.items.map((item) => item.id)).toEqual(['n-a']);
+    expect(inbox?.unreadCount).toBe(1);
+  });
 });

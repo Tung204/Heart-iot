@@ -72,9 +72,12 @@ describe('router — Hôm nay là mặc định của /app', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/app/admin'));
   });
 
-  it('/app/notifications → chuyển sang /app/alerts (thông báo đã gộp vào cảnh báo)', async () => {
+  it('/app/notifications → replace tới /app/alerts?view=notifications (inbox thật)', async () => {
     const { router } = renderApp('/app/notifications', routeHandler);
 
     await waitFor(() => expect(router.state.location.pathname).toBe('/app/alerts'));
+    expect(router.state.location.search).toBe('?view=notifications');
+    // replace: back không quay lại URL cũ.
+    expect(router.state.historyAction).not.toBe('PUSH');
   });
 });
