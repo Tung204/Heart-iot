@@ -1,0 +1,141 @@
+{
+  "at": "2026-11-17T19:56:30.901Z",
+  "web": "http://127.0.0.1:4361",
+  "api": "http://127.0.0.1:3013/api/v1",
+  "runs": [
+    {
+      "viewport": "1280x900",
+      "success": {
+        "incidentId": "fab8a35d-e7be-4236-8e3b-4b4d2f6ac710",
+        "versionBefore": 2,
+        "stateBefore": "open",
+        "afterToggle": {
+          "groupVisible": true,
+          "question": "Bạn đã liên hệ và đang hỗ trợ?",
+          "postsBeforeConfirm": 0,
+          "confirmButton": true,
+          "cancelButton": true
+        },
+        "afterCancel": {
+          "postsAfterCancel": 0,
+          "toggleBack": true
+        },
+        "afterSuccess": {
+          "posts": 1,
+          "status": 200,
+          "requestBody": "{\"expectedVersion\":2}",
+          "uiText": "Đang có người hỗ trợ\n\nTrần Thị An đã xác nhận đang hỗ trợ. Người khác có quyền vẫn có thể phối hợp hoặc đóng cảnh báo.\n\nLiên hệ khẩn cấp\n\nLiên hệ chính\n\nNgười thân (demo)\n\nCon trai · 0900000000\n\nGọi\n\nBấm Gọi để mở ứng dụng điện thoại. Ứng dụng không tự gọi cấp cứu.\n\nĐóng cảnh báo"
+        },
+        "versionAfter": 3,
+        "stateAfter": "acknowledged",
+        "acknowledgedBy": "Trần Thị An",
+        "ok": true
+      },
+      "conflict": {
+        "incidentId": "78031601-9f69-4200-a9f9-d2649cbc3be2",
+        "versionBefore": 2,
+        "externalAckStatus": 200,
+        "externalAckState": "acknowledged",
+        "uiPosts": 1,
+        "uiStatus": 409,
+        "uiRequestBody": "{\"expectedVersion\":2}",
+        "uiResponse": "{\"code\":\"CONFLICT\",\"message\":\"Phiên bản cảnh báo đã thay đổi, hãy tải lại.\",\"requestId\":\"ab62a03c-d823-414c-ad62-8002fbf9a3ab\",\"details\":{\"currentVersion\":3}}",
+        "ui": {
+          "title": "Cần chú ý:\nCảnh báo đã thay đổi ở nơi khác",
+          "text": "Cần chú ý:\nCảnh báo đã thay đổi ở nơi khác\n\nCó người khác đã xác nhận/đóng cảnh báo này hoặc dữ liệu đã cập nhật. Tải lại để xem trạng thái mới nhất rồi thử lại nếu vẫn cần.\nTải lại cảnh báo",
+          "reloadButton": true
+        },
+        "afterReloadText": "Đang có người hỗ trợ\n\nTrần Thị An đã xác nhận đang hỗ trợ. Người khác có quyền vẫn có thể phối hợp hoặc đóng cảnh báo.\n\nLiên hệ khẩn cấp\n\nLiên hệ chính\n\nNgười thân (demo)\n\nCon trai · 0900000000\n\nGọi\n\nBấm Gọi để mở ứng dụng điện thoại. Ứng dụng không tự gọi cấp cứu.\n\nĐóng cảnh báo",
+        "versionAfter": 3,
+        "stateAfter": "acknowledged",
+        "ok": true
+      },
+      "studio": {
+        "viewId": "68c03421-e519-43e6-8b97-74a86bcd6963",
+        "contextCount": 1,
+        "contextGroupCount": 1,
+        "contextTexts": [
+          "Theo dõi: Bà Trần Thị An"
+        ],
+        "selectsInsideContext": 0,
+        "globalSubjectSelect": 0,
+        "h1": "QA chốt v7 — hồ sơ Bà An",
+        "badge": true,
+        "ok": true
+      },
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 409 (Conflict)",
+        "Failed to load resource: net::ERR_FAILED"
+      ]
+    },
+    {
+      "viewport": "390x844",
+      "success": {
+        "incidentId": "b6a9ebea-23aa-4f0d-bf07-526c3e17e046",
+        "versionBefore": 2,
+        "stateBefore": "open",
+        "afterToggle": {
+          "groupVisible": true,
+          "question": "Bạn đã liên hệ và đang hỗ trợ?",
+          "postsBeforeConfirm": 0,
+          "confirmButton": true,
+          "cancelButton": true
+        },
+        "afterCancel": {
+          "postsAfterCancel": 0,
+          "toggleBack": true
+        },
+        "afterSuccess": {
+          "posts": 1,
+          "status": 200,
+          "requestBody": "{\"expectedVersion\":2}",
+          "uiText": "Đang có người hỗ trợ\n\nTrần Thị An đã xác nhận đang hỗ trợ. Người khác có quyền vẫn có thể phối hợp hoặc đóng cảnh báo.\n\nLiên hệ khẩn cấp\n\nLiên hệ chính\n\nNgười thân (demo)\n\nCon trai · 0900000000\n\nGọi\n\nBấm Gọi để mở ứng dụng điện thoại. Ứng dụng không tự gọi cấp cứu.\n\nĐóng cảnh báo"
+        },
+        "versionAfter": 3,
+        "stateAfter": "acknowledged",
+        "acknowledgedBy": "Trần Thị An",
+        "ok": true
+      },
+      "conflict": {
+        "incidentId": "4d24b105-08ef-4317-9e19-91114164bf38",
+        "versionBefore": 2,
+        "externalAckStatus": 200,
+        "externalAckState": "acknowledged",
+        "uiPosts": 1,
+        "uiStatus": 409,
+        "uiRequestBody": "{\"expectedVersion\":2}",
+        "uiResponse": "{\"code\":\"CONFLICT\",\"message\":\"Phiên bản cảnh báo đã thay đổi, hãy tải lại.\",\"requestId\":\"00a4af53-c283-45fc-b9e2-de7324668540\",\"details\":{\"currentVersion\":3}}",
+        "ui": {
+          "title": "Cần chú ý:\nCảnh báo đã thay đổi ở nơi khác",
+          "text": "Cần chú ý:\nCảnh báo đã thay đổi ở nơi khác\n\nCó người khác đã xác nhận/đóng cảnh báo này hoặc dữ liệu đã cập nhật. Tải lại để xem trạng thái mới nhất rồi thử lại nếu vẫn cần.\nTải lại cảnh báo",
+          "reloadButton": true
+        },
+        "afterReloadText": "Đang có người hỗ trợ\n\nTrần Thị An đã xác nhận đang hỗ trợ. Người khác có quyền vẫn có thể phối hợp hoặc đóng cảnh báo.\n\nLiên hệ khẩn cấp\n\nLiên hệ chính\n\nNgười thân (demo)\n\nCon trai · 0900000000\n\nGọi\n\nBấm Gọi để mở ứng dụng điện thoại. Ứng dụng không tự gọi cấp cứu.\n\nĐóng cảnh báo",
+        "versionAfter": 3,
+        "stateAfter": "acknowledged",
+        "ok": true
+      },
+      "studio": {
+        "viewId": "68c03421-e519-43e6-8b97-74a86bcd6963",
+        "contextCount": 1,
+        "contextGroupCount": 1,
+        "contextTexts": [
+          "Theo dõi: Bà Trần Thị An"
+        ],
+        "selectsInsideContext": 0,
+        "globalSubjectSelect": 0,
+        "h1": "QA chốt v7 — hồ sơ Bà An",
+        "badge": true,
+        "ok": true
+      },
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED",
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ]
+    }
+  ],
+  "ok": true
+}

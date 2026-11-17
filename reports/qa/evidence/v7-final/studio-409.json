@@ -1,0 +1,129 @@
+{
+  "at": "2026-11-17T20:12:03.899Z",
+  "web": "http://127.0.0.1:4361",
+  "api": "http://127.0.0.1:3013/api/v1",
+  "viewId": "68c03421-e519-43e6-8b97-74a86bcd6963",
+  "runs": [
+    {
+      "viewport": "1280x900",
+      "before": {
+        "draftRevision": 6,
+        "draftDigest": "9f96adbe82511d584034f5402ea7d886cd673021b856316c8003bf409e3624a1",
+        "baseRevision": 0,
+        "previewDraftRevision": 6,
+        "previewDigest": "9f96adbe82511d584034f5402ea7d886cd673021b856316c8003bf409e3624a1",
+        "publicationCount": 0
+      },
+      "externalChange": {
+        "status": 200,
+        "draftRevision": 7,
+        "draftDigest": "e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e",
+        "baseRevision": 0,
+        "firstWidgetTitle": "Cảnh báo đang mở · QA 409 325834"
+      },
+      "publish": {
+        "ready": {
+          "publishEnabled": true,
+          "draftHeading": "Soạn nháp · lần sửa r6",
+          "stateText": "Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố."
+        },
+        "posts": 1,
+        "status": 409,
+        "requestBody": {
+          "draftRevision": 6,
+          "digest": "9f96adbe82511d584034f5402ea7d886cd673021b856316c8003bf409e3624a1",
+          "baseRevision": 0
+        },
+        "responseBody": "{\"code\":\"APPROVAL_STALE\",\"message\":\"Bản đã duyệt không còn khớp trạng thái hiện tại, hãy preview lại.\",\"requestId\":\"e03af24e-c744-4324-8e20-cbd1fc9dfddc\",\"details\":{\"currentDraftRevision\":7,\"currentDraftDigest\":\"e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e\",\"currentBaseRevision\":0}}",
+        "staleUi": {
+          "title": "Cần chú ý:\nBản đã thay đổi ở máy chủ\n\nBản đã duyệt không còn khớp trạng thái hiện tại, hãy preview lại.\n\nTrạng thái hiện tại: draft hiện tại r7 · digest e0b5e4c6… · base r0\n\nHãy tải lại để xem bản mới nhất — dữ liệu của bạn không bị ghi đè.\n\nTải lại",
+          "reloadButton": true,
+          "successNoticeCount": 0,
+          "historyText": "Lịch sử công bố\nChưa có bản công bố nào"
+        },
+        "viewAfter": {
+          "draftRevision": 7,
+          "draftDigest": "e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e",
+          "baseRevision": 0,
+          "currentPublicationId": null
+        },
+        "publicationsBefore": 0,
+        "publicationsAfter": 0,
+        "afterReload": {
+          "draftHeading": "Soạn nháp · lần sửa r7",
+          "firstWidgetTitle": "Cảnh báo đang mở · QA 409 325834",
+          "publishEnabled": true,
+          "stateText": "Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố.",
+          "postsDuringReload": 0,
+          "staleAlertCount": 0
+        },
+        "publicationsAfterReload": 0
+      },
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ]
+    },
+    {
+      "viewport": "390x844",
+      "before": {
+        "draftRevision": 7,
+        "draftDigest": "e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e",
+        "baseRevision": 0,
+        "previewDraftRevision": 7,
+        "previewDigest": "e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e",
+        "publicationCount": 0
+      },
+      "externalChange": {
+        "status": 200,
+        "draftRevision": 8,
+        "draftDigest": "8d32bed1f801f5eb54165020617dace5aa8280011e0f6b249eefb247d09dd310",
+        "baseRevision": 0,
+        "firstWidgetTitle": "Cảnh báo đang mở · QA 409 328688"
+      },
+      "publish": {
+        "ready": {
+          "publishEnabled": true,
+          "draftHeading": "Soạn nháp · lần sửa r7",
+          "stateText": "Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố."
+        },
+        "posts": 1,
+        "status": 409,
+        "requestBody": {
+          "draftRevision": 7,
+          "digest": "e0b5e4c613052e0d082adfeec79d9a24eaac8dea17f857bdabb67a74c163208e",
+          "baseRevision": 0
+        },
+        "responseBody": "{\"code\":\"APPROVAL_STALE\",\"message\":\"Bản đã duyệt không còn khớp trạng thái hiện tại, hãy preview lại.\",\"requestId\":\"072ce17b-5a02-451f-9c82-d6572ca44c86\",\"details\":{\"currentDraftRevision\":8,\"currentDraftDigest\":\"8d32bed1f801f5eb54165020617dace5aa8280011e0f6b249eefb247d09dd310\",\"currentBaseRevision\":0}}",
+        "staleUi": {
+          "title": "Cần chú ý:\nBản đã thay đổi ở máy chủ\n\nBản đã duyệt không còn khớp trạng thái hiện tại, hãy preview lại.\n\nTrạng thái hiện tại: draft hiện tại r8 · digest 8d32bed1… · base r0\n\nHãy tải lại để xem bản mới nhất — dữ liệu của bạn không bị ghi đè.\n\nTải lại",
+          "reloadButton": true,
+          "successNoticeCount": 0,
+          "historyText": "Lịch sử công bố\nChưa có bản công bố nào"
+        },
+        "viewAfter": {
+          "draftRevision": 8,
+          "draftDigest": "8d32bed1f801f5eb54165020617dace5aa8280011e0f6b249eefb247d09dd310",
+          "baseRevision": 0,
+          "currentPublicationId": null
+        },
+        "publicationsBefore": 0,
+        "publicationsAfter": 0,
+        "afterReload": {
+          "draftHeading": "Soạn nháp · lần sửa r8",
+          "firstWidgetTitle": "Cảnh báo đang mở · QA 409 328688",
+          "publishEnabled": true,
+          "stateText": "Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố.",
+          "postsDuringReload": 0,
+          "staleAlertCount": 0
+        },
+        "publicationsAfterReload": 0
+      },
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 409 (Conflict)"
+      ]
+    }
+  ],
+  "ok": true
+}

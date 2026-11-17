@@ -1,0 +1,4194 @@
+{
+  "at": "2026-11-17T20:05:26.156Z",
+  "web": "http://127.0.0.1:4361",
+  "api": "http://127.0.0.1:3013/api/v1",
+  "subjectId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "accounts": {
+    "receive-only": {
+      "email": "qa-receive-only@demo.heart-iot.local",
+      "role": "caregiver",
+      "permissions": {
+        "historyDays": 30,
+        "canReceiveAlerts": true,
+        "canAcknowledge": true,
+        "canResolve": false,
+        "canViewAi": false,
+        "canViewMeasurements": false
+      },
+      "baselineStatus": {
+        "status": 200,
+        "devices": 1,
+        "freshness": [
+          "live"
+        ],
+        "healthDataVisible": [
+          false
+        ]
+      },
+      "baselineEndpoints": {
+        "status": 200,
+        "alerts": 200,
+        "contacts": 200,
+        "summary": 403,
+        "insights": 403,
+        "measurements": 403
+      },
+      "baselineCounts": {
+        "alerts": 6,
+        "contacts": 1,
+        "measurements": null,
+        "insightsDays": null
+      }
+    },
+    "measurement-only": {
+      "email": "qa-measurement-only@demo.heart-iot.local",
+      "role": "caregiver",
+      "permissions": {
+        "historyDays": 30,
+        "canReceiveAlerts": false,
+        "canAcknowledge": false,
+        "canResolve": false,
+        "canViewAi": false,
+        "canViewMeasurements": true
+      },
+      "baselineStatus": {
+        "status": 200,
+        "devices": 1,
+        "freshness": [
+          "offline"
+        ],
+        "healthDataVisible": [
+          true
+        ]
+      },
+      "baselineEndpoints": {
+        "status": 200,
+        "alerts": 403,
+        "contacts": 403,
+        "summary": 200,
+        "insights": 200,
+        "measurements": 403
+      },
+      "baselineCounts": {
+        "alerts": null,
+        "contacts": null,
+        "measurements": null,
+        "insightsDays": 7
+      }
+    }
+  },
+  "matrix": [
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 295,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nNghi ngã lúc 02:56 · 6 cảnh báo đang mở.\n\nGọi\nXem cảnh báo\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 284,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 276,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn chưa được xem số đo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        }
+      ],
+      "failed": [],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 269,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nChưa tải được cảnh báo.\n\nThử lại\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 269,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nChưa tải được cảnh báo.\n\nThử lại\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1062,
+        "alertLinkCount": 6,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\n6 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nTrực tuyến\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này\n\nSố đo của thiết bị đang được ẩn theo quyền chia sẻ của chủ hồ sơ."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 543,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 472,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\nKhông có cảnh báo\n\nKhông có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang đang mở.\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nChưa gắn thiết bị nào cho hồ sơ này. Gắn thiết bị để bắt đầu nhận dữ liệu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 529,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 571,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1073,
+        "alertLinkCount": 6,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": true,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nCảnh báo đang mở\n6 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này\n\nSố đo của thiết bị đang được ẩn theo quyền chia sẻ của chủ hồ sơ."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-receive-only-stale.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 942,
+        "alertLinkCount": 12,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": true,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\n\nCập nhật lúc 03:05 18 thg 11, 2026\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã — cần chú ý\n\nPhát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nĐang mở\nTôi đang hỗ trợ\nXem chi tiết\n\nNghi ngã — cần chú ý\n\nPhát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nBắt đầu trước khi bạn được chia sẻ quyền — vẫn đang mở\n\nĐang mở\nTôi đang hỗ trợ\nXem chi tiết\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 300,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nQuyền được chia sẻ không cho phép thao tác này.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 331,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông có cảnh báo đang mở\n\nKhi thiết bị phát hiện nghi ngã hoặc yêu cầu trợ giúp, cảnh báo sẽ xuất hiện tại đây.\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 293,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nLỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 314,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 239,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo.\n\n← Sức khỏe"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 295,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nNghi ngã lúc 02:56 · 6 cảnh báo đang mở.\n\nGọi\nXem cảnh báo\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 284,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 276,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn chưa được xem số đo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        }
+      ],
+      "failed": [],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 269,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nChưa tải được cảnh báo.\n\nThử lại\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 269,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nChưa tải được cảnh báo.\n\nThử lại\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1053,
+        "alertLinkCount": 6,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\n6 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nNgoại tuyến\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này\n\nSố đo của thiết bị đang được ẩn theo quyền chia sẻ của chủ hồ sơ."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 533,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 462,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\nKhông có cảnh báo\n\nKhông có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang đang mở.\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nChưa gắn thiết bị nào cho hồ sơ này. Gắn thiết bị để bắt đầu nhận dữ liệu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 519,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 561,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1063,
+        "alertLinkCount": 6,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": true,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nCảnh báo đang mở\n6 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐã xác nhận Phát hiện 02:56 18 thg 11, 2026 · đã xác nhận bởi Trần Thị An\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này\n\nSố đo của thiết bị đang được ẩn theo quyền chia sẻ của chủ hồ sơ."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-receive-only-stale.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 942,
+        "alertLinkCount": 12,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": true,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\n\nCập nhật lúc 03:06 18 thg 11, 2026\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã\n\nPhát hiện 02:56 18 thg 11, 2026 · Đã xác nhận bởi Trần Thị An\n\nĐã xác nhận\nXem chi tiết\n\nNghi ngã — cần chú ý\n\nPhát hiện 02:55 18 thg 11, 2026 · chưa có người xác nhận\n\nĐang mở\nTôi đang hỗ trợ\nXem chi tiết\n\nNghi ngã — cần chú ý\n\nPhát hiện 02:26 18 thg 11, 2026 · chưa có người xác nhận\n\nBắt đầu trước khi bạn được chia sẻ quyền — vẫn đang mở\n\nĐang mở\nTôi đang hỗ trợ\nXem chi tiết\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-receive-only-baseline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 300,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nQuyền được chia sẻ không cho phép thao tác này.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-receive-only-403.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 331,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông có cảnh báo đang mở\n\nKhi thiết bị phát hiện nghi ngã hoặc yêu cầu trợ giúp, cảnh báo sẽ xuất hiện tại đây.\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-receive-only-empty.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 500,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 293,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nLỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-receive-only-error.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=25",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 314,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n9\n, 9 chưa đọc\nĐang mở\nĐã đóng\nKhông tải được cảnh báo\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại\n\nThông báo chỉ trong ứng dụng: không gửi SMS và không tự gọi cấp cứu."
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-receive-only-offline.png"
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 200
+        }
+      ],
+      "failed": [],
+      "alertRequestStatus": 200,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 239,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": false,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": false,
+        "hasTechnicalPermissionError": false,
+        "text": "Theo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo.\n\n← Sức khỏe"
+      },
+      "sse403": false,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-receive-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-1280x900-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "baseline",
+      "applicable": true,
+      "anomaly": "overview gọi /alerts khi thiếu canReceiveAlerts → 403, hiện lỗi kỹ thuật",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1037,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ\nChưa nhận dữ liệu từ thiết bị · độ phủ 0% (0 lần nhận) · 1 khoảng thiếu dữ liệu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nNgoại tuyến\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "note": "permission-noise",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 662,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1064,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ · Nguồn: dữ liệu mô phỏng\nChưa nhận dữ liệu từ thiết bị · độ phủ 0% (0 lần nhận) · không có khoảng thiếu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nDữ liệu mô phỏng · không phải số đo thật\n\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nChưa gắn thiết bị nào cho hồ sơ này. Gắn thiết bị để bắt đầu nhận dữ liệu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 816,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nLỗi:\nKhông tải được dữ liệu tổng quan\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nKhông tải được xu hướng. Lỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại\nMở lịch sử đo\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "offline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 879,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nLỗi:\nKhông tải được dữ liệu tổng quan\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nKhông tải được xu hướng. Không kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại\nMở lịch sử đo\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1071,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": true,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Hôm nay\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ\nDữ liệu mới nhất 3 ngày trước (03:06 15 thg 11, 2026) · độ phủ 0% (0 lần nhận) · 1 khoảng thiếu dữ liệu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-1280x900-measurement-only-stale.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "alerts",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [],
+      "failed": [],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 385,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n\nThông tin:\nBạn không có quyền xem cảnh báo của hồ sơ này\n\nChủ hồ sơ chưa chia sẻ quyền nhận cảnh báo với bạn. Liên hệ chủ hồ sơ nếu bạn cần theo dõi cảnh báo."
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-1280x900-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A20.102Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A19.824Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A19.824Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 518,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nChưa có dữ liệu\n\nChưa nhận dữ liệu từ thiết bị trong khoảng thời gian này. Kiểm tra kết nối của thiết bị và thử lại sau.\n\nXem trạng thái thiết bị"
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A22.197Z&limit=500",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A22.477Z&limit=500",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A22.197Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 347,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo.\n\n← Sức khỏe"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A24.840Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A24.566Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A24.566Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 518,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nChưa có dữ liệu\n\nChưa nhận dữ liệu từ thiết bị trong khoảng thời gian này. Kiểm tra kết nối của thiết bị và thử lại sau.\n\nXem trạng thái thiết bị"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A26.724Z&limit=500",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A26.724Z&limit=500",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A26.445Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A26.445Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 449,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nKhông tải được dữ liệu đo\n\nLỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A29.412Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A29.412Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A29.699Z&limit=500",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A29.699Z&limit=500",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 470,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nKhông tải được dữ liệu đo\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "history",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A32.660Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A32.391Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A07%3A32.391Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 821,
+        "alertLinkCount": 0,
+        "historyRowCount": 3,
+        "measurementMatches": [
+          "70 bpm",
+          "71 bpm",
+          "72 bpm",
+          "25%",
+          "80%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\n60\n70\n80\nnhịp/phút\n02:52\n03:00\n03:07\n18 thg 11, 2026 – 18 thg 11, 2026. Bảng/danh sách dữ liệu bên dưới liệt kê từng lần đo.\nĐộ phủ và khoảng thiếu\nĐộ phủ\n25%\nMẫu đã nhận\n3 mẫu\nKhoảng thiếu\n0 khoảng\nĐồng hồ chưa đồng bộ\nkhông có mẫu lệch\nBảng dữ liệu đo. Đang hiển thị 3/3 dòng.\nThời điểm đo\tNhịp tim\tChất lượng\tBước (từ khởi động)\tPin\tGhi chú\n15/11 03:06\t70 bpm\thợp lệ\t100\t80%\t\n15/11 03:01\t71 bpm\thợp lệ\t102\t80%\t\n15/11 02:56\t72 bpm\thợp lệ\t104\t80%\t"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-1280x900-measurement-only-stale.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Hôm nay",
+        "textLength": 392,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nHôm nay\n\nBạn không có quyền xem cảnh báo của hồ sơ này.\n\nHỏi trợ lý AI\nCâu hỏi về Bà Trần Thị An\nGửi\n\nTrợ lý chưa được bật cho hồ sơ này.\n\nNhịp tim tuần này\nCảnh báo đang mở\nPin thiết bị\nSức khỏe 7 ngày →\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\today-390x844-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "baseline",
+      "applicable": true,
+      "anomaly": "overview gọi /alerts khi thiếu canReceiveAlerts → 403, hiện lỗi kỹ thuật",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1027,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ\nChưa nhận dữ liệu từ thiết bị · độ phủ 0% (0 lần nhận) · 1 khoảng thiếu dữ liệu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nNgoại tuyến\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "note": "permission-noise",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 652,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nThông tin:\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Cảnh báo đang mở vẫn hiển thị ở trên nếu bạn có quyền nhận cảnh báo.\n\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1054,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ · Nguồn: dữ liệu mô phỏng\nChưa nhận dữ liệu từ thiết bị · độ phủ 0% (0 lần nhận) · không có khoảng thiếu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nDữ liệu mô phỏng · không phải số đo thật\n\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nChưa gắn thiết bị nào cho hồ sơ này. Gắn thiết bị để bắt đầu nhận dữ liệu."
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 806,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nLỗi:\nKhông tải được dữ liệu tổng quan\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nKhông tải được xu hướng. Lỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại\nMở lịch sử đo\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nLỗi máy chủ giả lập cho kiểm trạng thái. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "offline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 869,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\n\nLỗi:\nKhông tải được dữ liệu tổng quan\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\n\nKhông tải được xu hướng. Không kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại\nMở lịch sử đo\nThiết bị\nQuản lý\n\nLỗi:\nKhông tải được trạng thái thiết bị\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại. Kiểm tra kết nối và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": 403,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Sức khỏe",
+        "textLength": 1061,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [
+          "0%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": true,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": true,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nSức khỏe\nLịch sử đo\nCảnh báo đang mở\n\nLỗi:\nKhông tải được cảnh báo đang mở\n\nQuyền được chia sẻ không cho phép thao tác này. Kiểm tra kết nối và thử lại.\n\nThử lại\nXem tất cả cảnh báo →\nTổng hợp hôm nay\nNhịp tim trung bình\nChưa có lần đo nhịp tim hợp lệ hôm nay\nVận động\n—\nchưa đủ dữ liệu bước\nPin\nChưa có thông tin pin\n\nNgày 18/11/2026 theo giờ hồ sơ\nDữ liệu mới nhất 3 ngày trước (03:06 15 thg 11, 2026) · độ phủ 0% (0 lần nhận) · 1 khoảng thiếu dữ liệu.\n\nXem lịch sử và biểu đồ →\nXu hướng gần đây\n\nNhịp tim, vận động và dữ liệu nhận được theo ngày trong khoảng bạn chọn.\n\n7 ngày\n14 ngày\n30 ngày\nChưa có dữ liệu xu hướng\n\nChưa nhận được lần đo nào trong khoảng này. Kiểm tra thiết bị đã gắn và đang gửi dữ liệu.\n\nMở lịch sử đo\n\nChỉ để theo dõi, không thay thế tư vấn y tế.\n\nThiết bị\nQuản lý\n\nVòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\overview-390x844-measurement-only-stale.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "alerts",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [],
+      "failed": [],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Cảnh báo",
+        "textLength": 385,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": true,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\nCảnh báo\n\nCảnh báo chỉ cập nhật khi ứng dụng đang mở.\n\nCảnh báo\nThông báo đã nhận\n\nThông tin:\nBạn không có quyền xem cảnh báo của hồ sơ này\n\nChủ hồ sơ chưa chia sẻ quyền nhận cảnh báo với bạn. Liên hệ chủ hồ sơ nếu bạn cần theo dõi cảnh báo."
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\alerts-390x844-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "baseline",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A04.678Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A04.393Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A04.393Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 518,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nChưa có dữ liệu\n\nChưa nhận dữ liệu từ thiết bị trong khoảng thời gian này. Kiểm tra kết nối của thiết bị và thử lại sau.\n\nXem trạng thái thiết bị"
+      },
+      "sse403": true,
+      "anomaly": "SSE /events 403 → banner mất cập nhật",
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-baseline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "403",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A06.256Z&limit=500",
+          "status": 403
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A06.534Z&limit=500",
+          "status": 403
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A06.256Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 347,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": true,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\nChủ hồ sơ không chia sẻ số đo\n\nChủ hồ sơ không chia sẻ số đo và lịch sử với bạn. Bạn vẫn nhận được cảnh báo nếu được cấp quyền; liên hệ chủ hồ sơ nếu cần xem lịch sử đo.\n\n← Sức khỏe"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-403.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "empty",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A08.595Z&limit=500",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A08.875Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A08.595Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 518,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": true,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nChưa có dữ liệu\n\nChưa nhận dữ liệu từ thiết bị trong khoảng thời gian này. Kiểm tra kết nối của thiết bị và thử lại sau.\n\nXem trạng thái thiết bị"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-empty.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "error",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A11.223Z&limit=500",
+          "status": 500
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A11.223Z&limit=500",
+          "status": 500
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A10.939Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A10.939Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 449,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nKhông tải được dữ liệu đo\n\nLỗi máy chủ giả lập cho kiểm trạng thái.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-error.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "offline",
+      "applicable": true,
+      "requests": [],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A13.878Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A13.878Z&limit=500",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A14.147Z&limit=500",
+          "error": "net::ERR_FAILED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A14.147Z&limit=500",
+          "error": "net::ERR_FAILED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 470,
+        "alertLinkCount": 0,
+        "historyRowCount": 0,
+        "measurementMatches": [],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\nKhông tải được dữ liệu đo\n\nKhông kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại.\n\nThử lại"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-offline.png"
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "history",
+      "state": "stale",
+      "applicable": true,
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A16.825Z&limit=500",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A17.098Z&limit=500",
+          "status": 200
+        }
+      ],
+      "failed": [
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/measurements?from=2026-11-17T19%3A52%3A36.415Z&to=2026-11-17T20%3A08%3A16.825Z&limit=500",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "alertRequestStatus": null,
+      "measured": {
+        "h1Count": 1,
+        "h1": "Lịch sử đo",
+        "textLength": 892,
+        "alertLinkCount": 0,
+        "historyRowCount": 3,
+        "measurementMatches": [
+          "70 bpm",
+          "71 bpm",
+          "72 bpm",
+          "25%",
+          "80%"
+        ],
+        "hasSseBanner": true,
+        "hasPermissionMeasurements": false,
+        "hasPermissionAlerts": false,
+        "hasEmptyCopy": false,
+        "hasStaleCopy": false,
+        "hasErrorCopy": true,
+        "hasTechnicalPermissionError": false,
+        "text": "Mất cập nhật trực tiếp — đang thử lại\nCảnh báo đã tải vẫn giữ nguyên; hệ thống tự kết nối lại khi có mạng.\n\nTheo dõi:\nBà Trần Thị An\nNgười thân\n← Sức khỏe\nLịch sử đo\n24 giờ\n7 ngày\n30 ngày\nCập nhật khoảng\nTải CSV\n\nDữ liệu hiển thị là dữ liệu mô phỏng.\n\nDữ liệu chỉ bắt đầu từ 02:52 18 thg 11, 2026 — thời điểm bạn được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.\n\n60\n70\n80\nnhịp/phút\n02:52\n03:00\n03:08\n18 thg 11, 2026 – 18 thg 11, 2026. Bảng/danh sách dữ liệu bên dưới liệt kê từng lần đo.\n\nBiểu đồ rộng hơn màn hình: vuốt/scroll ngang trong khung để xem đủ khoảng thời gian.\n\nĐộ phủ và khoảng thiếu\nĐộ phủ\n25%\nMẫu đã nhận\n3 mẫu\nKhoảng thiếu\n0 khoảng\nĐồng hồ chưa đồng bộ\nkhông có mẫu lệch\n\n15/11 03:06\n\nNhịp tim\n70 bpm\nChất lượng\nhợp lệ\nBước\n100\nPin\n80%\n\n15/11 03:01\n\nNhịp tim\n71 bpm\nChất lượng\nhợp lệ\nBước\n102\nPin\n80%\n\n15/11 02:56\n\nNhịp tim\n72 bpm\nChất lượng\nhợp lệ\nBước\n104\nPin\n80%"
+      },
+      "sse403": true,
+      "stateMessageOk": true,
+      "ok": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "screenshot": "reports\\qa\\evidence\\v7-final\\history-390x844-measurement-only-stale.png"
+    }
+  ],
+  "summary": {
+    "cells": 70,
+    "ok": 70,
+    "failed": 0,
+    "anomalies": 8
+  }
+}

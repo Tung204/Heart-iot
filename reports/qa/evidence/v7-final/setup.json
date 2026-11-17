@@ -1,0 +1,57 @@
+{
+  "at": "2026-11-17T19:52:36.239Z",
+  "web": "http://127.0.0.1:4361",
+  "api": "http://127.0.0.1:3013/api/v1",
+  "accounts": {
+    "receiveOnly": {
+      "email": "qa-receive-only@demo.heart-iot.local",
+      "password": "qa-permission-2026",
+      "userId": "842e8fa2-cd43-4e7e-b179-de33275fa4e8",
+      "registerOrLoginStatus": 201,
+      "registeredNow": true,
+      "invitationStatus": 201,
+      "sharedSubject": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "role": "caregiver",
+        "permissions": {
+          "historyDays": 30,
+          "canReceiveAlerts": true,
+          "canAcknowledge": true,
+          "canResolve": false,
+          "canViewAi": false,
+          "canViewMeasurements": false
+        },
+        "sharedFrom": "2026-11-17T19:52:36.357Z"
+      }
+    },
+    "measurementOnly": {
+      "email": "qa-measurement-only@demo.heart-iot.local",
+      "password": "qa-permission-2026",
+      "userId": "980739e7-f794-40be-bc5f-01d5beda5e18",
+      "registerOrLoginStatus": 201,
+      "registeredNow": true,
+      "invitationStatus": 201,
+      "sharedSubject": {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "role": "caregiver",
+        "permissions": {
+          "historyDays": 30,
+          "canReceiveAlerts": false,
+          "canAcknowledge": false,
+          "canResolve": false,
+          "canViewAi": false,
+          "canViewMeasurements": true
+        },
+        "sharedFrom": "2026-11-17T19:52:36.415Z"
+      }
+    }
+  },
+  "studio": {
+    "viewId": "68c03421-e519-43e6-8b97-74a86bcd6963",
+    "name": "QA chốt v7 — hồ sơ Bà An",
+    "scope": "subject",
+    "subjectId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "draftRevision": 1,
+    "createStatus": 201
+  }
+}
