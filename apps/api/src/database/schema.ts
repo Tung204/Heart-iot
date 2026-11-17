@@ -13,8 +13,8 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { CarePermissions } from '@annhien/contracts';
-import type { DeviceStatus } from '@annhien/contracts/telemetry';
+import type { CarePermissions } from '@heart-iot/contracts';
+import type { DeviceStatus } from '@heart-iot/contracts/telemetry';
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () => timestamp('updated_at', { withTimezone: true }).notNull().defaultNow();

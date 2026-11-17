@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, asc, eq, isNull } from 'drizzle-orm';
-import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
+import type { TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
 import { DB, type AppDb } from '../database/database';
 import { deviceAssignments, devices, telemetry, type AssignmentRow, type DeviceRow } from '../database/schema';
 import { AppError } from '../common/app-error';

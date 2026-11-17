@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   closeTaskSchema,
   createTaskSchema,
@@ -7,7 +7,7 @@ import {
   type CloseTask,
   type CreateTaskInput,
   type MaintenanceTaskQuery,
-} from '@annhien/contracts/tasks';
+} from '@heart-iot/contracts/tasks';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/auth.decorators';
 import { SessionGuard } from '../auth/session.guard';

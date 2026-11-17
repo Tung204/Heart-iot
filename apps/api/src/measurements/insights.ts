@@ -1,5 +1,5 @@
-import { isSyntheticDataSource, type IncidentState } from '@annhien/contracts';
-import type { DailyInsight, InsightsResponse } from '@annhien/contracts/insights';
+import { isSyntheticDataSource, type IncidentState } from '@heart-iot/contracts';
+import type { DailyInsight, InsightsResponse } from '@heart-iot/contracts/insights';
 import type { TelemetryRow } from '../database/schema';
 import { isValidTimezone, zonedDayToUtcRange } from './time-utils';
 

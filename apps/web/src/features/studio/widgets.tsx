@@ -1,4 +1,4 @@
-import type { StudioData, StudioWidget, ViewConfig } from '@annhien/contracts/studio';
+import type { StudioData, StudioWidget, ViewConfig } from '@heart-iot/contracts/studio';
 import { ALERT_STATE_LABELS, ALERT_TYPE_LABELS } from '../alerts/labels';
 import { formatDateTime } from '../../lib/format';
 import { FRESHNESS_LABELS, QUALITY_LABELS, TASK_STATUS_LABELS } from './labels';

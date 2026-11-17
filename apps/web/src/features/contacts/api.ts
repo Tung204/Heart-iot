@@ -4,7 +4,7 @@ import {
   type EmergencyContact,
   type EmergencyContactInput,
   type EmergencyContactList,
-} from '@annhien/contracts/contacts';
+} from '@heart-iot/contracts/contacts';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**
@@ -59,4 +59,4 @@ export async function deleteEmergencyContact(
   });
 }
 
-export { emergencyContactInputSchema } from '@annhien/contracts/contacts';
+export { emergencyContactInputSchema } from '@heart-iot/contracts/contacts';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { DailyInsight, InsightsResponse } from '@annhien/contracts/insights';
+import type { DailyInsight, InsightsResponse } from '@heart-iot/contracts/insights';
 import {
   SUBJECT,
   errorEnvelope,

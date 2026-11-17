@@ -19,7 +19,7 @@ import {
   hasCarePermission,
   isSyntheticDataSource,
   type UserSummary,
-} from '@annhien/contracts';
+} from '@heart-iot/contracts';
 import {
   canonicalConfigJson,
   type CreateViewInput,
@@ -40,7 +40,7 @@ import {
   type ViewList,
   type ViewSummary,
   type WidgetType,
-} from '@annhien/contracts/studio';
+} from '@heart-iot/contracts/studio';
 import { DB, type AppDb } from '../database/database';
 import {
   deviceAssignments,

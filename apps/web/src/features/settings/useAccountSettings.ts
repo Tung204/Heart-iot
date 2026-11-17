@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Me } from '@annhien/contracts/auth';
+import type { Me } from '@heart-iot/contracts/auth';
 import { queryKeys } from '../../lib/query';
 import {
   changePassword,

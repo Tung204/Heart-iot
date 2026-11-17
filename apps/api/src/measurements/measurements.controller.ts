@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
-import { idSchema, zodDetails, type UserSummary } from '@annhien/contracts';
+import { idSchema, zodDetails, type UserSummary } from '@heart-iot/contracts';
 import {
   dailySummaryQuerySchema,
   exportQuerySchema,
@@ -9,8 +9,8 @@ import {
   type DailySummaryQuery,
   type ExportQuery,
   type MeasurementsQuery,
-} from '@annhien/contracts/measurements';
-import { insightsQuerySchema, insightsResponseSchema } from '@annhien/contracts/insights';
+} from '@heart-iot/contracts/measurements';
+import { insightsQuerySchema, insightsResponseSchema } from '@heart-iot/contracts/insights';
 import type { Response } from 'express';
 import { AppError } from '../common/app-error';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';

@@ -257,7 +257,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 
 - PGlite mở file DB độc quyền theo process: phải dừng API trước khi chạy seed/migration từ process khác.
 - `apps/api` build ra `dist/src/main.js` (rootDir `src`); script `start` đã trỏ đúng.
-- Web dev dùng alias `@annhien/contracts` sang source TypeScript để tránh interop CJS/ESM; build dùng package exports.
+- Web dev dùng alias `@heart-iot/contracts` sang source TypeScript để tránh interop CJS/ESM; build dùng package exports.
 - Web production build đã pass; khi kiểm UI nên dùng build/preview cho hành vi production, dev server có StrictMode có thể gửi lặp request đầu.
 
 ## 12. Kết quả review và trạng thái xử lý (14–15/11/2026)

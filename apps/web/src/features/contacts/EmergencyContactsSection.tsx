@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ZodIssue } from 'zod';
-import type { EmergencyContact, EmergencyContactInput } from '@annhien/contracts/contacts';
+import type { EmergencyContact, EmergencyContactInput } from '@heart-iot/contracts/contacts';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';

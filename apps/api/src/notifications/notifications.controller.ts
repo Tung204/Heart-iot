@@ -1,5 +1,5 @@
 import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import { CurrentUser } from '../auth/auth.decorators';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { NotificationService } from './notifications.service';

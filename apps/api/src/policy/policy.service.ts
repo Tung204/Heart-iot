@@ -6,7 +6,7 @@ import {
   type PolicyKey,
   type PolicyValue,
   type PolicyView,
-} from '@annhien/contracts/policies';
+} from '@heart-iot/contracts/policies';
 import { DB, type AppDb } from '../database/database';
 import { policyConfigs } from '../database/schema';
 import { sha256 } from '../auth/password';

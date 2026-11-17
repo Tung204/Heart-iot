@@ -1,6 +1,6 @@
-import type { IncidentState, IncidentType } from '@annhien/contracts';
-import type { IncidentEventType } from '@annhien/contracts/telemetry';
-import type { AlertActionView } from '@annhien/contracts/incidents';
+import type { IncidentState, IncidentType } from '@heart-iot/contracts';
+import type { IncidentEventType } from '@heart-iot/contracts/telemetry';
+import type { AlertActionView } from '@heart-iot/contracts/incidents';
 import { formatDateTime } from '../../lib/format';
 
 /** Nhãn tiếng Việt cho state machine — màu/icon chỉ hỗ trợ, chữ là tín hiệu chính. */

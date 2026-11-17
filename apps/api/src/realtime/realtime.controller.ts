@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import { CurrentUser } from '../auth/auth.decorators';
 import type { AuthenticatedRequest } from '../auth/session.guard';
 import { AppError } from '../common/app-error';

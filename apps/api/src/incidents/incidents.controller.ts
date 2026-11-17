@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUser, Public } from '../auth/auth.decorators';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
-import { incidentEnvelopeSchema, type IncidentEnvelope } from '@annhien/contracts/telemetry';
+import { incidentEnvelopeSchema, type IncidentEnvelope } from '@heart-iot/contracts/telemetry';
 import {
   acknowledgeAlertSchema,
   alertsQuerySchema,
@@ -19,8 +19,8 @@ import {
   type AcknowledgeAlert,
   type AlertsQuery,
   type ResolveAlert,
-} from '@annhien/contracts/incidents';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+} from '@heart-iot/contracts/incidents';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import { DeviceAuthGuard, type AuthenticatedDeviceRequest } from '../devices/device-auth.guard';
 import { IncidentsService } from './incidents.service';
 

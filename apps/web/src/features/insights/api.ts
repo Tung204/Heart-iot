@@ -1,7 +1,7 @@
 import {
   insightsResponseSchema,
   type InsightsResponse,
-} from '@annhien/contracts/insights';
+} from '@heart-iot/contracts/insights';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**

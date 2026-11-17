@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
-import { telemetryEnvelopeSchema, ingestAckSchema, type TelemetryEnvelope } from '@annhien/contracts/telemetry';
+import { telemetryEnvelopeSchema, ingestAckSchema, type TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
 import type { DeviceRow } from '../database/schema';
 import { DeviceAuthGuard } from '../devices/device-auth.guard';
 import { CurrentDevice } from '../devices/device-auth.decorator';

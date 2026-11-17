@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
+import type { TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
 import { DEFAULT_SEED, createSeededRandom, randomInt } from './rng';
 
 /**

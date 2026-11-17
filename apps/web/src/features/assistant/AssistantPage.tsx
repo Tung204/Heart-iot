@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AssistantAnswer } from '@annhien/contracts/assistant';
+import type { AssistantAnswer } from '@heart-iot/contracts/assistant';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
 import { StatusPill } from '../../components/StatusPill';

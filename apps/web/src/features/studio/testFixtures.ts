@@ -1,8 +1,8 @@
-import type { PreviewResult, PublicationSummary, StudioData, ViewConfig, ViewSummary } from '@annhien/contracts/studio';
+import type { PreviewResult, PublicationSummary, StudioData, ViewConfig, ViewSummary } from '@heart-iot/contracts/studio';
 import { errorEnvelope, mockResponse, SUBJECT, USER } from '../../test/utils';
 
 /**
- * Fixture dùng chung cho test studio — dữ liệu khớp hợp đồng @annhien/contracts/studio.
+ * Fixture dùng chung cho test studio — dữ liệu khớp hợp đồng @heart-iot/contracts/studio.
  * Id cố định dạng uuid (idSchema = z.uuid()).
  */
 export const STUDIO_VIEW_ID = '11111111-2222-4333-8444-555555555555';

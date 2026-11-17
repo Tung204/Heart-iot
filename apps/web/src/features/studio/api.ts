@@ -22,12 +22,12 @@ import {
   type ViewData,
   type ViewList,
   type ViewSummary,
-} from '@annhien/contracts/studio';
+} from '@heart-iot/contracts/studio';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**
  * API client cho workspace views (wave 3 fe-studio).
- * Schema/type đều lấy từ @annhien/contracts/studio — không có schema tạm.
+ * Schema/type đều lấy từ @heart-iot/contracts/studio — không có schema tạm.
  * Query keys đặt ở đây vì lib/query.ts thuộc vùng ghi của worker khác.
  */
 export const studioQueryKeys = {

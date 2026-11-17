@@ -15,7 +15,7 @@ import {
   type PolicyPublish,
   type PolicyState,
   type UpdateUserStatus,
-} from '@annhien/contracts/admin';
+} from '@heart-iot/contracts/admin';
 import {
   deviceListSchema,
   newClaimCodeResponseSchema,
@@ -23,7 +23,7 @@ import {
   type DeviceList,
   type NewClaimCodeResult,
   type RotateDeviceKeyResult,
-} from '@annhien/contracts/devices';
+} from '@heart-iot/contracts/devices';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**

@@ -4,7 +4,7 @@ CLI TypeScript gửi telemetry và sự kiện incident vào API ingest bằng �
 (header `x-device-id` + `x-device-key`), dùng cho demo và kiểm lỗi mạng/trùng trước khi có phần cứng.
 
 - Không tự đăng nhập, không dùng cookie, không có đường tắt bỏ kiểm quyền thiết bị.
-- Mọi payload được validate bằng zod từ `@annhien/contracts/telemetry` trước khi gửi.
+- Mọi payload được validate bằng zod từ `@heart-iot/contracts/telemetry` trước khi gửi.
 - Không in khóa thiết bị ra stdout/stderr.
 - Dữ liệu là tổng hợp, `firmware_version` mặc định `0.0.0-sim`; không đại diện firmware đã build.
 

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, max, or, type SQL } from 'drizzle-orm';
-import { INCIDENT_OPEN_STATES, type UserSummary } from '@annhien/contracts';
+import { INCIDENT_OPEN_STATES, type UserSummary } from '@heart-iot/contracts';
 import {
   adminOverviewSchema,
   adminUserListSchema,
@@ -21,14 +21,14 @@ import {
   type PolicyPublishRequest,
   type PolicyState,
   type UpdateUserStatus,
-} from '@annhien/contracts/admin';
+} from '@heart-iot/contracts/admin';
 import {
   DEFAULT_POLICY_VALUE,
   policyKeys,
   policyValueSchema,
   type PolicyKey,
   type PolicyValue,
-} from '@annhien/contracts/policies';
+} from '@heart-iot/contracts/policies';
 import { DB, type AppDb } from '../database/database';
 import {
   auditLogs,

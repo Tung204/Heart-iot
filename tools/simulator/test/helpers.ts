@@ -6,7 +6,7 @@ import {
   telemetryEnvelopeSchema,
   type IncidentEnvelope,
   type TelemetryEnvelope,
-} from '@annhien/contracts/telemetry';
+} from '@heart-iot/contracts/telemetry';
 import type { RecordedRequest, MockServer } from './mock-server';
 
 export type { MockHandler, MockReply, MockServer, RecordedRequest } from './mock-server';

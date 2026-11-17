@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import type { NotificationItem } from '@annhien/contracts/notifications';
+import type { NotificationItem } from '@heart-iot/contracts/notifications';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';

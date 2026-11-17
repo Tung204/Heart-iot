@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   adminUserQuerySchema,
   auditQuerySchema,
@@ -11,7 +11,7 @@ import {
   type PolicyPreviewRequest,
   type PolicyPublishRequest,
   type UpdateUserStatus,
-} from '@annhien/contracts/admin';
+} from '@heart-iot/contracts/admin';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/auth.decorators';
 import { SessionGuard } from '../auth/session.guard';

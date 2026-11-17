@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { createSubjectSchema, updateSubjectSchema } from '@annhien/contracts/subjects';
+import { createSubjectSchema, updateSubjectSchema } from '@heart-iot/contracts/subjects';
 import { Button } from '../../components/Button';
 import { TextField } from '../../components/Field';
 import { zodFieldErrorMap } from '../../lib/validation';
@@ -24,7 +24,7 @@ const DEFAULT_TIMEZONE = 'Asia/Ho_Chi_Minh';
 
 /**
  * Form tạo/sửa hồ sơ. Validate bằng đúng schema hợp đồng
- * (`createSubjectSchema`/`updateSubjectSchema` từ @annhien/contracts/subjects),
+ * (`createSubjectSchema`/`updateSubjectSchema` từ @heart-iot/contracts/subjects),
  * lỗi hiển thị theo trường bằng aria-describedby.
  */
 export function SubjectForm({

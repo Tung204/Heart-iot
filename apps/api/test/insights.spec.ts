@@ -1,8 +1,8 @@
 import request from 'supertest';
 import { eq } from 'drizzle-orm';
-import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
-import { insightsResponseSchema } from '@annhien/contracts/insights';
-import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
+import type { TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
+import { insightsResponseSchema } from '@heart-iot/contracts/insights';
+import { DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
 import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
 import { MeasurementsModule } from '../src/measurements/measurements.module';

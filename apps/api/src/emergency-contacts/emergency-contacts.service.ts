@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, desc, eq } from 'drizzle-orm';
-import type { SubjectRole, UserSummary } from '@annhien/contracts';
+import type { SubjectRole, UserSummary } from '@heart-iot/contracts';
 import {
   emergencyContactListSchema,
   emergencyContactSchema,
   type EmergencyContact,
   type EmergencyContactList,
   type EmergencyContactUpdate,
-} from '@annhien/contracts/contacts';
+} from '@heart-iot/contracts/contacts';
 import { DB, type AppDb } from '../database/database';
 import { emergencyContacts } from '../database/schema';
 import { AppError } from '../common/app-error';

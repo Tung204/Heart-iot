@@ -2,8 +2,8 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { and, count, desc, eq } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
-import type { ViewConfig } from '@annhien/contracts/studio';
+import { DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
+import type { ViewConfig } from '@heart-iot/contracts/studio';
 import {
   createModuleTestApp,
   createAdmin,

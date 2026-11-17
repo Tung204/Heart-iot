@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   createViewSchema,
   previewRequestSchema,
@@ -20,7 +20,7 @@ import {
   type RollbackViewInput,
   type UpdateDraftInput,
   type ViewDataQuery,
-} from '@annhien/contracts/studio';
+} from '@heart-iot/contracts/studio';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/auth.decorators';
 import { SessionGuard } from '../auth/session.guard';

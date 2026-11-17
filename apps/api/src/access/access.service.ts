@@ -8,7 +8,7 @@ import {
   type ResolvedCarePermissions,
   type SubjectRole,
   type UserSummary,
-} from '@annhien/contracts';
+} from '@heart-iot/contracts';
 import { DB, type AppDb } from '../database/database';
 import { careLinks, subjects, type SubjectRow } from '../database/schema';
 import { AppError } from '../common/app-error';

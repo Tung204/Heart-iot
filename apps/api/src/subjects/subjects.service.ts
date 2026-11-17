@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { and, eq, isNull } from 'drizzle-orm';
-import { OWNER_PERMISSIONS, type SubjectRole, type UserSummary } from '@annhien/contracts';
+import { OWNER_PERMISSIONS, type SubjectRole, type UserSummary } from '@heart-iot/contracts';
 import {
   deletionRequestRecordedSchema,
   subjectDetailSchema,
@@ -14,7 +14,7 @@ import {
   type SubjectList,
   type SubjectSummary,
   type UpdateSubjectInput,
-} from '@annhien/contracts/subjects';
+} from '@heart-iot/contracts/subjects';
 import { DB, type AppDb } from '../database/database';
 import { careLinks, realtimeEvents, subjects, type SubjectRow } from '../database/schema';
 import { AppError } from '../common/app-error';

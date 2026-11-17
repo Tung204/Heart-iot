@@ -172,7 +172,7 @@ importers:
 
   apps/api:
     dependencies:
-      '@annhien/contracts':
+      '@heart-iot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       '@electric-sql/pglite':
@@ -263,7 +263,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@annhien/contracts':
+      '@heart-iot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       '@fontsource/be-vietnam-pro':
@@ -337,7 +337,7 @@ importers:
 
   tools/simulator:
     dependencies:
-      '@annhien/contracts':
+      '@heart-iot/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       zod:

@@ -1,7 +1,7 @@
 import {
   notificationListSchema,
   type NotificationList,
-} from '@annhien/contracts/notifications';
+} from '@heart-iot/contracts/notifications';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /notifications — hộp thư trong ứng dụng + số chưa đọc. */

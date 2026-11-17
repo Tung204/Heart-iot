@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
-import type { SubjectRole, UserSummary } from '@annhien/contracts';
-import { normalizeCarePermissions } from '@annhien/contracts';
+import type { SubjectRole, UserSummary } from '@heart-iot/contracts';
+import { normalizeCarePermissions } from '@heart-iot/contracts';
 import {
   careLinkListSchema,
   careLinkSummarySchema,
@@ -16,7 +16,7 @@ import {
   type InvitationStatus,
   type InvitationSummary,
   type PublicInvitation,
-} from '@annhien/contracts/care';
+} from '@heart-iot/contracts/care';
 import { DB, type AppDb } from '../database/database';
 import { careLinks, invitations, realtimeEvents, subjects, users } from '../database/schema';
 import type { CareLinkRow } from '../database/schema';

@@ -1,6 +1,6 @@
 import { Injectable, type ArgumentMetadata, type PipeTransform } from '@nestjs/common';
 import type { ZodType } from 'zod';
-import { zodDetails } from '@annhien/contracts';
+import { zodDetails } from '@heart-iot/contracts';
 import { AppError } from './app-error';
 
 @Injectable()

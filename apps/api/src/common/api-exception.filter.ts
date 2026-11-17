@@ -5,7 +5,7 @@ import {
   Logger,
   type ExceptionFilter,
 } from '@nestjs/common';
-import type { ApiError, ErrorCode } from '@annhien/contracts';
+import type { ApiError, ErrorCode } from '@heart-iot/contracts';
 import type { Request, Response } from 'express';
 import { AppError } from './app-error';
 

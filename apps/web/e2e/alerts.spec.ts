@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 // E2E cho khu vực cảnh báo — mock API bằng page.route nên KHÔNG cần API thật chạy.
-// Dữ liệu mẫu khớp hợp đồng @annhien/contracts (uuid v4, ISO-8601).
+// Dữ liệu mẫu khớp hợp đồng @heart-iot/contracts (uuid v4, ISO-8601).
 
 const USER = {
   id: '0f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b',

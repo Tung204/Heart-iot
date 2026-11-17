@@ -5,7 +5,7 @@ import {
   type AssistantAnswer,
   type AssistantAsk,
   type AssistantSummary,
-} from '@annhien/contracts/assistant';
+} from '@heart-iot/contracts/assistant';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**

@@ -2,11 +2,11 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
-import { OWNER_PERMISSIONS } from '@annhien/contracts';
+import { OWNER_PERMISSIONS } from '@heart-iot/contracts';
 import {
   deletionRequestRecordedSchema,
   subjectDetailSchema,
-} from '@annhien/contracts/subjects';
+} from '@heart-iot/contracts/subjects';
 import { createModuleTestApp, createAdmin, registerUser, TEST_ORIGIN, type TestContext, type TestUser } from './test-app';
 import { SubjectsModule } from '../src/subjects/subjects.module';
 import { CareModule } from '../src/care/care.module';

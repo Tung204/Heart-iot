@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ViewSummary } from '@annhien/contracts/studio';
+import type { ViewSummary } from '@heart-iot/contracts/studio';
 import { StudioViewDataPage } from './StudioViewDataPage';
 import { errorEnvelope, mockResponse, stubFetch, SUBJECT } from '../../test/utils';
 import { makePublication, makeViewSummary, STUDIO_VIEW_ID } from './testFixtures';

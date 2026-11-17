@@ -65,7 +65,7 @@ const CAREGIVER_ONLY = [
   },
 ];
 
-/** Thông báo mẫu đúng hợp đồng @annhien/contracts/notifications. */
+/** Thông báo mẫu đúng hợp đồng @heart-iot/contracts/notifications. */
 function notification(overrides: Record<string, unknown> = {}) {
   return {
     id: '5f6d7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b',

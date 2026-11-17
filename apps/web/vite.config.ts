@@ -9,8 +9,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: [
-      { find: /^@annhien\/contracts\/(.+)$/, replacement: `${contractsSource}$1.ts` },
-      { find: '@annhien/contracts', replacement: `${contractsSource}core.ts` },
+      { find: /^@heart-iot\/contracts\/(.+)$/, replacement: `${contractsSource}$1.ts` },
+      { find: '@heart-iot/contracts', replacement: `${contractsSource}core.ts` },
     ],
   },
   server: {

@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { DeviceAdminSummary } from '@annhien/contracts/devices';
+import type { DeviceAdminSummary } from '@heart-iot/contracts/devices';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';

@@ -13,7 +13,7 @@ import {
   type RegisterInput,
   type SessionSummary,
   type UpdateProfileInput,
-} from '@annhien/contracts/auth';
+} from '@heart-iot/contracts/auth';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /me — kiểm phiên hiện tại. */

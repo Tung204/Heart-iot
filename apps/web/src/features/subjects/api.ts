@@ -7,7 +7,7 @@ import {
   type SubjectDetail,
   type SubjectSummary,
   type UpdateSubjectInput,
-} from '@annhien/contracts/subjects';
+} from '@heart-iot/contracts/subjects';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /subjects — danh sách hồ sơ người dùng hiện tại (vai trò + quyền theo người xem). */

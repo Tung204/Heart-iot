@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   archiveSubjectSchema,
   createSubjectSchema,
@@ -9,7 +9,7 @@ import {
   type CreateSubjectInput,
   type DeletionRequestInput,
   type UpdateSubjectInput,
-} from '@annhien/contracts/subjects';
+} from '@heart-iot/contracts/subjects';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/auth.decorators';
 import { SubjectsService } from './subjects.service';

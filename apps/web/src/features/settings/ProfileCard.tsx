@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { UserSummary } from '@annhien/contracts';
+import type { UserSummary } from '@heart-iot/contracts';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';

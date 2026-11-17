@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { SubjectSummary } from '@annhien/contracts/subjects';
+import type { SubjectSummary } from '@heart-iot/contracts/subjects';
 import { isNotFoundError } from '../../lib/api';
 import type { ContextScope } from '../../app/routeScope';
 import { setActiveSubjectId, useActiveSubjectId } from './selection';

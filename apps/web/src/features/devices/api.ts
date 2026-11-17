@@ -5,8 +5,8 @@ import {
   type ClaimDeviceInput,
   type ClaimResult,
   type ReleaseResult,
-} from '@annhien/contracts/devices';
-import { subjectDevicesResponseSchema, type SubjectDevicesResponse } from '@annhien/contracts/measurements';
+} from '@heart-iot/contracts/devices';
+import { subjectDevicesResponseSchema, type SubjectDevicesResponse } from '@heart-iot/contracts/measurements';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /subjects/:id/devices — thiết bị đang gắn với hồ sơ kèm trạng thái. */

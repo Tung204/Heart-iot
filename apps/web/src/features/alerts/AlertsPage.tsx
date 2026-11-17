@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import type { IncidentSummary } from '@annhien/contracts/incidents';
+import type { IncidentSummary } from '@heart-iot/contracts/incidents';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';

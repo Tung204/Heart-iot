@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   emergencyContactUpdateSchema,
   type EmergencyContact,
   type EmergencyContactList,
   type EmergencyContactUpdate,
-} from '@annhien/contracts/contacts';
+} from '@heart-iot/contracts/contacts';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser } from '../auth/auth.decorators';
 import { EmergencyContactsService } from './emergency-contacts.service';

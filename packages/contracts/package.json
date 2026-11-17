@@ -1,5 +1,5 @@
 {
-  "name": "@annhien/contracts",
+  "name": "@heart-iot/contracts",
   "version": "1.0.0",
   "private": true,
   "description": "Hợp đồng dữ liệu dùng chung cho API, web và simulator",

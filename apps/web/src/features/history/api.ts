@@ -1,4 +1,4 @@
-import { measurementsResponseSchema, type MeasurementsResponse } from '@annhien/contracts/measurements';
+import { measurementsResponseSchema, type MeasurementsResponse } from '@heart-iot/contracts/measurements';
 import { API_BASE, apiRequest, parseResponse } from '../../lib/api';
 
 export interface MeasurementsParams {

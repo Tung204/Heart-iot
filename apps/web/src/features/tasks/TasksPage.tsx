@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreateTaskInput, MaintenanceTaskSummary } from '@annhien/contracts/tasks';
+import type { CreateTaskInput, MaintenanceTaskSummary } from '@heart-iot/contracts/tasks';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { Card } from '../../components/Card';

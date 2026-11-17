@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import type { INestApplication, Type } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
-import type { AuthSession } from '@annhien/contracts/auth';
+import type { AuthSession } from '@heart-iot/contracts/auth';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/configure-app';
