@@ -102,6 +102,11 @@ export function DashboardPage() {
   const canViewMeasurements = activeSubject
     ? activeSubject.permissions.canViewMeasurements !== false
     : false;
+  // Quyền nhận cảnh báo: chủ hồ sơ luôn nhận; người thân cần cờ `canReceiveAlerts`.
+  // Thiếu quyền là trạng thái nghiệp vụ, không phải lỗi: không gọi `/alerts`.
+  const canReceiveAlerts = activeSubject
+    ? activeSubject.role === 'owner' || activeSubject.permissions.canReceiveAlerts === true
+    : false;
 
   const status = useQuery({
     queryKey: subjectId ? queryKeys.subjectStatus(subjectId) : ['subjects', 'none', 'status'],
@@ -120,13 +125,14 @@ export function DashboardPage() {
     staleTime: 30_000,
   });
 
-  // Cảnh báo là thông tin an toàn: query độc lập với mọi vùng dữ liệu sức khỏe.
+  // Cảnh báo là thông tin an toàn: query độc lập với mọi vùng dữ liệu sức khỏe,
+  // nhưng chỉ hỏi khi người xem có quyền nhận cảnh báo (tránh request chắc chắn 403).
   const openAlerts = useQuery({
     queryKey: subjectId
       ? queryKeys.dashboardOpenAlerts(subjectId)
       : ['subjects', 'none', 'alerts', 'dashboard'],
     queryFn: ({ signal }) => (subjectId ? fetchOpenAlerts(subjectId, 20, signal) : null),
-    enabled: Boolean(subjectId),
+    enabled: Boolean(subjectId) && canReceiveAlerts,
     staleTime: 15_000,
   });
 
@@ -206,52 +212,59 @@ export function DashboardPage() {
           </h2>
           {alertItems.length > 0 ? (
             <StatusPill tone="danger">{alertItems.length} cần chú ý</StatusPill>
-          ) : openAlerts.isSuccess ? (
+          ) : canReceiveAlerts && openAlerts.isSuccess ? (
             <StatusPill tone="neutral">Không có cảnh báo</StatusPill>
           ) : null}
         </div>
 
-        {openAlerts.isPending ? <RegionLoading label="Đang tải cảnh báo đang mở…" /> : null}
-        {openAlerts.isError ? (
-          <RegionError
-            title="Không tải được cảnh báo đang mở"
-            error={openAlerts.error}
-            onRetry={() => void openAlerts.refetch()}
-          />
-        ) : null}
+        {!canReceiveAlerts ? (
+          <p className="health-note">Chủ hồ sơ không chia sẻ cảnh báo với bạn.</p>
+        ) : (
+          <>
+            {openAlerts.isPending ? <RegionLoading label="Đang tải cảnh báo đang mở…" /> : null}
+            {openAlerts.isError ? (
+              <RegionError
+                title="Không tải được cảnh báo đang mở"
+                error={openAlerts.error}
+                onRetry={() => void openAlerts.refetch()}
+              />
+            ) : null}
 
-        {alertItems.length > 0 ? (
-          <ul className="health-rows">
-            {alertItems.map((item) => (
-              <li key={item.id} className="health-row health-row--alert">
-                <div className="health-row__main">
-                  <p className="health-row__title">
-                    <Link to={`/app/alerts/${item.id}`}>
-                      {item.type === 'sos' ? 'Yêu cầu trợ giúp' : 'Nghi ngã'} — cần chú ý
-                    </Link>
-                  </p>
-                  <p className="health-row__meta">
-                    <StatusPill tone={item.state === 'acknowledged' ? 'warning' : 'danger'}>
-                      {item.state === 'acknowledged' ? 'Đã xác nhận' : 'Đang mở'}
-                    </StatusPill>{' '}
-                    Phát hiện {formatDateTime(item.detectedAt)} ·{' '}
-                    {item.acknowledgedBy
-                      ? `đã xác nhận bởi ${item.acknowledgedBy.displayName}`
-                      : 'chưa có người xác nhận'}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : openAlerts.isSuccess ? (
-          <p className="health-note">
-            Không có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang đang mở.
-          </p>
-        ) : null}
+            {alertItems.length > 0 ? (
+              <ul className="health-rows">
+                {alertItems.map((item) => (
+                  <li key={item.id} className="health-row health-row--alert">
+                    <div className="health-row__main">
+                      <p className="health-row__title">
+                        <Link to={`/app/alerts/${item.id}`}>
+                          {item.type === 'sos' ? 'Yêu cầu trợ giúp' : 'Nghi ngã'} — cần chú ý
+                        </Link>
+                      </p>
+                      <p className="health-row__meta">
+                        <StatusPill tone={item.state === 'acknowledged' ? 'warning' : 'danger'}>
+                          {item.state === 'acknowledged' ? 'Đã xác nhận' : 'Đang mở'}
+                        </StatusPill>{' '}
+                        Phát hiện {formatDateTime(item.detectedAt)} ·{' '}
+                        {item.acknowledgedBy
+                          ? `đã xác nhận bởi ${item.acknowledgedBy.displayName}`
+                          : 'chưa có người xác nhận'}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : openAlerts.isSuccess ? (
+              <p className="health-note">
+                Không có cảnh báo nào cần xử lý. Cảnh báo mới sẽ xuất hiện tại đây khi trang
+                đang mở.
+              </p>
+            ) : null}
 
-        <ButtonLink to="/app/alerts" variant="subtle" size="sm" className="health-more">
-          Xem tất cả cảnh báo →
-        </ButtonLink>
+            <ButtonLink to="/app/alerts" variant="subtle" size="sm" className="health-more">
+              Xem tất cả cảnh báo →
+            </ButtonLink>
+          </>
+        )}
       </section>
 
       <div className="health-layout">
@@ -407,7 +420,9 @@ export function DashboardPage() {
                           <dd>
                             {device.lastSeenAt
                               ? `lần nhận cuối ${formatRelativeTime(device.lastSeenAt)}`
-                              : 'chưa từng kết nối'}
+                              : device.healthDataVisible === false
+                                ? 'mốc kết nối ẩn theo quyền chia sẻ'
+                                : 'chưa từng kết nối'}
                           </dd>
                         </div>
                         <div>
