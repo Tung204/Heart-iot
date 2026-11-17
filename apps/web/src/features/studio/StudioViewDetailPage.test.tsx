@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StudioViewDetailPage } from './StudioViewDetailPage';
-import { stubFetch } from '../../test/utils';
+import type { SubjectSummary } from '@heart-iot/contracts/subjects';
+import { stubFetch, SUBJECT } from '../../test/utils';
 import {
   createStudioState,
   makePublication,
+  makeViewSummary,
   PUB_1_ID,
   PUB_2_ID,
   STUDIO_VIEW_ID,
@@ -226,5 +228,50 @@ describe('StudioViewDetailPage — rollback', () => {
     await waitFor(() => expect(state.calls.rollbacks).toHaveLength(1));
     expect(state.calls.rollbacks[0]).toEqual({ publicationId: PUB_1_ID });
     expect(await screen.findByText(/Đã rollback về bản r1 — tạo bản mới r3/)).toBeInTheDocument();
+  });
+});
+
+// P3-02 / Studio subject-scope phải có dòng nhận diện hồ sơ (pinned), lấy tên từ
+// API chứ không hard-code; scope global/account không có dòng này.
+describe('StudioViewDetailPage — dòng nhận diện hồ sơ', () => {
+  it('scope subject → đúng một dòng "Theo dõi: {tên}" trên H1, không select tự do', async () => {
+    // Tên khác fixture mặc định để chứng minh lấy từ API view + danh sách hồ sơ.
+    const subjectFromApi: SubjectSummary = {
+      ...SUBJECT,
+      id: '9f8e7d6c-5b4a-4392-8170-0f1e2d3c4b5a',
+      displayName: 'Bà Trần Thị An',
+      role: 'owner' as const,
+      permissions: { ...SUBJECT.permissions, canViewMeasurements: true },
+    };
+    const state = createStudioState();
+    state.view = makeViewSummary({ subjectId: subjectFromApi.id });
+    renderDetail(state, { subjects: [subjectFromApi] });
+    await waitForEditor();
+
+    const context = await screen.findByRole('group', { name: 'Người được theo dõi' });
+    expect(context).toHaveTextContent('Theo dõi: Bà Trần Thị An');
+    // Ghim theo view, không có select đổi hồ sơ tại đây.
+    expect(within(context).queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('group', { name: 'Người được theo dõi' })).toHaveLength(1);
+
+    // Dòng ngữ cảnh đứng trước H1 của trang.
+    const heading = screen.getByRole('heading', { level: 1, name: 'Tổng quan hằng ngày' });
+    expect(
+      context.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('scope global → không có dòng nhận diện hồ sơ', async () => {
+    const state = createStudioState();
+    state.view = makeViewSummary({ scope: 'global', subjectId: null, key: 'toan-he-thong' });
+    renderDetail(state);
+    await waitForEditor();
+
+    // Chờ danh sách hồ sơ đã tải xong (option của select preview) rồi mới kết luận.
+    await screen.findByRole('option', { name: 'Bà Năm' });
+    expect(
+      screen.queryByRole('group', { name: 'Người được theo dõi' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Theo dõi:/)).not.toBeInTheDocument();
   });
 });

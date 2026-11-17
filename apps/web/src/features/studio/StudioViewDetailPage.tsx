@@ -15,6 +15,7 @@ import { TextField } from '../../components/Field';
 import { formatDateTime } from '../../lib/format';
 import { getApiErrorMessage, isApiError, isConflictError } from '../../lib/api';
 import { useMe } from '../auth/useAuth';
+import { SubjectContextLine } from '../subjects/SubjectSwitcher';
 import { useSubjects } from '../subjects/useSubjects';
 import {
   createPreview,
@@ -325,6 +326,16 @@ export function StudioViewDetailPage() {
   const viewData = view.data;
   if (!viewData) return null;
 
+  // View scope subject ghim theo đối tượng của view (subjectId từ API view). Tên
+  // lấy từ danh sách hồ sơ API — không hard-code, không cho đổi tự do ở đây.
+  const viewSubject =
+    viewData.scope === 'subject'
+      ? (subjects.data?.find((item) => item.id === viewData.subjectId) ?? null)
+      : null;
+  const subjectContext = viewSubject ? (
+    <SubjectContextLine scope="pinned" subject={viewSubject} />
+  ) : null;
+
   const breadcrumb = (
     <nav className="studio-breadcrumb" aria-label="Đường dẫn">
       <Link to="/app">Về Hôm nay</Link>
@@ -339,7 +350,7 @@ export function StudioViewDetailPage() {
     return (
       <div className="studio-page">
         {breadcrumb}
-        <PageHeader title={viewData.name} />
+        <PageHeader title={viewData.name} context={subjectContext} />
         <p className="studio-meta-line">
           View {SCOPE_LABELS[viewData.scope]} — bạn chỉ có quyền xem bản đã công bố.
         </p>
@@ -368,6 +379,7 @@ export function StudioViewDetailPage() {
       {breadcrumb}
       <PageHeader
         title={viewData.name}
+        context={subjectContext}
         actions={
           publication ? (
             <ButtonLink to={`/app/studio/${id}/data`} variant="secondary">

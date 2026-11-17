@@ -67,6 +67,8 @@ export function AlertDetailPage() {
   const queryClient = useQueryClient();
   const subjects = useSubjects();
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
+  // Không xác nhận một chạm — mở bước hỏi lại trước khi gọi API, như danh sách.
+  const [ackConfirmOpen, setAckConfirmOpen] = useState(false);
   const [resolveOpen, setResolveOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [outcome, setOutcome] = useState<(typeof RESOLUTION_OUTCOMES)[number]>('supported');
@@ -76,6 +78,8 @@ export function AlertDetailPage() {
   }>({ fields: {}, general: [] });
   const outcomeRef = useRef<HTMLSelectElement>(null);
   const resolveToggleRef = useRef<HTMLButtonElement>(null);
+  const ackToggleRef = useRef<HTMLButtonElement>(null);
+  const ackConfirmRef = useRef<HTMLButtonElement>(null);
 
   const detail = useQuery({
     queryKey: queryKeys.alert(id),
@@ -131,6 +135,22 @@ export function AlertDetailPage() {
   useEffect(() => {
     if (resolveOpen) outcomeRef.current?.focus();
   }, [resolveOpen]);
+
+  // Mở bước xác nhận: focus nút xác nhận để Escape dùng được ngay.
+  useEffect(() => {
+    if (ackConfirmOpen) ackConfirmRef.current?.focus();
+  }, [ackConfirmOpen]);
+
+  /** Đóng bước hỏi lại và trả focus về nút "Tôi đang hỗ trợ". */
+  const closeAckConfirm = () => {
+    setAckConfirmOpen(false);
+    requestAnimationFrame(() => ackToggleRef.current?.focus());
+  };
+
+  const handleAcknowledge = () => {
+    setAckConfirmOpen(false);
+    acknowledge.mutate();
+  };
 
   const state = (location.state ?? null) as
     | { alertsView?: 'alerts' | 'notifications'; alertsFilter?: 'open' | 'closed' }
@@ -316,9 +336,47 @@ export function AlertDetailPage() {
 
           <div className="alert-detail__actions">
             {!alert.acknowledgedBy && alert.state === 'open' && canAcknowledge ? (
-              <Button onClick={() => acknowledge.mutate()} disabled={acknowledge.isPending}>
-                {acknowledge.isPending ? 'Đang gửi…' : 'Tôi đang hỗ trợ'}
-              </Button>
+              ackConfirmOpen ? (
+                <div
+                  className="alert-detail__confirm"
+                  role="group"
+                  aria-label="Xác nhận hỗ trợ cảnh báo"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.stopPropagation();
+                      closeAckConfirm();
+                    }
+                  }}
+                >
+                  <p className="alert-detail__confirm-question">
+                    Bạn đã liên hệ và đang hỗ trợ?
+                  </p>
+                  <div className="alert-detail__confirm-actions">
+                    <Button
+                      ref={ackConfirmRef}
+                      disabled={acknowledge.isPending}
+                      onClick={handleAcknowledge}
+                    >
+                      Có, tôi đang hỗ trợ
+                    </Button>
+                    <Button
+                      variant="subtle"
+                      disabled={acknowledge.isPending}
+                      onClick={closeAckConfirm}
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  ref={ackToggleRef}
+                  onClick={() => setAckConfirmOpen(true)}
+                  disabled={acknowledge.isPending}
+                >
+                  {acknowledge.isPending ? 'Đang gửi…' : 'Tôi đang hỗ trợ'}
+                </Button>
+              )
             ) : null}
             {!alert.acknowledgedBy &&
             alert.state === 'open' &&
