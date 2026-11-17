@@ -1,0 +1,963 @@
+/* ============================================================
+   Quản trị — /app/admin
+   Một màn một mục đích; density dữ liệu cao nhưng vẫn đọc được ở
+   360px mà không tràn ngang (bảng chuyển thành hàng label/value).
+   Token: styles/tokens.css. Primitive: components/primitives.css.
+   Chỉ đặt bố cục/thuộc tính riêng của màn quản trị ở đây; không định
+   nghĩa lại button/field/card/alert/pill.
+   ============================================================ */
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Một câu ngắn dưới H1 — không dùng slot context (dành cho dòng hồ sơ). */
+.admin-page__lead {
+  margin: calc(var(--space-2) * -1) 0 0;
+  max-width: var(--measure-text);
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+}
+
+/* ---------- Điều hướng mục (5 mục, luôn hiện tên thật) ---------- */
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Tab là button nhưng trình bày như mục điều hướng, không phải pill. */
+.admin-tabs .admin-tab.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.admin-tabs .admin-tab.button:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.admin-tabs .admin-tab--current.button,
+.admin-tabs .admin-tab--current.button:hover:not(:disabled) {
+  border-bottom-color: var(--action);
+  background: transparent;
+  color: var(--action);
+}
+
+/* Vùng nội dung của tab đang chọn. */
+.admin-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.admin-tab-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.admin-section-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1.4;
+}
+
+.admin-section-lead {
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure-text);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.admin-list-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Tổng quan ---------- */
+
+.admin-overview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.admin-attention {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--warning);
+  border-left-width: 4px;
+  border-radius: var(--radius-m);
+  background: var(--warning-soft);
+}
+
+.admin-attention__title {
+  margin: 0;
+  color: var(--warning);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+}
+
+.admin-attention__list {
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--text-primary);
+  font-size: var(--text-md);
+}
+
+.admin-ops {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.admin-ops__row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.admin-ops__row dt {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-ops__row dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-action-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Bộ lọc ---------- */
+
+.admin-page .admin-filter-form {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.admin-page .admin-filter-form .field {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.admin-page .admin-filter-form .button {
+  justify-self: start;
+}
+
+/* ---------- Bảng người dùng / nhật ký ---------- */
+
+.admin-page .admin-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-page .admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.admin-page .admin-table th,
+.admin-page .admin-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: top;
+}
+
+.admin-page .admin-table th {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.admin-page .admin-table tbody tr {
+  min-height: 3.25rem;
+}
+
+.admin-page .admin-table--users {
+  min-width: 0;
+}
+
+.admin-page .admin-table--users td:first-child {
+  min-width: 15rem;
+}
+
+/* Nhãn cột chỉ hiện ở chế độ hàng label/value (mobile); desktop đã có <th>. */
+.admin-cell-label {
+  display: none;
+}
+
+.admin-cell-value {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.admin-user-name {
+  display: block;
+  font-weight: var(--weight-semibold);
+}
+
+.admin-user-email {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.admin-user-created {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.admin-table__note {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-table-hint {
+  margin: 0 0 var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-page .admin-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.admin-page .admin-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-load-more {
+  display: flex;
+  justify-content: center;
+}
+
+/* Phản hồi của tab Người dùng đặt ngoài bảng, rộng toàn khung. */
+.admin-user-feedback {
+  min-width: 0;
+}
+
+.admin-user-feedback__success {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--success);
+  border-left-width: 4px;
+  border-radius: var(--radius-s);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+/* Vùng nhận focus bằng script: vòng focus phải thấy dù focus không từ bàn phím. */
+.admin-page [tabindex='-1']:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Nhật ký ---------- */
+
+.admin-page .admin-table--audit {
+  min-width: 46rem;
+  table-layout: fixed;
+}
+
+.admin-page .admin-table--audit th:nth-child(1) {
+  width: 22%;
+}
+.admin-page .admin-table--audit th:nth-child(2) {
+  width: 24%;
+}
+.admin-page .admin-table--audit th:nth-child(3) {
+  width: 14%;
+}
+.admin-page .admin-table--audit th:nth-child(4) {
+  width: 24%;
+}
+.admin-page .admin-table--audit th:nth-child(5) {
+  width: 16%;
+}
+
+.admin-audit-action {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.admin-audit-target {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.admin-page .admin-audit-toggle {
+  white-space: nowrap;
+}
+
+/* Panel chi tiết full-width BÊN DƯỚI bảng, ngoài khung cuộn ngang. */
+.admin-page .admin-audit-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-m);
+  background: var(--bg-subtle);
+}
+
+.admin-page .admin-audit-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.admin-page .admin-audit-panel__title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.admin-page .admin-audit-panel__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.admin-page .admin-audit-panel__meta dt {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.admin-page .admin-audit-panel__meta dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* JSON cuộn cục bộ trong panel; không đẩy trang rộng ra. */
+.admin-page .admin-audit-panel pre {
+  margin: 0;
+  padding: var(--space-3);
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+  font-size: var(--text-xs);
+}
+
+/* ---------- Chính sách ---------- */
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.admin-panel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+}
+
+.admin-panel__title {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.admin-panel__meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.admin-page .admin-policy-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 52rem;
+  min-width: 0;
+}
+
+.admin-policy-group {
+  margin: 0;
+  padding: var(--space-4) 0 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.admin-policy-group__legend {
+  padding: 0;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.admin-policy-group__desc {
+  margin: var(--space-1) 0 0;
+  max-width: var(--measure-text);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-policy-group__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  margin-top: var(--space-3);
+}
+
+.admin-policy-note-field {
+  max-width: var(--measure-form);
+}
+
+.admin-page .admin-policy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-page .admin-policy-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-policy-inline-action {
+  margin-top: var(--space-2);
+}
+
+/* Tóm tắt lỗi nằm ngay dưới hàng nút (cạnh chỗ vừa bấm). */
+.admin-policy-errors {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger);
+  border-left-width: 4px;
+  border-radius: var(--radius-s);
+  background: var(--danger-soft);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.admin-policy-errors__title {
+  margin: 0 0 var(--space-2);
+  color: var(--danger);
+  font-weight: var(--weight-semibold);
+}
+
+.admin-policy-errors ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.admin-policy-errors a {
+  color: var(--danger);
+}
+
+.admin-policy-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.admin-policy-status:focus,
+.admin-policy-status:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.admin-policy-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.admin-policy-preview__evidence {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.admin-policy-preview__evidence code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.admin-policy-diff {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+}
+
+.admin-policy-diff__title {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+}
+
+.admin-policy-diff ul {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.admin-policy-diff code {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.admin-policy-history {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-2);
+}
+
+.admin-policy-history > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--target-min);
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.admin-policy-history__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.admin-policy-history__default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.admin-history-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Thiết bị ---------- */
+
+.admin-devices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.admin-device-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-device {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.admin-device__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.admin-device__identity {
+  min-width: 0;
+}
+
+.admin-device__name {
+  margin: 0;
+  font-size: var(--text-lg);
+  overflow-wrap: anywhere;
+}
+
+.admin-device__serial {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-device__serial code,
+.admin-device__id {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  overflow-wrap: anywhere;
+}
+
+.admin-device__pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.admin-device__connection-hint {
+  flex-basis: 100%;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.admin-device__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.admin-device__facts dt {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.admin-device__facts dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.admin-device__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.admin-device__claim-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.admin-device__confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-basis: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-s);
+  background: var(--danger-soft);
+}
+
+.admin-device__confirm p {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.admin-device__confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Khối mã/khóa dùng một lần — chỉ nằm trong DOM khi còn hiển thị. */
+.admin-device-secret {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--warning);
+  border-left-width: 4px;
+  border-radius: var(--radius-m);
+  background: var(--warning-soft);
+}
+
+.admin-device-secret__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.admin-device-secret__head h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.admin-device-secret__lead {
+  margin: 0;
+  font-size: var(--text-md);
+}
+
+.admin-device-secret__value {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+}
+
+.admin-device-secret__value code {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.admin-device-secret__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-device-secret__warning {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Mobile: bảng thành hàng label/value, không tràn ngang ---------- */
+
+@media (max-width: 767px) {
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .admin-tabs .admin-tab.button {
+    width: 100%;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .admin-tabs .admin-tab:last-child.button {
+    grid-column: 1 / -1;
+  }
+
+  .admin-tabs .admin-tab--current.button {
+    border-bottom-color: var(--action);
+  }
+
+  .admin-page .admin-filter-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-page .admin-filter-form .button {
+    justify-self: stretch;
+  }
+
+  .admin-ops__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+
+  /* Bảng thành hàng label/value: nhãn là <span aria-hidden> trong ô. */
+  .admin-page .admin-table--users,
+  .admin-page .admin-table--users tbody,
+  .admin-page .admin-table--users tr,
+  .admin-page .admin-table--users td,
+  .admin-page .admin-table--audit,
+  .admin-page .admin-table--audit tbody,
+  .admin-page .admin-table--audit tr,
+  .admin-page .admin-table--audit td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-page .admin-table--users thead,
+  .admin-page .admin-table--audit thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .admin-page .admin-table--users,
+  .admin-page .admin-table--audit {
+    min-width: 0;
+    table-layout: auto;
+  }
+
+  .admin-page .admin-table--users tbody,
+  .admin-page .admin-table--audit tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .admin-page .admin-table--users tr,
+  .admin-page .admin-table--audit tr {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-m);
+    background: var(--bg-surface);
+  }
+
+  .admin-page .admin-table--users td,
+  .admin-page .admin-table--audit td {
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  .admin-page .admin-table--users td:first-child {
+    min-width: 0;
+    padding-bottom: var(--space-2);
+  }
+
+  .admin-page .admin-table--users td:not(:first-child),
+  .admin-page .admin-table--audit td {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2);
+  }
+
+  .admin-page .admin-table--users .admin-cell-label,
+  .admin-page .admin-table--audit .admin-cell-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+
+  .admin-page .admin-table--users .admin-cell-value,
+  .admin-page .admin-table--audit .admin-cell-value {
+    display: block;
+  }
+
+  .admin-page .admin-table--users td .pill {
+    display: inline-block;
+  }
+
+  .admin-page .admin-table--audit th,
+  .admin-page .admin-table--audit th:nth-child(n) {
+    width: auto;
+  }
+}
+
+@media (max-width: 639px) {
+  .admin-policy-group__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .admin-page .admin-filter-form {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+
+  .admin-page .admin-filter-form .button {
+    grid-column: 1 / -1;
+  }
+}

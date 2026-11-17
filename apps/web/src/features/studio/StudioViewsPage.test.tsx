@@ -86,8 +86,8 @@ describe('StudioViewsPage — danh sách view', () => {
     expect(screen.getByText(/to-quan-hang-ngay/)).toBeInTheDocument();
     expect(screen.getByText('Theo hồ sơ')).toBeInTheDocument();
     expect(screen.getByText(/đang công bố r2 \(abcdef12…\)/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Quản lý & công bố' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Xem' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Quản lý' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Xem bản công bố' })).toBeInTheDocument();
 
     // Tạo view mới scope subject → body có subjectId của hồ sơ chủ.
     await user.click(screen.getByRole('button', { name: 'Tạo view' }));

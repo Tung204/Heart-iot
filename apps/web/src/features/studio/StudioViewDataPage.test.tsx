@@ -85,12 +85,12 @@ describe('StudioViewDataPage — render published', () => {
 
     expect(await screen.findByText('View chưa được công bố')).toBeInTheDocument();
     expect(
-      screen.getByText(/Không có bản công bố để hiển thị dữ liệu thật/),
+      screen.getByText(/Không có bản công bố để hiển thị dữ liệu của hồ sơ/),
     ).toBeInTheDocument();
     expect(dataCalls).toBe(0);
   });
 
-  it('view subject đã công bố → tự lấy data với subjectId của view, hiện badge "Dữ liệu thật"', async () => {
+  it('view subject đã công bố → tự lấy data với subjectId của view, hiện badge "Dữ liệu hồ sơ"', async () => {
     const dataUrls: string[] = [];
     renderData((url) => {
       const u = url;
@@ -105,8 +105,10 @@ describe('StudioViewDataPage — render published', () => {
       return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
     });
 
-    // Widget config của bản công bố được render + badge dữ liệu thật.
-    expect(await screen.findByText('Dữ liệu thật · Bà Năm')).toBeInTheDocument();
+    // Widget config của bản công bố được render + badge "Dữ liệu hồ sơ"
+    // (D9: không dùng nhãn "Dữ liệu thật").
+    expect(await screen.findByText('Dữ liệu hồ sơ · Bà Năm')).toBeInTheDocument();
+    expect(screen.queryByText(/Dữ liệu thật/)).not.toBeInTheDocument();
     expect(screen.getByText('75 bpm')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Nhịp tim QA' })).toBeInTheDocument();
     // Digest + revision hiển thị khớp bản công bố active trong payload.
@@ -184,7 +186,7 @@ describe('StudioViewDataPage — render published', () => {
     expect(await screen.findByText('Chưa chọn hồ sơ')).toBeInTheDocument();
     expect(dataCalls).toBe(0);
 
-    await user.selectOptions(screen.getByLabelText(/Hồ sơ dữ liệu/), SUBJECT.id);
+    await user.selectOptions(screen.getByLabelText(/Dữ liệu của/), SUBJECT.id);
     expect(await screen.findByText('Không tải được dữ liệu view')).toBeInTheDocument();
     expect(dataCalls).toBe(1);
   });
