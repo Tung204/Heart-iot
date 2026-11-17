@@ -163,6 +163,14 @@ button {
   line-height: var(--leading-tight);
 }
 
+/* H1 sản phẩm: desktop 2rem, mobile 1.5rem (30px khi root chữ lớn 20px). */
+@media (max-width: 767px) {
+  .page-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-title);
+  }
+}
+
 .page-lead {
   font-size: var(--text-lg);
   color: var(--text-secondary);

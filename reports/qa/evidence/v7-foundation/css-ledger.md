@@ -1,7 +1,8 @@
 # CSS ledger — W1 foundation (v7)
 
-Trạng thái đo tại HEAD `aad596c` (nhánh `Tung204/v7-foundation`), web dev
-`http://127.0.0.1:4350`, API `http://127.0.0.1:3000` (chỉ đăng nhập demo + đọc).
+Trạng thái đo sau fix review W1 (nhánh `Tung204/v7-foundation`, đã merge rename
+`@heart-iot` ở `f7c1322`), web dev `http://127.0.0.1:4350`, API
+`http://127.0.0.1:3000`, seed demo `*@demo.heart-iot.local` (chỉ đọc).
 
 Quy ước cột **Owner**: F = foundation (W1), P = public/auth, C = hôm nay +
 assistant + cảnh báo + hồ sơ, H = dashboard/lịch sử/thiết bị, R = realtime/
@@ -64,3 +65,12 @@ admin-simple.css → styles/shell.css`.
 | F1 | Chip gợi ý "Nhịp tim?/Cảnh báo?/Pin?" ở Hôm nay | 90.8×31.7 / 100.6×31.7 / 54.8×31.7; chữ lớn 113×39.1 / 125.3×39.1 / 68×39.1 | C (Assistant) |
 | F2 | Link "Tạo tài khoản mới" ở chân form đăng nhập | 125.5×18 (390), 156.9×23 (chữ lớn) | P (Auth) |
 | F3 | `.dashboard-region__action .button` bị ép 40px | `min-height: 2.5rem` | H |
+| F8 | Link "Đăng nhập" ở /register | 76×18 (390), 95×23 (chữ lớn) | P |
+| F9 | Link "Sức khỏe 7 ngày →" ở Hôm nay | 146.8×24.8 (390), 183.5×31 (chữ lớn) | C |
+| F10 | Link "← Hôm nay", "Xem tất cả cảnh báo →", "Xem lịch sử và biểu đồ →", "Quản lý", tiêu đề incident ở /app/overview | 52.6–168.9 × 18–24.8; chữ lớn 65.7–211.1 × 23–31 | H |
+| F11 | Tiêu đề incident ở /app/alerts | 168.9×24.8 (390), 211.1×31 (chữ lớn) | C |
+
+Ghi chú: từ fix review, cổng target quét mọi `a[href]`/`button`/`select`/`summary`/
+`[role=menuitem]`. **Shell (brand/nav/account) 0 vi phạm** (brand mobile
+145.8×44, nav 64, account 54×54); các mục F1/F2/F8–F11 thuộc page legacy và
+chưa đạt cổng toàn app.

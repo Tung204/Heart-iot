@@ -89,7 +89,15 @@ function notification(overrides: Record<string, unknown> = {}) {
 const STYLES_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../styles');
 const COMPONENTS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../components');
 
-function readStyle(name: 'layout.css' | 'tokens.css' | 'shell.css' | 'primitives.css'): string {
+function readStyle(
+  name:
+    | 'layout.css'
+    | 'tokens.css'
+    | 'shell.css'
+    | 'primitives.css'
+    | 'base.css'
+    | 'app-simple.css',
+): string {
   const dir = name === 'primitives.css' ? COMPONENTS_DIR : STYLES_DIR;
   return readFileSync(resolve(dir, name), 'utf8');
 }
@@ -155,6 +163,8 @@ interface ShellOptions {
   notifications?: NotificationPayload | (() => NotificationPayload);
   /** Số cảnh báo đang mở trả cho badge điều hướng. */
   openAlerts?: unknown[];
+  /** Còn trang cảnh báo sau (nextCursor) → badge phải là `count+`. */
+  openAlertsNextCursor?: string | null;
   /** Trang bắt đầu; mặc định /app. */
   initialEntries?: string[];
 }
@@ -213,7 +223,10 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
       return mockResponse(payload ?? { items: [], unreadCount: 0 });
     }
     if (u.includes('/alerts?')) {
-      return mockResponse({ items: options.openAlerts ?? [], nextCursor: null });
+      return mockResponse({
+        items: options.openAlerts ?? [],
+        nextCursor: options.openAlertsNextCursor ?? null,
+      });
     }
     return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
   });
@@ -447,6 +460,24 @@ describe('AppShell — điều hướng bốn mục', () => {
     }
   });
 
+  it('badge hiện 20+ và label “20+ cảnh báo đang mở” khi IncidentList còn nextCursor', async () => {
+    const items = Array.from({ length: 20 }, (_, index) => ({
+      ...INCIDENT,
+      id: `2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a${String(index).padStart(2, '0')}`,
+    }));
+    renderShell({ user: OWNER_USER }, SUBJECTS, {
+      openAlerts: items,
+      openAlertsNextCursor: 'cursor-trang-2',
+    });
+    await screen.findByText('nội dung trang');
+
+    const links = await screen.findAllByRole('link', { name: /20\+ cảnh báo đang mở/ });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link.querySelector('.shell__nav-badge')).toHaveTextContent('20+');
+    }
+  });
+
   it('caregiver thiếu canReceiveAlerts → không tải cảnh báo, không có badge', async () => {
     const { fetchMock } = renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
     await screen.findByText('nội dung trang');
@@ -504,6 +535,29 @@ describe('AppShell — menu tài khoản một bản, đóng được', () => {
     expect(document.querySelector('.shell__account-menu')).toBeNull();
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it('ArrowDown/ArrowUp khi menu đang đóng mở menu và focus mục đầu/cuối', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    const trigger = await screen.findByRole('button', { name: 'Tài khoản của Bà An' });
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const menu = accountMenu();
+    await waitFor(() =>
+      expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toHaveFocus(),
+    );
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await user.keyboard('{ArrowUp}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await waitFor(() =>
+      expect(within(accountMenu()).getByRole('menuitem', { name: 'Đăng xuất' })).toHaveFocus(),
+    );
   });
 
   it('bấm ra ngoài đóng menu', async () => {
@@ -937,6 +991,28 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     // Khung chữ co được trong hàng flex để ellipsis/wrap có hiệu lực.
     expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/min-width:\s*0/);
     expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/flex:\s*1 1 auto/);
+  });
+
+  it('CSS: focus trên rail dùng ring trắng; H1 mobile 1.5rem, bỏ override legacy', () => {
+    const shell = readStyle('shell.css');
+    for (const selector of [
+      '.shell__sidebar .brand:focus-visible',
+      '.shell__sidebar .shell__nav-link:focus-visible',
+      '.shell__sidebar .shell__account-trigger:focus-visible',
+    ]) {
+      expect(shell).toContain(selector);
+    }
+    const railFocus = ruleBody(shell, '.shell__sidebar .shell__account-trigger:focus-visible');
+    expect(railFocus).toMatch(/outline-color:\s*var\(--focus-on-dark\)/);
+
+    const base = readStyle('base.css');
+    const mobileTitle = mediaBlocks(base, '(max-width: 767px)').join('\n');
+    expect(mobileTitle).toMatch(/\.page-title\s*\{[^}]*font-size:\s*var\(--text-2xl\)/);
+
+    // Không còn override typography foundation ở CSS feature.
+    expect(readStyle('app-simple.css')).not.toContain('.today .page-title');
+    expect(readStyle('app-simple.css')).not.toContain('.subjects-page__header .page-title');
+    expect(readStyle('layout.css')).not.toContain('.assistant .page-title');
   });
 
   it('CSS: @media (prefers-reduced-motion: reduce) tắt animation mới', () => {

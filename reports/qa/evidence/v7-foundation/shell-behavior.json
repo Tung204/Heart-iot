@@ -63,6 +63,16 @@
     "open": "false",
     "focusOnTrigger": true
   },
+  "accountMenuArrowDown": {
+    "open": "true",
+    "focused": "Tài khoản",
+    "menuVisible": true
+  },
+  "accountMenuArrowUp": {
+    "open": "true",
+    "focused": "Đăng xuất",
+    "menuVisible": true
+  },
   "computed": {
     "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
     "bodyFontSize": "16px",
@@ -80,11 +90,52 @@
     "topbarDisplay": "none",
     "rootFontSize": "16px"
   },
-  "focus": {
-    "outlineWidth": "3px",
-    "outlineColor": "rgb(23, 75, 197)",
-    "outlineOffset": "3px"
-  },
+  "focus": [
+    {
+      "label": "brand",
+      "selector": ".shell__sidebar .brand",
+      "text": "Theo dõisức khỏe",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(21, 37, 62)",
+      "contrast": 15.37,
+      "isFocusVisible": true
+    },
+    {
+      "label": "nav",
+      "selector": ".shell__sidebar .shell__nav-link:not(.is-active)",
+      "text": "Cảnh báo11 cảnh báo đang mở",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(21, 37, 62)",
+      "contrast": 15.37,
+      "isFocusVisible": true
+    },
+    {
+      "label": "nav-active",
+      "selector": ".shell__sidebar .shell__nav-link.is-active",
+      "text": "Hôm nay",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(40, 73, 118)",
+      "contrast": 9.11,
+      "isFocusVisible": true
+    },
+    {
+      "label": "account",
+      "selector": ".shell__sidebar .shell__account-trigger",
+      "text": "TATrần Thị AnChủ hồ sơ▾",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(40, 73, 118)",
+      "contrast": 9.11,
+      "isFocusVisible": true
+    }
+  ],
   "largeTextDesktop": {
     "rootFontSize": "20px",
     "railWidth": 310,

@@ -132,12 +132,21 @@ function NavIcon({ name }: { name: NavIconName }) {
  * Badge số trên mục điều hướng. Con số chỉ là phần nhìn (aria-hidden);
  * trình đọc màn hình đọc câu đầy đủ nên không phụ thuộc màu sắc.
  */
-function NavBadge({ count, label }: { count: number; label: string }) {
+function NavBadge({
+  count,
+  capped,
+  label,
+}: {
+  count: number;
+  /** Còn trang sau (nextCursor) → hiển thị `count+` thay vì số tuyệt đối. */
+  capped: boolean;
+  label: string;
+}) {
   if (count <= 0) return null;
   return (
     <>
       <span className="shell__nav-badge" aria-hidden="true">
-        {count > 99 ? '99+' : count}
+        {capped ? `${count}+` : count > 99 ? '99+' : count}
       </span>
       <span className="visually-hidden">{label}</span>
     </>
@@ -227,6 +236,8 @@ function AccountMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const logoutRef = useRef<HTMLButtonElement>(null);
+  /** Mục cần focus ngay sau khi menu mở (ArrowUp → mục cuối). */
+  const initialFocusRef = useRef<'first' | 'last'>('first');
 
   const displayName = user?.displayName || 'Tài khoản';
 
@@ -246,7 +257,14 @@ function AccountMenu({
 
   useEffect(() => {
     if (!open) return;
-    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], button:not([disabled])',
+      ) ?? [],
+    );
+    const target = initialFocusRef.current === 'last' ? items[items.length - 1] : items[0];
+    target?.focus();
+    initialFocusRef.current = 'first';
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
@@ -274,6 +292,29 @@ function AccountMenu({
       document.removeEventListener('focusin', closeOnFocusOut);
     };
   }, [open, closeMenu]);
+
+  const focusMenuItem = (edge: 'first' | 'last') => {
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], button:not([disabled])',
+      ) ?? [],
+    );
+    (edge === 'last' ? items[items.length - 1] : items[0])?.focus();
+  };
+
+  // ArrowDown/ArrowUp trên trigger đang đóng cũng mở menu (ARIA APG menu button).
+  const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const edge = event.key === 'ArrowUp' ? 'last' : 'first';
+    if (open) {
+      if (!confirming) focusMenuItem(edge);
+      return;
+    }
+    initialFocusRef.current = edge;
+    setOpen(true);
+    setConfirming(false);
+  };
 
   // Điều hướng bằng mũi tên/Home/End cho role="menu" (ARIA APG).
   const handleMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -315,6 +356,7 @@ function AccountMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls="shell-account-menu"
+        onKeyDown={handleTriggerKeyDown}
         onClick={() => {
           if (open) {
             closeMenu(true);
@@ -486,7 +528,8 @@ export function AppShell() {
     staleTime: 15_000,
   });
   const openAlertCount = openAlerts.data?.items.length ?? 0;
-  const openAlertLabel = `${openAlertCount} cảnh báo đang mở`;
+  const openAlertCapped = Boolean(openAlerts.data?.nextCursor);
+  const openAlertLabel = `${openAlertCapped ? `${openAlertCount}+` : openAlertCount} cảnh báo đang mở`;
 
   // Vai trò hiển thị dưới tên người dùng — không hiện email thô trong shell.
   const roleLabel = isAdmin
@@ -534,7 +577,7 @@ export function AppShell() {
         <NavIcon name={item.icon} />
         <span>{item.label}</span>
         {item.section === 'alerts' ? (
-          <NavBadge count={openAlertCount} label={openAlertLabel} />
+          <NavBadge count={openAlertCount} capped={openAlertCapped} label={openAlertLabel} />
         ) : null}
       </Link>
     );

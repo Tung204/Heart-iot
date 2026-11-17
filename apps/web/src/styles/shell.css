@@ -196,6 +196,9 @@
   min-width: 0;
 }
 .shell__mobile-brand .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
   color: var(--text-primary);
   font-size: 1rem;
 }
@@ -335,6 +338,14 @@
 }
 .subject-context--muted {
   color: var(--text-secondary);
+}
+
+/* Focus trên rail nền mực dùng ring trắng (3px, offset 3px); menu tài khoản
+   nền sáng vẫn dùng ring xanh mặc định. */
+.shell__sidebar .brand:focus-visible,
+.shell__sidebar .shell__nav-link:focus-visible,
+.shell__sidebar .shell__account-trigger:focus-visible {
+  outline-color: var(--focus-on-dark);
 }
 
 /* ---------- Banner toàn cục ---------- */
