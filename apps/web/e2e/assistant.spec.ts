@@ -184,7 +184,14 @@ test('/app là Hôm nay: trạng thái cảnh báo, ô hỏi, không còn bối 
   const send = page.getByRole('button', { name: 'Gửi câu hỏi' });
   await expect(send).toBeEnabled();
   await expect(send).toHaveText('Gửi');
-  await expect(page.getByRole('button', { name: 'Nhịp tim?' })).toBeVisible();
+  // v7 đổi nhãn gợi ý theo design-system §5.4: gợi ý nêu phạm vi câu hỏi
+  // ("Nhịp tim tuần này") thay cho nhãn ngắn v6 "Nhịp tim?"; bấm chỉ điền câu hỏi,
+  // không tự gửi nên hội thoại vẫn chưa xuất hiện.
+  const suggestion = page.getByRole('button', { name: 'Nhịp tim tuần này' });
+  await expect(suggestion).toBeVisible();
+  await expect(page.getByLabel(/^Câu hỏi/)).toHaveValue('');
+  await suggestion.click();
+  await expect(page.getByLabel(/^Câu hỏi/)).toHaveValue('Nhịp tim tuần này thế nào?');
   await expect(page.getByRole('log')).toHaveCount(0);
 
   // Lối sang Sức khỏe 7 ngày và ghi chú giới hạn của màn Hôm nay.

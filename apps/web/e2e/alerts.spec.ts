@@ -178,12 +178,11 @@ test('Sức khỏe hiển thị cảnh báo mở và đường dẫn về Hôm n
 
   await expect(page).toHaveURL(/\/app\/overview$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Sức khỏe' })).toBeVisible();
-  // Đường dẫn quay lại màn Hôm nay (v4), không phải trợ lý/tổng quan v3.
-  await expect(
-    page
-      .getByRole('navigation', { name: 'Đường dẫn' })
-      .getByRole('link', { name: '← Hôm nay' }),
-  ).toHaveAttribute('href', '/app');
+  // v7 render breadcrumb của PageHeader thành link trực tiếp, không bọc trong
+  // <nav aria-label="Đường dẫn"> như v6; giữ kiểm đường về Hôm nay.
+  const backToToday = page.getByRole('link', { name: '← Hôm nay' });
+  await expect(backToToday).toBeVisible();
+  await expect(backToToday).toHaveAttribute('href', '/app');
 
   await expect(page.getByRole('heading', { name: 'Cảnh báo đang mở' })).toBeVisible();
   await expect(page.getByText('1 cần chú ý')).toBeVisible();
