@@ -69,3 +69,20 @@ export const TASK_STATUS_LABELS = {
 export function shortDigest(digest: string): string {
   return digest.length > 8 ? `${digest.slice(0, 8)}…` : digest;
 }
+
+/**
+ * Nhãn nguồn dữ liệu theo `summary.source` của hợp đồng studio.
+ * `synthetic` = telemetry tổng hợp, khác "dữ liệu mẫu" (bản xem trước không gắn hồ sơ nào).
+ */
+export function dataSourceLabel(source: string | null | undefined): string | null {
+  switch (source) {
+    case 'synthetic':
+      return 'Dữ liệu mô phỏng';
+    case 'sample':
+      return 'Dữ liệu mẫu';
+    case 'device':
+      return 'Dữ liệu thiết bị';
+    default:
+      return null;
+  }
+}

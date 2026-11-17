@@ -102,7 +102,7 @@ describe('StudioViewDetailPage — soạn config draft', () => {
 });
 
 describe('StudioViewDetailPage — preview', () => {
-  it('preview mặc định hiện badge "Dữ liệu mẫu"; chọn hồ sơ → badge "Dữ liệu thật"', async () => {
+  it('preview mặc định hiện badge "Dữ liệu mẫu"; chọn hồ sơ → "Dữ liệu hồ sơ" + "Dữ liệu mô phỏng"', async () => {
     const state = createStudioState();
     renderDetail(state);
     const user = userEvent.setup();
@@ -111,11 +111,14 @@ describe('StudioViewDetailPage — preview', () => {
     // Preview tự động (chế độ mẫu) khi nạp config draft — badge xuất hiện trong khung preview.
     expect(await screen.findByText('Dữ liệu mẫu', { selector: '.studio-datamode' })).toBeInTheDocument();
 
-    // Chọn hồ sơ rồi xem trước → dữ liệu thật có tên hồ sơ.
-    await user.selectOptions(screen.getByLabelText(/Hồ sơ dữ liệu thật/), '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b');
+    // Chọn hồ sơ rồi xem trước → dữ liệu của hồ sơ, kèm nhãn mô phỏng khi
+    // telemetry là tổng hợp (D9: không dùng "Dữ liệu thật").
+    await user.selectOptions(screen.getByLabelText(/Xem trước với hồ sơ/), '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b');
     await user.click(screen.getByRole('button', { name: 'Xem trước' }));
 
-    expect(await screen.findByText('Dữ liệu thật · Bà Năm')).toBeInTheDocument();
+    expect(await screen.findByText('Dữ liệu hồ sơ · Bà Năm')).toBeInTheDocument();
+    expect(screen.getByText('Dữ liệu mô phỏng')).toBeInTheDocument();
+    expect(screen.queryByText(/Dữ liệu thật/)).not.toBeInTheDocument();
     const previews = state.calls.previews as { previewSubjectId?: string }[];
     expect(previews.at(-1)?.previewSubjectId).toBe('1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b');
   });

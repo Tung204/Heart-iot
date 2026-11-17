@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PreviewResult, PublicationSummary, StudioWidget, ViewConfig } from '@heart-iot/contracts/studio';
 import { canonicalConfigJson } from '@heart-iot/contracts/studio';
@@ -9,6 +9,7 @@ import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageLoader } from '../../components/PageLoader';
+import { PageHeader } from '../../components/PageHeader';
 import { StatusPill } from '../../components/StatusPill';
 import { TextField } from '../../components/Field';
 import { formatDateTime } from '../../lib/format';
@@ -35,6 +36,7 @@ import {
   shortDigest,
 } from './labels';
 import { DataModeBadge, WidgetPreview } from './widgets';
+import '../../styles/studio.css';
 
 const MAX_WIDGETS = 12;
 
@@ -141,7 +143,14 @@ export function StudioViewDetailPage() {
         ...(previewSubjectId ? { previewSubjectId } : {}),
       }),
   });
-  const shownPreview: PreviewResult | null = preview.data ?? draftConfigQuery.data ?? null;
+  // Không dán dữ liệu của hồ sơ A dưới nhãn hồ sơ B: chỉ dùng preview khi đúng
+  // nguồn đang chọn, ngược lại hiện bản tự động (dữ liệu mẫu có nhãn).
+  const previewMatchesSource = preview.data
+    ? (preview.data.subjectId ?? '') === previewSubjectId
+    : false;
+  const shownPreview: PreviewResult | null = previewMatchesSource
+    ? preview.data ?? null
+    : draftConfigQuery.data ?? null;
 
   const saveDraft = useMutation({
     mutationFn: () => {
@@ -152,6 +161,8 @@ export function StudioViewDetailPage() {
       queryClient.setQueryData(studioQueryKeys.view(id), updated);
       setSavedConfig(formResult?.config ?? null);
       setSaveNotice(`Đã lưu bản nháp r${updated.draftRevision}.`);
+      // Draft đổi → preview cũ (kể cả theo hồ sơ) không còn là bản đang soạn.
+      preview.reset();
       void queryClient.invalidateQueries({ queryKey: studioQueryKeys.views });
     },
     onError: (error) => {
@@ -314,21 +325,31 @@ export function StudioViewDetailPage() {
   const viewData = view.data;
   if (!viewData) return null;
 
+  const breadcrumb = (
+    <nav className="studio-breadcrumb" aria-label="Đường dẫn">
+      <Link to="/app">Về Hôm nay</Link>
+      <span aria-hidden="true">›</span>
+      <Link to="/app/studio">Studio</Link>
+    </nav>
+  );
+
+  const publication = viewData.currentPublication;
+
   if (!manageable) {
     return (
-      <div className="stack">
-        <header>
-          <h1 className="page-title">{viewData.name}</h1>
-          <p className="page-lead">
-            View {SCOPE_LABELS[viewData.scope]} — bạn chỉ có quyền xem bản đã công bố.
-          </p>
-        </header>
+      <div className="studio-page">
+        {breadcrumb}
+        <PageHeader title={viewData.name} />
+        <p className="studio-meta-line">
+          View {SCOPE_LABELS[viewData.scope]} — bạn chỉ có quyền xem bản đã công bố.
+        </p>
         <Card title="Thông tin view">
           <p>
-            Mã view <code>{viewData.key}</code> · {VIEW_STATUS_LABELS[viewData.status]}
+            Mã view <code className="studio-mono">{viewData.key}</code> ·{' '}
+            {VIEW_STATUS_LABELS[viewData.status]}
           </p>
-          {viewData.currentPublication ? (
-            <div>
+          {publication ? (
+            <div className="studio-inline-action">
               <ButtonLink to={`/app/studio/${id}/data`}>Xem dữ liệu</ButtonLink>
             </div>
           ) : (
@@ -340,33 +361,54 @@ export function StudioViewDetailPage() {
   }
 
   const widgetErrors = configErrors.widgets;
+  const summarySource = shownPreview?.data.summary?.source;
 
   return (
-    <div className="stack">
-      <header>
-        <h1 className="page-title">{viewData.name}</h1>
-        <p className="page-lead">
-          Mã view <code>{viewData.key}</code>
-          <StatusPill tone="neutral" className="studio-datamode">
-            {SCOPE_LABELS[viewData.scope]}
-          </StatusPill>
-          <StatusPill tone={VIEW_STATUS_TONES[viewData.status]} className="studio-datamode">
-            {VIEW_STATUS_LABELS[viewData.status]}
-          </StatusPill>
-          {viewData.currentPublication ? (
-            <span className="studio-datamode">
-              Đang công bố bản r{viewData.currentPublication.revision}
-            </span>
-          ) : null}
-        </p>
-      </header>
+    <div className="studio-page">
+      {breadcrumb}
+      <PageHeader
+        title={viewData.name}
+        actions={
+          publication ? (
+            <ButtonLink to={`/app/studio/${id}/data`} variant="secondary">
+              Xem dữ liệu đã công bố
+            </ButtonLink>
+          ) : null
+        }
+      />
+      <p className="studio-meta-line">
+        <span>
+          Key <code className="studio-mono">{viewData.key}</code>
+        </span>
+        <StatusPill tone="neutral">{SCOPE_LABELS[viewData.scope]}</StatusPill>
+        <StatusPill tone={VIEW_STATUS_TONES[viewData.status]}>
+          {VIEW_STATUS_LABELS[viewData.status]}
+        </StatusPill>
+        <span>
+          Bản nháp r{viewData.draftRevision}
+          {publication ? ` · Công bố r${publication.revision}` : ' · Chưa công bố'}
+        </span>
+      </p>
+
+      {/* Dải quy trình là điều hướng trong trang, không phải wizard bắt buộc. */}
+      <ol className="studio-steps" aria-label="Quy trình làm view">
+        <li>
+          <a href="#draft-heading">1. Soạn nháp</a>
+        </li>
+        <li>
+          <a href="#preview-heading">2. Xem trước</a>
+        </li>
+        <li>
+          <a href="#publish-heading">3. Công bố</a>
+        </li>
+      </ol>
 
       {staleInfo ? (
         <Alert tone="warning" title="Bản đã thay đổi ở máy chủ">
           <p>{staleInfo.message}</p>
           {staleLine(staleInfo.details) ? <p>Trạng thái hiện tại: {staleLine(staleInfo.details)}</p> : null}
           <p>Hãy tải lại để xem bản mới nhất — dữ liệu của bạn không bị ghi đè.</p>
-          <div style={{ marginTop: '0.75rem' }}>
+          <div className="studio-inline-action">
             <Button variant="secondary" size="sm" onClick={handleReload}>
               Tải lại
             </Button>
@@ -377,294 +419,312 @@ export function StudioViewDetailPage() {
       {publishNotice ? <Alert tone="success">{publishNotice}</Alert> : null}
       {rollbackNotice ? <Alert tone="success">{rollbackNotice}</Alert> : null}
 
-      <section aria-labelledby="draft-heading">
-        <div className="studio-actions-row">
-          <h2 id="draft-heading" className="section-title">
-            Bản nháp · lần sửa r{viewData.draftRevision}
+      <div className="studio-workbench">
+        <section className="studio-column" aria-labelledby="draft-heading">
+          <h2 id="draft-heading" className="studio-section-title">
+            Soạn nháp · lần sửa r{viewData.draftRevision}
           </h2>
-          <ButtonLink to={`/app/studio/${id}/data`} variant="subtle" size="sm">
-            Xem dữ liệu đã công bố
-          </ButtonLink>
-        </div>
 
-        {draftConfigQuery.isError ? (
-          <ErrorState
-            title="Không nạp được config bản nháp"
-            message={getApiErrorMessage(draftConfigQuery.error)}
-            onRetry={() => void draftConfigQuery.refetch()}
-          />
-        ) : !draft ? (
-          <PageLoader label="Đang nạp bản nháp…" />
-        ) : (
-          <div className="studio-editor">
-            <div className="field">
-              <label className="field__label" htmlFor="studio-layout">
-                Bố cục
-              </label>
-              <select
-                id="studio-layout"
-                className="field__input studio-layout-select"
-                aria-invalid={configErrors.layout ? true : undefined}
-                value={draft.layout}
-                onChange={(event) =>
-                  setDraft((current) => (current ? { ...current, layout: event.target.value as 'stack' | 'grid' } : current))
-                }
-              >
-                <option value="stack">Một cột</option>
-                <option value="grid">Lưới nhiều cột</option>
-              </select>
-              {configErrors.layout ? (
-                <p className="field__error" role="alert">
-                  {configErrors.layout}
-                </p>
-              ) : null}
-            </div>
-
-            {draft.widgets.map((widget, index) => {
-              const errors = widgetErrors[index] ?? null;
-              return (
-                <div key={`${widget.id}-${index}`} className="studio-widget-editor">
-                  <div className="studio-widget-editor__head">
-                    <p className="studio-widget-editor__label">
-                      Widget {index + 1} · {WIDGET_TYPE_LABELS[widget.type]}
-                    </p>
-                    <div className="studio-widget-editor__actions">
-                      <Button
-                        variant="subtle"
-                        size="sm"
-                        disabled={index === 0}
-                        aria-label={`Chuyển widget ${widget.title || index + 1} lên trên`}
-                        onClick={() => moveWidget(index, -1)}
-                      >
-                        ↑ Lên
-                      </Button>
-                      <Button
-                        variant="subtle"
-                        size="sm"
-                        disabled={index === draft.widgets.length - 1}
-                        aria-label={`Chuyển widget ${widget.title || index + 1} xuống dưới`}
-                        onClick={() => moveWidget(index, 1)}
-                      >
-                        ↓ Xuống
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        aria-label={`Xóa widget ${widget.title || index + 1}`}
-                        onClick={() => removeWidget(index)}
-                      >
-                        Xóa
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="studio-widget-editor__fields">
-                    <TextField
-                      id={`widget-${index}-id`}
-                      label="Mã widget"
-                      required
-                      value={widget.id}
-                      error={errors?.id}
-                      hint="Chỉ a-z, 0-9 và gạch ngang, tối đa 40 ký tự."
-                      onChange={(event) => updateWidget(index, { id: event.target.value.toLowerCase() })}
-                      maxLength={40}
-                      spellCheck={false}
-                    />
-                    <div className="field">
-                      <label className="field__label" htmlFor={`widget-${index}-type`}>
-                        Loại
-                      </label>
-                      <select
-                        id={`widget-${index}-type`}
-                        className="field__input"
-                        value={widget.type}
-                        onChange={(event) =>
-                          updateWidget(index, { type: event.target.value as StudioWidget['type'] })
-                        }
-                      >
-                        <option value="metric">Chỉ số</option>
-                        <option value="chart">Biểu đồ</option>
-                        <option value="alerts">Cảnh báo</option>
-                        <option value="summary">Tổng hợp</option>
-                        <option value="tasks">Công việc</option>
-                      </select>
-                    </div>
-                    <TextField
-                      id={`widget-${index}-title`}
-                      label="Tiêu đề"
-                      required
-                      value={widget.title}
-                      error={errors?.title}
-                      onChange={(event) => updateWidget(index, { title: event.target.value })}
-                      maxLength={80}
-                    />
-                    <div className="field">
-                      <label className="field__label" htmlFor={`widget-${index}-span`}>
-                        Độ rộng
-                      </label>
-                      <select
-                        id={`widget-${index}-span`}
-                        className="field__input"
-                        value={widget.span}
-                        onChange={(event) =>
-                          updateWidget(index, { span: Number(event.target.value) as 1 | 2 | 3 })
-                        }
-                      >
-                        <option value={1}>1 — hẹp</option>
-                        <option value={2}>2 — vừa</option>
-                        <option value={3}>3 — rộng</option>
-                      </select>
-                    </div>
-                    <div className="field">
-                      <label className="field__label" htmlFor={`widget-${index}-options`}>
-                        Options (JSON, tùy chọn)
-                      </label>
-                      <p className="field__hint" id={`widget-${index}-options-hint`}>
-                        Ví dụ: <code>{'{"limit": 5}'}</code>. Để trống nếu không cần.
-                      </p>
-                      <textarea
-                        id={`widget-${index}-options`}
-                        className={`field__input${errors?.options ? ' field__input--error' : ''}`}
-                        aria-invalid={errors?.options ? true : undefined}
-                        aria-describedby={`widget-${index}-options-hint`}
-                        rows={2}
-                        value={optionsTexts[index] ?? ''}
-                        onChange={(event) =>
-                          setOptionsTexts((texts) => texts.map((text, i) => (i === index ? event.target.value : text)))
-                        }
-                        spellCheck={false}
-                      />
-                      {errors?.options ? (
-                        <p className="field__error" role="alert">
-                          {errors.options}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {configErrors.general.length > 0 ? (
-              <Alert tone="error" title="Config chưa hợp lệ">
-                {configErrors.general.join(' ')}
-              </Alert>
-            ) : null}
-            {saveDraft.isError && !staleInfo ? (
-              <Alert tone="error">{getApiErrorMessage(saveDraft.error)}</Alert>
-            ) : null}
-
-            <div className="studio-actions-row">
-              <Button
-                variant="secondary"
-                onClick={addWidget}
-                disabled={draft.widgets.length >= MAX_WIDGETS}
-              >
-                Thêm widget ({draft.widgets.length}/{MAX_WIDGETS})
-              </Button>
-              <Button onClick={handleSave} disabled={saveDraft.isPending}>
-                {saveDraft.isPending ? 'Đang lưu…' : 'Lưu bản nháp'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section aria-labelledby="preview-heading">
-        <h2 id="preview-heading" className="section-title">
-          Xem trước
-        </h2>
-        <Card description="Xem trước chỉ đọc — không ghi dữ liệu nghiệp vụ. Mặc định dùng dữ liệu mẫu có nhãn; có thể chọn hồ sơ mình có quyền để xem dữ liệu thật.">
-          <div className="studio-actions-row">
-            <div className="field">
-              <label className="field__label" htmlFor="preview-subject">
-                Hồ sơ dữ liệu thật (tùy chọn)
-              </label>
-              <select
-                id="preview-subject"
-                className="field__input"
-                value={previewSubjectId}
-                onChange={(event) => setPreviewSubjectId(event.target.value)}
-              >
-                <option value="">Dữ liệu mẫu</option>
-                {(subjects.data ?? []).map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button variant="secondary" onClick={handlePreview} disabled={preview.isPending || draftConfigQuery.isPending}>
-              {preview.isPending ? 'Đang xem trước…' : 'Xem trước'}
-            </Button>
-          </div>
-          {dirty ? (
-            <Alert tone="info">
-              Bạn có thay đổi chưa lưu — hãy lưu bản nháp rồi xem trước để preview khớp với bản đã lưu.
-            </Alert>
-          ) : null}
-          {preview.isError ? (
-            <Alert tone="error" title="Không tạo được preview">
-              {getApiErrorMessage(preview.error)}
-            </Alert>
-          ) : null}
-          {shownPreview ? (
-            <div className="studio-preview">
-              <div>
-                <DataModeBadge
-                  sample={shownPreview.data.sample}
-                  subjectName={shownPreview.data.subject?.displayName}
-                />
-                <span className="studio-datamode">
-                  Draft r{shownPreview.draftRevision} · digest {shortDigest(shownPreview.digest)} · kiểm{' '}
-                  {formatDateTime(shownPreview.checkedAt)}
-                </span>
+          {draftConfigQuery.isError ? (
+            <ErrorState
+              title="Không nạp được config bản nháp"
+              message={getApiErrorMessage(draftConfigQuery.error)}
+              onRetry={() => void draftConfigQuery.refetch()}
+            />
+          ) : !draft ? (
+            <PageLoader label="Đang nạp bản nháp…" />
+          ) : (
+            <div className="studio-editor">
+              <div className="field studio-layout-field">
+                <label className="field__label" htmlFor="studio-layout">
+                  Bố cục
+                </label>
+                <select
+                  id="studio-layout"
+                  className="field__input"
+                  aria-invalid={configErrors.layout ? true : undefined}
+                  value={draft.layout}
+                  onChange={(event) =>
+                    setDraft((current) => (current ? { ...current, layout: event.target.value as 'stack' | 'grid' } : current))
+                  }
+                >
+                  <option value="stack">Một cột</option>
+                  <option value="grid">Lưới nhiều cột</option>
+                </select>
+                {configErrors.layout ? (
+                  <p className="field__error" role="alert">
+                    {configErrors.layout}
+                  </p>
+                ) : null}
               </div>
-              {shownPreview.warnings.length > 0 ? (
-                <Alert tone="warning" title="Lưu ý khi preview">
-                  <ul className="studio-warning-list">
-                    {shownPreview.warnings.map((warning) => (
-                      <li key={warning}>{warning}</li>
-                    ))}
-                  </ul>
+
+              <ol className="studio-widget-list">
+                {draft.widgets.map((widget, index) => {
+                  const errors = widgetErrors[index] ?? null;
+                  return (
+                    <li key={`${widget.id}-${index}`} className="studio-widget-editor">
+                      <div className="studio-widget-editor__head">
+                        <p className="studio-widget-editor__label">
+                          Widget {index + 1} · {WIDGET_TYPE_LABELS[widget.type]}
+                        </p>
+                        <div className="studio-widget-editor__actions">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={index === 0}
+                            aria-label={`Chuyển widget ${widget.title || index + 1} lên trên`}
+                            onClick={() => moveWidget(index, -1)}
+                          >
+                            ↑ Lên
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            disabled={index === draft.widgets.length - 1}
+                            aria-label={`Chuyển widget ${widget.title || index + 1} xuống dưới`}
+                            onClick={() => moveWidget(index, 1)}
+                          >
+                            ↓ Xuống
+                          </Button>
+                          <Button
+                            variant="danger-quiet"
+                            size="sm"
+                            aria-label={`Xóa widget ${widget.title || index + 1}`}
+                            onClick={() => removeWidget(index)}
+                          >
+                            Xóa
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="studio-widget-editor__fields">
+                        <TextField
+                          id={`widget-${index}-id`}
+                          label="Mã widget"
+                          required
+                          value={widget.id}
+                          error={errors?.id}
+                          hint="Chỉ a-z, 0-9 và gạch ngang, tối đa 40 ký tự."
+                          onChange={(event) => updateWidget(index, { id: event.target.value.toLowerCase() })}
+                          maxLength={40}
+                          spellCheck={false}
+                        />
+                        <div className="field">
+                          <label className="field__label" htmlFor={`widget-${index}-type`}>
+                            Loại
+                          </label>
+                          <select
+                            id={`widget-${index}-type`}
+                            className="field__input"
+                            value={widget.type}
+                            onChange={(event) =>
+                              updateWidget(index, { type: event.target.value as StudioWidget['type'] })
+                            }
+                          >
+                            <option value="metric">Chỉ số</option>
+                            <option value="chart">Biểu đồ</option>
+                            <option value="alerts">Cảnh báo</option>
+                            <option value="summary">Tổng hợp</option>
+                            <option value="tasks">Công việc</option>
+                          </select>
+                        </div>
+                        <TextField
+                          id={`widget-${index}-title`}
+                          label="Tiêu đề"
+                          required
+                          value={widget.title}
+                          error={errors?.title}
+                          onChange={(event) => updateWidget(index, { title: event.target.value })}
+                          maxLength={80}
+                        />
+                        <div className="field">
+                          <label className="field__label" htmlFor={`widget-${index}-span`}>
+                            Độ rộng
+                          </label>
+                          <select
+                            id={`widget-${index}-span`}
+                            className="field__input"
+                            value={widget.span}
+                            onChange={(event) =>
+                              updateWidget(index, { span: Number(event.target.value) as 1 | 2 | 3 })
+                            }
+                          >
+                            <option value={1}>1 — hẹp</option>
+                            <option value={2}>2 — vừa</option>
+                            <option value={3}>3 — rộng</option>
+                          </select>
+                        </div>
+                        <div className="field studio-widget-editor__options">
+                          <label className="field__label" htmlFor={`widget-${index}-options`}>
+                            Options (JSON, tùy chọn)
+                          </label>
+                          <p className="field__hint" id={`widget-${index}-options-hint`}>
+                            Ví dụ: <code>{'{"limit": 5}'}</code>. Để trống nếu không cần.
+                          </p>
+                          <textarea
+                            id={`widget-${index}-options`}
+                            className={`field__input${errors?.options ? ' field__input--error' : ''}`}
+                            aria-invalid={errors?.options ? true : undefined}
+                            aria-describedby={`widget-${index}-options-hint`}
+                            rows={2}
+                            value={optionsTexts[index] ?? ''}
+                            onChange={(event) =>
+                              setOptionsTexts((texts) => texts.map((text, i) => (i === index ? event.target.value : text)))
+                            }
+                            spellCheck={false}
+                          />
+                          {errors?.options ? (
+                            <p className="field__error" role="alert">
+                              {errors.options}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {configErrors.general.length > 0 ? (
+                <Alert tone="error" title="Config chưa hợp lệ">
+                  {configErrors.general.join(' ')}
                 </Alert>
               ) : null}
-              <WidgetPreview config={shownPreview.config} data={shownPreview.data} />
-            </div>
-          ) : null}
-        </Card>
-      </section>
+              {saveDraft.isError && !staleInfo ? (
+                <Alert tone="error">{getApiErrorMessage(saveDraft.error)}</Alert>
+              ) : null}
 
-      <section aria-labelledby="publish-heading">
-        <h2 id="publish-heading" className="section-title">
-          Công bố
-        </h2>
-        <Card description="Công bố sẽ thay bản đang chạy bằng bản nháp hiện tại. Bản cũ vẫn được giữ trong lịch sử để đối chiếu hoặc quay lại.">
-          <TextField
-            id="publish-note"
-            label="Ghi chú (tùy chọn)"
-            value={note}
-            hint="Tối đa 300 ký tự — ghi lý do công bố để dễ truy vết."
-            onChange={(event) => setNote(event.target.value)}
-            maxLength={300}
-          />
-          <p>
-            {publishEnabled
-              ? 'Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố.'
-              : 'Nút công bố chỉ bật sau khi xem trước thành công và draft không đổi từ lúc preview.'}
-          </p>
-          <Button onClick={() => publish.mutate()} disabled={!publishEnabled || publish.isPending}>
-            {publish.isPending ? 'Đang công bố…' : 'Công bố bản nháp'}
-          </Button>
-          {publish.isError && !staleInfo ? (
-            <Alert tone="error" title="Không công bố được">
-              {getApiErrorMessage(publish.error)}
-            </Alert>
-          ) : null}
-        </Card>
-      </section>
+              <div className="studio-actions-row">
+                <Button
+                  variant="secondary"
+                  onClick={addWidget}
+                  disabled={draft.widgets.length >= MAX_WIDGETS}
+                >
+                  Thêm widget ({draft.widgets.length}/{MAX_WIDGETS})
+                </Button>
+                <Button onClick={handleSave} disabled={saveDraft.isPending}>
+                  {saveDraft.isPending ? 'Đang lưu…' : 'Lưu bản nháp'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <div className="studio-column">
+          <section aria-labelledby="preview-heading">
+            <h2 id="preview-heading" className="studio-section-title">
+              Xem trước
+            </h2>
+            <Card>
+              <p className="studio-preview__note">
+                Chỉ xem trước — không ghi dữ liệu nghiệp vụ. Chọn hồ sơ bạn có quyền để xem bản
+                nháp với dữ liệu hồ sơ; mặc định là dữ liệu mẫu có nhãn.
+              </p>
+              <div className="studio-actions-row studio-preview__controls">
+                <div className="field">
+                  <label className="field__label" htmlFor="preview-subject">
+                    Xem trước với hồ sơ (tùy chọn)
+                  </label>
+                  <select
+                    id="preview-subject"
+                    className="field__input"
+                    value={previewSubjectId}
+                    onChange={(event) => {
+                      setPreviewSubjectId(event.target.value);
+                      // Đổi nguồn thì bỏ kết quả cũ để không hiện dữ liệu A dưới nhãn B.
+                      preview.reset();
+                    }}
+                  >
+                    <option value="">Dữ liệu mẫu</option>
+                    {(subjects.data ?? []).map((subject) => (
+                      <option key={subject.id} value={subject.id}>
+                        {subject.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={handlePreview}
+                  disabled={preview.isPending || draftConfigQuery.isPending}
+                >
+                  {preview.isPending ? 'Đang xem trước…' : 'Xem trước'}
+                </Button>
+              </div>
+              {dirty ? (
+                <Alert tone="info">
+                  Bạn có thay đổi chưa lưu — hãy lưu bản nháp rồi xem trước để preview khớp với bản đã lưu.
+                </Alert>
+              ) : null}
+              {preview.isError ? (
+                <Alert tone="error" title="Không tạo được preview">
+                  {getApiErrorMessage(preview.error)}
+                </Alert>
+              ) : null}
+              {shownPreview ? (
+                <div className="studio-preview-block">
+                  <div className="studio-data-head">
+                    <DataModeBadge
+                      sample={shownPreview.data.sample}
+                      subjectName={shownPreview.data.subject?.displayName}
+                      synthetic={!shownPreview.data.sample && summarySource === 'synthetic'}
+                    />
+                    <span className="studio-datamode studio-datamode--note">
+                      Draft r{shownPreview.draftRevision} · digest {shortDigest(shownPreview.digest)} · kiểm{' '}
+                      {formatDateTime(shownPreview.checkedAt)}
+                    </span>
+                  </div>
+                  {shownPreview.warnings.length > 0 ? (
+                    <Alert tone="warning" title="Lưu ý khi preview">
+                      <ul className="studio-warning-list">
+                        {shownPreview.warnings.map((warning) => (
+                          <li key={warning}>{warning}</li>
+                        ))}
+                      </ul>
+                    </Alert>
+                  ) : null}
+                  <WidgetPreview config={shownPreview.config} data={shownPreview.data} />
+                </div>
+              ) : null}
+            </Card>
+          </section>
+
+          <section aria-labelledby="publish-heading">
+            <h2 id="publish-heading" className="studio-section-title">
+              Công bố
+            </h2>
+            <Card>
+              <p className="studio-preview__note">
+                Công bố thay bản đang chạy bằng bản nháp đã lưu. Bản cũ vẫn nằm trong lịch sử để đối
+                chiếu hoặc quay lại.
+              </p>
+              <TextField
+                id="publish-note"
+                label="Ghi chú (tùy chọn)"
+                value={note}
+                hint="Tối đa 300 ký tự — ghi lý do công bố để dễ truy vết."
+                onChange={(event) => setNote(event.target.value)}
+                maxLength={300}
+              />
+              <p className="studio-publish-state">
+                {publishEnabled
+                  ? 'Bản xem trước hiện tại khớp với draft đã lưu — sẵn sàng công bố.'
+                  : 'Nút công bố chỉ bật sau khi xem trước thành công và draft không đổi từ lúc preview.'}
+              </p>
+              <Button onClick={() => publish.mutate()} disabled={!publishEnabled || publish.isPending}>
+                {publish.isPending ? 'Đang công bố…' : 'Công bố bản nháp'}
+              </Button>
+              {publish.isError && !staleInfo ? (
+                <Alert tone="error" title="Không công bố được">
+                  {getApiErrorMessage(publish.error)}
+                </Alert>
+              ) : null}
+            </Card>
+          </section>
+        </div>
+      </div>
 
       <section aria-labelledby="history-heading">
-        <h2 id="history-heading" className="section-title">
+        <h2 id="history-heading" className="studio-section-title">
           Lịch sử công bố
         </h2>
         {publications.isPending ? (
@@ -679,31 +739,36 @@ export function StudioViewDetailPage() {
           <EmptyState title="Chưa có bản công bố nào" />
         ) : (
           <ul className="studio-publication-list">
-            {(publications.data?.items ?? []).map((publication) => (
-              <li key={publication.id} className="studio-publication">
+            {(publications.data?.items ?? []).map((item) => (
+              <li key={item.id} className="studio-publication">
                 <div className="studio-publication__main">
                   <p className="studio-publication__title">
-                    Bản r{publication.revision}
-                    <StatusPill tone={PUBLICATION_STATUS_TONES[publication.status]}>
-                      {PUBLICATION_STATUS_LABELS[publication.status]}
+                    Bản r{item.revision}
+                    <StatusPill tone={PUBLICATION_STATUS_TONES[item.status]}>
+                      {PUBLICATION_STATUS_LABELS[item.status]}
                     </StatusPill>
                   </p>
                   <p className="studio-publication__meta">
-                    Digest {shortDigest(publication.digest)} · {formatDateTime(publication.publishedAt)}
-                    {publication.note ? ` · ${publication.note}` : ''}
+                    Công bố {formatDateTime(item.publishedAt)} · digest{' '}
+                    {shortDigest(item.digest)}
+                    {item.note ? ` · ${item.note}` : ''}
                   </p>
                   <p className="studio-publication__meta">
-                    Duyệt: {publication.approvedBy.displayName} · Công bố: {publication.publishedBy.displayName}
+                    Duyệt: {item.approvedBy.displayName} · Công bố: {item.publishedBy.displayName}
                   </p>
                 </div>
-                {publication.status !== 'active' ? (
-                  rollbackTarget?.id === publication.id ? (
-                    <div className="confirm-box" role="group" aria-label={`Xác nhận rollback bản r${publication.revision}`}>
+                {item.status !== 'active' ? (
+                  rollbackTarget?.id === item.id ? (
+                    <div
+                      className="studio-confirm"
+                      role="group"
+                      aria-label={`Xác nhận rollback bản r${item.revision}`}
+                    >
                       <p>
-                        Rollback về bản r{publication.revision}? Rollback tạo bản công bố MỚI chứa config của
+                        Rollback về bản r{item.revision}? Rollback tạo bản công bố MỚI chứa config của
                         bản này — lịch sử giữ nguyên, không xóa bản nào.
                       </p>
-                      <div>
+                      <div className="studio-actions-row">
                         <Button
                           variant="danger"
                           size="sm"
@@ -723,7 +788,7 @@ export function StudioViewDetailPage() {
                       </div>
                     </div>
                   ) : (
-                    <Button variant="secondary" size="sm" onClick={() => setRollbackTarget(publication)}>
+                    <Button variant="secondary" size="sm" onClick={() => setRollbackTarget(item)}>
                       Rollback
                     </Button>
                   )

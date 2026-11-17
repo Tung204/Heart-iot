@@ -1,8 +1,8 @@
 import type { StudioData, StudioWidget, ViewConfig } from '@heart-iot/contracts/studio';
 import { ALERT_STATE_LABELS, ALERT_TYPE_LABELS } from '../alerts/labels';
 import { formatDateTime } from '../../lib/format';
-import { FRESHNESS_LABELS, QUALITY_LABELS, TASK_STATUS_LABELS } from './labels';
-import './studio.css';
+import { FRESHNESS_LABELS, QUALITY_LABELS, TASK_STATUS_LABELS, dataSourceLabel } from './labels';
+import '../../styles/studio.css';
 
 /**
  * Render dữ liệu preview/published theo config — dùng chung cho trang chi tiết
@@ -15,14 +15,31 @@ function readNumberOption(widget: StudioWidget, key: string, fallback: number): 
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
-/** Badge nguồn dữ liệu — bắt buộc có khi render preview/data. */
-export function DataModeBadge({ sample, subjectName }: { sample: boolean; subjectName?: string }) {
-  return sample ? (
-    <span className="pill pill--sand studio-datamode">Dữ liệu mẫu</span>
-  ) : (
-    <span className="pill pill--teal studio-datamode">
-      Dữ liệu thật{subjectName ? ` · ${subjectName}` : ''}
-    </span>
+/**
+ * Nhãn nguồn dữ liệu của preview/data — bắt buộc có mỗi lần render.
+ * - `sample`: dữ liệu mẫu của bản xem trước, không thuộc hồ sơ nào.
+ * - Ngược lại: dữ liệu của một hồ sơ ("Dữ liệu hồ sơ"), kèm "Dữ liệu mô phỏng"
+ *   khi telemetry là tổng hợp. Không dùng nhãn "Dữ liệu thật".
+ */
+export function DataModeBadge({
+  sample,
+  subjectName,
+  synthetic,
+}: {
+  sample: boolean;
+  subjectName?: string;
+  synthetic?: boolean;
+}) {
+  if (sample) {
+    return <span className="pill pill--sand studio-datamode">Dữ liệu mẫu</span>;
+  }
+  return (
+    <>
+      <span className="pill pill--success studio-datamode">
+        Dữ liệu hồ sơ{subjectName ? ` · ${subjectName}` : ''}
+      </span>
+      {synthetic ? <span className="pill pill--warning studio-datamode">Dữ liệu mô phỏng</span> : null}
+    </>
   );
 }
 
@@ -116,7 +133,12 @@ function ChartBody({ widget, data }: { widget: StudioWidget; data: StudioData })
         </text>
         <polyline points={polyline} fill="none" className="studio-chart__line" />
       </svg>
-      <div className="studio-table-wrap">
+      <div
+        className="studio-table-wrap"
+        tabIndex={0}
+        role="group"
+        aria-label="Bảng dữ liệu thay thế biểu đồ — cuộn ngang nếu cần"
+      >
         <table className="studio-table">
           <caption className="studio-table__caption">Bảng dữ liệu thay thế cho biểu đồ</caption>
           <thead>
@@ -196,7 +218,7 @@ function SummaryBody({ data }: { data: StudioData }) {
       </div>
       <div>
         <dt>Nguồn</dt>
-        <dd>{summary.source === 'synthetic' ? 'Dữ liệu mô phỏng' : 'Dữ liệu thiết bị'}</dd>
+        <dd>{dataSourceLabel(summary.source) ?? summary.source}</dd>
       </div>
       {summary.lastSeenAt ? (
         <div>
