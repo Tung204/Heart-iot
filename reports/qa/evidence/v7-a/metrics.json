@@ -1,0 +1,2065 @@
+{
+  "generatedAt": "2026-11-17T17:55:04.935Z",
+  "web": "http://127.0.0.1:4355",
+  "api": "http://127.0.0.1:3400/api/v1",
+  "deviceScaleFactor": 1,
+  "publishedViewId": "4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+  "viewports": [
+    {
+      "name": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "large": false
+    },
+    {
+      "name": "390x844",
+      "width": 390,
+      "height": 844,
+      "large": false
+    },
+    {
+      "name": "360x740",
+      "width": 360,
+      "height": 740,
+      "large": false
+    },
+    {
+      "name": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "large": true
+    }
+  ],
+  "guard": {
+    "kind": "non-admin-admin-api",
+    "adminApiCalls": 0,
+    "noticeVisible": true
+  },
+  "nav": {
+    "primaryItems": [
+      {
+        "text": "Hôm nay",
+        "href": "/app"
+      },
+      {
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "href": "/app/alerts"
+      },
+      {
+        "text": "Sức khỏe",
+        "href": "/app/overview"
+      },
+      {
+        "text": "Người thân",
+        "href": "/app/subjects"
+      },
+      {
+        "text": "Về Hôm nay",
+        "href": "/app"
+      },
+      {
+        "text": "Hôm nay",
+        "href": "/app"
+      },
+      {
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "href": "/app/alerts"
+      },
+      {
+        "text": "Sức khỏe",
+        "href": "/app/overview"
+      },
+      {
+        "text": "Người thân",
+        "href": "/app/subjects"
+      }
+    ],
+    "studioLinks": []
+  },
+  "results": [
+    {
+      "role": "admin",
+      "route": "admin-overview",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/admin?tab=overview",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "true"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 14,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=overview",
+        "activeTab": "Tổng quan",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 6,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-overview-1280x900.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-users",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/admin?tab=users",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "true"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [
+        {
+          "caption": "Danh sách tài khoản",
+          "tableWidth": 1000,
+          "wrapClientWidth": 1000,
+          "wrapScrollWidth": 1000,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=users",
+        "activeTab": "Người dùng",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 12,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-users-1280x900.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-devices",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/admin?tab=devices",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "true"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=devices",
+        "activeTab": "Thiết bị",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 20,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-devices-1280x900.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-policy",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=policy",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "true"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=policy",
+        "activeTab": "Chính sách",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 26,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-policy-1280x900.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-audit",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=audit",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "true"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 20,
+      "tables": [
+        {
+          "caption": "Nhật ký hoạt động",
+          "tableWidth": 1000,
+          "wrapClientWidth": 1000,
+          "wrapScrollWidth": 1000,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=audit",
+        "activeTab": "Nhật ký",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 34,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-audit-1280x900.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-overview",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/admin?tab=overview",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "true"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 14,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=overview",
+        "activeTab": "Tổng quan",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 6,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-overview-390x844.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-users",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/admin?tab=users",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "true"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [
+        {
+          "caption": "Danh sách tài khoản",
+          "tableWidth": 358,
+          "wrapClientWidth": 358,
+          "wrapScrollWidth": 358,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=users",
+        "activeTab": "Người dùng",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 12,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-users-390x844.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-devices",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/admin?tab=devices",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "true"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=devices",
+        "activeTab": "Thiết bị",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 20,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-devices-390x844.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-policy",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=policy",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "true"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=policy",
+        "activeTab": "Chính sách",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 26,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-policy-390x844.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-audit",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=audit",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "true"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 20,
+      "tables": [
+        {
+          "caption": "Nhật ký hoạt động",
+          "tableWidth": 358,
+          "wrapClientWidth": 358,
+          "wrapScrollWidth": 358,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=audit",
+        "activeTab": "Nhật ký",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 34,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-audit-390x844.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-overview",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/admin?tab=overview",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "true"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 14,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=overview",
+        "activeTab": "Tổng quan",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 6,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-overview-360x740.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-users",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/admin?tab=users",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "true"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [
+        {
+          "caption": "Danh sách tài khoản",
+          "tableWidth": 328,
+          "wrapClientWidth": 328,
+          "wrapScrollWidth": 328,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=users",
+        "activeTab": "Người dùng",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 12,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-users-360x740.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-devices",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/admin?tab=devices",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "true"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=devices",
+        "activeTab": "Thiết bị",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 20,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-devices-360x740.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-policy",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=policy",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "true"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=policy",
+        "activeTab": "Chính sách",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 26,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-policy-360x740.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-audit",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/admin?tab=advanced&view=audit",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "true"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 20,
+      "tables": [
+        {
+          "caption": "Nhật ký hoạt động",
+          "tableWidth": 328,
+          "wrapClientWidth": 328,
+          "wrapScrollWidth": 328,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=audit",
+        "activeTab": "Nhật ký",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 34,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-audit-360x740.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-overview",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/admin?tab=overview",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "true"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 14,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=overview",
+        "activeTab": "Tổng quan",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 6,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-overview-390x844-large.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-users",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/admin?tab=users",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "true"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [
+        {
+          "caption": "Danh sách tài khoản",
+          "tableWidth": 350,
+          "wrapClientWidth": 350,
+          "wrapScrollWidth": 350,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=users",
+        "activeTab": "Người dùng",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 12,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-users-390x844-large.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-devices",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/admin?tab=devices",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "true"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=devices",
+        "activeTab": "Thiết bị",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 20,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-devices-390x844-large.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-policy",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/admin?tab=advanced&view=policy",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "true"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "false"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 13,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=policy",
+        "activeTab": "Chính sách",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 26,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-policy-390x844-large.png"
+    },
+    {
+      "role": "admin",
+      "route": "admin-audit",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/admin?tab=advanced&view=audit",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Quản trị",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [
+        {
+          "text": "Tổng quan",
+          "selected": "false"
+        },
+        {
+          "text": "Người dùng",
+          "selected": "false"
+        },
+        {
+          "text": "Thiết bị",
+          "selected": "false"
+        },
+        {
+          "text": "Chính sách",
+          "selected": "false"
+        },
+        {
+          "text": "Nhật ký",
+          "selected": "true"
+        }
+      ],
+      "current": [
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        },
+        {
+          "tag": "a",
+          "current": "page",
+          "text": "Quản trị"
+        }
+      ],
+      "smallTargets": [],
+      "targetCount": 19,
+      "tables": [
+        {
+          "caption": "Nhật ký hoạt động",
+          "tableWidth": 350,
+          "wrapClientWidth": 350,
+          "wrapScrollWidth": 350,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/admin?tab=advanced&view=audit",
+        "activeTab": "Nhật ký",
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 34,
+      "screenshot": "reports/qa/evidence/v7-a\\admin-audit-390x844-large.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-list",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/studio",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Studio",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/studio",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 7,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-list-1280x900.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-detail",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 39,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 398,
+          "wrapClientWidth": 282,
+          "wrapScrollWidth": 398,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 4,
+      "contextLines": 0,
+      "studioLinksInNav": 1,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 17,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-detail-1280x900.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-data",
+      "viewport": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "32px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 11,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 594,
+          "wrapClientWidth": 594,
+          "wrapScrollWidth": 594,
+          "overflowsWrap": false
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 1,
+      "syntheticCount": 2,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 2,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 25,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-data-1280x900.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-list",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/studio",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Studio",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/studio",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 7,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-list-390x844.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-detail",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 39,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 398,
+          "wrapClientWidth": 274,
+          "wrapScrollWidth": 398,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 4,
+      "contextLines": 0,
+      "studioLinksInNav": 1,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 17,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-detail-390x844.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-data",
+      "viewport": "390x844",
+      "width": 390,
+      "height": 844,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 11,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 398,
+          "wrapClientWidth": 274,
+          "wrapScrollWidth": 398,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 1,
+      "syntheticCount": 2,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 2,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 25,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-data-390x844.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-list",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/studio",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Studio",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/studio",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 7,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-list-360x740.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-detail",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 39,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 398,
+          "wrapClientWidth": 244,
+          "wrapScrollWidth": 398,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 4,
+      "contextLines": 0,
+      "studioLinksInNav": 1,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 17,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-detail-360x740.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-data",
+      "viewport": "360x740",
+      "width": 360,
+      "height": 740,
+      "largeText": false,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "24px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 11,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 398,
+          "wrapClientWidth": 244,
+          "wrapScrollWidth": 398,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 1,
+      "syntheticCount": 2,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 2,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 25,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-data-360x740.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-list",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/studio",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Studio",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 12,
+      "tables": [],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 0,
+      "afterReload": {
+        "url": "/app/studio",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 7,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-list-390x844-large.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-detail",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 39,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 498,
+          "wrapClientWidth": 246,
+          "wrapScrollWidth": 498,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 0,
+      "syntheticCount": 0,
+      "sampleCount": 4,
+      "contextLines": 0,
+      "studioLinksInNav": 1,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 17,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-detail-390x844-large.png"
+    },
+    {
+      "role": "owner",
+      "route": "studio-data",
+      "viewport": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "largeText": true,
+      "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1": [
+        {
+          "text": "Tổng quan hằng ngày",
+          "fontSize": "30px"
+        }
+      ],
+      "tabs": [],
+      "current": [],
+      "smallTargets": [],
+      "targetCount": 11,
+      "tables": [
+        {
+          "caption": "Bảng dữ liệu thay thế cho biểu đồ",
+          "tableWidth": 498,
+          "wrapClientWidth": 246,
+          "wrapScrollWidth": 498,
+          "overflowsWrap": true
+        }
+      ],
+      "dataThatCount": 0,
+      "dataProfileCount": 1,
+      "syntheticCount": 2,
+      "sampleCount": 0,
+      "contextLines": 0,
+      "studioLinksInNav": 2,
+      "afterReload": {
+        "url": "/app/studio/4ec05596-6bd4-4bb4-ac67-164ab019cc93/data",
+        "activeTab": null,
+        "urlKept": true,
+        "tabKept": true
+      },
+      "failedRequests": [],
+      "abortedRequestCount": 25,
+      "screenshot": "reports/qa/evidence/v7-a\\studio-data-390x844-large.png"
+    }
+  ]
+}

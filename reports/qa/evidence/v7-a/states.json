@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-11-17T17:52:51.601Z",
+  "web": "http://127.0.0.1:4355",
+  "api": "http://127.0.0.1:3400/api/v1",
+  "deviceScaleFactor": 1,
+  "keyboardTab": {
+    "activeAfterArrowRight": "Người dùng",
+    "focusedTab": "Người dùng",
+    "activeAfterEnd": "Nhật ký",
+    "urlAfterEnd": "/app/admin?tab=advanced&view=audit"
+  },
+  "backForward": {
+    "urlAfterBack": "/app/admin?tab=overview",
+    "tabAfterBack": "Tổng quan",
+    "headingAfterBack": "Tổng quan"
+  },
+  "policy": {
+    "evidence": "Bản xem trước cho v1 · digest ba1a4981d61f · không ghi dữ liệu",
+    "publishEnabledAfterPreview": true,
+    "screenshot": "reports/qa/evidence/v7-a/admin-policy-1280x900-preview.png",
+    "publishDisabledAfterEdit": true,
+    "previewClearedAfterEdit": true
+  },
+  "audit": {
+    "detailFocused": true,
+    "detailOutsideTableWrap": true,
+    "screenshot": "reports/qa/evidence/v7-a/admin-audit-1280x900-detail.png"
+  },
+  "users": {
+    "reasonFocused": true,
+    "screenshot": "reports/qa/evidence/v7-a/admin-users-1280x900-lock-form.png"
+  },
+  "devices": {
+    "secretVisible": true,
+    "focusAfterSecret": "H2",
+    "secretLength": 43,
+    "screenshot": "reports/qa/evidence/v7-a/admin-devices-1280x900-secret.png",
+    "secretInDomAfterDismiss": false
+  },
+  "studio": {
+    "previewLabels": [
+      "Dữ liệu hồ sơ · Bà Trần Thị An",
+      "Dữ liệu mô phỏng",
+      "Draft r1 · digest 08a93b8e… · kiểm 00:53 18 thg 11, 2026"
+    ],
+    "syntheticBadgeVisible": true,
+    "dataThatCount": 0,
+    "screenshot": "reports/qa/evidence/v7-a/studio-detail-1280x900-subject-preview.png",
+    "afterSourceChange": [
+      "Dữ liệu mẫu",
+      "Draft r1 · digest 08a93b8e… · kiểm 00:53 18 thg 11, 2026"
+    ]
+  }
+}
