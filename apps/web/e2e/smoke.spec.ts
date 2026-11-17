@@ -26,17 +26,19 @@ test('landing hiển thị tên sản phẩm, trợ lý AI và dữ liệu mô p
 }) => {
   await page.goto('/');
 
+  // v7 đổi H1 sang câu mô tả sản phẩm (bỏ "Người thân ở nhà"); title tĩnh vẫn là
+  // "Theo dõi sức khỏe" nên không còn chữ "trợ lý AI" trong <title>.
   await expect(
-    page.getByRole('heading', { level: 1, name: /Người thân ở nhà/ }),
+    page.getByRole('heading', { level: 1, name: 'Theo dõi sức khỏe người thân' }),
   ).toBeVisible();
-  await expect(page).toHaveTitle(/trợ lý AI/i);
+  await expect(page).toHaveTitle(/Theo dõi sức khỏe/);
   await expect(page.getByText('Theo dõi sức khỏe', { exact: true }).first()).toBeVisible();
-  await expect(
-    page.getByText('Trợ lý AI trả lời câu hỏi về số liệu của người thân.'),
-  ).toBeVisible();
+  // v7 đổi câu mô tả ở ba hàng thông tin: trợ lý là nơi hỏi, không phải nơi tự trả lời.
+  await expect(page.getByText('Hỏi trợ lý AI về số liệu của người thân.')).toBeVisible();
 
   // Header chỉ logo; hero là nơi duy nhất có CTA, mỗi đích đúng một link.
-  const header = page.locator('header.site-header');
+  // v7 giữ header một link nhưng không còn là nơi đặt CTA — kiểm bằng landmark.
+  const header = page.getByRole('banner');
   await expect(header.getByRole('link')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Tạo tài khoản' })).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Đăng nhập' })).toHaveCount(1);
@@ -205,7 +207,8 @@ test.describe('/me chậm hoặc lỗi', () => {
     });
 
     await page.goto('/');
-    const loading = page.locator('.hero__session[aria-busy="true"]');
+    // v7 đổi class khối trạng thái phiên ở hero từ `.hero__session` sang `.landing-session`.
+    const loading = page.locator('.landing-session[aria-busy="true"]');
     await expect(loading).toContainText('Đang kiểm tra phiên đăng nhập…');
     await expect(page.getByRole('link', { name: 'Tạo tài khoản' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Đăng nhập' })).toHaveCount(0);
@@ -238,8 +241,9 @@ test.describe('/me chậm hoặc lỗi', () => {
     await expect(page.getByText('Không kiểm tra được phiên đăng nhập.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Đăng nhập' })).toHaveCount(1);
     await expect(page.getByRole('link', { name: 'Tạo tài khoản' })).toHaveCount(1);
-    await expect(page.locator('.hero__session').getByRole('button', { name: 'Thử lại' })).toBeVisible();
-    await expect(page.locator('.hero__actions a')).toHaveCount(0);
+    await expect(page.locator('.landing-session').getByRole('button', { name: 'Thử lại' })).toBeVisible();
+    // Khối lỗi phiên nằm ngoài vùng CTA: hero không render CTA khách khi chưa biết phiên.
+    await expect(page.locator('.landing-hero__actions a')).toHaveCount(0);
 
     allowRecovery = true;
     await page.getByRole('button', { name: 'Thử lại' }).click();

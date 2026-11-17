@@ -120,10 +120,23 @@ test('lịch sử giữ nguyên trang đã tải sau 60 giây, không refetch', 
 
   const callsBefore = counters.measurements;
   const urlsBefore = [...counters.urls];
-  // Dev + StrictMode có thể gửi lặp request đầu tiên (unmount/remount) với cùng
-  // from/to; điều cốt lõi là sau 60 giây không tăng thêm request nào.
+  // Dev + StrictMode chạy lại effect mount: v7 dựng lại mốc cửa sổ (`rangeAnchor`)
+  // một lần ở lượt thứ hai nên lượt tải đầu có thể gồm 2–3 request của cùng cửa sổ
+  // 24 giờ, `to` lệch vài trăm ms. Giữ kiểm đúng ý định QA v2 P1-1: cùng một cửa
+  // sổ, cùng limit, không cursor; và sau 60 giây không phát sinh thêm request nào.
   expect(callsBefore).toBeGreaterThanOrEqual(1);
-  expect(new Set(urlsBefore).size).toBe(1);
+  expect(callsBefore).toBeLessThanOrEqual(3);
+  const windows = urlsBefore.map((raw) => {
+    const params = new URL(raw).searchParams;
+    expect(params.get('limit')).toBe('500');
+    expect(params.get('cursor')).toBeNull();
+    const spanMs =
+      new Date(String(params.get('to'))).getTime() -
+      new Date(String(params.get('from'))).getTime();
+    expect(spanMs).toBe(24 * 3600 * 1000);
+    return params.get('from')?.slice(0, 10);
+  });
+  expect(new Set(windows).size).toBe(1);
 
   await page.clock.fastForward(61_000);
 
