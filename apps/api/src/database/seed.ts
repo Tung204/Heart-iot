@@ -26,23 +26,23 @@ import {
  * Không chứa secret thật; khóa thiết bị demo in ra để dùng với simulator.
  */
 export const DEMO = {
-  password: 'demo-an-nhien-2026',
+  password: 'demo-heart-iot-2026',
   adminPassword: 'demo-admin-2026',
-  deviceKey: 'demo-device-key-AN-2026-001',
+  deviceKey: 'demo-device-key-HEARTIOT-2026-001',
   owner: {
     id: '11111111-1111-4111-8111-111111111111',
-    email: 'ba-an@demo.annhien.local',
+    email: 'ba-an@demo.heart-iot.local',
     displayName: 'Trần Thị An',
   },
   caregiver: {
     id: '22222222-2222-4222-8222-222222222222',
-    email: 'minh@demo.annhien.local',
+    email: 'minh@demo.heart-iot.local',
     displayName: 'Nguyễn Văn Minh',
   },
   admin: {
     id: '33333333-3333-4333-8333-333333333333',
-    email: 'admin@demo.annhien.local',
-    displayName: 'Quản trị An Nhiên',
+    email: 'admin@demo.heart-iot.local',
+    displayName: 'Quản trị hệ thống',
   },
   subjectAn: {
     id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',

@@ -61,10 +61,10 @@ export function rejectedReply(
 
 export function makeEnv(server: MockServer, overrides: Record<string, string> = {}): Record<string, string> {
   return {
-    ANNHIEN_BASE_URL: server.baseUrl,
-    ANNHIEN_DEVICE_ID: TEST_DEVICE_ID,
-    ANNHIEN_DEVICE_KEY: TEST_DEVICE_KEY,
-    ANNHIEN_FIRMWARE: TEST_FIRMWARE,
+    HEART_IOT_BASE_URL: server.baseUrl,
+    HEART_IOT_DEVICE_ID: TEST_DEVICE_ID,
+    HEART_IOT_DEVICE_KEY: TEST_DEVICE_KEY,
+    HEART_IOT_FIRMWARE: TEST_FIRMWARE,
     ...overrides,
   };
 }

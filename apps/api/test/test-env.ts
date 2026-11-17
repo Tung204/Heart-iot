@@ -13,13 +13,13 @@ import { join } from 'node:path';
  */
 export const TEST_ORIGIN = 'http://localhost:5173';
 
-const TEST_TMP_ROOT = join(tmpdir(), 'annhien-api-tests');
+const TEST_TMP_ROOT = join(tmpdir(), 'heart-iot-api-tests');
 
 /** Cấu hình môi trường trước `loadEnv`; gọi lại nhiều lần vẫn idempotent. */
 export function prepareHermeticTestEnv(): void {
-  const testDir = process.env.ANNHIEN_TEST_TMP ?? join(TEST_TMP_ROOT, String(process.pid));
+  const testDir = process.env.HEART_IOT_TEST_TMP ?? join(TEST_TMP_ROOT, String(process.pid));
   mkdirSync(testDir, { recursive: true });
-  process.env.ANNHIEN_TEST_TMP = testDir;
+  process.env.HEART_IOT_TEST_TMP = testDir;
 
   process.env.NODE_ENV = 'test';
   process.env.PGLITE_MEMORY = 'true';

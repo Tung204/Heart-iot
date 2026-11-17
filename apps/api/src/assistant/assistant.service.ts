@@ -124,7 +124,7 @@ const OUT_OF_SCOPE_PATTERNS = [
 ];
 
 const SUMMARY_SYSTEM_PROMPT = [
-  'Bạn là trợ lý tóm tắt dữ liệu theo dõi sức khỏe của hệ thống An Nhiên.',
+  'Bạn là trợ lý tóm tắt dữ liệu theo dõi sức khỏe của hệ thống theo dõi sức khỏe.',
   'Quy tắc bắt buộc:',
   '- Chỉ dùng các facts được cung cấp; không bịa số, không ước đoán, không điền dữ liệu thiếu.',
   '- Thiếu dữ liệu thì ghi rõ "không có dữ liệu"; không thay bằng 0 hay giá trị giả định.',
@@ -138,7 +138,7 @@ const SUMMARY_SYSTEM_PROMPT = [
 ].join('\n');
 
 const ASK_SYSTEM_PROMPT = [
-  'Bạn là trợ lý hỏi đáp về dữ liệu theo dõi sức khỏe của hệ thống An Nhiên.',
+  'Bạn là trợ lý hỏi đáp về dữ liệu theo dõi sức khỏe của hệ thống theo dõi sức khỏe.',
   'Quy tắc bắt buộc:',
   '- Chỉ trả lời dựa trên các facts được cung cấp; không bịa số, không suy đoán dữ liệu không có.',
   '- Phải đọc khối dataQuality: khi observedCount < expectedCount hoặc gaps.count > 0, nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình; không mô tả "bình thường"/"ổn định" khi dữ liệu thiếu.',

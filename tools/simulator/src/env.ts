@@ -31,24 +31,24 @@ export function stripTrailingSlash(value: string): string {
 export function loadEnv(source: Record<string, string | undefined>): LoadedEnv {
   const problems: string[] = [];
 
-  const baseUrl = stripTrailingSlash(optionalTrim(source.ANNHIEN_BASE_URL) ?? DEFAULT_BASE_URL);
+  const baseUrl = stripTrailingSlash(optionalTrim(source.HEART_IOT_BASE_URL) ?? DEFAULT_BASE_URL);
   if (!/^https?:\/\/[^/\s]+/i.test(baseUrl)) {
-    problems.push(`ANNHIEN_BASE_URL không hợp lệ: "${baseUrl}" (cần dạng http://host:port/api/v1)`);
+    problems.push(`HEART_IOT_BASE_URL không hợp lệ: "${baseUrl}" (cần dạng http://host:port/api/v1)`);
   }
 
-  const deviceId = optionalTrim(source.ANNHIEN_DEVICE_ID);
+  const deviceId = optionalTrim(source.HEART_IOT_DEVICE_ID);
   if (deviceId !== null && deviceId.length > 128) {
-    problems.push('ANNHIEN_DEVICE_ID tối đa 128 ký tự');
+    problems.push('HEART_IOT_DEVICE_ID tối đa 128 ký tự');
   }
 
-  const deviceKey = optionalTrim(source.ANNHIEN_DEVICE_KEY);
+  const deviceKey = optionalTrim(source.HEART_IOT_DEVICE_KEY);
   if (deviceKey !== null && deviceKey.length > 256) {
-    problems.push('ANNHIEN_DEVICE_KEY tối đa 256 ký tự');
+    problems.push('HEART_IOT_DEVICE_KEY tối đa 256 ký tự');
   }
 
-  const firmwareVersion = optionalTrim(source.ANNHIEN_FIRMWARE) ?? DEFAULT_FIRMWARE;
+  const firmwareVersion = optionalTrim(source.HEART_IOT_FIRMWARE) ?? DEFAULT_FIRMWARE;
   if (firmwareVersion.length > 64) {
-    problems.push('ANNHIEN_FIRMWARE tối đa 64 ký tự');
+    problems.push('HEART_IOT_FIRMWARE tối đa 64 ký tự');
   }
 
   return { env: { baseUrl, deviceId, deviceKey, firmwareVersion }, problems };

@@ -1,4 +1,4 @@
-# Đồ án sức khỏe IoT — An Nhiên
+# Heart-iot — Giám sát sức khỏe IoT
 
 **Hệ thống giám sát sức khỏe và cảnh báo té ngã cho người cao tuổi, có trợ lý AI hỗ trợ đọc dữ liệu.**
 
@@ -42,15 +42,15 @@ Mở http://localhost:5173. Tài khoản demo **chỉ dùng khi chạy seed loca
 
 | Vai trò | Email | Mật khẩu |
 | --- | --- | --- |
-| Chủ hồ sơ | `ba-an@demo.annhien.local` | `demo-an-nhien-2026` |
-| Người thân | `minh@demo.annhien.local` | `demo-an-nhien-2026` |
-| Quản trị | `admin@demo.annhien.local` | `demo-admin-2026` |
+| Chủ hồ sơ | `ba-an@demo.heart-iot.local` | `demo-heart-iot-2026` |
+| Người thân | `minh@demo.heart-iot.local` | `demo-heart-iot-2026` |
+| Quản trị | `admin@demo.heart-iot.local` | `demo-admin-2026` |
 
 Thiết bị demo cho simulator:
 
 ```bash
-export ANNHIEN_DEVICE_ID=dddddddd-dddd-4ddd-8ddd-dddddddddddd
-export ANNHIEN_DEVICE_KEY=demo-device-key-AN-2026-001
+export HEART_IOT_DEVICE_ID=dddddddd-dddd-4ddd-8ddd-dddddddddddd
+export HEART_IOT_DEVICE_KEY=demo-device-key-HEARTIOT-2026-001
 cd tools/simulator && npx tsx src/cli.ts demo --fast
 ```
 

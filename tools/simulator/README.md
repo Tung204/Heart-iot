@@ -4,7 +4,7 @@ CLI TypeScript gửi telemetry và sự kiện incident vào API ingest bằng �
 (header `x-device-id` + `x-device-key`), dùng cho demo và kiểm lỗi mạng/trùng trước khi có phần cứng.
 
 - Không tự đăng nhập, không dùng cookie, không có đường tắt bỏ kiểm quyền thiết bị.
-- Mọi payload được validate bằng zod từ `@annhien/contracts/telemetry` trước khi gửi.
+- Mọi payload được validate bằng zod từ package hợp đồng (`packages/contracts`) trước khi gửi.
 - Không in khóa thiết bị ra stdout/stderr.
 - Dữ liệu là tổng hợp, `firmware_version` mặc định `0.0.0-sim`; không đại diện firmware đã build.
 
@@ -23,16 +23,16 @@ Biến môi trường:
 
 | Biến | Mặc định | Ghi chú |
 | --- | --- | --- |
-| `ANNHIEN_BASE_URL` | `http://localhost:3000/api/v1` | Đã gồm prefix `/api/v1` |
-| `ANNHIEN_DEVICE_ID` | — | Bắt buộc cho lệnh gửi |
-| `ANNHIEN_DEVICE_KEY` | — | Bắt buộc cho lệnh gửi; không bị ghi log |
-| `ANNHIEN_FIRMWARE` | `0.0.0-sim` | Ghi vào `firmware_version` |
+| `HEART_IOT_BASE_URL` | `http://localhost:3000/api/v1` | Đã gồm prefix `/api/v1` |
+| `HEART_IOT_DEVICE_ID` | — | Bắt buộc cho lệnh gửi |
+| `HEART_IOT_DEVICE_KEY` | — | Bắt buộc cho lệnh gửi; không bị ghi log |
+| `HEART_IOT_FIRMWARE` | `0.0.0-sim` | Ghi vào `firmware_version` |
 
 Ví dụ:
 
 ```bash
-export ANNHIEN_DEVICE_ID=sim-device-1
-export ANNHIEN_DEVICE_KEY=<khóa do admin tạo, chỉ dùng ở local>
+export HEART_IOT_DEVICE_ID=sim-device-1
+export HEART_IOT_DEVICE_KEY=<khóa do admin tạo, chỉ dùng ở local>
 tsx src/cli.ts telemetry --count 10 --interval-ms 1000 --profile normal
 ```
 

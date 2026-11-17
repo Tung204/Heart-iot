@@ -6,7 +6,7 @@ import { capture } from './capture';
 test('help của từng lệnh trả exit code 0', async () => {
   const cases: Array<{ args: string[]; pattern: RegExp }> = [
     { args: [], pattern: /telemetry/ },
-    { args: ['--help'], pattern: /ANNHIEN_DEVICE_KEY/ },
+    { args: ['--help'], pattern: /HEART_IOT_DEVICE_KEY/ },
     { args: ['help'], pattern: /fall/ },
     { args: ['telemetry', '--help'], pattern: /--profile/ },
     { args: ['fall', '--help'], pattern: /--cancel-window-ms/ },
@@ -49,19 +49,19 @@ test('lệnh không hỗ trợ trả exit code 2', async () => {
   assert.match(io.stderr.join('\n'), /lệnh không hỗ trợ/);
 });
 
-test('thiếu ANNHIEN_DEVICE_ID/KEY hoặc base URL sai trả exit code 2', async () => {
+test('thiếu HEART_IOT_DEVICE_ID/KEY hoặc base URL sai trả exit code 2', async () => {
   const missing = capture();
   const missingCode = await runCli(['telemetry', '--count', '1'], {}, missing);
   assert.equal(missingCode, 2);
-  assert.match(missing.stderr.join('\n'), /ANNHIEN_DEVICE_ID/);
-  assert.match(missing.stderr.join('\n'), /ANNHIEN_DEVICE_KEY/);
+  assert.match(missing.stderr.join('\n'), /HEART_IOT_DEVICE_ID/);
+  assert.match(missing.stderr.join('\n'), /HEART_IOT_DEVICE_KEY/);
 
   const badUrl = capture();
   const badUrlCode = await runCli(['telemetry', '--count', '1'], {
-    ANNHIEN_BASE_URL: 'khong-phai-url',
-    ANNHIEN_DEVICE_ID: 'sim-device-1',
-    ANNHIEN_DEVICE_KEY: 'sim-device-key-0123456789abcdef',
+    HEART_IOT_BASE_URL: 'khong-phai-url',
+    HEART_IOT_DEVICE_ID: 'sim-device-1',
+    HEART_IOT_DEVICE_KEY: 'sim-device-key-0123456789abcdef',
   }, badUrl);
   assert.equal(badUrlCode, 2);
-  assert.match(badUrl.stderr.join('\n'), /ANNHIEN_BASE_URL/);
+  assert.match(badUrl.stderr.join('\n'), /HEART_IOT_BASE_URL/);
 });

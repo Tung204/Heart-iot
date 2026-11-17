@@ -13,9 +13,9 @@ test('T-sim-09: không in device key ra stdout/stderr kể cả khi lỗi mạng
   const code = await runCli(
     ['telemetry', '--count', '1', '--interval-ms', '0'],
     {
-      ANNHIEN_BASE_URL: baseUrl,
-      ANNHIEN_DEVICE_ID: 'sim-device-1',
-      ANNHIEN_DEVICE_KEY: SECRET_KEY,
+      HEART_IOT_BASE_URL: baseUrl,
+      HEART_IOT_DEVICE_ID: 'sim-device-1',
+      HEART_IOT_DEVICE_KEY: SECRET_KEY,
     },
     io,
   );
@@ -35,8 +35,8 @@ test('lỗi tham số không in giá trị device key', async () => {
   const code = await runCli(
     ['telemetry', '--count', '0'],
     {
-      ANNHIEN_DEVICE_ID: 'sim-device-1',
-      ANNHIEN_DEVICE_KEY: SECRET_KEY,
+      HEART_IOT_DEVICE_ID: 'sim-device-1',
+      HEART_IOT_DEVICE_KEY: SECRET_KEY,
     },
     io,
   );

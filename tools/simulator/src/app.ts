@@ -24,7 +24,7 @@ export const EXIT_OK = 0;
 export const EXIT_FAILED = 1;
 export const EXIT_USAGE = 2;
 
-const ROOT_HELP = `Thiết bị mô phỏng An Nhiên — gửi telemetry/sự kiện vào API ingest.
+const ROOT_HELP = `Thiết bị mô phỏng — gửi telemetry/sự kiện vào API ingest.
 
 Cách dùng:
   tsx src/cli.ts <command> [options]
@@ -36,10 +36,10 @@ Lệnh:
   help        In trợ giúp này
 
 Biến môi trường:
-  ANNHIEN_BASE_URL     mặc định http://localhost:3000/api/v1
-  ANNHIEN_DEVICE_ID    bắt buộc cho lệnh gửi
-  ANNHIEN_DEVICE_KEY   bắt buộc cho lệnh gửi (không bị in ra log)
-  ANNHIEN_FIRMWARE     mặc định 0.0.0-sim
+  HEART_IOT_BASE_URL     mặc định http://localhost:3000/api/v1
+  HEART_IOT_DEVICE_ID    bắt buộc cho lệnh gửi
+  HEART_IOT_DEVICE_KEY   bắt buộc cho lệnh gửi (không bị in ra log)
+  HEART_IOT_FIRMWARE     mặc định 0.0.0-sim
 
 Chạy "tsx src/cli.ts <command> --help" để xem chi tiết từng lệnh.`;
 
@@ -139,12 +139,12 @@ function resolveCredentials(loaded: LoadedEnv, errors: string[]): DeviceCredenti
   const { env } = loaded;
   errors.push(...loaded.problems);
   if (env.deviceId === null) {
-    errors.push('thiếu ANNHIEN_DEVICE_ID (bắt buộc cho lệnh gửi)');
+    errors.push('thiếu HEART_IOT_DEVICE_ID (bắt buộc cho lệnh gửi)');
   }
   if (env.deviceKey === null) {
-    errors.push('thiếu ANNHIEN_DEVICE_KEY (bắt buộc cho lệnh gửi)');
+    errors.push('thiếu HEART_IOT_DEVICE_KEY (bắt buộc cho lệnh gửi)');
   } else if (env.deviceKey.length < 16) {
-    errors.push('ANNHIEN_DEVICE_KEY phải dài tối thiểu 16 ký tự');
+    errors.push('HEART_IOT_DEVICE_KEY phải dài tối thiểu 16 ký tự');
   }
   if (errors.length > 0 || env.deviceId === null || env.deviceKey === null) {
     return null;

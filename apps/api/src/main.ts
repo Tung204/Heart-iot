@@ -11,7 +11,7 @@ async function bootstrap(): Promise<void> {
   configureApp(app, env);
   app.enableShutdownHooks();
   await app.listen(env.PORT);
-  Logger.log(`API An Nhiên chạy tại http://localhost:${env.PORT}/api/v1`, 'Bootstrap');
+  Logger.log(`API Heart-iot chạy tại http://localhost:${env.PORT}/api/v1`, 'Bootstrap');
 }
 
 bootstrap().catch((error: unknown) => {
