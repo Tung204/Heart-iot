@@ -1,0 +1,725 @@
+/* ============================================================
+   v7 lane H — dữ liệu sức khỏe: Sức khỏe (/app/overview) và
+   Lịch sử đo (/app/history).
+   Vùng phẳng dạng hàng, không card kem, không gradient trang trí.
+   Chỉ dùng token ở styles/tokens.css và primitive dùng chung.
+   ============================================================ */
+
+.health-page {
+  min-width: 0;
+}
+
+/* Nút quay lại dùng class .button (>=44px); chỉ đặt vị trí ở đây. */
+.health-back {
+  align-self: flex-start;
+}
+
+/* PageHeader mặc định flex row ở desktop; với hai trang này breadcrumb là một
+   hàng riêng phía trên, còn H1 + action mới nằm cùng hàng (H1 không bị căn giữa). */
+.health-page .page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.health-page .page-header > .health-back {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.health-page .page-header__main {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.health-page .page-header__actions {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 0;
+  justify-self: end;
+  flex: none;
+}
+
+/* ---------- Vùng cảnh báo (độc lập với dữ liệu sức khỏe) ---------- */
+
+.health-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.health-region {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.health-region__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.health-region__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-title);
+  font-weight: var(--weight-semibold);
+}
+
+.health-region__meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.health-region__head .pill {
+  margin-left: auto;
+}
+
+.health-region__loading {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--border-control);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+}
+
+.health-region__action {
+  margin-top: var(--space-3);
+}
+
+.health-region__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.health-coverage {
+  margin: 0;
+  flex: 1 1 20rem;
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.health-coverage__meta {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.health-coverage .pill {
+  margin-left: var(--space-1);
+}
+
+/* ---------- Hàng cảnh báo ---------- */
+
+.health-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.health-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.health-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Cảnh báo cần xử lý: vạch đỏ + chữ trạng thái, màu không phải tín hiệu duy nhất. */
+.health-row--alert {
+  border-left: 3px solid var(--danger);
+  padding-left: var(--space-3);
+}
+
+.health-row__main {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.health-row__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* Link tiêu đề là action độc lập: giữ vùng chạm >=44px, không chỉ 18px chữ. */
+.health-row__title a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.health-row__title a:hover {
+  color: var(--action-hover);
+}
+
+.health-row__meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.health-row__meta .pill {
+  margin-right: var(--space-1);
+  vertical-align: middle;
+}
+
+.health-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+}
+
+.health-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  color: var(--action);
+}
+
+.health-more {
+  align-self: flex-start;
+}
+
+/* ---------- Bố cục hai vùng ---------- */
+
+.health-layout {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.health-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.health-layout__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .health-layout {
+    grid-template-columns: minmax(0, 1.9fr) minmax(16rem, 1fr);
+    align-items: start;
+  }
+}
+
+/* ---------- Dữ liệu ngày: dl 3 cột desktop, hàng label/value mobile ---------- */
+
+.health-day {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+}
+
+.health-day__cell {
+  min-width: 0;
+  padding: 0 var(--space-4);
+  border-left: 1px solid var(--border-subtle);
+}
+
+.health-day__cell:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.health-day__label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.health-day__value {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: var(--text-3xl);
+  line-height: 1.2;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.health-day__value--secondary {
+  font-size: var(--text-2xl);
+}
+
+.health-day__value--missing {
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.health-day__sub {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Thiết bị ---------- */
+
+.health-devices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.health-device {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.health-device:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.health-device__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.health-device__name {
+  margin: 0;
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.health-kv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.health-kv > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+
+.health-kv dt {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.health-kv dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Lịch sử: bộ lọc + hành động ---------- */
+
+.history-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.history-range {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+}
+
+.history-range__item {
+  min-height: var(--target-min);
+  min-width: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-chip);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.history-range__item.is-active {
+  background: var(--action-soft);
+  border-color: var(--action);
+  color: var(--action-hover);
+}
+
+.history-range__item:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .history-range__item:hover:enabled:not(.is-active) {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+  }
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.history-sim {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* Giới hạn quyền: luôn có câu giải thích, không chỉ tooltip trên nút disabled. */
+.history-limit {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--warning);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Lịch sử: độ phủ, khoảng thiếu ---------- */
+
+.history-coverage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.history-h2 {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-title);
+  font-weight: var(--weight-semibold);
+}
+
+.history-kv {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.history-kv > div {
+  min-width: 0;
+}
+
+.history-kv dt {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.history-kv dd {
+  margin: var(--space-1) 0 0;
+  color: var(--text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.history-gaps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.history-gaps li {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--warning);
+}
+
+/* ---------- Lịch sử: bảng desktop, danh sách mobile ---------- */
+
+.history-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.history-table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.history-table caption {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  color: var(--text-secondary);
+  font-weight: var(--weight-semibold);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-table th {
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.history-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.history-flags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.history-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-card {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.history-card:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.history-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.history-card__time {
+  margin: 0;
+  flex: 1 1 10rem;
+  min-width: 0;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-card__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+
+.history-card__facts dt {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.history-card__facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.history-load-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* ---------- Mobile: hàng label/value, không ba cột ---------- */
+
+@media (max-width: 767px) {
+  /* Ưu tiên số liệu chính trong viewport đầu: khoảng cách gọn hơn, action Lịch sử
+     đo nằm cùng hàng H1; breadcrumb "Hôm nay" đã có bottom-nav nên ẩn trên mobile. */
+  .health-page {
+    gap: var(--space-3);
+  }
+
+  .health-page .page-header {
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .health-back--today {
+    display: none;
+  }
+
+  .health-alerts {
+    padding-bottom: var(--space-3);
+  }
+
+  .health-region {
+    padding-top: var(--space-3);
+  }
+
+  .health-region__head .pill {
+    margin-left: 0;
+  }
+
+  .health-day {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .health-day__cell {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 45%) minmax(0, 1fr);
+    gap: 0 var(--space-3);
+    padding: var(--space-3) 0;
+    border-left: 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .health-day__cell:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .health-day__label {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+
+  .health-day__value {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    font-size: var(--text-2xl);
+  }
+
+  .health-day__value--secondary {
+  font-size: var(--text-2xl);
+}
+
+.health-day__value--missing {
+    font-size: var(--text-md);
+  }
+
+  .health-day__sub {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: var(--space-1);
+  }
+
+  .health-kv dd {
+    text-align: left;
+  }
+
+  .history-kv {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Chữ lớn trên mobile: siết khoảng cách dọc để số liệu chính (nhịp tim trung
+   bình) vẫn nằm trong viewport 360×740 đầu tiên; không giảm cỡ chữ. */
+@media (max-width: 767px) {
+  html[data-text-size='large'] .health-page {
+    gap: var(--space-1);
+  }
+
+  html[data-text-size='large'] .health-alerts {
+    padding-bottom: var(--space-2);
+  }
+
+  html[data-text-size='large'] .health-region {
+    padding-top: var(--space-2);
+  }
+}
+
+@media (max-width: 479px) {
+  .history-range {
+    width: 100%;
+  }
+
+  .history-range__item {
+    flex: 1 1 auto;
+  }
+
+  .history-actions {
+    width: 100%;
+  }
+
+  .history-actions .button {
+    flex: 1 1 auto;
+  }
+}
+
+/* Bảng dữ liệu đo: vùng cuộn riêng, không đẩy width trang. */
+.history-table-wrap:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}

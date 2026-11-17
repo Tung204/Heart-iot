@@ -179,3 +179,70 @@ describe('DashboardPage — cảnh báo độc lập với dữ liệu tổng qu
     expect(screen.queryByText('Lần đo gần nhất')).not.toBeInTheDocument();
   });
 });
+
+// v7 lane H — gác quyền đã biết + không số 0 giả.
+describe('DashboardPage — quyền số đo và dữ liệu chưa đủ', () => {
+  const caregiverWithoutMeasurements = {
+    ...SUBJECT,
+    role: 'caregiver',
+    sharedFrom: '2026-11-12T00:00:00.000Z',
+    permissions: { ...SUBJECT.permissions, canViewMeasurements: false },
+  };
+
+  it('biết trước không có quyền số đo → không gọi daily-summary/insights, cảnh báo vẫn hiển thị', async () => {
+    const { fetchMock } = renderApp('/app/overview', (url) => {
+      const u = String(url);
+      if (u.endsWith('/me')) return mockResponse(SESSION);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [caregiverWithoutMeasurements] });
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      if (u.includes('/alerts')) return mockResponse(ALERTS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    // Cảnh báo là thông tin an toàn: hiển thị dù không có quyền số đo.
+    expect(
+      await screen.findByRole('link', { name: /Nghi ngã — cần chú ý/ }, SLOW),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Chủ hồ sơ không chia sẻ số đo', {}, SLOW)).toBeInTheDocument();
+
+    // Không có link lịch sử/CSV và không render vùng xu hướng.
+    expect(screen.queryByRole('link', { name: 'Lịch sử đo' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Xem lịch sử/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Xu hướng gần đây' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/73 bpm/)).not.toBeInTheDocument();
+
+    const urls = fetchMock.mock.calls.map((call) => String(call[0]));
+    expect(urls.some((u) => u.includes('/daily-summary'))).toBe(false);
+    expect(urls.some((u) => u.includes('/insights'))).toBe(false);
+    // Metadata thiết bị (kết nối/pin) vẫn được đọc: không phải dữ liệu số đo.
+    expect(urls.some((u) => u.endsWith(`/subjects/${SUBJECT.id}/status`))).toBe(true);
+  });
+
+  it('chưa đủ dữ liệu bước / không có nhịp tim hợp lệ / pin null → không hiện số 0 giả', async () => {
+    const sparseSummary = {
+      ...SUMMARY,
+      heartRate: null,
+      steps: { total: 0, completeness: 'unavailable' as const, notes: [] },
+      batteryPercent: null,
+      gaps: [
+        {
+          from: '2026-11-13T17:00:00.000Z',
+          to: '2026-11-14T09:00:00.000Z',
+          reason: 'no_data' as const,
+        },
+      ],
+    };
+    renderApp(
+      '/app/overview',
+      dashboardHandler({ summary: () => mockResponse(sparseSummary) }),
+    );
+
+    expect(
+      await screen.findByText('Chưa có lần đo nhịp tim hợp lệ hôm nay', {}, SLOW),
+    ).toBeInTheDocument();
+    expect(screen.getByText('chưa đủ dữ liệu bước')).toBeInTheDocument();
+    expect(screen.queryByText(/0 bước/)).not.toBeInTheDocument();
+    expect(screen.getByText('Chưa có thông tin pin')).toBeInTheDocument();
+    expect(screen.getByText(/1 khoảng thiếu dữ liệu/)).toBeInTheDocument();
+  });
+});
