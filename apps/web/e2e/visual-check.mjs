@@ -108,7 +108,7 @@ try {
     await shot('login');
 
     const login = await context.request.post(`${API}/auth/login`, {
-      data: { email: 'ba-an@demo.annhien.local', password: 'demo-an-nhien-2026' },
+      data: { email: 'ba-an@demo.heart-iot.local', password: 'demo-heart-iot-2026' },
       headers: { Origin: BASE },
     });
     if (!login.ok()) {

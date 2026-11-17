@@ -12,8 +12,8 @@ async function main(): Promise<void> {
   console.log(`  Người thân: ${DEMO.caregiver.email} / ${DEMO.password}`);
   console.log(`  Quản trị: ${DEMO.admin.email} / ${DEMO.adminPassword}`);
   console.log('\nThiết bị demo (dùng cho simulator):');
-  console.log(`  ANNHIEN_DEVICE_ID=${DEMO.deviceId}`);
-  console.log(`  ANNHIEN_DEVICE_KEY=${DEMO.deviceKey}`);
+  console.log(`  HEART_IOT_DEVICE_ID=${DEMO.deviceId}`);
+  console.log(`  HEART_IOT_DEVICE_KEY=${DEMO.deviceKey}`);
   console.log(`  Hồ sơ: ${DEMO.subjectAn.displayName} (${DEMO.subjectAn.id})`);
   await handle.close();
 }

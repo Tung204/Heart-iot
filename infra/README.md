@@ -37,7 +37,7 @@ Bản trước mở `listener 1883 0.0.0.0` với `allow_anonymous true` và com
 # 1) Tạo file mật khẩu cục bộ (không commit). Nhập mật khẩu khi được hỏi,
 #    tránh đưa mật khẩu vào lịch sử shell. Lệnh dưới dùng bash/Git Bash.
 docker run --rm -it --user root -v "$PWD/infra/mosquitto:/work" eclipse-mosquitto:2 \
-  mosquitto_passwd -c /work/passwd annhien-ingest
+  mosquitto_passwd -c /work/passwd heart-iot-ingest
 # Lặp lại không có -c cho từng thiết bị; username phải đúng device_id (UUID) trong DB:
 #   docker run --rm -it --user root -v "$PWD/infra/mosquitto:/work" eclipse-mosquitto:2 \
 #     mosquitto_passwd /work/passwd dddddddd-dddd-4ddd-8ddd-dddddddddddd
@@ -52,7 +52,7 @@ rm infra/mosquitto/passwd
 
 Lưu ý thực tế: container Mosquitto chạy bằng user nội bộ `mosquitto` của image, nên file `passwd` phải đọc được bởi user đó. Nếu broker báo lỗi mở password file, chỉnh quyền file cục bộ rồi chạy lại. Các lệnh trên **chưa được chạy trong repository này** (không có Docker daemon ở lượt sửa); chỉ `docker compose config` được kiểm.
 
-Backend chỉ kết nối broker khi đặt `MQTT_URL` (ví dụ `mqtt://127.0.0.1:1883`) cùng `MQTT_USERNAME`/`MQTT_PASSWORD` của user `annhien-ingest` trong `.env` cục bộ. Không commit các giá trị này.
+Backend chỉ kết nối broker khi đặt `MQTT_URL` (ví dụ `mqtt://127.0.0.1:1883`) cùng `MQTT_USERNAME`/`MQTT_PASSWORD` của user `heart-iot-ingest` trong `.env` cục bộ. Không commit các giá trị này.
 
 ### Chưa làm (không được suy diễn là đã có)
 

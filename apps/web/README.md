@@ -1,6 +1,6 @@
-# Web — An Nhiên
+# Web — Heart-iot
 
-Giao diện web của An Nhiên: landing, đăng nhập/đăng ký, khung ứng dụng `/app`, các màn hình
+Giao diện web của Heart-iot: landing, đăng nhập/đăng ký, khung ứng dụng `/app`, các màn hình
 nghiệp vụ (tổng quan + xu hướng, lịch sử, cảnh báo, hồ sơ, thiết bị, chia sẻ + liên hệ khẩn cấp,
 thông báo, cài đặt tài khoản, trợ lý, công việc, Studio, quản trị). Các trang sau đăng nhập được
 **tách chunk theo route** để giảm bundle tải lần đầu.
@@ -50,7 +50,7 @@ src/
     studio/    /app/studio — workspace views: draft → preview → publish → rollback
   components/   Button, Field, Card, Alert, EmptyState, StatusPill, MeasurementChart, ...
   lib/          api client, query keys + xử lý 401 tập trung, validation, format
-  styles/       tokens.css, base.css, layout.css (design tokens An Nhiên)
+  styles/       tokens.css, base.css, layout.css (design tokens)
   test/         setup Vitest + helpers
 e2e/            smoke, alerts, history (mock /api/v1)
 ```

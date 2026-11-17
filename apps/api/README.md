@@ -1,7 +1,7 @@
-# Backend API — An Nhiên
+# Backend API — Heart-iot
 
 NestJS 11 (CJS) + Drizzle ORM, chạy mặc định trên **PGlite** và có thể dùng **PostgreSQL** qua
-`DATABASE_URL`. Đây là backend modular monolith cho đồ án An Nhiên, không phải dịch vụ production
+`DATABASE_URL`. Đây là backend modular monolith cho Heart-iot, không phải dịch vụ production
 đã benchmark.
 
 ## Chạy

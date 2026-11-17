@@ -5,7 +5,7 @@ export default defineConfig({
   schema: './src/database/schema.ts',
   out: './drizzle',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'postgres://annhien:annhien@localhost:5432/annhien',
+    url: process.env.DATABASE_URL ?? 'postgres://heartiot:heartiot@localhost:5432/heartiot',
   },
   strict: true,
   verbose: true,

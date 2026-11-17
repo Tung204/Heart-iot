@@ -7,7 +7,7 @@
 # Backend đọc telemetry của mọi thiết bị vì adapter hiện subscribe
 # v1/devices/+/telemetry. Backend KHÔNG được publish topic sự kiện/telemetry.
 
-user annhien-ingest
+user heart-iot-ingest
 topic read v1/devices/+/telemetry
 
 # Thiết bị: publish telemetry và đọc ACK của chính mình. Không publish topic

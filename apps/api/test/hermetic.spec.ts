@@ -16,14 +16,14 @@ import { assertHermeticEnv, TEST_ORIGIN } from './test-env';
  */
 describe('Hạ tầng test hermetic', () => {
   it('loadEnv bỏ qua .env thật khi chạy test', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'annhien-env-guard-'));
+    const dir = mkdtempSync(join(tmpdir(), 'heart-iot-env-guard-'));
     const originalCwd = process.cwd();
     try {
       writeFileSync(join(dir, 'pnpm-workspace.yaml'), 'packages: []\n', 'utf8');
       writeFileSync(
         join(dir, '.env'),
         [
-          'DATABASE_URL=postgres://real-db.invalid:5432/annhien',
+          'DATABASE_URL=postgres://real-db.invalid:5432/heartiot',
           'MQTT_URL=mqtt://real-broker.invalid:1883',
           'AI_BASE_URL=https://ai.invalid/v1',
           'AI_API_KEY=secret-should-not-be-read',
@@ -55,7 +55,7 @@ describe('Hạ tầng test hermetic', () => {
       assertHermeticEnv({
         NODE_ENV: 'test',
         PGLITE_MEMORY: true,
-        DATABASE_URL: 'postgres://real.invalid/annhien',
+        DATABASE_URL: 'postgres://real.invalid/heartiot',
       }),
     ).toThrow(/DATABASE_URL/);
     expect(() =>

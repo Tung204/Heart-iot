@@ -131,7 +131,7 @@ describe('LoginPage', () => {
     expect(screen.getAllByRole('button')).toHaveLength(1);
     expect(screen.getByLabelText(/^Email/)).toHaveValue('');
     expect(screen.getByLabelText(/^Mật khẩu/)).toHaveValue('');
-    expect(screen.queryByDisplayValue(/@demo\.annhien\.local/)).toBeNull();
+    expect(screen.queryByDisplayValue(/@demo\.heart-iot\.local/)).toBeNull();
     expect(document.body.textContent).not.toContain('demo-admin-2026');
   });
 });

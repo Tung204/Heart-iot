@@ -17,7 +17,7 @@ import {
 function createRuntime(server: MockServer, io: ReturnType<typeof capture>): SimulatorRuntime {
   const env = makeEnv(server);
   const client = new DeviceClient({
-    baseUrl: env.ANNHIEN_BASE_URL!,
+    baseUrl: env.HEART_IOT_BASE_URL!,
     deviceId: TEST_DEVICE_ID,
     deviceKey: TEST_DEVICE_KEY,
   });
