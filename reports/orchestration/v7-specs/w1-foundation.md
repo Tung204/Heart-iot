@@ -53,3 +53,18 @@ Không xoá test hợp lệ. Không nới assertion. Không thêm dependency (fo
 - Nếu bị chặn (thiếu quyền, API cần thay ngoài scope, provider lỗi): commit phần đang sạch, ghi blocker cụ thể, báo `worker_done` với trạng thái thật — **không** báo xong khi cổng chưa chạy.
 
 Không tự mở worker khác, không ghi Obsidian, không push remote.
+
+## Điều chỉnh sau cổng W0 (đã gửi worker `msg_8941c5acada8`)
+
+Áp dụng `reports/orchestration/v7/decisions.md`. Thay các chỗ trái trong spec gốc:
+
+- Ảnh: `reports/qa/evidence/v7-foundation/`, **không** `C:/tmp`.
+- CSS: chỉ retire selector foundation khỏi `layout.css`; giữ block feature; `layout.css` do F sở hữu tới W3; cổng “không double CSS” dời W3; kèm ledger selector→file cũ→owner→trạng thái.
+- Context: shell-only cho 5 trang, trên H1, tên “Người được theo dõi”; F được patch tối thiểu `AssistantPage.tsx` + locator test C.
+- “Đúng 4 mục” chỉ với tài khoản có hồ sơ; admin không hồ sơ giữ nav Quản trị + `/app` → `/app/admin`.
+- `index.html`: giữ boot/noscript, chỉ đổi theme-color `#F4F7FB` + skeleton tĩnh xanh xám không shimmer.
+- `/app/notifications` → `/app/alerts?view=notifications` (bắt buộc).
+- Banner: link `/app/alerts/{incidentId}`; ẩn chỉ khi đúng incident/inbox; ưu tiên mất quyền > thông báo mới > mất SSE.
+- Import CSS: fonts → tokens → base → legacy `layout.css` (feature) → shell; primitive CSS tại `src/components/primitives.css`.
+- Purge cache: registry key có subjectId + `purgeSubjectData`; không xoá toàn bộ `['alerts']`.
+- QA: pin `WEB_ORIGIN=http://127.0.0.1:4350`, seed PGlite cục bộ; đo mọi action đứng riêng ≥44×44; active nav History/Devices/alias; grep Newsreader/`#faf6ed`/`--font-display`.
