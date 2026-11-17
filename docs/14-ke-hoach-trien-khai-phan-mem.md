@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) ngày **18/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -165,14 +165,14 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 - Docs nguồn được cập nhật; HTML build `--check` đạt.
 - Giới hạn (firmware, push, dữ liệu thật, PostgreSQL production) được nêu rõ ở README và báo cáo.
 
-## 11. Trạng thái triển khai (cập nhật 15/11/2026)
+## 11. Trạng thái triển khai (cập nhật 15/11/2026, bổ sung 18/11/2026 cho v7)
 
 Đây là **trạng thái kỹ thuật do nhóm tự kiểm**, không phải nghiệm thu của giảng viên hay xác nhận sản phẩm đã hoàn chỉnh. Mọi số liệu dưới đây lấy từ lần chạy thật trong repo; bằng chứng chi tiết ở `reports/handoffs/`, `reports/qa/` và `reports/worklog/`.
 
 ### Đã có mã chạy được
 
 - **API** (`apps/api`, NestJS 11 + Drizzle + PGlite/PostgreSQL): xác thực phiên và cài đặt tài khoản; hồ sơ, lời mời/chia sẻ quyền có `canViewMeasurements`; lưu trữ hồ sơ + ghi nhận yêu cầu xóa; liên hệ khẩn cấp; thiết bị claim/release/rotate; ingest HTTP + MQTT adapter, chống trùng, assignment theo `measured_at`, cách ly; đo lường/tổng hợp/CSV/insights 7–30 ngày; cảnh báo có state machine (gồm `unconfirmed`) + ack/resolve compare-and-set; outbox + SSE có `revoked`; Studio draft/preview/publish/rollback; trợ lý tóm tắt/hỏi đáp có `dataQuality` và fallback; bảo trì xem/tạo/đóng; admin user/device/policy CAS/audit.
-- **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký, khung ứng dụng; **`/app` là không gian trợ lý mặc định**, `/app/overview` là dashboard chi tiết; lịch sử + biểu đồ, cảnh báo + SSE, hồ sơ + lưu trữ/yêu cầu xóa, thiết bị, chia sẻ + liên hệ khẩn cấp, thông báo + badge/banner, cài đặt tài khoản, Studio, công việc, quản trị thiết bị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
+- **Web** (`apps/web`, React 19 + Vite): landing, đăng nhập/đăng ký/lời mời, khung ứng dụng; **`/app` là Hôm nay** (trợ lý nằm trong trang), `/app/overview` là **Sức khỏe**; lịch sử + biểu đồ, cảnh báo + SSE + hộp thông báo, hồ sơ + lưu trữ/yêu cầu xóa, thiết bị, chia sẻ + liên hệ khẩn cấp, cài đặt tài khoản, Studio, công việc, quản trị; trạng thái rỗng/lỗi/mất quyền và nhãn dữ liệu mô phỏng.
 - **Simulator** (`tools/simulator`): telemetry theo profile, fall cancel/confirm/duplicate/late/sos, queue retry, không in device key; đã chạy end-to-end với API.
 - **Seed demo** idempotent: 3 tài khoản, 2 hồ sơ, thiết bị, telemetry tổng hợp 6 ngày, cảnh báo, task, outbox, liên hệ khẩn cấp demo. Dữ liệu telemetry ghi `source='simulator'` và hiển thị `is_synthetic=true`.
 
@@ -206,14 +206,14 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 | Ngôn ngữ sản phẩm | Bỏ “Bản demo/đồ án/giảng viên/nghiệm thu” khỏi text/metadata/aria-label web; giữ nhãn nguồn mô phỏng/disclaimer; landing/login/footer/settings đồng bộ | `LandingPage.test.tsx`, `AppShell.test.tsx`, grep copy trong e2e |
 | Mobile | Composer + nút Gửi nằm trên bottom-nav ở 390/360/chữ lớn; gợi ý gọn một hàng; 0 tràn ngang | ảnh `C:/tmp/ui-v3-assistant`, `C:/tmp/ui-v3-live-*`; bounding box trong handoff v3 |
 
-### Lát cắt v4 — giao diện đơn giản, thay trực tiếp (15/11/2026)
+### Lát cắt v4 — giao diện đơn giản, thay trực tiếp (15/11/2026 — đã được v7 thay thế)
 
 Người dùng bác giao diện v3 vì quá nhiều chữ/khối; yêu cầu thay trực tiếp, không preview. v4 giữ nguyên nghiệp vụ/API, thay IA và trình bày:
 
 | Thay đổi | Hành vi chính | Bằng chứng |
 | --- | --- | --- |
 | `/app` = Hôm nay | Một câu trạng thái (cảnh báo/thiết bị/quyền), hành động Gọi/Xem cảnh báo, ô hỏi + 3 gợi ý; không bản tin/4 chỉ số/cột bối cảnh | `AssistantPage.test.tsx`, `e2e/assistant.spec.ts`, ảnh `C:/c/tmp/v4-live/app-*` |
-| Nav 4 mục | Hôm nay/Cảnh báo/Người thân/Thêm; Sức khỏe mở từ link, Cài đặt/Thiết bị/Thông báo/Công việc/Studio trong Thêm | `AppShell.test.tsx`, `router.test.tsx`, E2E nav |
+| Nav 4 mục | Hôm nay/Cảnh báo/Người thân/Thêm; Sức khỏe mở từ link, Cài đặt/Thiết bị/Thông báo/Công việc/Studio trong Thêm (mục “Thêm” **đã bị bỏ ở v7** — xem lát cắt v7 bên dưới) | `AppShell.test.tsx`, `router.test.tsx`, E2E nav |
 | Công khai tối giản | Landing hero + 3 thẻ + dòng an toàn; login/register một thẻ; bỏ khối “Tài khoản trải nghiệm” và nút tự điền | `LandingPage.test.tsx`, `LoginPage.test.tsx`, `smoke.spec.ts` 26 test |
 | Quản trị 4 tab | Tổng quan/Người dùng/Thiết bị/Nâng cao; 4 KPI; audit panel ngoài bảng, policy lỗi trong viewport | `AdminPage.test.tsx`, ảnh admin 1280/390 |
 | Trạng thái thiết bị | `offline` dùng `lastSeenAt`; `stale` dùng `lastMeasuredAt` và câu “Chưa có số đo mới”, không gọi ngoại tuyến | `AssistantPage.test.tsx`, re-review R-01 |
@@ -221,7 +221,27 @@ Người dùng bác giao diện v3 vì quá nhiều chữ/khối; yêu cầu tha
 
 **Review v4:** 3 reviewer độc lập (public/admin/app) tìm 69 phát hiện ban đầu; sau các vòng sửa còn 15 P2/P3 public, 18 P2/P3 admin, 24 P2/P3 app (1 P1 stale đã sửa). Báo cáo ở `reports/qa/v4-*.md`; **chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**. Các P2 còn lại (menu tài khoản, gộp 3 giá trị nhịp tim, hai nút tải lịch sử, policy summary 360) được ghi nhận, không tuyên bố đã đóng.
 
-### Lệnh kiểm đã dùng
+### Lát cắt v7 — giao diện xây lại (18/11/2026)
+
+Nghiệp vụ, API và contract giữ nguyên; thay toàn bộ nền tảng trình bày: token + primitive dùng chung, shell mới, CSS tách theo feature và bỏ các lớp override chồng nhau. Chia theo lane: nền tảng/khung → công khai–đăng nhập–đăng ký–lời mời–404 → Hôm nay–Cảnh báo–hộp thông báo–chi tiết cảnh báo–trợ lý → Sức khỏe–Lịch sử đo → Người thân–Chia sẻ–Thiết bị–Công việc–Tài khoản → Quản trị–Studio.
+
+| Thay đổi | Hành vi chính | Bằng chứng |
+| --- | --- | --- |
+| Nav 4 mục thật | Hôm nay/Cảnh báo/**Sức khỏe**/Người thân; **bỏ hẳn menu “Thêm”**; `routeScope` là nguồn duy nhất quyết định mục active, dòng ngữ cảnh và chế độ hộp thông báo | `apps/web/src/app/routeScope.ts`, `AppShell.test.tsx`, `reports/qa/evidence/v7-foundation/shell-behavior.json` |
+| Badge = cảnh báo đang mở | Badge trên mục Cảnh báo đếm cảnh báo đang mở của hồ sơ đang xem (tải 20, còn trang sau thì `20+`), không còn là badge thông báo chưa đọc | `AppShell.tsx`, review W1 P2-03 (`reports/qa/v7-foundation-review.md`) |
+| Hộp thông báo có chỗ | `/app/alerts?view=notifications` mount `NotificationsPage` thật; `/app/notifications` chuyển tiếp; đánh dấu đã đọc được, **không** xác nhận/đóng cảnh báo | `reports/qa/evidence/v7-c/behaviour.json` (tab, mark-read, URL sau reload) |
+| Ngữ cảnh hồ sơ một dòng trên H1 | Chỉ 5 loại trang (Hôm nay kể cả alias, danh sách Cảnh báo, Sức khỏe, Lịch sử đo, Thiết bị); trang ghim theo id và hộp thông báo không có selector giả | `shell-behavior.json` (`contextBeforeH1`, `inbox.hasContext=false`) |
+| Menu tài khoản ở avatar | Tài khoản / Quản trị (chỉ admin) / chữ lớn `Aa` / Đăng xuất có hỏi lại; desktop ở rail, mobile ở topbar; **không link Studio** | `shell-behavior.json` (`hasStudio=false`, item 44px) |
+| Công khai, auth, lời mời, 404 | Landing một câu giá trị + flow + dòng giới hạn bốn ý; lỗi trường được focus; token lời mời sai có câu riêng; 404 có bản công khai và bản trong khung | ảnh `reports/qa/evidence/v7-p/`, `states.json`, `e2e/smoke.spec.ts` |
+| Quản trị 5 mục | Tổng quan/Người dùng/Thiết bị/Chính sách/Nhật ký; mã gắn và đổi khóa chỉ hiện một lần, đổi khóa có xác nhận | ảnh `reports/qa/evidence/v7-a/` |
+| Studio | Danh sách + tạo view; 3 bước cấu hình → xem trước → công bố, lịch sử + rollback tạo bản mới; vào bằng deep link, không có mục menu | ảnh `v7-a/studio-*`, `reports/handoffs/v7-a.md` |
+| Bằng chứng đưa vào repo | Ảnh + số đo hành vi của cả 6 lane nằm trong `reports/qa/evidence/v7-*/`, thay cho ảnh ở `C:/tmp` của các vòng trước | — |
+
+**Tự chạy lại ngày 18/11/2026 trên worktree tài liệu (sau khi hợp nhất các lane giao diện v7):** web **38 file/346 test**, E2E **26/26**, API **20 suite/219 test**, simulator **23 test**, `build.py --check` khớp nguồn và `check-examples` parse **5/5**. Lượt này **không** chạy lại typecheck, build production, randomized, seed hay MQTT exposure. Lệnh và mốc thời gian chi tiết ở [chương 8](08-kiem-thu-va-danh-gia.md).
+
+**Còn mở ở v7:** mới có **một** vòng review độc lập cho W1 foundation (`reports/qa/v7-foundation-review.md`), **chưa có review độc lập cho toàn bộ giao diện v7**; chưa kiểm Firefox/WebKit, thiết bị thật hay AI provider thật. Các khoảng hở nghiệp vụ/backend ở mục “Chưa làm hoặc chưa đủ bằng chứng” bên dưới vẫn nguyên (MQTT P0-2, retention/xóa thật, ngưỡng y khoa, form tạo thiết bị, OpenAPI, CI).
+
+### Lệnh kiểm đã dùng (v1–v4, 15/11/2026)
 
 ```bash
 pnpm -r typecheck
@@ -251,7 +271,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
 - **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
 - **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, retention/xóa cứng/backup; deletion-request mới ghi audit. Không tuyên bố tuân thủ pháp lý.
-- **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
+- **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Với v7, mới có review W1 foundation; các lane P/C/H/R/A chưa có review độc lập trên bản hợp nhất. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
 
 ### Giới hạn vận hành đã biết
 

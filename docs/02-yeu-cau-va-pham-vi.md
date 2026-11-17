@@ -50,7 +50,7 @@ Bảng dưới ghi phần **đã bổ sung sau baseline v0.1**, kèm yêu cầu 
 | Tạo việc bảo trì | FR-11 (vận hành) | Đã có | `POST /maintenance-tasks`; chủ hồ sơ tạo cho thiết bị đang gắn; caregiver chỉ xem; test `task-create.spec.ts`, `TasksPage.test.tsx` |
 | Lưu trữ hồ sơ và ghi nhận yêu cầu xóa | FR-14 | Một phần | `POST /subjects/:id/archive` (204, thu hồi care link, không xóa dữ liệu) và `POST /subjects/:id/deletion-requests` (202 `recorded`); chưa có xóa cứng/retention |
 | Quyền xem số đo tách khỏi nhận cảnh báo | FR-02, NFR-01 | Đã có | `canViewMeasurements` trong contract/DB jsonb; API trả 403 nghiệp vụ; `/status` có `healthDataVisible`; test `care.spec.ts`, `devices.spec.ts`, `assistant.spec.ts` |
-| Badge/banner thông báo và cảnh báo mới | FR-07 | Đã có | Badge chưa đọc, banner thông báo mới, banner mất SSE; `AppShell` + hook thông báo; test `AppShell.test.tsx` |
+| Badge/banner cảnh báo và thông báo mới | FR-07 | Đã có | Badge **cảnh báo đang mở** trên nav, hộp thông báo toàn tài khoản (`/app/alerts?view=notifications`), banner thông báo mới, banner mất SSE; `AppShell` + hook thông báo; test `AppShell.test.tsx` |
 | Quản trị thiết bị | FR-03, FR-11 | Đã có phần lớn | Tab thiết bị: danh sách, cấp mã, xoay khóa (mã/khóa chỉ hiện một lần); tạo thiết bị mới vẫn qua API admin |
 | Studio publish/rollback và ranh giới dữ liệu | docs/11 (preview) | Đã có | Draft → preview → publish CAS → rollback; dữ liệu theo `sharedFrom`/`historyDays`; caregiver thiếu quyền cảnh báo không thấy alert trong Studio; test `studio.spec.ts` T12/T13 |
 | Cách ly ingest | FR-03, FR-04, NFR-02 | Đã có | Telemetry/sự kiện gán theo assignment tại `measured_at`; mẫu lệch giờ/ngoài assignment bị cách ly; HTTP ack `QUARANTINED`; test `ingest.spec.ts`, `incidents.spec.ts` T19–T24 |
