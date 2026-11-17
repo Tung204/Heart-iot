@@ -25,7 +25,7 @@ Sửa (8):
 
 Thêm (3): `apps/web/src/styles/alerts.css` (447 dòng), `apps/web/src/styles/assistant.css` (312), `apps/web/src/features/notifications/notifications.css` (147).
 
-Bằng chứng: `reports/qa/evidence/v7-c/` — `qa.mjs`, 26 PNG, `metrics.json`, `behaviour.json`, `api-dev.log`.
+Bằng chứng: `reports/qa/evidence/v7-c/` — `qa.mjs`, 26 PNG, `metrics.json`, `behaviour.json` (log API cục bộ `api-dev.log` không commit vì `.gitignore` khớp `*.log`).
 
 Không sửa: `features/alerts/labels.ts` (đóng băng), `app/*`, `lib/*`, `components/*`, `test/utils.tsx`, `styles/layout.css`, `apps/api`, `packages/contracts`, route/query key. Không thêm dependency. Không đổi API/SSE/quyền.
 
