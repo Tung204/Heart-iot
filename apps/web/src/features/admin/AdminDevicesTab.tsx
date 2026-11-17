@@ -17,7 +17,6 @@ import {
   issueAdminClaimCode,
   rotateAdminDeviceKey,
 } from './api';
-import './admin-devices.css';
 
 const DEVICE_STATUS_LABELS: Record<string, string> = {
   active: 'Đã kích hoạt',
@@ -93,22 +92,22 @@ function DeviceSecretPanel({
   }, [secret.kind, secret.value]);
 
   return (
-    <section className="adm-device-secret" aria-labelledby={headingId}>
-      <div className="adm-device-secret__head">
+    <section className="admin-device-secret" aria-labelledby={headingId}>
+      <div className="admin-device-secret__head">
         <h2 id={headingId} className="section-title" tabIndex={-1} ref={headingRef}>
           {isClaim ? 'Mã gắn thiết bị mới' : 'Khóa thiết bị mới'}
         </h2>
         <StatusPill tone="sand">Chỉ hiển thị một lần</StatusPill>
       </div>
-      <p className="adm-device-secret__lead">
+      <p className="admin-device-secret__lead">
         {isClaim ? 'Mã gắn thiết bị' : 'Khóa thiết bị'} cho{' '}
         <strong>{secret.deviceLabel || secret.deviceSerial}</strong>{' '}
-        <span className="adm-device__serial">(serial {secret.deviceSerial})</span>.
+        <span className="admin-device__serial">(serial {secret.deviceSerial})</span>.
       </p>
-      <p className="adm-device-secret__value">
+      <p className="admin-device-secret__value">
         <code>{secret.value}</code>
       </p>
-      <div className="adm-device-secret__actions">
+      <div className="admin-device-secret__actions">
         <Button variant="secondary" size="sm" onClick={onCopy}>
           {copyState === 'copied'
             ? 'Đã sao chép'
@@ -134,7 +133,7 @@ function DeviceSecretPanel({
       {isClaim && secret.expiresAt ? (
         <p className="field__hint">Mã hết hạn lúc {formatDateTime(secret.expiresAt)}.</p>
       ) : null}
-      <p className="adm-device-secret__warning">
+      <p className="admin-device-secret__warning">
         <strong>Không chia sẻ {isClaim ? 'mã này' : 'khóa này'} qua email, tin nhắn hay ảnh chụp màn hình.</strong>{' '}
         {isClaim
           ? 'Mã dùng một lần để gắn thiết bị vào hồ sơ.'
@@ -272,11 +271,16 @@ export function AdminDevicesTab() {
         </Alert>
       ) : null}
 
-      <section aria-labelledby="admin-devices-heading">
-        <div className="section-heading-row adm-device-toolbar">
-          <h2 id="admin-devices-heading" className="section-title">
-            Thiết bị đã đăng&nbsp;ký
-          </h2>
+      <section aria-labelledby="admin-devices-heading" className="admin-devices">
+        <div className="admin-section-head">
+          <div>
+            <h2 id="admin-devices-heading" className="admin-section-title">
+              Thiết bị đã đăng ký
+            </h2>
+            <p className="admin-section-lead">
+              Chỉ metadata thiết bị; màn này không hiển thị dữ liệu sức khỏe.
+            </p>
+          </div>
           <Button
             variant="secondary"
             size="sm"
@@ -292,7 +296,7 @@ export function AdminDevicesTab() {
             description="Thiết bị đã đăng ký sẽ xuất hiện ở đây."
           />
         ) : (
-          <ul className="adm-device-list" aria-label="Danh sách thiết bị">
+          <ul className="admin-device-list" aria-label="Danh sách thiết bị">
             {items.map((device) => {
               const connection = connectionState(device.lastSeenAt, offlineAfterSeconds);
               const statusLabel = DEVICE_STATUS_LABELS[device.status] ?? device.status;
@@ -304,41 +308,41 @@ export function AdminDevicesTab() {
               const claimHintId = `${claimHintBaseId}-${device.id}`;
 
               return (
-                <li key={device.id} className="adm-device">
-                  <div className="adm-device__head">
-                    <div className="adm-device__identity">
-                      <h3 className="adm-device__name">{device.label || device.serial}</h3>
-                      <p className="adm-device__serial">
+                <li key={device.id} className="admin-device">
+                  <div className="admin-device__head">
+                    <div className="admin-device__identity">
+                      <h3 className="admin-device__name">{device.label || device.serial}</h3>
+                      <p className="admin-device__serial">
                         Serial <code>{device.serial}</code>
                       </p>
                     </div>
-                    <div className="adm-device__pills">
+                    <div className="admin-device__pills">
                       <StatusPill tone={statusTone}>{statusLabel}</StatusPill>
                       <StatusPill tone={CONNECTION_TONES[connection]}>
                         {CONNECTION_LABELS[connection]}
                       </StatusPill>
                       {connection === 'offline' && offlineAfterSeconds !== undefined ? (
-                        <span className="adm-device__connection-hint">
+                        <span className="admin-device__connection-hint">
                           Không nhận dữ liệu hơn {offlineAfterSeconds} giây nên được coi là ngoại
                           tuyến.
                         </span>
                       ) : null}
                       {connection === 'unknown' ? (
-                        <span className="adm-device__connection-hint">
+                        <span className="admin-device__connection-hint">
                           Chưa rõ vì chưa tải được ngưỡng ngoại tuyến từ chính sách.
                         </span>
                       ) : null}
                     </div>
                   </div>
 
-                  <dl className="adm-device__facts">
+                  <dl className="admin-device__facts">
                     <div>
                       <dt>Hồ sơ đang gắn</dt>
                       <dd>
                         {device.assignedSubjectId ? (
-                          <span className="adm-device__subject" title={device.assignedSubjectId}>
+                          <span className="admin-device__subject" title={device.assignedSubjectId}>
                             Mã{' '}
-                            <code className="adm-device__id">
+                            <code className="admin-device__id">
                               {device.assignedSubjectId.slice(0, 8)}
                             </code>
                           </span>
@@ -352,7 +356,7 @@ export function AdminDevicesTab() {
                       <dd>{device.firmwareVersion ?? 'Chưa báo cáo'}</dd>
                     </div>
                     <div>
-                      <dt>Lần thấy cuối</dt>
+                      <dt>Lần nhận dữ liệu gần nhất</dt>
                       <dd>
                         {device.lastSeenAt ? (
                           <>
@@ -364,13 +368,9 @@ export function AdminDevicesTab() {
                         )}
                       </dd>
                     </div>
-                    <div>
-                      <dt>Pin</dt>
-                      <dd>Chưa có thông tin pin</dd>
-                    </div>
                   </dl>
 
-                  <div className="adm-device__actions">
+                  <div className="admin-device__actions">
                     <Button
                       variant="secondary"
                       size="sm"
@@ -381,13 +381,13 @@ export function AdminDevicesTab() {
                       {claimPending ? 'Đang tạo mã…' : 'Tạo mã gắn thiết bị'}
                     </Button>
                     {assigned ? (
-                      <p id={claimHintId} className="field__hint adm-device__claim-hint">
+                      <p id={claimHintId} className="field__hint admin-device__claim-hint">
                         Thiết bị đang gắn hồ sơ; hãy gỡ trước khi tạo mã.
                       </p>
                     ) : null}
                     {rotateTargetId === device.id ? (
                       <div
-                        className="adm-device__confirm"
+                        className="admin-device__confirm"
                         role="group"
                         aria-label={`Xác nhận đổi khóa cho thiết bị ${device.serial}`}
                       >
@@ -395,7 +395,7 @@ export function AdminDevicesTab() {
                           Đổi khóa sẽ khiến thiết bị đang dùng khóa cũ không gửi được dữ liệu cho
                           đến khi cấu hình khóa mới. Không thể hoàn tác.
                         </p>
-                        <div className="adm-device__confirm-actions">
+                        <div className="admin-device__confirm-actions">
                           <Button
                             variant="danger"
                             size="sm"
