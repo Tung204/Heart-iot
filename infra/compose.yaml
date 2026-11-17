@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: heartiot
+      POSTGRES_USER: heartiot
+      POSTGRES_PASSWORD: heartiot
+    ports:
+      # Chỉ loopback của máy host: không mở PostgreSQL ra mạng LAN/Wi-Fi.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heartiot -d heartiot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # MQTT KHÔNG phải đường ingest được hỗ trợ (xem infra/README.md).
+  # - Adapter MQTT trong apps/api chỉ subscribe v1/devices/+/telemetry khi có MQTT_URL;
+  #   chưa có ingest fall/SOS và chưa publish ACK, nên publish sự kiện lên broker
+  #   KHÔNG tạo incident và không có ACK (finding P0-2 vẫn mở).
+  # - Vì vậy broker nằm sau profile mqtt-experimental: `docker compose up` mặc định
+  #   không dựng và không mở cổng 1883.
+  # - Khi bật: chỉ bind 127.0.0.1, bắt buộc password_file + ACL theo device_id.
+  mosquitto:
+    image: eclipse-mosquitto:2
+    profiles: ["mqtt-experimental"]
+    ports:
+      # Cổng chỉ mở trên loopback host; đổi cổng host bằng MQTT_EXPERIMENTAL_PORT.
+      - "127.0.0.1:${MQTT_EXPERIMENTAL_PORT:-1883}:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/acl:/mosquitto/config/acl:ro
+      # File mật khẩu tạo cục bộ bằng mosquitto_passwd, đã gitignore và không commit.
+      # Thiếu file này thì broker dừng (fail closed), không fallback sang anonymous.
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+    restart: "no"
+
+volumes:
+  pgdata:

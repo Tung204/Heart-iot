@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "message_id": "demo-fall-confirmed-001",
+  "device_id": "demo-device-001",
+  "boot_id": "demo-boot-001",
+  "sequence": 102,
+  "measured_at": "2026-11-10T09:20:20Z",
+  "clock_status": "synced",
+  "uptime_ms": 140000,
+  "firmware_version": "0.0.0-design",
+  "incident_id": "demo-incident-001",
+  "event_revision": 2,
+  "event_type": "fall.confirmed",
+  "incident_type": "fall",
+  "evidence": {
+    "algorithm_version": "heuristic-proposal-v0",
+    "wear_location": "wrist",
+    "motion_quality": "valid",
+    "heart_rate_quality": "valid",
+    "heart_rate_bpm": 74
+  }
+}

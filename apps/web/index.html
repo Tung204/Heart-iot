@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#faf6ed" />
+    <meta
+      name="description"
+      content="Theo dõi sức khỏe người thân từ xa: nhịp tim và vận động từ thiết bị đeo, báo khi cần; trợ lý AI trả lời câu hỏi về số liệu. Dữ liệu mô phỏng · không thay thế cấp cứu."
+    />
+    <title>Theo dõi sức khỏe — người thân và trợ lý AI</title>
+    <!--
+      Khung tĩnh + CSS tối thiểu: trên mạng chậm, người dùng thấy khung và trạng thái
+      tải ngay khi HTML tới thay vì màn hình trắng ~5,6 s chờ JS (QA v2, P1-4).
+      React thay toàn bộ nội dung #root ở lần render đầu nên không cần gỡ thủ công.
+      Dùng font hệ thống để không phát sinh request font trước khi CSS chính tải xong.
+    -->
+    <style>
+      html {
+        background-color: #faf6ed;
+      }
+      body {
+        margin: 0;
+        color: #16304d;
+        background-color: #faf6ed;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        line-height: 1.65;
+      }
+      .boot {
+        max-width: 60rem;
+        margin: 0 auto;
+        padding: 3rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .boot__brand {
+        margin: 0;
+        font-size: 1.875rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+      .boot__title {
+        margin: 0;
+        font-size: 1.125rem;
+        color: #44596d;
+      }
+      .boot__skeleton {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+      }
+      .boot__skeleton span {
+        display: block;
+        height: 1rem;
+        border-radius: 0.5rem;
+        background: linear-gradient(90deg, #f2ead9 25%, #fbf7ee 50%, #f2ead9 75%);
+        background-size: 200% 100%;
+        animation: boot-shimmer 1.4s ease-in-out infinite;
+      }
+      .boot__skeleton span:nth-child(1) {
+        width: min(100%, 38rem);
+        height: 5.5rem;
+      }
+      .boot__skeleton span:nth-child(2) {
+        width: min(100%, 52rem);
+        height: 8rem;
+      }
+      .boot__skeleton span:nth-child(3) {
+        width: min(100%, 46rem);
+      }
+      .boot__note {
+        margin: 0.75rem 0 0;
+        max-width: 38rem;
+        color: #5b6f81;
+        font-size: 0.875rem;
+      }
+      @keyframes boot-shimmer {
+        from {
+          background-position: 200% 0;
+        }
+        to {
+          background-position: -200% 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot__skeleton span {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="boot" role="status" aria-live="polite" aria-busy="true">
+        <p class="boot__brand">Theo dõi sức khỏe</p>
+        <p class="boot__title">Đang tải giao diện…</p>
+        <div class="boot__skeleton" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <p class="boot__note">Dữ liệu mô phỏng · không thay thế cấp cứu.</p>
+      </div>
+    </div>
+    <noscript>
+      <p style="max-width: 60rem; margin: 0 auto; padding: 1.25rem">
+        Trang cần JavaScript để hiển thị. Hãy bật JavaScript rồi tải lại.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

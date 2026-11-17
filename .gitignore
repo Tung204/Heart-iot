@@ -1,0 +1,50 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+# Mật khẩu broker cho profile thử nghiệm mqtt-experimental (tạo cục bộ, không commit)
+infra/mosquitto/passwd
+infra/mosquitto/passwd.*
+
+# Local database PGlite
+.data/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.venv/
+__pycache__/
+*.pyc
+.pio/
+managed_components/
+sdkconfig.old
+
+# Local measurements and reports containing participant data
+data/raw/
+data/private/
+data/processed/
+data/exports/
+reports/private/
+*.log
+
+# Local OS/editor state
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Pi agent local state
+.pi/
+
+# Playwright artifacts
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Playwright MCP session logs (công cụ, không phải mã dự án)
+.playwright-mcp/

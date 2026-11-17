@@ -1,0 +1,51 @@
+{
+  "name": "@heart-iot/api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend modular monolith cho n\u1ec1n t\u1ea3ng An Nhi\u00ean",
+  "scripts": {
+    "dev": "nest start --watch --preserveWatchOutput",
+    "build": "nest build",
+    "start": "node dist/src/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:random": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --randomize",
+    "test:watch": "jest --watch",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/database/migrate-cli.ts",
+    "seed": "tsx src/database/seed-cli.ts"
+  },
+  "dependencies": {
+    "@heart-iot/contracts": "workspace:*",
+    "@electric-sql/pglite": "0.5.16",
+    "@nestjs/common": "11.2.10",
+    "@nestjs/core": "11.2.10",
+    "@nestjs/platform-express": "11.2.10",
+    "cookie-parser": "1.4.7",
+    "dotenv": "18.0.10",
+    "drizzle-orm": "0.45.4",
+    "mqtt": "5.16.1",
+    "pg": "8.23.1",
+    "reflect-metadata": "0.2.2",
+    "rxjs": "7.8.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "11.0.24",
+    "@nestjs/testing": "11.2.10",
+    "@swc/core": "1.16.22",
+    "@swc/jest": "0.2.39",
+    "@types/cookie-parser": "1.4.10",
+    "@types/express": "5.0.6",
+    "@types/jest": "30.0.0",
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "@types/supertest": "7.2.1",
+    "aedes": "1.2.0",
+    "drizzle-kit": "0.31.11",
+    "jest": "30.5.2",
+    "supertest": "7.3.2",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}

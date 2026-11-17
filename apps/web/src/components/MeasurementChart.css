@@ -1,0 +1,20 @@
+/*
+  Vùng cuộn riêng của biểu đồ nhịp tim.
+  - Có thể nhận focus bằng Tab (tabindex="0" trong MeasurementChart.tsx) để
+    người dùng bàn phím cuộn ngang bằng phím mũi tên ở mọi trình duyệt.
+  - `scroll-margin-bottom` + `scroll-padding-bottom` toàn cục (tokens.css)
+    giữ phần cuối biểu đồ không bị thanh nav dưới (position: fixed) che khi
+    trình duyệt cuộn phần tử được focus vào khung nhìn.
+*/
+
+.chart__scroll {
+  overflow-x: auto;
+  scroll-padding-bottom: 6rem;
+  scroll-margin-bottom: 6rem;
+  border-radius: var(--radius-s);
+}
+
+.chart__scroll:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}

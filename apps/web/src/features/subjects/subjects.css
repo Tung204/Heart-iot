@@ -1,0 +1,101 @@
+/* ============================================================
+   Hồ sơ — vùng thao tác dữ liệu (FR-14: lưu trữ / yêu cầu xóa)
+   Dùng design tokens chung; chỉ bổ sung class của feature, không sửa layout.css.
+   Mục tiêu: hành động nguy hiểm tách khỏi hành động thường nhưng không phá
+   bố cục card ở 360px, chữ lớn (20px) hay bàn phím.
+   ============================================================ */
+
+/* Nhóm nút nguy hiểm nằm cuối hàng action, có vách ngăn trên desktop. */
+.subject-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--color-line);
+}
+
+@media (max-width: 639px) {
+  .subject-danger-actions {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: var(--space-3);
+    border-left: 0;
+    border-top: 1px solid var(--color-line);
+  }
+}
+
+/* Panel xác nhận tại chỗ: nền cảnh báo nhẹ, không mở modal/không dùng confirm(). */
+.subject-danger-panel {
+  min-width: 0;
+  background: color-mix(in srgb, var(--color-brick-soft) 34%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-brick) 28%, var(--color-line));
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+}
+
+.subject-danger-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.subject-danger-form__title {
+  font-size: var(--text-lg);
+  color: var(--color-brick-deep);
+  overflow-wrap: anywhere;
+}
+
+.subject-danger-form__lead {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.subject-danger-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.subject-danger-form textarea.field__input {
+  min-height: 6rem;
+  resize: vertical;
+  font-family: inherit;
+  font-size: var(--text-md);
+}
+
+.subject-danger-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.subject-danger-result {
+  min-width: 0;
+}
+
+.subject-danger-result__meta {
+  margin-top: var(--space-2);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.subject-danger-result code {
+  overflow-wrap: anywhere;
+}
+
+.subject-danger-result .alert__text > .button {
+  margin-top: var(--space-3);
+}
+
+/* Thông báo archive nằm trong section: giữ khoảng cách với danh sách. */
+.subject-danger-notice__button {
+  margin-top: var(--space-3);
+}

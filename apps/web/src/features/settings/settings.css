@@ -1,0 +1,105 @@
+/* ============================================================
+   Cài đặt tài khoản — CSS riêng của feature.
+   Dùng design tokens từ styles/tokens.css; không tạo hệ CSS mới.
+   Mobile 360/390px: mỗi phiên xếp dọc, nút thu hồi chiếm dòng riêng.
+   Chữ lớn: dùng rem + flex-wrap, không cố định chiều cao.
+   ============================================================ */
+
+.settings-meta {
+  margin: 0 0 var(--space-4);
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.settings-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.settings-actions-row--end {
+  margin-top: var(--space-2);
+}
+
+/* ---------- Danh sách phiên đăng nhập ---------- */
+
+.settings-sessions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings-session {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: flex-start;
+  justify-content: space-between;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+}
+
+.settings-session__main {
+  flex: 1 1 16rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-session__title {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.settings-session__meta {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.settings-session__actions {
+  flex: 0 1 auto;
+  max-width: 100%;
+}
+
+.settings-session__note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  max-width: 20rem;
+}
+
+.settings-session .confirm-box {
+  max-width: 24rem;
+}
+
+@media (max-width: 30rem) {
+  .settings-session {
+    flex-direction: column;
+  }
+  /* Trong flex cột, flex-basis áp lên chiều cao — bỏ basis để hàng ôm nội dung. */
+  .settings-session__main {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+  .settings-session__actions {
+    width: 100%;
+  }
+  .settings-session__actions .button {
+    width: 100%;
+  }
+  .settings-session .confirm-box {
+    max-width: none;
+  }
+}

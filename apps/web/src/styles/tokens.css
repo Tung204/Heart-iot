@@ -1,0 +1,108 @@
+/* ============================================================
+   Theo dõi sức khỏe — design tokens
+   Bảng màu: nền giấy ấm, mực xanh đậm, teal (bình thường),
+   đỏ gạch (cảnh báo), vàng cát (cảnh báo nhẹ).
+   Màu không bao giờ là tín hiệu duy nhất — luôn kèm chữ/biểu tượng.
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* Nền và bề mặt */
+  --color-paper: #faf6ed;        /* nền giấy ấm */
+  --color-paper-deep: #f2ead9;   /* nền phụ / dải tinted */
+  --color-surface: #fffdf7;      /* thẻ, form */
+  --color-surface-2: #fbf7ee;
+
+  /* Mực */
+  --color-ink: #16304d;          /* mực xanh đậm — chữ chính */
+  --color-ink-soft: #44596d;     /* chữ phụ */
+  --color-ink-muted: #4c5f70;    /* chữ ghi chú / disabled — 5.52:1 trên paper-deep */
+
+  /* Tín hiệu */
+  --color-teal: #0c6e63;         /* bình thường / hành động chính */
+  --color-teal-deep: #09544c;
+  --color-teal-soft: #dceee8;
+  --color-brick: #a33b2e;        /* cảnh báo */
+  --color-brick-deep: #862d23;
+  --color-brick-soft: #f8e3de;
+  --color-sand-ink: #6d540d;     /* cảnh báo nhẹ — chữ trên nền cát */
+  --color-sand-soft: #f6eccb;
+
+  /* Đường viền */
+  --color-line: #e0d6c1;
+  --color-line-strong: #c9bc9f;
+
+  --color-focus: #0c6e63;
+  --color-white: #ffffff;
+
+  /* Chữ (font self-host qua @fontsource, không CDN) */
+  --font-body: 'Be Vietnam Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: 'Newsreader', 'Times New Roman', Georgia, serif;
+
+  /* Cỡ chữ — rem, co giãn theo html font-size (chế độ chữ lớn) */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1rem;      /* body ≥ 16px: 17px với html 106.25% */
+  --text-lg: 1.1875rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.5rem;
+
+  /* Khoảng thở */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+
+  /* Bo góc và bóng */
+  --radius-s: 6px;
+  --radius-m: 12px;
+  --radius-l: 20px;
+  --shadow-card: 0 1px 2px rgb(22 48 77 / 0.05), 0 10px 28px -14px rgb(22 48 77 / 0.16);
+
+  /* Độ rộng khung nội dung */
+  --max-content: 60rem;
+  --max-page: 72rem;
+
+  /* Chuyển động — ngắn, có mục đích, chỉ để giải thích thay đổi trạng thái.
+     Mọi hiệu ứng đều tắt khi người dùng chọn giảm chuyển động (xem block
+     giảm chuyển động bên dưới và trong layout.css). */
+  --motion-fast: 120ms ease-out;
+  --motion-press: 90ms ease-out;
+  --motion-route: 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --motion-banner: 220ms ease-out;
+  --motion-route-shift: 8px; /* 6–8px: đủ thấy hướng đi, không gây giật */
+}
+
+html {
+  font-size: 106.25%; /* 17px mặc định — body 1rem = 17px */
+  /* Chừa chỗ cho thanh điều hướng dưới (cố định) khi trình duyệt cuộn tới
+     phần tử được focus, ví dụ vùng cuộn biểu đồ. 6rem = 102px ở cỡ mặc định,
+     120px ở chế độ chữ lớn; nav cao tối đa ~105px (đo ở 390px, chữ lớn). */
+  scroll-padding-bottom: 6rem;
+}
+
+/* Chế độ "chữ lớn" — bật qua nút trong ứng dụng, lưu localStorage */
+html[data-text-size='large'] {
+  font-size: 125%; /* 20px */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  /* Chặn cả hiệu ứng mới (chuyển trang, banner, phản hồi khi bấm): không có
+     animation/transition kéo dài, nội dung hiện ngay và không nhấp nháy. */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

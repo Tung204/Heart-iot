@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "message_id": "demo-telemetry-001",
+  "device_id": "demo-device-001",
+  "boot_id": "demo-boot-001",
+  "sequence": 100,
+  "measured_at": "2026-11-10T09:20:00Z",
+  "clock_status": "synced",
+  "uptime_ms": 120000,
+  "metrics": {
+    "heart_rate_bpm": 72,
+    "steps_since_boot": 125
+  },
+  "quality": {
+    "heart_rate": "valid",
+    "motion": "valid"
+  },
+  "battery_percent": null,
+  "firmware_version": "0.0.0-design"
+}

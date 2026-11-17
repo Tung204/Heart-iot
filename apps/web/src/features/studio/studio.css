@@ -1,0 +1,347 @@
+/* ============================================================
+   Studio workspace views — CSS riêng của feature (wave 3)
+   Dùng design tokens từ styles/tokens.css; không tạo hệ CSS mới.
+   Mobile 360px: form và preview xếp dọc, bảng có overflow ngang.
+   ============================================================ */
+
+/* ---------- Trang danh sách view ---------- */
+
+.studio-view-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.studio-view-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: baseline;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+}
+
+.studio-view-row__main {
+  flex: 1 1 20rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.studio-view-row__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.studio-view-row__meta {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.studio-view-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.studio-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 40rem;
+}
+
+/* ---------- Soạn draft ---------- */
+
+.studio-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.studio-widget-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+}
+
+.studio-widget-editor__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.studio-widget-editor__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3);
+}
+
+.studio-widget-editor__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.studio-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.studio-layout-select {
+  max-width: 14rem;
+}
+
+.studio-note-input {
+  max-width: 30rem;
+}
+
+/* ---------- Preview ---------- */
+
+.studio-datamode {
+  margin-left: var(--space-2);
+}
+
+.studio-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.studio-preview--grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: start;
+}
+
+.studio-preview--grid .studio-widget--span-1 {
+  grid-column: span 2;
+}
+
+.studio-preview--grid .studio-widget--span-2 {
+  grid-column: span 4;
+}
+
+.studio-preview--grid .studio-widget--span-3 {
+  grid-column: span 6;
+}
+
+.studio-widget {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+}
+
+.studio-widget__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-md);
+}
+
+.studio-widget__empty {
+  color: var(--color-ink-soft);
+  margin: 0;
+}
+
+.studio-metric__value {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  overflow-wrap: anywhere;
+}
+
+.studio-metric__label {
+  margin: var(--space-2) 0 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.studio-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.studio-chart__axis {
+  stroke: var(--color-line-strong);
+  stroke-width: 1;
+}
+
+.studio-chart__line {
+  stroke: var(--color-teal);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.studio-chart__label {
+  fill: var(--color-ink-muted);
+  font-size: 11px;
+}
+
+.studio-table-wrap {
+  overflow-x: auto;
+  margin-top: var(--space-3);
+}
+
+.studio-table {
+  border-collapse: collapse;
+  min-width: 24rem;
+  width: 100%;
+  font-size: var(--text-sm);
+}
+
+.studio-table__caption {
+  text-align: left;
+  font-size: var(--text-xs);
+  color: var(--color-ink-soft);
+  padding-bottom: var(--space-2);
+}
+
+.studio-table th,
+.studio-table td {
+  border-bottom: 1px solid var(--color-line);
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.studio-table th {
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+
+.studio-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.studio-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.studio-list__item:last-child {
+  border-bottom: none;
+}
+
+.studio-list__meta {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.studio-summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+}
+
+.studio-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.studio-summary dt {
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.studio-summary dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Lịch sử công bố ---------- */
+
+.studio-publication-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.studio-publication {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-m);
+  padding: var(--space-3) var(--space-4);
+}
+
+.studio-publication__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.studio-publication__title {
+  margin: 0;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.studio-publication__meta {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+  .studio-preview--grid {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-preview--grid .studio-widget--span-1,
+  .studio-preview--grid .studio-widget--span-2,
+  .studio-preview--grid .studio-widget--span-3 {
+    grid-column: span 1;
+  }
+}
