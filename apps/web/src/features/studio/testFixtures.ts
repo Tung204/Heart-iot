@@ -1,4 +1,5 @@
 import type { PreviewResult, PublicationSummary, StudioData, ViewConfig, ViewSummary } from '@heart-iot/contracts/studio';
+import type { SubjectSummary } from '@heart-iot/contracts/subjects';
 import { errorEnvelope, mockResponse, SUBJECT, USER } from '../../test/utils';
 
 /**
@@ -161,6 +162,8 @@ export interface StudioHandlerOptions {
     message: string;
     details?: Record<string, unknown>;
   };
+  /** Danh sách hồ sơ API trả về — dùng để kiểm tên dòng ngữ cảnh không hard-code. */
+  subjects?: SubjectSummary[];
 }
 
 /**
@@ -175,7 +178,7 @@ export function studioDetailHandler(state: StudioState, options: StudioHandlerOp
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null;
 
     if (u.endsWith('/me')) return mockResponse({ user: USER });
-    if (u.endsWith('/subjects')) return mockResponse({ items: [SUBJECT] });
+    if (u.endsWith('/subjects')) return mockResponse({ items: options.subjects ?? [SUBJECT] });
 
     if (u.endsWith(`/workspace-views/${STUDIO_VIEW_ID}/previews`) && method === 'POST') {
       const previewRequest = body as { draftRevision: number; previewSubjectId?: string };

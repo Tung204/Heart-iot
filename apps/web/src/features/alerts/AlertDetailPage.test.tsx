@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -85,6 +85,9 @@ describe('AlertDetailPage — ack 409', () => {
 
     const ackButton = await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' });
     await user.click(ackButton);
+    // Bước hỏi lại: chưa gọi API cho tới khi xác nhận.
+    expect(ackCalls).toBe(0);
+    await user.click(await screen.findByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(
       await screen.findByText('Cảnh báo đã thay đổi ở nơi khác'),
@@ -127,6 +130,94 @@ function detailHandler(overrides: Record<string, unknown> = {}) {
   };
 }
 
+// P3-01 / ack ở chi tiết phải hỏi lại trước POST như danh sách; Hủy/Escape trả focus về nút đầu.
+describe('AlertDetailPage — xác nhận hỗ trợ 2 bước', () => {
+  function ackSuccessHandler(onAck: (body: unknown) => void) {
+    return (url: string, init?: RequestInit) => {
+      if (url.includes(`/alerts/${INCIDENT.id}/acknowledge`) && init?.method === 'POST') {
+        onAck(JSON.parse(String(init.body)));
+        return mockResponse({
+          ...DETAIL,
+          state: 'acknowledged',
+          version: INCIDENT.version + 1,
+          acknowledgedBy: { userId: USER.id, displayName: 'Trần Thị An' },
+        });
+      }
+      if (url.includes(`/alerts/${INCIDENT.id}`)) return mockResponse(DETAIL);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    };
+  }
+
+  it('mở bước hỏi lại không gửi POST; xác nhận mới POST đúng body expectedVersion', async () => {
+    const bodies: unknown[] = [];
+    renderDetail(ackSuccessHandler((body) => bodies.push(body)));
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' }));
+    expect(
+      await screen.findByRole('group', { name: 'Xác nhận hỗ trợ cảnh báo' }),
+    ).toHaveTextContent('Bạn đã liên hệ và đang hỗ trợ?');
+    expect(bodies).toHaveLength(0);
+    expect(screen.getByText('Đang mở', { selector: '.pill' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
+    await waitFor(() => expect(bodies).toHaveLength(1));
+    expect(bodies[0]).toEqual({ expectedVersion: INCIDENT.version });
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Đang có người hỗ trợ' }),
+    ).toBeInTheDocument();
+  });
+
+  it('Hủy đóng bước hỏi lại, không POST và trả focus về nút đầu', async () => {
+    const { fetchMock } = renderDetail(detailHandler());
+    const user = userEvent.setup();
+
+    const toggle = await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' });
+    await user.click(toggle);
+    await user.click(screen.getByRole('button', { name: 'Hủy' }));
+
+    expect(
+      screen.queryByRole('group', { name: 'Xác nhận hỗ trợ cảnh báo' }),
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Tôi đang hỗ trợ' })).toHaveFocus(),
+    );
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(false);
+  });
+
+  it('Escape đóng bước hỏi lại như Hủy, không POST', async () => {
+    const { fetchMock } = renderDetail(detailHandler());
+    const user = userEvent.setup();
+
+    const toggle = await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' });
+    await user.click(toggle);
+    const confirm = await screen.findByRole('button', { name: 'Có, tôi đang hỗ trợ' });
+    await waitFor(() => expect(confirm).toHaveFocus());
+
+    await user.keyboard('{Escape}');
+
+    expect(
+      screen.queryByRole('group', { name: 'Xác nhận hỗ trợ cảnh báo' }),
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Tôi đang hỗ trợ' })).toHaveFocus(),
+    );
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(false);
+  });
+});
+
 // F-P1-2 / xác nhận thất bại không phải 409 phải có lỗi thân thiện, nút thử lại và giữ trạng thái.
 describe('AlertDetailPage — xác nhận thất bại', () => {
   it('lỗi 500 → alert thân thiện + Thử lại, giữ nguyên trạng thái Đang mở', async () => {
@@ -134,6 +225,7 @@ describe('AlertDetailPage — xác nhận thất bại', () => {
     const user = userEvent.setup();
 
     await user.click(await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' }));
+    await user.click(await screen.findByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent('Chưa gửi được xác nhận');
@@ -300,6 +392,7 @@ describe('AlertDetailPage — quyền ghi cảnh báo', () => {
     const acknowledgeButton = screen.getByRole('button', { name: 'Tôi đang hỗ trợ' });
     expect(acknowledgeButton).toBeEnabled();
     await user.click(acknowledgeButton);
+    await user.click(await screen.findByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Đang có người hỗ trợ' }),
@@ -393,6 +486,7 @@ describe('AlertDetailPage — ngữ cảnh ghim theo detail.subjectId', () => {
     const ack = await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' });
     expect(ack).toBeEnabled();
     await user.click(ack);
+    await user.click(await screen.findByRole('button', { name: 'Có, tôi đang hỗ trợ' }));
 
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Đang có người hỗ trợ' }),
