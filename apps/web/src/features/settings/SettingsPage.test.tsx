@@ -66,10 +66,12 @@ async function renderSettings() {
 }
 
 describe('SettingsPage — cài đặt tài khoản', () => {
-  it('hiển thị 3 phần Hồ sơ/Mật khẩu/Phiên đăng nhập với danh sách phiên có nhãn truy cập', async () => {
+  it('hiển thị 3 phần Tên của bạn/Mật khẩu/Phiên đăng nhập với danh sách phiên có nhãn truy cập', async () => {
     await renderSettings();
 
-    expect(screen.getByRole('heading', { name: 'Hồ sơ' })).toBeInTheDocument();
+    // H1 “Tài khoản” + ba section đúng thứ tự: tên của bạn → mật khẩu → phiên.
+    expect(screen.getByRole('heading', { level: 1, name: 'Tài khoản' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tên của bạn' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Mật khẩu' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Phiên đăng nhập' })).toBeInTheDocument();
 
@@ -273,5 +275,45 @@ describe('SettingsPage — cài đặt tài khoản', () => {
       const list = screen.getByRole('list', { name: 'Các phiên đăng nhập' });
       expect(within(list).getAllByRole('listitem')).toHaveLength(1);
     });
+  });
+});
+
+describe('SettingsPage — nhận diện tài khoản và huỷ xác nhận', () => {
+  it('ghi rõ “Tài khoản của …”, không dùng tên hồ sơ và không có subject context', async () => {
+    await renderSettings();
+
+    expect(screen.getByText(/Tài khoản của/)).toBeInTheDocument();
+    expect(screen.getByText('Ngọc')).toBeInTheDocument();
+    // Trang tài khoản không có select/dòng “Người được theo dõi”.
+    expect(screen.queryByText('Người được theo dõi')).not.toBeInTheDocument();
+  });
+
+  it('Escape huỷ xác nhận thu hồi phiên, không gọi DELETE và focus trả về nút thu hồi', async () => {
+    const { calls } = await renderSettings();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole('button', { name: /Thu hồi phiên đăng nhập lúc/ }));
+    await screen.findByRole('group', { name: 'Xác nhận thu hồi phiên' });
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('group', { name: 'Xác nhận thu hồi phiên' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(calls.some((call) => call.method === 'DELETE')).toBe(false);
+    expect(
+      screen.getByRole('button', { name: /Thu hồi phiên đăng nhập lúc/ }),
+    ).toHaveFocus();
+  });
+
+  it('phiên hiện tại không có nút thu hồi, chỉ phiên khác mới thu hồi được', async () => {
+    await renderSettings();
+
+    const currentRow = screen.getByText('Thiết bị này').closest('li') as HTMLElement;
+    const otherRow = screen.getByText('Thiết bị khác').closest('li') as HTMLElement;
+    expect(within(currentRow).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(otherRow).getByRole('button', { name: /Thu hồi/ })).toBeInTheDocument();
   });
 });

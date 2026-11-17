@@ -1,101 +1,75 @@
 /* ============================================================
-   Hồ sơ — vùng thao tác dữ liệu (FR-14: lưu trữ / yêu cầu xóa)
-   Dùng design tokens chung; chỉ bổ sung class của feature, không sửa layout.css.
-   Mục tiêu: hành động nguy hiểm tách khỏi hành động thường nhưng không phá
-   bố cục card ở 360px, chữ lớn (20px) hay bàn phím.
+   Người thân — phần CSS riêng của feature.
+   Bố cục hàng/surface dùng chung ở `styles/people.css`; file này chỉ
+   giữ form hồ sơ và disclosure quản lý hồ sơ.
    ============================================================ */
 
-/* Nhóm nút nguy hiểm nằm cuối hàng action, có vách ngăn trên desktop. */
-.subject-danger-actions {
+/* ---------- Form tạo/sửa hồ sơ: một cột, lỗi cạnh field ---------- */
+
+.subject-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: var(--measure-form);
+}
+
+.subject-form__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-left: auto;
-  padding-left: var(--space-3);
-  border-left: 1px solid var(--color-line);
 }
 
-@media (max-width: 639px) {
-  .subject-danger-actions {
-    width: 100%;
-    margin-left: 0;
-    padding-left: 0;
-    padding-top: var(--space-3);
-    border-left: 0;
-    border-top: 1px solid var(--color-line);
-  }
-}
-
-/* Panel xác nhận tại chỗ: nền cảnh báo nhẹ, không mở modal/không dùng confirm(). */
-.subject-danger-panel {
-  min-width: 0;
-  background: color-mix(in srgb, var(--color-brick-soft) 34%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-brick) 28%, var(--color-line));
-  border-radius: var(--radius-m);
-  padding: var(--space-4);
-}
-
-.subject-danger-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.subject-danger-form__title {
-  font-size: var(--text-lg);
-  color: var(--color-brick-deep);
-  overflow-wrap: anywhere;
-}
-
-.subject-danger-form__lead {
-  color: var(--color-ink-soft);
-  font-size: var(--text-sm);
-}
-
-.subject-danger-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+.subject-form__error {
   margin: 0;
-  padding-left: 1.25rem;
-  color: var(--color-ink-soft);
-  font-size: var(--text-sm);
+  color: var(--danger);
+  font-weight: var(--weight-semibold);
 }
 
-.subject-danger-form textarea.field__input {
-  min-height: 6rem;
-  resize: vertical;
+.subject-form textarea.field__input {
   font-family: inherit;
   font-size: var(--text-md);
 }
 
-.subject-danger-form__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+/* ---------- Disclosure “Quản lý hồ sơ” ở cuối hàng ---------- */
+
+.people-row__manage {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.subject-danger-result {
+.people-row__manage-summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.people-row__manage[open] .people-row__manage-summary {
+  color: var(--text-primary);
+}
+
+.people-row__manage-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-top: var(--space-2);
+}
+
+.people-row__edit {
   min-width: 0;
 }
 
-.subject-danger-result__meta {
-  margin-top: var(--space-2);
-  color: var(--color-ink-soft);
-  font-size: var(--text-sm);
-  overflow-wrap: anywhere;
-}
+/* ---------- Kết quả yêu cầu xóa ---------- */
 
-.subject-danger-result code {
-  overflow-wrap: anywhere;
-}
-
-.subject-danger-result .alert__text > .button {
-  margin-top: var(--space-3);
-}
-
-/* Thông báo archive nằm trong section: giữ khoảng cách với danh sách. */
-.subject-danger-notice__button {
+.people-danger__result .alert__text > .button {
   margin-top: var(--space-3);
 }

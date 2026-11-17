@@ -1,0 +1,151 @@
+/* ============================================================
+   Chia sẻ và liên hệ — CSS riêng của feature.
+   Bố cục hàng/surface/xác nhận dùng `styles/people.css`.
+   ============================================================ */
+
+.share-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.share-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.share-block__head .page-section__title:focus-visible,
+.share-contacts [tabindex='-1']:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.share-subhead {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.share-invite {
+  min-width: 0;
+}
+
+/* ---------- Nhóm quyền: hai nhóm độc lập, mobile một cột ---------- */
+
+.share-perms {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.share-perms > legend {
+  padding-inline: var(--space-1);
+}
+
+.share-perms__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.share-perms__group + .share-perms__group {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.share-perms__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+@media (min-width: 768px) {
+  .share-perms {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4) var(--space-6);
+    align-items: start;
+  }
+
+  .share-perms > legend {
+    grid-column: 1 / -1;
+  }
+
+  .share-perms__group + .share-perms__group {
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+.share-check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-height: var(--target-min);
+  font-weight: var(--weight-medium);
+}
+
+.share-check input {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0;
+}
+
+/* ---------- “Người được mời sẽ thấy” ---------- */
+
+.share-visibility {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-subtle);
+}
+
+.share-visibility__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Lời mời đã tạo: token chỉ hiện một lần ---------- */
+
+.share-created__url {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.share-created__token {
+  overflow-wrap: anywhere;
+}
+
+.share-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  scroll-margin-top: var(--space-5);
+}

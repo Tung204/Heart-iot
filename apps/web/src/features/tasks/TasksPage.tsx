@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, KeyboardEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateTaskInput, MaintenanceTaskSummary } from '@heart-iot/contracts/tasks';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
+import { PageHeader } from '../../components/PageHeader';
 import { TextField } from '../../components/Field';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
@@ -16,6 +17,7 @@ import { queryKeys } from '../../lib/query';
 import { zodFieldErrorMap } from '../../lib/validation';
 import { useMe } from '../auth/useAuth';
 import { fetchSubjectDevices } from '../devices/api';
+import { SubjectContextLine } from '../subjects/SubjectSwitcher';
 import { useSubjects } from '../subjects/useSubjects';
 import {
   closeMaintenanceTask,
@@ -25,12 +27,13 @@ import {
   fetchMaintenanceTasks,
   tasksQueryKeys,
 } from './api';
+import '../../styles/people.css';
 import './tasks.css';
 
 const STATUS_LABELS: Record<MaintenanceTaskSummary['status'], string> = {
-  open: 'Mở',
+  open: 'Đang mở',
   in_progress: 'Đang làm',
-  done: 'Xong',
+  done: 'Đã đóng',
   cancelled: 'Đã hủy',
 };
 
@@ -75,12 +78,13 @@ function createErrorMessage(error: unknown): string {
 }
 
 /**
- * /app/tasks — công việc bảo trì thiết bị:
+ * /app/tasks — công việc bảo trì thiết bị, phạm vi **tất cả hồ sơ có quyền**:
+ * - Vào từ hàng Người thân / header Thiết bị; không phải mục nav thứ năm.
  * - Lọc open/closed, phân trang cursor (Tải thêm).
- * - Chủ hồ sơ tạo việc cho thiết bị đang gắn (form tại chỗ, validate bằng contract).
+ * - Chủ hồ sơ tạo việc cho thiết bị đang gắn (form tại chỗ, validate contract).
  * - Đóng task bắt buộc lý do 3..500 ký tự, có xác nhận hai bước; 409 → tải lại.
  * - Chủ hồ sơ (role owner) và admin thấy nút đóng; caregiver chỉ xem.
- * - Admin thấy cả task không gắn hồ sơ (subjectId null).
+ * - Task không gắn hồ sơ (admin/kỹ thuật) được tách thành nhóm riêng.
  */
 export function TasksPage() {
   const me = useMe();
@@ -90,10 +94,7 @@ export function TasksPage() {
   const [filter, setFilter] = useState<Filter>('open');
   const [closing, setClosing] = useState<MaintenanceTaskSummary | null>(null);
   const [reason, setReason] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<{ fields: Record<string, string>; general: string[] }>({
-    fields: {},
-    general: [],
-  });
+  const [fieldErrors, setFieldErrors] = useState<TaskFormErrors>(EMPTY_FORM_ERRORS);
   const [staleInfo, setStaleInfo] = useState<string | null>(null);
   const [closeNotice, setCloseNotice] = useState<string | null>(null);
 
@@ -113,6 +114,11 @@ export function TasksPage() {
   const [createNotice, setCreateNotice] = useState<string | null>(null);
   const createButtonRef = useRef<HTMLButtonElement | null>(null);
   const createTitleRef = useRef<HTMLInputElement | null>(null);
+  const closeReasonRef = useRef<HTMLTextAreaElement | null>(null);
+  /** Focus trả về đúng nút “Đóng công việc” của task vừa huỷ xác nhận. */
+  const closeTriggerRefs = useRef(new Map<string, HTMLButtonElement | null>());
+  /** Id cần focus lại khi nút được mount lại sau khi huỷ xác nhận. */
+  const pendingFocusRef = useRef<string | null>(null);
 
   // Chỉ chủ hồ sơ mới tạo được việc; caregiver/admin không sở hữu hồ sơ thì không thấy nút.
   const ownerSubjects = (subjects.data ?? []).filter((subject) => subject.role === 'owner');
@@ -175,6 +181,10 @@ export function TasksPage() {
     if (createOpen) createTitleRef.current?.focus();
   }, [createOpen]);
 
+  useEffect(() => {
+    if (closing) closeReasonRef.current?.focus();
+  }, [closing]);
+
   const createTaskMutation = useMutation({
     mutationFn: createMaintenanceTask,
     onSuccess: (task) => {
@@ -222,6 +232,20 @@ export function TasksPage() {
     if (event.key === 'Escape' && !createTaskMutation.isPending) {
       event.stopPropagation();
       closeCreateForm();
+    }
+  };
+
+  const cancelClose = () => {
+    if (closing) pendingFocusRef.current = closing.id;
+    setClosing(null);
+    setReason('');
+    setFieldErrors({ fields: {}, general: [] });
+  };
+
+  const handleCloseKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Escape' && !closeTask.isPending) {
+      event.stopPropagation();
+      cancelClose();
     }
   };
 
@@ -286,11 +310,15 @@ export function TasksPage() {
     createTaskMutation.mutate(parsed.data);
   };
 
-  const subjectNameById = new Map((subjects.data ?? []).map((subject) => [subject.id, subject.displayName]));
+  const subjectNameById = new Map(
+    (subjects.data ?? []).map((subject) => [subject.id, subject.displayName]),
+  );
 
   const pages = tasks.data?.pages ?? [];
   const items = pages.flatMap((page) => page?.items ?? []);
   const nextCursor = pages.at(-1)?.nextCursor ?? null;
+  const subjectTasks = items.filter((task) => task.subjectId !== null);
+  const technicalTasks = items.filter((task) => task.subjectId === null);
 
   const handleCloseSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -325,29 +353,152 @@ export function TasksPage() {
     void queryClient.invalidateQueries({ queryKey: tasksQueryKeys.all });
   };
 
-  return (
-    <div className="stack">
-      <header className="tasks-header">
-        <div className="tasks-header__text">
-          <h1 className="page-title">Công việc</h1>
+  const renderTask = (task: MaintenanceTaskSummary) => {
+    const subjectName = task.subjectId
+      ? subjectNameById.get(task.subjectId) ?? 'Hồ sơ đã bị thu hồi quyền'
+      : 'Việc kỹ thuật không gắn hồ sơ';
+    return (
+      <li key={task.id} className="people-row">
+        <div className="people-row__identity">
+          <p className="people-row__name">
+            <span>{task.title}</span>
+            <StatusPill tone={STATUS_TONES[task.status]}>{STATUS_LABELS[task.status]}</StatusPill>
+          </p>
+          <dl className="people-kv">
+            <dt>Hồ sơ</dt>
+            <dd>{subjectName}</dd>
+            <dt>Mã thiết bị</dt>
+            <dd className="people-code">
+              <span title={task.deviceId}>{task.deviceId.slice(0, 8)}…</span>
+            </dd>
+            <dt>Ưu tiên</dt>
+            <dd>{task.priority}/100</dd>
+            <dt>Hạn xử lý</dt>
+            <dd>{task.dueAt ? formatDateTime(task.dueAt) : 'Không có hạn'}</dd>
+            {task.closedAt ? (
+              <>
+                <dt>Đóng lúc</dt>
+                <dd>
+                  {formatDateTime(task.closedAt)}
+                  {task.closeReason ? ` — ${task.closeReason}` : ''}
+                </dd>
+              </>
+            ) : task.createdAt ? (
+              <>
+                <dt>Tạo</dt>
+                <dd>{formatRelativeTime(task.createdAt)}</dd>
+              </>
+            ) : null}
+          </dl>
+          {task.notes ? <p className="people-meta">{task.notes}</p> : null}
         </div>
-        {canCreate ? (
-          <Button
-            ref={createButtonRef}
-            variant={createOpen ? 'secondary' : 'primary'}
-            aria-expanded={createOpen}
-            aria-controls={createOpen ? 'task-create-form' : undefined}
-            onClick={() => (createOpen ? closeCreateForm() : openCreateForm())}
-          >
-            {createOpen ? 'Đóng form tạo việc' : 'Tạo việc'}
-          </Button>
-        ) : null}
-      </header>
+        <div className="people-row__actions">
+          {closing?.id === task.id ? (
+            <form
+              className="people-confirm task-close-form"
+              role="group"
+              aria-label="Xác nhận đóng công việc"
+              onSubmit={handleCloseSubmit}
+              onKeyDown={handleCloseKeyDown}
+              noValidate
+            >
+              <div className="field">
+                <label className="field__label" htmlFor={`task-reason-${task.id}`}>
+                  Lý do đóng <span className="field__required" aria-hidden="true"> *</span>
+                </label>
+                <p className="field__hint" id={`task-reason-${task.id}-hint`}>
+                  3–500 ký tự. Ví dụ: "Đã thay pin và kiểm tra lại thiết bị hoạt động ổn định."
+                </p>
+                <textarea
+                  id={`task-reason-${task.id}`}
+                  ref={closeReasonRef}
+                  className={`field__input${fieldErrors.fields.reason ? ' field__input--error' : ''}`}
+                  aria-invalid={fieldErrors.fields.reason ? true : undefined}
+                  aria-describedby={`task-reason-${task.id}-hint`}
+                  rows={3}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  maxLength={600}
+                />
+                {fieldErrors.fields.reason ? (
+                  <p className="field__error" role="alert">
+                    {fieldErrors.fields.reason}
+                  </p>
+                ) : null}
+              </div>
+              <div className="people-form__actions">
+                <Button type="submit" variant="danger" size="sm" disabled={closeTask.isPending}>
+                  {closeTask.isPending ? 'Đang đóng…' : 'Xác nhận đóng'}
+                </Button>
+                <Button
+                  variant="subtle"
+                  size="sm"
+                  disabled={closeTask.isPending}
+                  onClick={cancelClose}
+                >
+                  Hủy
+                </Button>
+              </div>
+            </form>
+          ) : task.status === 'open' || task.status === 'in_progress' ? (
+            canClose(task) ? (
+              <Button
+                ref={(element) => {
+                  if (!element) return;
+                  closeTriggerRefs.current.set(task.id, element);
+                  if (pendingFocusRef.current === task.id) {
+                    pendingFocusRef.current = null;
+                    element.focus();
+                  }
+                }}
+                variant="secondary"
+                size="sm"
+                onClick={() => setClosing(task)}
+              >
+                Đóng công việc
+              </Button>
+            ) : (
+              <StatusPill tone="neutral">Chỉ xem</StatusPill>
+            )
+          ) : null}
+        </div>
+      </li>
+    );
+  };
+
+  return (
+    <div className="stack people-page">
+      {/*
+        Breadcrumb đặt ngoài PageHeader: trên desktop primitive xếp breadcrumb
+        thành flex item ngang nên H1 bị đẩy vào giữa. Đã báo ở handoff lane R.
+      */}
+      <Link className="people-breadcrumb" to="/app/subjects">
+        ← Người thân
+      </Link>
+      <PageHeader
+        title="Công việc bảo trì"
+        context={
+          <SubjectContextLine scope="collection" collectionLabel="Tất cả hồ sơ có quyền" />
+        }
+        actions={
+          canCreate ? (
+            <Button
+              ref={createButtonRef}
+              variant={createOpen ? 'secondary' : 'primary'}
+              aria-expanded={createOpen}
+              aria-controls={createOpen ? 'task-create-form' : undefined}
+              onClick={() => (createOpen ? closeCreateForm() : openCreateForm())}
+            >
+              {createOpen ? 'Đóng form tạo việc' : 'Tạo việc'}
+            </Button>
+          ) : null
+        }
+      />
 
       {staleInfo ? (
         <Alert tone="warning" title="Công việc đã thay đổi">
           {staleInfo}
-          <div style={{ marginTop: '0.75rem' }}>
+          <div className="task-notice__action">
             <Button variant="secondary" size="sm" onClick={handleReload}>
               Tải lại
             </Button>
@@ -358,13 +509,10 @@ export function TasksPage() {
       {createNotice ? <Alert tone="success">{createNotice}</Alert> : null}
 
       {createOpen ? (
-        <Card
-          title="Tạo việc bảo trì"
-          className="task-create-card"
-        >
+        <div id="task-create-form" className="people-surface task-create">
+          <h2 className="people-surface__title">Tạo việc</h2>
           <form
-            id="task-create-form"
-            className="task-create-form"
+            className="people-form"
             aria-label="Form tạo việc bảo trì"
             onSubmit={handleCreateSubmit}
             onKeyDown={handleCreateKeyDown}
@@ -392,8 +540,8 @@ export function TasksPage() {
                 </select>
               </div>
             ) : (
-              <p className="task-create-form__subject">
-                Hồ sơ: <strong>{ownerSubjects[0]?.displayName ?? '—'}</strong>
+              <p className="people-meta people-meta--strong">
+                Hồ sơ: {ownerSubjects[0]?.displayName ?? '—'}
               </p>
             )}
 
@@ -402,7 +550,7 @@ export function TasksPage() {
             ) : createDevices.isError ? (
               <Alert tone="error" title="Không tải được thiết bị">
                 {getApiErrorMessage(createDevices.error)}
-                <div className="task-create-form__retry">
+                <div className="task-notice__action">
                   <Button variant="secondary" size="sm" onClick={() => void createDevices.refetch()}>
                     Thử lại
                   </Button>
@@ -410,7 +558,8 @@ export function TasksPage() {
               </Alert>
             ) : createDeviceItems.length === 0 ? (
               <Alert tone="info" title="Hồ sơ chưa gắn thiết bị">
-                Gắn thiết bị cho hồ sơ trước khi tạo việc bảo trì.
+                Gắn thiết bị cho hồ sơ trước khi tạo việc bảo trì.{' '}
+                <Link to="/app/devices">Gắn thiết bị</Link>
               </Alert>
             ) : (
               <div className="field">
@@ -476,7 +625,7 @@ export function TasksPage() {
               onChange={(event) => setCreateTitle(event.target.value)}
             />
 
-            <div className="task-create-form__row">
+            <div className="task-create__pair">
               <TextField
                 id="task-create-priority"
                 label="Ưu tiên (0–100)"
@@ -537,7 +686,7 @@ export function TasksPage() {
               </Alert>
             ) : null}
 
-            <div className="task-create-form__actions">
+            <div className="people-form__actions">
               <Button
                 type="submit"
                 disabled={createTaskMutation.isPending || createDeviceUnavailable}
@@ -553,15 +702,15 @@ export function TasksPage() {
               </Button>
             </div>
           </form>
-        </Card>
+        </div>
       ) : null}
 
-      <div className="segmented" role="group" aria-label="Lọc theo trạng thái">
+      <div className="people-filter" role="group" aria-label="Lọc theo trạng thái">
         {FILTERS.map((option) => (
           <button
             key={option.value}
             type="button"
-            className={`segmented__item${filter === option.value ? ' is-active' : ''}`}
+            className="people-filter__item"
             aria-pressed={filter === option.value}
             onClick={() => {
               setFilter(option.value);
@@ -579,12 +728,14 @@ export function TasksPage() {
         <PageLoader label="Đang tải công việc…" />
       ) : tasks.isError ? (
         <ErrorState
+          headingLevel={2}
           title="Không tải được danh sách công việc"
           message={getApiErrorMessage(tasks.error)}
           onRetry={() => void tasks.refetch()}
         />
       ) : items.length === 0 ? (
         <EmptyState
+          headingLevel={2}
           title={filter === 'open' ? 'Không có công việc đang mở' : 'Không có công việc đã đóng'}
           description={
             filter === 'open'
@@ -593,97 +744,26 @@ export function TasksPage() {
           }
         />
       ) : (
-        <ul className="task-list" aria-label="Danh sách công việc">
-          {items.map((task) => {
-            const subjectName = task.subjectId
-              ? subjectNameById.get(task.subjectId) ?? 'Hồ sơ đã bị thu hồi quyền'
-              : null;
-            return (
-              <li key={task.id} className="task-card">
-                <div className="task-card__main">
-                  <p className="task-card__title">
-                    {task.title}
-                    <StatusPill tone={STATUS_TONES[task.status]}>{STATUS_LABELS[task.status]}</StatusPill>
-                  </p>
-                  <p className="task-card__meta">
-                    Điểm ưu tiên {task.priority}/100
-                    {subjectName ? ` · ${subjectName}` : ' · không gắn hồ sơ'}
-                    {' · '}thiết bị #{task.deviceId.slice(0, 8)}
-                    {task.dueAt ? ` · hạn ${formatDateTime(task.dueAt)}` : ' · không có hạn'}
-                  </p>
-                  {task.notes ? <p className="task-card__notes">{task.notes}</p> : null}
-                  {task.closedAt && task.closeReason ? (
-                    <p className="task-card__meta">
-                      Đóng lúc {formatDateTime(task.closedAt)} — {task.closeReason}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="task-card__side">
-                  {closing?.id === task.id ? (
-                    <form className="task-close-form" onSubmit={handleCloseSubmit} noValidate>
-                      <div className="field">
-                        <label className="field__label" htmlFor={`task-reason-${task.id}`}>
-                          Lý do đóng <span className="field__required" aria-hidden="true"> *</span>
-                        </label>
-                        <p className="field__hint" id={`task-reason-${task.id}-hint`}>
-                          3–500 ký tự. Ví dụ: "Đã thay pin và kiểm tra lại thiết bị hoạt động ổn định."
-                        </p>
-                        <textarea
-                          id={`task-reason-${task.id}`}
-                          className={`field__input${fieldErrors.fields.reason ? ' field__input--error' : ''}`}
-                          aria-invalid={fieldErrors.fields.reason ? true : undefined}
-                          aria-describedby={`task-reason-${task.id}-hint`}
-                          rows={3}
-                          value={reason}
-                          onChange={(event) => setReason(event.target.value)}
-                          maxLength={600}
-                        />
-                        {fieldErrors.fields.reason ? (
-                          <p className="field__error" role="alert">
-                            {fieldErrors.fields.reason}
-                          </p>
-                        ) : null}
-                      </div>
-                      <div className="task-close-form__actions">
-                        <Button type="submit" variant="danger" size="sm" disabled={closeTask.isPending}>
-                          {closeTask.isPending ? 'Đang đóng…' : 'Xác nhận đóng'}
-                        </Button>
-                        <Button
-                          variant="subtle"
-                          size="sm"
-                          disabled={closeTask.isPending}
-                          onClick={() => {
-                            setClosing(null);
-                            setReason('');
-                            setFieldErrors({ fields: {}, general: [] });
-                          }}
-                        >
-                          Hủy
-                        </Button>
-                      </div>
-                    </form>
-                  ) : (
-                    <>
-                      {task.status === 'open' || task.status === 'in_progress' ? (
-                        canClose(task) ? (
-                          <Button variant="secondary" size="sm" onClick={() => setClosing(task)}>
-                            Đóng công việc
-                          </Button>
-                        ) : (
-                          <StatusPill tone="neutral">Chỉ xem</StatusPill>
-                        )
-                      ) : (
-                        <span className="task-card__meta">
-                          {task.createdAt ? `Tạo ${formatRelativeTime(task.createdAt)}` : ''}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {subjectTasks.length > 0 ? (
+            <ul className="people-list" aria-label="Danh sách công việc">
+              {subjectTasks.map(renderTask)}
+            </ul>
+          ) : null}
+          {technicalTasks.length > 0 ? (
+            <section aria-labelledby="task-technical-heading" className="task-technical">
+              <h2 id="task-technical-heading" className="page-section__title">
+                Việc kỹ thuật không gắn hồ sơ
+              </h2>
+              <p className="people-meta">
+                Công việc do quản trị tạo cho thiết bị chưa gán hồ sơ. Chỉ admin đóng được.
+              </p>
+              <ul className="people-list" aria-label="Việc kỹ thuật không gắn hồ sơ">
+                {technicalTasks.map(renderTask)}
+              </ul>
+            </section>
+          ) : null}
+        </>
       )}
 
       {nextCursor ? (

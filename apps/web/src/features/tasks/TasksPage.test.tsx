@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TasksPage } from './TasksPage';
 import { errorEnvelope, mockResponse, renderPage, USER } from '../../test/utils';
@@ -116,7 +116,9 @@ describe('TasksPage', () => {
     const user = userEvent.setup();
 
     expect(await screen.findByText('Thay pin vòng tay')).toBeInTheDocument();
-    expect(screen.getByText('Ưu tiên 80/100', { exact: false })).toBeInTheDocument();
+    // Ưu tiên hiển thị dạng cặp nhãn/giá trị (hàng label-value cho mobile).
+    expect(screen.getByText('Ưu tiên')).toBeInTheDocument();
+    expect(screen.getByText('80/100')).toBeInTheDocument();
     expect(screen.getByText(/Pin còn 15%/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Đóng công việc' }));
@@ -365,5 +367,101 @@ describe('TasksPage — tạo việc bảo trì', () => {
     ).toBeInTheDocument();
     expect(createCalls).toBe(2);
     expect(screen.getByLabelText(/^Tiêu đề/)).toHaveValue('Kiểm tra pin');
+  });
+});
+
+// W2 lane R — lối vào theo ngữ cảnh, phạm vi account-wide, task không hồ sơ.
+describe('TasksPage — phạm vi và lối vào theo ngữ cảnh', () => {
+  function baseListHandler(items: unknown[], me: unknown = USER) {
+    return (url: string, init?: RequestInit) => {
+      const u = url;
+      if (u.endsWith('/me')) return mockResponse({ user: me });
+      if (u.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (u.includes('/devices')) return mockResponse({ items: [DEVICE] });
+      if (u.endsWith('/maintenance-tasks') && init?.method === 'POST') {
+        return mockResponse({ ...OPEN_TASK, title: 'Việc mới' }, 201);
+      }
+      if (u.includes('/maintenance-tasks')) return mockResponse({ items, nextCursor: null });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    };
+  }
+
+  it('H1 Công việc bảo trì + dòng phạm vi “Tất cả hồ sơ có quyền” + lối về Người thân', async () => {
+    renderPage(<TasksPage />, baseListHandler([]));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Công việc bảo trì' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Tất cả hồ sơ có quyền')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '← Người thân' })).toHaveAttribute(
+      'href',
+      '/app/subjects',
+    );
+  });
+
+  it('task không gắn hồ sơ được tách nhóm riêng và admin đóng được', async () => {
+    const technicalTask = { ...OPEN_TASK, id: '5f6d7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b', subjectId: null, title: 'Kiểm tra gateway' };
+    renderPage(
+      <TasksPage />,
+      baseListHandler([OPEN_TASK, technicalTask], { ...USER, role: 'admin' }),
+    );
+
+    expect(await screen.findByText('Thay pin vòng tay')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Việc kỹ thuật không gắn hồ sơ' }),
+    ).toBeInTheDocument();
+    const technicalList = screen.getByRole('list', {
+      name: 'Việc kỹ thuật không gắn hồ sơ',
+    });
+    expect(within(technicalList).getByText('Kiểm tra gateway')).toBeInTheDocument();
+    expect(within(technicalList).getByText('Việc kỹ thuật không gắn hồ sơ', { selector: 'dd' })).toBeInTheDocument();
+    expect(
+      within(technicalList).getByRole('button', { name: 'Đóng công việc' }),
+    ).toBeInTheDocument();
+  });
+
+  it('hồ sơ chưa gắn thiết bị → có đường Gắn thiết bị tới /app/devices', async () => {
+    renderPage(<TasksPage />, (url) => {
+      if (url.endsWith('/me')) return mockResponse({ user: USER });
+      if (url.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (url.includes('/devices')) return mockResponse({ items: [] });
+      if (url.includes('/maintenance-tasks')) return mockResponse({ items: [], nextCursor: null });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Tạo việc' }));
+
+    expect(await screen.findByText('Hồ sơ chưa gắn thiết bị')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Gắn thiết bị' })).toHaveAttribute(
+      'href',
+      '/app/devices',
+    );
+  });
+
+  it('Escape huỷ xác nhận đóng, không gửi API và focus trả về nút đóng', async () => {
+    let closeCalls = 0;
+    renderPage(<TasksPage />, (url) => {
+      if (url.endsWith('/me')) return mockResponse({ user: USER });
+      if (url.endsWith('/subjects')) return mockResponse({ items: [OWNER_SUBJECT] });
+      if (url.includes('/close')) {
+        closeCalls += 1;
+        return mockResponse({});
+      }
+      if (url.includes('/maintenance-tasks')) {
+        return mockResponse({ items: [OPEN_TASK], nextCursor: null });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    const trigger = await screen.findByRole('button', { name: 'Đóng công việc' });
+    await user.click(trigger);
+    await screen.findByLabelText(/Lý do đóng/);
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByLabelText(/Lý do đóng/)).not.toBeInTheDocument());
+    expect(closeCalls).toBe(0);
+    // Nút được mount lại sau khi huỷ; focus phải trở về đúng hành động đó.
+    expect(screen.getByRole('button', { name: 'Đóng công việc' })).toHaveFocus();
   });
 });

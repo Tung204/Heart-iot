@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import type { FormEvent, KeyboardEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import type { ZodIssue } from 'zod';
 import {
   archiveSubjectSchema,
-  deletionRequestRecordedSchema,
   deletionRequestSchema,
   type ArchiveSubjectInput,
   type CreateSubjectInput,
@@ -18,21 +17,23 @@ import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { ErrorState } from '../../components/ErrorState';
 import { TextField } from '../../components/Field';
+import { PageHeader } from '../../components/PageHeader';
 import { PageLoader } from '../../components/PageLoader';
 import { formatDateTime } from '../../lib/format';
-import {
-  apiRequest,
-  getApiErrorMessage,
-  isConflictError,
-  isNotFoundError,
-  parseResponse,
-} from '../../lib/api';
+import { getApiErrorMessage, isConflictError, isNotFoundError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { zodFieldErrorMap } from '../../lib/validation';
-import { createSubject, updateSubject } from './api';
+import {
+  archiveSubject,
+  createSubject,
+  requestSubjectDeletion,
+  updateSubject,
+} from './api';
 import { setActiveSubjectId, useActiveSubject } from './selection';
+import { SubjectContextLine } from './SubjectSwitcher';
 import { SubjectForm } from './SubjectForm';
 import { useSubjects } from './useSubjects';
+import '../../styles/people.css';
 import './subjects.css';
 
 type DangerMode = 'archive' | 'deletion';
@@ -41,28 +42,32 @@ type FormErrors = { fields: Record<string, string>; general: string[] };
 
 const EMPTY_FORM_ERRORS: FormErrors = { fields: {}, general: [] };
 
-/**
- * Gọi endpoint FR-14 ngay trong feature page theo phạm vi file worker được sửa
- * (`SubjectsPage.tsx`); không mở rộng `api.ts` dùng chung của feature.
- */
-async function archiveSubject(id: string, input: ArchiveSubjectInput): Promise<void> {
-  await apiRequest<unknown>(`/subjects/${id}/archive`, { method: 'POST', body: input });
-}
-
-async function requestSubjectDeletion(
-  id: string,
-  input: DeletionRequestInput,
-): Promise<DeletionRequestRecorded> {
-  const data = await apiRequest<unknown>(`/subjects/${id}/deletion-requests`, {
-    method: 'POST',
-    body: input,
-  });
-  return parseResponse(deletionRequestRecordedSchema, data);
-}
-
 /** Cùng quy tắc với server: trim + Unicode NFC + không phân biệt hoa/thường. */
 function normalizeName(value: string): string {
   return value.trim().normalize('NFC').toLowerCase();
+}
+
+/**
+ * Trạng thái chia sẻ của hồ sơ, viết bằng chữ (không dùng màu/chấm làm tín hiệu
+ * duy nhất). Chỉ mô tả quyền mà API danh sách thực sự trả về.
+ */
+function shareSummary(
+  role: SubjectSummary['role'],
+  permissions: SubjectSummary['permissions'],
+): string[] {
+  // Chủ hồ sơ không có "cửa sổ lịch sử" được chia sẻ — đừng bịa ra con số đó.
+  const parts =
+    role === 'owner'
+      ? []
+      : [
+          permissions.canViewMeasurements === false
+            ? 'không xem số đo'
+            : `xem số đo ${permissions.historyDays} ngày`,
+        ];
+  parts.push(permissions.canReceiveAlerts ? 'nhận cảnh báo' : 'không nhận cảnh báo');
+  if (role !== 'owner' && permissions.canAcknowledge) parts.push('xác nhận hỗ trợ');
+  if (role !== 'owner' && permissions.canResolve) parts.push('đóng cảnh báo');
+  return parts;
 }
 
 function dangerReasonMessages(mode: DangerMode) {
@@ -78,7 +83,7 @@ function dangerReasonMessages(mode: DangerMode) {
 function DangerConsequences({ mode }: { mode: DangerMode }) {
   if (mode === 'archive') {
     return (
-      <ul className="subject-danger-list">
+      <ul className="people-danger__list">
         <li>Hồ sơ biến khỏi danh sách, tổng quan và cảnh báo của bạn và người thân.</li>
         <li>Mọi liên kết chia sẻ đang hiệu lực bị thu hồi ngay; stream đang mở sẽ đóng.</li>
         <li>
@@ -89,7 +94,7 @@ function DangerConsequences({ mode }: { mode: DangerMode }) {
     );
   }
   return (
-    <ul className="subject-danger-list">
+    <ul className="people-danger__list">
       <li>
         Đây là <strong>ghi nhận thủ công</strong>, không xóa dữ liệu ngay khi bạn gửi.
       </li>
@@ -97,20 +102,24 @@ function DangerConsequences({ mode }: { mode: DangerMode }) {
         Yêu cầu chỉ được ghi vào nhật ký kiểm toán; dữ liệu số đo, cảnh báo, bản xuất,
         cache/backup vẫn còn.
       </li>
-      <li>Phiên bản hiện tại chưa có tác vụ xóa tự động hay thời hạn xử lý — việc này cần được xử lý khi vận hành.</li>
+      <li>
+        Phiên bản hiện tại chưa có tác vụ xóa tự động hay thời hạn xử lý — việc này cần được
+        xử lý khi vận hành.
+      </li>
     </ul>
   );
 }
 
 /**
- * /app/subjects — quản lý hồ sơ theo dạng hàng gọn:
- * - Header một hàng: H1 + nút `Thêm người`; form tạo chỉ mở khi bấm.
- * - Mỗi hồ sơ: tên, vai trò, trạng thái quyền và ba lối tắt Xem sức khỏe /
- *   Chia sẻ / Thiết bị; `Xem sức khỏe` và `Thiết bị` đặt hồ sơ đó làm hồ sơ
- *   đang xem trước khi điều hướng.
- * - `Thêm thao tác` gộp Sửa tên / Lưu trữ / Yêu cầu xóa ở cuối hàng.
- * - Lưu trữ hồ sơ và ghi nhận yêu cầu xóa dữ liệu (FR-14): form tại chỗ có
- *   xác nhận gõ đúng tên, chỉ chủ hồ sơ thấy; không dùng window.confirm/prompt.
+ * /app/subjects — danh sách hồ sơ người được theo dõi, không phải danh sách
+ * account đăng nhập:
+ * - H1 + primary `Thêm người` + lối vào theo ngữ cảnh `Công việc bảo trì`.
+ * - Mỗi hồ sơ là một hàng: tên, vai trò/quyền ngắn dạng chữ và các action
+ *   `Xem sức khỏe`, `Thiết bị`, owner có `Chia sẻ và liên hệ`.
+ * - Thao tác quản trị (sửa/lưu trữ/yêu cầu xóa) nằm trong disclosure
+ *   `Quản lý hồ sơ` cuối đúng hàng, không ngang hàng nút thường.
+ * - Lưu trữ = giữ dữ liệu + thu hồi chia sẻ; yêu cầu xóa = chỉ ghi nhận
+ *   `recorded`, chưa xóa. Không dùng window.confirm/prompt.
  * - Không hiển thị dữ liệu sức khỏe trên màn này.
  */
 export function SubjectsPage() {
@@ -133,6 +142,7 @@ export function SubjectsPage() {
     result: DeletionRequestRecorded;
   } | null>(null);
   const dangerReasonRef = useRef<HTMLTextAreaElement | null>(null);
+  const dangerTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const create = useMutation({
     mutationFn: (input: CreateSubjectInput) => createSubject(input),
@@ -218,20 +228,34 @@ export function SubjectsPage() {
     if (dangerTarget) dangerReasonRef.current?.focus();
   }, [dangerTarget]);
 
-  function closeDangerForm(): void {
+  function closeDangerForm(options: { restoreFocus?: boolean } = {}): void {
     setDangerTarget(null);
+    setDangerReason('');
+    setDangerConfirmName('');
+    setDangerErrors(EMPTY_FORM_ERRORS);
+    setDangerServerError(null);
+    if (options.restoreFocus) dangerTriggerRef.current?.focus();
+  }
+
+  function openDangerForm(
+    subject: SubjectSummary,
+    mode: DangerMode,
+    trigger: HTMLButtonElement | null,
+  ): void {
+    dangerTriggerRef.current = trigger;
+    setDangerTarget({ subject, mode });
     setDangerReason('');
     setDangerConfirmName('');
     setDangerErrors(EMPTY_FORM_ERRORS);
     setDangerServerError(null);
   }
 
-  function openDangerForm(subject: SubjectSummary, mode: DangerMode): void {
-    setDangerTarget({ subject, mode });
-    setDangerReason('');
-    setDangerConfirmName('');
-    setDangerErrors(EMPTY_FORM_ERRORS);
-    setDangerServerError(null);
+  function handleDangerKeyDown(event: KeyboardEvent<HTMLElement>): void {
+    // Escape huỷ xác nhận nguy hiểm, không gửi gì và trả focus về nút đã mở.
+    if (event.key !== 'Escape' || dangerPending) return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeDangerForm({ restoreFocus: true });
   }
 
   function handleDangerSubmit(event: FormEvent): void {
@@ -284,44 +308,67 @@ export function SubjectsPage() {
     }
   }
 
+  // Loading/error chỉ thay phần danh sách: H1 và lối vào vẫn còn rõ.
   if (subjects.isPending) {
-    return <PageLoader label="Đang tải danh sách hồ sơ…" />;
+    return (
+      <div className="stack people-page">
+        <PageHeader
+          title="Người thân"
+          context={<SubjectContextLine scope="collection" />}
+        />
+        <PageLoader label="Đang tải danh sách hồ sơ…" />
+      </div>
+    );
   }
 
   if (subjects.isError) {
     return (
-      <ErrorState
-        title="Không tải được danh sách hồ sơ"
-        message="Kiểm tra kết nối với máy chủ và thử lại."
-        onRetry={() => void subjects.refetch()}
-      />
+      <div className="stack people-page">
+        <PageHeader
+          title="Người thân"
+          context={<SubjectContextLine scope="collection" />}
+        />
+        <ErrorState
+          headingLevel={2}
+          title="Không tải được danh sách hồ sơ"
+          message="Kiểm tra kết nối với máy chủ và thử lại."
+          onRetry={() => void subjects.refetch()}
+        />
+      </div>
     );
   }
 
   const items = subjects.data;
 
   return (
-    <div className="stack">
-      <header className="subjects-page__header">
-        <h1 className="page-title">Người thân</h1>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setCreateOpen((value) => !value)}
-          aria-expanded={createOpen}
-          aria-controls="subject-create-form"
-        >
-          {createOpen ? 'Đóng' : 'Thêm người'}
-        </Button>
-      </header>
+    <div className="stack people-page">
+      <PageHeader
+        title="Người thân"
+        context={<SubjectContextLine scope="collection" />}
+        actions={
+          <div className="people-header__actions">
+            <Button
+              variant="primary"
+              onClick={() => setCreateOpen((value) => !value)}
+              aria-expanded={createOpen}
+              aria-controls="subject-create-form"
+            >
+              {createOpen ? 'Đóng' : 'Thêm người'}
+            </Button>
+            <Link className="people-textlink" to="/app/tasks">
+              Công việc bảo trì
+            </Link>
+          </div>
+        }
+      />
 
       {createOpen ? (
         <section
           id="subject-create-form"
-          className="subjects-page__create"
+          className="people-surface"
           aria-labelledby="subject-create-heading"
         >
-          <h2 id="subject-create-heading" className="visually-hidden">
+          <h2 id="subject-create-heading" className="people-surface__title">
             Thêm người
           </h2>
           {formError ? <Alert tone="error">{formError}</Alert> : null}
@@ -335,268 +382,259 @@ export function SubjectsPage() {
       ) : null}
 
       {items.length === 0 ? (
-        <p className="subjects-page__empty">
-          Chưa có hồ sơ nào. Thêm người cần theo dõi để bắt đầu nhận dữ liệu và mời người thân
-          cùng xem.
+        <p className="people-empty">
+          Chưa có hồ sơ nào. Dùng <strong>Thêm người</strong> để tạo hồ sơ đầu tiên. Người nhận
+          lời mời cần đăng ký đúng email và mở đầy đủ liên kết trong lời mời.
         </p>
       ) : (
-        <>
-          <section aria-labelledby="subject-list-heading">
-            <h2 id="subject-list-heading" className="visually-hidden">
-              Danh sách người thân
-            </h2>
-            {archiveNotice ? (
-              <Alert tone="success" title="Đã lưu trữ hồ sơ">
-                <p>{archiveNotice}</p>
-                <Button
-                  variant="subtle"
-                  size="sm"
-                  className="subject-danger-notice__button"
-                  onClick={() => setArchiveNotice(null)}
-                >
-                  Đóng thông báo
-                </Button>
-              </Alert>
-            ) : null}
-            <ul className="subject-list">
-              {items.map((item) => {
-                const isOwner = item.role === 'owner';
-                const dangerOpen = dangerTarget?.subject.id === item.id;
-                const panelId = `subject-danger-${item.id}`;
-                const headingId = `subject-danger-heading-${item.id}`;
-                const reasonId = `subject-danger-reason-${item.id}`;
-                const confirmId = `subject-danger-confirm-${item.id}`;
-                return (
-                  <li key={item.id} className="subject-list__item">
-                    <div className="subject-list__row">
-                      <div className="subject-list__info">
-                        <p className="subject-list__name">{item.displayName}</p>
-                        <p className="subject-list__meta">
-                          <span>
-                            {item.role === 'caregiver' ? 'Người thân xem hộ' : 'Chủ hồ sơ'}
-                          </span>
+        <section aria-labelledby="subject-list-heading" className="people-list-block">
+          <h2 id="subject-list-heading" className="visually-hidden">
+            Danh sách người thân
+          </h2>
+          {archiveNotice ? (
+            <Alert tone="success" title="Đã lưu trữ hồ sơ">
+              <p>{archiveNotice}</p>
+              <Button
+                variant="subtle"
+                size="sm"
+                className="people-notice__dismiss"
+                onClick={() => setArchiveNotice(null)}
+              >
+                Đóng thông báo
+              </Button>
+            </Alert>
+          ) : null}
+          <ul className="people-list">
+            {items.map((item) => {
+              const isOwner = item.role === 'owner';
+              const dangerOpen = dangerTarget?.subject.id === item.id;
+              const panelId = `subject-danger-${item.id}`;
+              const headingId = `subject-danger-heading-${item.id}`;
+              const reasonId = `subject-danger-reason-${item.id}`;
+              const confirmId = `subject-danger-confirm-${item.id}`;
+              return (
+                <li key={item.id} className="people-row">
+                  <div className="people-row__identity">
+                    <p className="people-row__name">{item.displayName}</p>
+                    <p className="people-row__meta">
+                      <span>{item.role === 'caregiver' ? 'Người thân xem hộ' : 'Chủ hồ sơ'}</span>
+                      {shareSummary(item.role, item.permissions).map((part) => (
+                        <Fragment key={part}>
                           <span aria-hidden="true">·</span>
-                          <span>
-                            {item.permissions.canReceiveAlerts
-                              ? 'nhận cảnh báo'
-                              : 'không nhận cảnh báo'}
-                          </span>
-                          {item.permissions.canViewMeasurements === false ? (
-                            <>
-                              <span aria-hidden="true">·</span>
-                              <span>không xem số đo</span>
-                            </>
-                          ) : null}
-                        </p>
-                      </div>
-                      <div className="subject-list__actions">
-                        <Link
-                          className="subject-list__action"
-                          to="/app/overview"
-                          onClick={() => setActiveSubjectId(item.id)}
-                        >
-                          Xem sức khỏe
-                        </Link>
-                        {isOwner ? (
-                          <Link
-                            className="subject-list__action"
-                            to={`/app/subjects/${item.id}/share`}
-                          >
-                            Chia sẻ
-                          </Link>
-                        ) : null}
-                        <Link
-                          className="subject-list__action"
-                          to="/app/devices"
-                          onClick={() => setActiveSubjectId(item.id)}
-                        >
-                          Thiết bị
-                        </Link>
-                        {isOwner && editingId !== item.id ? (
-                          <details className="subject-list__more">
-                            <summary className="subject-list__more-summary">Thêm thao tác</summary>
-                            <div className="subject-list__more-body">
-                              <Button
-                                variant="subtle"
-                                size="sm"
-                                onClick={() => setEditingId(item.id)}
-                                aria-label={`Sửa tên hồ sơ ${item.displayName}`}
-                              >
-                                Sửa tên
-                              </Button>
-                              <div
-                                className="subject-danger-actions"
-                                role="group"
-                                aria-label="Thao tác dữ liệu"
-                              >
-                                <Button
-                                  variant="danger-quiet"
-                                  size="sm"
-                                  aria-expanded={dangerOpen && dangerTarget?.mode === 'archive'}
-                                  aria-controls={
-                                    dangerOpen && dangerTarget?.mode === 'archive'
-                                      ? panelId
-                                      : undefined
-                                  }
-                                  onClick={() => openDangerForm(item, 'archive')}
-                                >
-                                  Lưu trữ hồ sơ
-                                </Button>
-                                <Button
-                                  variant="danger-quiet"
-                                  size="sm"
-                                  aria-expanded={dangerOpen && dangerTarget?.mode === 'deletion'}
-                                  aria-controls={
-                                    dangerOpen && dangerTarget?.mode === 'deletion'
-                                      ? panelId
-                                      : undefined
-                                  }
-                                  onClick={() => openDangerForm(item, 'deletion')}
-                                >
-                                  Yêu cầu xóa dữ liệu
-                                </Button>
-                              </div>
-                            </div>
-                          </details>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    {isOwner && editingId === item.id ? (
-                      <div className="subject-list__edit">
-                        <SubjectForm
-                          mode="edit"
-                          initial={{ displayName: item.displayName, timezone: item.timezone }}
-                          pending={update.isPending}
-                          submitLabel="Lưu"
-                          onCancel={() => setEditingId(null)}
-                          onSubmit={(values) => update.mutate({ id: item.id, input: values })}
-                        />
-                        {update.isError ? (
-                          <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {isOwner && dangerOpen && dangerTarget ? (
-                      <section
-                        id={panelId}
-                        className="subject-danger-panel"
-                        aria-labelledby={headingId}
+                          <span>{part}</span>
+                        </Fragment>
+                      ))}
+                    </p>
+                  </div>
+                  <div className="people-row__actions">
+                    <Link
+                      className="people-row__action"
+                      to="/app/overview"
+                      onClick={() => setActiveSubjectId(item.id)}
+                    >
+                      Xem sức khỏe
+                    </Link>
+                    <Link
+                      className="people-row__action"
+                      to="/app/devices"
+                      onClick={() => setActiveSubjectId(item.id)}
+                    >
+                      Thiết bị
+                    </Link>
+                    {isOwner ? (
+                      <Link
+                        className="people-row__action"
+                        to={`/app/subjects/${item.id}/share`}
                       >
-                        <form className="subject-danger-form" onSubmit={handleDangerSubmit} noValidate>
-                          <h3 id={headingId} className="subject-danger-form__title">
-                            {dangerTarget.mode === 'archive'
-                              ? `Lưu trữ hồ sơ “${item.displayName}”`
-                              : `Ghi nhận yêu cầu xóa dữ liệu cho “${item.displayName}”`}
-                          </h3>
-                          <p className="subject-danger-form__lead">
-                            {dangerTarget.mode === 'archive'
-                              ? 'Thao tác này đóng quyền truy cập của mọi người, kể cả bạn. Hãy đọc kỹ trước khi xác nhận.'
-                              : 'Thao tác này chỉ ghi nhận yêu cầu. Dữ liệu vẫn còn cho tới khi có quy trình xóa được duyệt và chạy.'}
-                          </p>
-                          <DangerConsequences mode={dangerTarget.mode} />
-
-                          <div className="field">
-                            <label className="field__label" htmlFor={reasonId}>
-                              {dangerTarget.mode === 'archive'
-                                ? 'Lý do lưu trữ'
-                                : 'Lý do yêu cầu xóa'}{' '}
-                              <span className="field__required" aria-hidden="true">
-                                *
-                              </span>
-                            </label>
-                            <p className="field__hint" id={`${reasonId}-hint`}>
-                              {dangerTarget.mode === 'archive'
-                                ? '3–500 ký tự. Ví dụ: đã bàn giao thiết bị, đổi người theo dõi.'
-                                : '10–1000 ký tự. Ví dụ: gia đình yêu cầu xóa sau khi ngừng theo dõi.'}
-                            </p>
-                            <textarea
-                              id={reasonId}
-                              ref={dangerReasonRef}
-                              className={`field__input${dangerErrors.fields.reason ? ' field__input--error' : ''}`}
-                              aria-invalid={dangerErrors.fields.reason ? true : undefined}
-                              aria-describedby={`${reasonId}-hint`}
-                              rows={3}
-                              value={dangerReason}
-                              maxLength={dangerTarget.mode === 'archive' ? 500 : 1000}
-                              onChange={(event) => setDangerReason(event.target.value)}
-                            />
-                            {dangerErrors.fields.reason ? (
-                              <p className="field__error" role="alert">
-                                {dangerErrors.fields.reason}
-                              </p>
-                            ) : null}
-                          </div>
-
-                          <TextField
-                            id={confirmId}
-                            label={`Gõ đúng tên “${item.displayName}” để xác nhận`}
-                            required
-                            value={dangerConfirmName}
-                            error={dangerErrors.fields.confirmationName}
-                            hint="Không phân biệt hoa/thường; khoảng trắng đầu/cuối được bỏ qua."
-                            onChange={(event) => setDangerConfirmName(event.target.value)}
-                            autoComplete="off"
-                            autoCapitalize="off"
-                            spellCheck={false}
-                            maxLength={120}
-                          />
-
-                          {dangerServerError ? (
-                            <Alert tone="error" title="Chưa thực hiện được thao tác">
-                              {dangerServerError}
-                            </Alert>
-                          ) : null}
-
-                          <div className="subject-danger-form__actions">
-                            <Button type="submit" variant="danger" disabled={dangerPending}>
-                              {dangerPending
-                                ? 'Đang gửi…'
-                                : dangerTarget.mode === 'archive'
-                                  ? 'Xác nhận lưu trữ'
-                                  : 'Ghi nhận yêu cầu xóa'}
+                        Chia sẻ và liên hệ
+                      </Link>
+                    ) : null}
+                    {isOwner && editingId !== item.id ? (
+                      <details className="people-row__manage">
+                        <summary className="people-row__manage-summary">Quản lý hồ sơ</summary>
+                        <div className="people-row__manage-body">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setEditingId(item.id)}
+                            aria-label={`Sửa hồ sơ ${item.displayName}`}
+                          >
+                            Sửa hồ sơ
+                          </Button>
+                          <div
+                            className="people-danger__actions"
+                            role="group"
+                            aria-label="Thao tác dữ liệu"
+                          >
+                            <Button
+                              variant="danger-quiet"
+                              size="sm"
+                              aria-expanded={dangerOpen && dangerTarget?.mode === 'archive'}
+                              aria-controls={
+                                dangerOpen && dangerTarget?.mode === 'archive'
+                                  ? panelId
+                                  : undefined
+                              }
+                              onClick={(event) =>
+                                openDangerForm(item, 'archive', event.currentTarget)
+                              }
+                            >
+                              Lưu trữ hồ sơ
                             </Button>
                             <Button
-                              variant="subtle"
-                              type="button"
-                              disabled={dangerPending}
-                              onClick={closeDangerForm}
+                              variant="danger-quiet"
+                              size="sm"
+                              aria-expanded={dangerOpen && dangerTarget?.mode === 'deletion'}
+                              aria-controls={
+                                dangerOpen && dangerTarget?.mode === 'deletion'
+                                  ? panelId
+                                  : undefined
+                              }
+                              onClick={(event) =>
+                                openDangerForm(item, 'deletion', event.currentTarget)
+                              }
                             >
-                              Hủy
+                              Yêu cầu xóa dữ liệu
                             </Button>
                           </div>
-                        </form>
-                      </section>
+                        </div>
+                      </details>
                     ) : null}
+                  </div>
 
-                    {deletionResult?.subjectId === item.id ? (
-                      <div className="subject-danger-result">
-                        <Alert
-                          tone="info"
-                          title="Đã ghi nhận yêu cầu xóa — dữ liệu chưa bị xóa"
-                        >
-                          <p>{deletionResult.result.note}</p>
-                          <p className="subject-danger-result__meta">
-                            Mã ghi nhận: <code>{deletionResult.result.id}</code> · Ghi lúc{' '}
-                            {formatDateTime(deletionResult.result.recordedAt)}
+                  {isOwner && editingId === item.id ? (
+                    <div className="people-row__edit people-surface">
+                      <h3 className="people-surface__title">Sửa hồ sơ</h3>
+                      <SubjectForm
+                        mode="edit"
+                        initial={{ displayName: item.displayName, timezone: item.timezone }}
+                        pending={update.isPending}
+                        submitLabel="Lưu"
+                        onCancel={() => setEditingId(null)}
+                        onSubmit={(values) => update.mutate({ id: item.id, input: values })}
+                      />
+                      {update.isError ? (
+                        <Alert tone="error">{getApiErrorMessage(update.error)}</Alert>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  {isOwner && dangerOpen && dangerTarget ? (
+                    <section
+                      id={panelId}
+                      className="people-danger"
+                      aria-labelledby={headingId}
+                      onKeyDown={handleDangerKeyDown}
+                    >
+                      <form className="people-danger__form" onSubmit={handleDangerSubmit} noValidate>
+                        <h3 id={headingId} className="people-danger__title">
+                          {dangerTarget.mode === 'archive'
+                            ? `Lưu trữ hồ sơ “${item.displayName}”`
+                            : `Ghi nhận yêu cầu xóa dữ liệu cho “${item.displayName}”`}
+                        </h3>
+                        <p className="people-danger__lead">
+                          {dangerTarget.mode === 'archive'
+                            ? 'Thao tác này đóng quyền truy cập của mọi người, kể cả bạn. Hãy đọc kỹ trước khi xác nhận.'
+                            : 'Thao tác này chỉ ghi nhận yêu cầu. Dữ liệu vẫn còn cho tới khi có quy trình xóa được duyệt và chạy.'}
+                        </p>
+                        <DangerConsequences mode={dangerTarget.mode} />
+
+                        <div className="field">
+                          <label className="field__label" htmlFor={reasonId}>
+                            {dangerTarget.mode === 'archive'
+                              ? 'Lý do lưu trữ'
+                              : 'Lý do yêu cầu xóa'}{' '}
+                            <span className="field__required" aria-hidden="true">
+                              *
+                            </span>
+                          </label>
+                          <p className="field__hint" id={`${reasonId}-hint`}>
+                            {dangerTarget.mode === 'archive'
+                              ? '3–500 ký tự. Ví dụ: đã bàn giao thiết bị, đổi người theo dõi.'
+                              : '10–1000 ký tự. Ví dụ: gia đình yêu cầu xóa sau khi ngừng theo dõi.'}
                           </p>
+                          <textarea
+                            id={reasonId}
+                            ref={dangerReasonRef}
+                            className={`field__input${dangerErrors.fields.reason ? ' field__input--error' : ''}`}
+                            aria-invalid={dangerErrors.fields.reason ? true : undefined}
+                            aria-describedby={`${reasonId}-hint`}
+                            rows={3}
+                            value={dangerReason}
+                            maxLength={dangerTarget.mode === 'archive' ? 500 : 1000}
+                            onChange={(event) => setDangerReason(event.target.value)}
+                          />
+                          {dangerErrors.fields.reason ? (
+                            <p className="field__error" role="alert">
+                              {dangerErrors.fields.reason}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <TextField
+                          id={confirmId}
+                          label={`Gõ đúng tên “${item.displayName}” để xác nhận`}
+                          required
+                          value={dangerConfirmName}
+                          error={dangerErrors.fields.confirmationName}
+                          hint="Không phân biệt hoa/thường; khoảng trắng đầu/cuối được bỏ qua."
+                          onChange={(event) => setDangerConfirmName(event.target.value)}
+                          autoComplete="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
+                          maxLength={120}
+                        />
+
+                        {dangerServerError ? (
+                          <Alert tone="error" title="Chưa thực hiện được thao tác">
+                            {dangerServerError}
+                          </Alert>
+                        ) : null}
+
+                        <div className="people-danger__form-actions">
+                          <Button type="submit" variant="danger" disabled={dangerPending}>
+                            {dangerPending
+                              ? 'Đang gửi…'
+                              : dangerTarget.mode === 'archive'
+                                ? 'Xác nhận lưu trữ'
+                                : 'Ghi nhận yêu cầu xóa'}
+                          </Button>
                           <Button
                             variant="subtle"
-                            size="sm"
-                            onClick={() => setDeletionResult(null)}
+                            type="button"
+                            disabled={dangerPending}
+                            onClick={() => closeDangerForm({ restoreFocus: true })}
                           >
-                            Đóng thông báo
+                            Hủy
                           </Button>
-                        </Alert>
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </>
+                        </div>
+                      </form>
+                    </section>
+                  ) : null}
+
+                  {deletionResult?.subjectId === item.id ? (
+                    <div className="people-danger__result">
+                      <Alert tone="info" title="Đã ghi nhận yêu cầu xóa — dữ liệu chưa bị xóa">
+                        <p>{deletionResult.result.note}</p>
+                        <p className="people-danger__result-meta">
+                          Mã ghi nhận: <code>{deletionResult.result.id}</code> · Ghi lúc{' '}
+                          {formatDateTime(deletionResult.result.recordedAt)}
+                        </p>
+                        <Button
+                          variant="subtle"
+                          size="sm"
+                          onClick={() => setDeletionResult(null)}
+                        >
+                          Đóng thông báo
+                        </Button>
+                      </Alert>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
     </div>
   );

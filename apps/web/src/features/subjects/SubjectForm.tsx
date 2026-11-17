@@ -21,11 +21,14 @@ interface SubjectFormProps {
 }
 
 const DEFAULT_TIMEZONE = 'Asia/Ho_Chi_Minh';
+const TIMEZONE_ID = 'subject-timezone';
+const NAME_ID = 'subject-display-name';
 
 /**
- * Form tạo/sửa hồ sơ. Validate bằng đúng schema hợp đồng
- * (`createSubjectSchema`/`updateSubjectSchema` từ @heart-iot/contracts/subjects),
- * lỗi hiển thị theo trường bằng aria-describedby.
+ * Form tạo/sửa hồ sơ — một cột, lỗi nằm ngay cạnh field. Validate bằng đúng
+ * schema hợp đồng (`createSubjectSchema`/`updateSubjectSchema` từ
+ * @heart-iot/contracts/subjects). Nhãn là “Tên người được theo dõi” vì form
+ * còn đổi cả múi giờ, không chỉ đổi tên.
  */
 export function SubjectForm({
   mode,
@@ -48,20 +51,22 @@ export function SubjectForm({
     const schema = mode === 'create' ? createSubjectSchema : updateSubjectSchema;
     const parsed = schema.safeParse(values);
     if (!parsed.success) {
-      setErrors(
-        zodFieldErrorMap(parsed.error, values, {
-          displayName: (issue, value) => {
-            if (String(value ?? '').trim() === '') return 'Vui lòng nhập tên hiển thị.';
-            if (issue.code === 'too_big') return `Tên quá dài (tối đa ${issue.maximum} ký tự).`;
-            return 'Tên hiển thị chưa hợp lệ.';
-          },
-          timezone: (issue, value) => {
-            if (String(value ?? '').trim() === '') return 'Vui lòng nhập múi giờ.';
-            if (issue.code === 'too_big') return `Múi giờ quá dài (tối đa ${issue.maximum} ký tự).`;
-            return 'Múi giờ chưa hợp lệ (dùng tên IANA, ví dụ Asia/Ho_Chi_Minh).';
-          },
-        }),
-      );
+      const nextErrors = zodFieldErrorMap(parsed.error, values, {
+        displayName: (issue, value) => {
+          if (String(value ?? '').trim() === '') return 'Vui lòng nhập tên người được theo dõi.';
+          if (issue.code === 'too_big') return `Tên quá dài (tối đa ${issue.maximum} ký tự).`;
+          return 'Tên người được theo dõi chưa hợp lệ.';
+        },
+        timezone: (issue, value) => {
+          if (String(value ?? '').trim() === '') return 'Vui lòng nhập múi giờ.';
+          if (issue.code === 'too_big') return `Múi giờ quá dài (tối đa ${issue.maximum} ký tự).`;
+          return 'Múi giờ chưa hợp lệ (dùng tên IANA, ví dụ Asia/Ho_Chi_Minh).';
+        },
+      });
+      setErrors(nextErrors);
+      // Đưa focus về field lỗi đầu tiên để bàn phím/trình đọc màn hình thấy ngay.
+      const firstErrorField = nextErrors.fields.displayName ? NAME_ID : TIMEZONE_ID;
+      document.getElementById(firstErrorField)?.focus();
       return;
     }
     setErrors({ fields: {}, general: [] });
@@ -72,23 +77,23 @@ export function SubjectForm({
   return (
     <form className="subject-form" onSubmit={handleSubmit} noValidate>
       <TextField
-        id="subject-display-name"
-        label="Tên hiển thị"
+        id={NAME_ID}
+        label="Tên người được theo dõi"
         required
         value={displayName}
         error={errors.fields.displayName}
-        hint="Tên người được theo dõi mà bạn và người thân sẽ nhìn thấy."
+        hint="Tên này hiển thị cho bạn và người thân cùng xem hồ sơ."
         onChange={(event) => setDisplayName(event.target.value)}
         autoComplete="off"
         maxLength={120}
       />
       <div className="field">
-        <label className="field__label" htmlFor="subject-timezone">
+        <label className="field__label" htmlFor={TIMEZONE_ID}>
           Múi giờ <span className="field__required" aria-hidden="true"> *</span>
         </label>
         <p className="field__hint">Dùng để tính ngày tổng hợp. Mặc định theo Việt Nam.</p>
         <select
-          id="subject-timezone"
+          id={TIMEZONE_ID}
           className={`field__input${errors.fields.timezone ? ' field__input--error' : ''}`}
           value={timezone}
           aria-invalid={errors.fields.timezone ? true : undefined}

@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
 import { TextField } from '../../components/Field';
 import { getApiErrorMessage } from '../../lib/api';
 import { apiValidationFieldErrors, zodFieldErrorMap } from '../../lib/validation';
@@ -30,6 +29,10 @@ export function PasswordCard() {
     setConfirmPassword('');
   };
 
+  const focusField = (id: string) => {
+    document.getElementById(id)?.focus();
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
@@ -52,14 +55,17 @@ export function PasswordCard() {
         },
       });
       setFieldErrors(fields);
+      focusField(fields.currentPassword ? 'settings-current-password' : 'settings-new-password');
       return;
     }
     if (newPassword !== confirmPassword) {
       setFieldErrors({ confirmPassword: 'Mật khẩu nhập lại không khớp.' });
+      focusField('settings-confirm-password');
       return;
     }
     if (parsed.data.newPassword === parsed.data.currentPassword) {
       setFieldErrors({ newPassword: 'Mật khẩu mới phải khác mật khẩu hiện tại.' });
+      focusField('settings-new-password');
       return;
     }
     setFieldErrors({});
@@ -79,67 +85,74 @@ export function PasswordCard() {
   };
 
   return (
-    <Card
-      title="Mật khẩu"
-      description="Đổi mật khẩu định kỳ hoặc khi bạn nghi ngờ có người biết mật khẩu cũ."
-    >
-      <form onSubmit={handleSubmit} noValidate>
-        {formError ? (
-          <Alert tone="error" title="Chưa đổi được mật khẩu">
-            {formError}
-          </Alert>
-        ) : null}
-        {saved ? (
-          <Alert tone="success" title="Đã đổi mật khẩu">
-            Bạn vẫn đang đăng nhập trên thiết bị này. Các phiên đăng nhập khác đã bị thu hồi.
-          </Alert>
-        ) : null}
-        <TextField
-          id="settings-current-password"
-          label="Mật khẩu hiện tại"
-          type="password"
-          autoComplete="current-password"
-          required
-          value={currentPassword}
-          onChange={(event) => {
-            setCurrentPassword(event.target.value);
-            setSaved(false);
-          }}
-          error={fieldErrors.currentPassword}
-        />
-        <TextField
-          id="settings-new-password"
-          label="Mật khẩu mới"
-          type="password"
-          autoComplete="new-password"
-          required
-          hint={`Tối thiểu ${NEW_PASSWORD_MIN} ký tự và khác mật khẩu hiện tại.`}
-          value={newPassword}
-          onChange={(event) => {
-            setNewPassword(event.target.value);
-            setSaved(false);
-          }}
-          error={fieldErrors.newPassword}
-        />
-        <TextField
-          id="settings-confirm-password"
-          label="Nhập lại mật khẩu mới"
-          type="password"
-          autoComplete="new-password"
-          required
-          value={confirmPassword}
-          onChange={(event) => {
-            setConfirmPassword(event.target.value);
-            setSaved(false);
-          }}
-          error={fieldErrors.confirmPassword}
-        />
-        <div className="settings-actions-row">
-          <Button type="submit" disabled={change.isPending}>
-            {change.isPending ? 'Đang đổi mật khẩu…' : 'Đổi mật khẩu'}
-          </Button>
-        </div>
-      </form>
-    </Card>
+    <section className="people-settings-section" aria-labelledby="settings-password-heading">
+      <div className="people-settings-section__head">
+        <h2 id="settings-password-heading" className="people-settings-section__title">
+          Mật khẩu
+        </h2>
+        <p className="people-settings-section__lead">
+          Đổi khi bạn nghi ngờ có người biết mật khẩu cũ. Phiên trên thiết bị này vẫn giữ nguyên.
+        </p>
+      </div>
+      <div className="people-settings-section__body">
+        <form className="people-form" onSubmit={handleSubmit} noValidate>
+          {formError ? (
+            <Alert tone="error" title="Chưa đổi được mật khẩu">
+              {formError}
+            </Alert>
+          ) : null}
+          {saved ? (
+            <Alert tone="success" title="Đã đổi mật khẩu">
+              Bạn vẫn đang đăng nhập trên thiết bị này. Các phiên đăng nhập khác đã bị thu hồi.
+            </Alert>
+          ) : null}
+          <TextField
+            id="settings-current-password"
+            label="Mật khẩu hiện tại"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={currentPassword}
+            onChange={(event) => {
+              setCurrentPassword(event.target.value);
+              setSaved(false);
+            }}
+            error={fieldErrors.currentPassword}
+          />
+          <TextField
+            id="settings-new-password"
+            label="Mật khẩu mới"
+            type="password"
+            autoComplete="new-password"
+            required
+            hint={`Tối thiểu ${NEW_PASSWORD_MIN} ký tự và khác mật khẩu hiện tại.`}
+            value={newPassword}
+            onChange={(event) => {
+              setNewPassword(event.target.value);
+              setSaved(false);
+            }}
+            error={fieldErrors.newPassword}
+          />
+          <TextField
+            id="settings-confirm-password"
+            label="Nhập lại mật khẩu mới"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={confirmPassword}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+              setSaved(false);
+            }}
+            error={fieldErrors.confirmPassword}
+          />
+          <div className="people-form__actions">
+            <Button type="submit" disabled={change.isPending}>
+              {change.isPending ? 'Đang đổi mật khẩu…' : 'Đổi mật khẩu'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }

@@ -5,15 +5,18 @@ import { SubjectForm } from './SubjectForm';
 
 // FR-02 / form hồ sơ — lỗi field từ schema hợp đồng, submit hợp lệ truyền giá trị đúng.
 describe('SubjectForm', () => {
-  it('để trống tên → hiển thị lỗi field, không gọi onSubmit', async () => {
+  it('để trống tên → hiển thị lỗi field, không gọi onSubmit, focus về field lỗi', async () => {
     const onSubmit = vi.fn();
     const user = userEvent.setup();
     render(<SubjectForm mode="create" onSubmit={onSubmit} />);
 
     await user.click(screen.getByRole('button', { name: 'Tạo hồ sơ' }));
 
-    expect(await screen.findByText('Vui lòng nhập tên hiển thị.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Vui lòng nhập tên người được theo dõi.'),
+    ).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/^Tên người được theo dõi/)).toHaveFocus();
   });
 
   it('tên đúng giới hạn 120 ký tự vẫn hợp lệ — input và schema cùng tôn trọng giới hạn', async () => {
@@ -22,7 +25,7 @@ describe('SubjectForm', () => {
     render(<SubjectForm mode="create" onSubmit={onSubmit} />);
 
     const name = 'a'.repeat(120);
-    fireEvent.change(screen.getByLabelText(/^Tên hiển thị/), {
+    fireEvent.change(screen.getByLabelText(/^Tên người được theo dõi/), {
       target: { value: name },
     });
     await user.click(screen.getByRole('button', { name: 'Tạo hồ sơ' }));
@@ -41,7 +44,7 @@ describe('SubjectForm', () => {
 
     expect(screen.getByLabelText(/^Múi giờ/)).toHaveValue('Asia/Ho_Chi_Minh');
 
-    await user.type(screen.getByLabelText(/^Tên hiển thị/), 'Bà Năm');
+    await user.type(screen.getByLabelText(/^Tên người được theo dõi/), 'Bà Năm');
     await user.click(screen.getByRole('button', { name: 'Tạo hồ sơ' }));
 
     expect(onSubmit).toHaveBeenCalledWith({

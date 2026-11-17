@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import type { UserSummary } from '@heart-iot/contracts';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
 import { TextField } from '../../components/Field';
 import { getApiErrorMessage } from '../../lib/api';
 import { apiValidationFieldErrors, fieldErrorMap } from '../../lib/validation';
@@ -16,7 +15,10 @@ interface ProfileCardProps {
 /** Giới hạn đọc từ hợp đồng, không hard-code lần thứ hai. */
 const DISPLAY_NAME_MAX = updateProfileSchema.shape.displayName.maxLength ?? 120;
 
-/** Hồ sơ: đổi tên hiển thị. Id người dùng luôn do server lấy từ phiên. */
+/**
+ * Tên của bạn — tên hiển thị của **tài khoản đăng nhập**, không phải tên hồ sơ
+ * người được theo dõi. Id người dùng luôn do server lấy từ phiên.
+ */
 export function ProfileCard({ user }: ProfileCardProps) {
   const update = useUpdateProfile();
   const [displayName, setDisplayName] = useState(user.displayName);
@@ -60,39 +62,50 @@ export function ProfileCard({ user }: ProfileCardProps) {
   };
 
   return (
-    <Card title="Hồ sơ" description="Tên hiển thị với người thân trong ứng dụng.">
-      <form onSubmit={handleSubmit} noValidate>
-        {formError ? (
-          <Alert tone="error" title="Chưa lưu được tên hiển thị">
-            {formError}
-          </Alert>
-        ) : null}
-        {saved ? (
-          <Alert tone="success" title="Đã lưu tên hiển thị">
-            Tên mới được dùng ngay trên các màn hình của bạn.
-          </Alert>
-        ) : null}
-        <TextField
-          id="settings-display-name"
-          label="Tên hiển thị"
-          type="text"
-          autoComplete="name"
-          required
-          hint={`Tối đa ${DISPLAY_NAME_MAX} ký tự.`}
-          value={displayName}
-          onChange={(event) => {
-            setDisplayName(event.target.value);
-            setSaved(false);
-          }}
-          error={fieldError}
-        />
-        <p className="settings-meta">Email đăng nhập đã xác thực.</p>
-        <div className="settings-actions-row">
-          <Button type="submit" disabled={update.isPending}>
-            {update.isPending ? 'Đang lưu…' : 'Lưu tên hiển thị'}
-          </Button>
-        </div>
-      </form>
-    </Card>
+    <section className="people-settings-section" aria-labelledby="settings-profile-heading">
+      <div className="people-settings-section__head">
+        <h2 id="settings-profile-heading" className="people-settings-section__title">
+          Tên của bạn
+        </h2>
+        <p className="people-settings-section__lead">
+          Tên này hiển thị ở menu tài khoản và với người thân. Không đổi tên hồ sơ người được
+          theo dõi.
+        </p>
+      </div>
+      <div className="people-settings-section__body">
+        <form className="people-form" onSubmit={handleSubmit} noValidate>
+          {formError ? (
+            <Alert tone="error" title="Chưa lưu được tên hiển thị">
+              {formError}
+            </Alert>
+          ) : null}
+          {saved ? (
+            <Alert tone="success" title="Đã lưu tên hiển thị">
+              Tên mới được dùng ngay ở menu tài khoản và các màn hình của bạn.
+            </Alert>
+          ) : null}
+          <TextField
+            id="settings-display-name"
+            label="Tên hiển thị"
+            type="text"
+            autoComplete="name"
+            required
+            hint={`Tối đa ${DISPLAY_NAME_MAX} ký tự.`}
+            value={displayName}
+            onChange={(event) => {
+              setDisplayName(event.target.value);
+              setSaved(false);
+            }}
+            error={fieldError}
+          />
+          <p className="people-meta">Email đăng nhập đã xác thực: {user.email}</p>
+          <div className="people-form__actions">
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending ? 'Đang lưu…' : 'Lưu tên hiển thị'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </section>
   );
 }

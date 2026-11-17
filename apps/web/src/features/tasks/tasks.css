@@ -1,75 +1,48 @@
 /* ============================================================
-   Công việc bảo trì — CSS riêng của feature (v2 tạo việc).
-   Dùng design tokens từ styles/tokens.css; không tạo hệ CSS mới.
-   Mobile 360px: header xếp dọc, hai trường ưu tiên/hạn xếp dọc.
+   Công việc bảo trì — CSS riêng của feature.
+   Bố cục hàng/surface/bộ lọc dùng `styles/people.css`.
    ============================================================ */
 
-.tasks-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.tasks-header__text {
+.task-create {
   min-width: 0;
 }
 
-.tasks-header > .button {
-  align-self: flex-start;
+.task-create .people-form {
+  max-width: 40rem;
 }
 
-@media (min-width: 768px) {
-  .tasks-header {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-5);
-  }
-
-  .tasks-header > .button {
-    flex-shrink: 0;
-  }
-}
-
-/* ---------- Form tạo việc ---------- */
-
-.task-create-form {
-  display: flex;
-  flex-direction: column;
-}
-
-.task-create-form .field {
-  margin-bottom: var(--space-4);
-}
-
-.task-create-form__subject {
-  margin: 0 0 var(--space-4);
-  color: var(--color-ink-soft);
-  overflow-wrap: anywhere;
-}
-
-.task-create-form__row {
+/* Hai field ngắn cùng hàng khi đủ chỗ; mobile một cột. */
+.task-create__pair {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 0 var(--space-4);
-}
-
-.task-create-form__row > * {
-  min-width: 0;
+  gap: var(--space-4);
 }
 
 @media (min-width: 640px) {
-  .task-create-form__row {
+  .task-create__pair {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-4) var(--space-5);
   }
 }
 
-.task-create-form__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+/* Panel đến từ .people-confirm; ở đây chỉ giới hạn bề rộng và khoảng cách. */
+.task-close-form {
+  max-width: 26rem;
+  margin-top: var(--space-3);
 }
 
-.task-create-form__retry {
-  margin-top: var(--space-2);
+.task-notice__action {
+  margin-top: var(--space-3);
+}
+
+.task-technical {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.task-load-more {
+  display: flex;
+  justify-content: flex-start;
 }

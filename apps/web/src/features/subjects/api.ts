@@ -1,9 +1,15 @@
 import {
+  archiveSubjectSchema,
   createSubjectSchema,
+  deletionRequestRecordedSchema,
+  deletionRequestSchema,
   subjectDetailSchema,
   subjectListSchema,
   updateSubjectSchema,
+  type ArchiveSubjectInput,
   type CreateSubjectInput,
+  type DeletionRequestInput,
+  type DeletionRequestRecorded,
   type SubjectDetail,
   type SubjectSummary,
   type UpdateSubjectInput,
@@ -32,3 +38,32 @@ export async function updateSubject(
 }
 
 export { createSubjectSchema, updateSubjectSchema };
+
+/**
+ * POST /subjects/:id/archive — lưu trữ hồ sơ (FR-14). Không xóa dữ liệu: chỉ
+ * ẩn hồ sơ, thu hồi care link và đóng stream; server trả 204.
+ */
+export async function archiveSubject(
+  id: string,
+  input: ArchiveSubjectInput,
+): Promise<void> {
+  await apiRequest<unknown>(`/subjects/${id}/archive`, { method: 'POST', body: input });
+}
+
+/**
+ * POST /subjects/:id/deletion-requests — ghi nhận yêu cầu xóa dữ liệu.
+ * Server trả 202 với `status: 'recorded'`: đây là ghi nhận thủ công, **chưa xóa**
+ * dữ liệu. Parse theo schema để UI không hiển thị trạng thái khác hợp đồng.
+ */
+export async function requestSubjectDeletion(
+  id: string,
+  input: DeletionRequestInput,
+): Promise<DeletionRequestRecorded> {
+  const data = await apiRequest<unknown>(`/subjects/${id}/deletion-requests`, {
+    method: 'POST',
+    body: input,
+  });
+  return parseResponse(deletionRequestRecordedSchema, data);
+}
+
+export { archiveSubjectSchema, deletionRequestSchema };
