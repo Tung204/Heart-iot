@@ -128,6 +128,23 @@ function countOccurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
+/** Nội dung khai báo của một rule phẳng (không lồng), khớp ngoặc nhọn. */
+function ruleBody(css: string, selector: string): string {
+  const start = css.indexOf(`${selector} {`);
+  if (start === -1) return '';
+  const open = css.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < css.length; i += 1) {
+    const ch = css.charAt(i);
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return css.slice(open + 1, i);
+    }
+  }
+  return '';
+}
+
 interface NotificationPayload {
   items: ReturnType<typeof notification>[];
   unreadCount: number;
@@ -898,6 +915,28 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     );
     expect(document.querySelector('.shell__route')).toBe(first);
     expect(first).not.toHaveClass('shell__route--enter');
+  });
+
+  it('CSS: tên tài khoản cắt bằng ellipsis, vai trò xuống dòng — không cắt giữa glyph', () => {
+    const shell = readStyle('shell.css');
+
+    for (const selector of ['.shell__account-trigger-name', '.shell__account-name']) {
+      const body = ruleBody(shell, selector);
+      expect(body).toMatch(/overflow:\s*hidden/);
+      expect(body).toMatch(/text-overflow:\s*ellipsis/);
+      expect(body).toMatch(/white-space:\s*nowrap/);
+    }
+
+    for (const selector of ['.shell__account-trigger-role', '.shell__account-role']) {
+      const body = ruleBody(shell, selector);
+      expect(body).toMatch(/white-space:\s*normal/);
+      expect(body).toMatch(/overflow-wrap:\s*anywhere/);
+      expect(body).not.toMatch(/text-overflow|overflow:\s*hidden/);
+    }
+
+    // Khung chữ co được trong hàng flex để ellipsis/wrap có hiệu lực.
+    expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/min-width:\s*0/);
+    expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/flex:\s*1 1 auto/);
   });
 
   it('CSS: @media (prefers-reduced-motion: reduce) tắt animation mới', () => {

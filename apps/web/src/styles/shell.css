@@ -452,15 +452,26 @@
 .shell__account-trigger-text {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   min-width: 0;
   line-height: 1.25;
 }
+/* Tên dài cắt bằng ellipsis (không cắt giữa glyph, không đẩy vỡ rail). */
 .shell__account-trigger-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
-  overflow-wrap: anywhere;
 }
+/* Vai trò luôn đủ chữ: xuống dòng khi hẹp, không clip ngang. */
 .shell__account-trigger-role {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   color: inherit;
   font-size: var(--text-xs);
   opacity: 0.9;
@@ -509,12 +520,17 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 .shell__account-name {
+  max-width: 100%;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: var(--weight-semibold);
-  overflow-wrap: anywhere;
 }
 .shell__account-role {
   margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
   color: var(--text-secondary);
   font-size: var(--text-sm);
 }
