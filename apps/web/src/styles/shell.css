@@ -176,7 +176,7 @@
   z-index: var(--z-topbar);
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  padding: var(--space-1) var(--space-4);
+  padding: 0 var(--space-4);
 }
 .shell__topbar-row {
   display: flex;
