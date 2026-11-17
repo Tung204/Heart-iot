@@ -1,0 +1,811 @@
+{
+  "generatedAt": "2026-11-17T13:54:30.731Z",
+  "web": "http://127.0.0.1:4350",
+  "results": [
+    {
+      "kind": "account-menu-keyboard",
+      "viewport": "1280x900",
+      "opened": "true",
+      "menuVisible": true,
+      "firstItemFocused": "Tài khoản",
+      "closed": "false",
+      "focusReturned": true
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 376,
+          "bottom": 424,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 376,
+          "bottom": 424,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-1280x900.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 539,
+          "bottom": 587,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-1280x900.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 364,
+          "bottom": 436,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 229,
+          "bottom": 273,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-1280x900.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 342,
+          "bottom": 386,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 342,
+          "bottom": 386,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-1280x900.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 32,
+          "bottom": 76,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-1280x900.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 122,
+          "bottom": 166,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-1280x900-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 315,
+          "bottom": 363,
+          "inFirstViewport": true,
+          "limit": 844
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 375,
+          "bottom": 423,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-390x844.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 508,
+          "bottom": 556,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-390x844.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 405,
+          "bottom": 477,
+          "inFirstViewport": true,
+          "limit": 771
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 262,
+          "bottom": 306,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-390x844.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 427,
+          "bottom": 471,
+          "inFirstViewport": true,
+          "limit": 771
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 427,
+          "bottom": 471,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-390x844.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 73,
+          "bottom": 117,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-390x844.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 163,
+          "bottom": 207,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-390x844-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 334,
+          "bottom": 382,
+          "inFirstViewport": true,
+          "limit": 740
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 394,
+          "bottom": 442,
+          "inFirstViewport": true,
+          "limit": 740
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-360x740.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 456,
+          "bottom": 504,
+          "inFirstViewport": true,
+          "limit": 740
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-360x740.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 405,
+          "bottom": 477,
+          "inFirstViewport": true,
+          "limit": 667
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 262,
+          "bottom": 306,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-360x740.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 466,
+          "bottom": 510,
+          "inFirstViewport": true,
+          "limit": 667
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 466,
+          "bottom": 510,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-360x740.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 73,
+          "bottom": 117,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-360x740.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 163,
+          "bottom": 207,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-360x740-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 472,
+          "bottom": 532,
+          "inFirstViewport": true,
+          "limit": 844
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 547,
+          "bottom": 607,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-390x844-large.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 511,
+          "bottom": 571,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-390x844-large.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Nhịp tim?",
+          "w": 113,
+          "h": 39.1
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Cảnh báo?",
+          "w": 125.3,
+          "h": 39.1
+        },
+        {
+          "sel": "button:not(.shell__account-item):not(.text-size-toggle)",
+          "text": "Pin?",
+          "w": 68,
+          "h": 39.1
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 552,
+          "bottom": 642,
+          "inFirstViewport": true,
+          "limit": 739
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 365,
+          "bottom": 415,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-390x844-large.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 668,
+          "bottom": 723,
+          "inFirstViewport": true,
+          "limit": 739
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 668,
+          "bottom": 723,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-390x844-large.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 91,
+          "bottom": 146,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-390x844-large.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 234,
+          "bottom": 278,
+          "inFirstViewport": true,
+          "limit": 755
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-390x844-large-admin.png"
+    }
+  ]
+}
