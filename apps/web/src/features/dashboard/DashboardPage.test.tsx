@@ -246,3 +246,112 @@ describe('DashboardPage — quyền số đo và dữ liệu chưa đủ', () =>
     expect(screen.getByText(/1 khoảng thiếu dữ liệu/)).toBeInTheDocument();
   });
 });
+
+// P3-04 (QA chốt v7) — thiếu `canReceiveAlerts` là trạng thái quyền, không phải lỗi:
+// không gọi `/alerts`, không mời “Thử lại”, vẫn hiển thị số đo bình thường.
+describe('DashboardPage — thiếu quyền nhận cảnh báo', () => {
+  const measurementOnly = {
+    ...SUBJECT,
+    role: 'caregiver',
+    sharedFrom: '2026-11-12T00:00:00.000Z',
+    permissions: {
+      ...SUBJECT.permissions,
+      canViewMeasurements: true,
+      canReceiveAlerts: false,
+    },
+  };
+
+  it('measurement-only → 0 request /alerts, câu quyền, không nút Thử lại/link cảnh báo', async () => {
+    const { fetchMock } = renderApp('/app/overview', (url) => {
+      const u = String(url);
+      if (u.endsWith('/me')) return mockResponse(SESSION);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [measurementOnly] });
+      if (u.includes('/daily-summary')) return mockResponse(SUMMARY);
+      if (u.endsWith('/status')) return mockResponse(SUBJECT_STATUS);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(
+      await screen.findByText('Chủ hồ sơ không chia sẻ cảnh báo với bạn.', {}, SLOW),
+    ).toBeInTheDocument();
+    // Vùng số đo vẫn như cũ khi có `canViewMeasurements`.
+    expect(await screen.findByText(/73 bpm/, {}, SLOW)).toBeInTheDocument();
+
+    const urls = fetchMock.mock.calls.map((call) => String(call[0]));
+    expect(urls.some((u) => u.includes('/alerts'))).toBe(false);
+    const alertsSection = screen
+      .getByRole('heading', { name: 'Cảnh báo đang mở' })
+      .closest('section');
+    expect(alertsSection).not.toBeNull();
+    const alerts = within(alertsSection as HTMLElement);
+    expect(alerts.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument();
+    expect(alerts.queryByRole('link', { name: /Xem tất cả cảnh báo/ })).not.toBeInTheDocument();
+    expect(alerts.queryByText('Không tải được cảnh báo đang mở')).not.toBeInTheDocument();
+    expect(alerts.queryByText('Đang tải cảnh báo đang mở…')).not.toBeInTheDocument();
+  });
+
+  it('owner → query cảnh báo chạy bình thường, vẫn có link xem tất cả', async () => {
+    renderApp('/app/overview', dashboardHandler());
+
+    expect(
+      await screen.findByRole('link', { name: /Nghi ngã — cần chú ý/ }, SLOW),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Xem tất cả cảnh báo/ })).toHaveAttribute(
+      'href',
+      '/app/alerts',
+    );
+  });
+});
+
+// P3-05 (QA chốt v7) — mốc kết nối bị ẩn theo cửa sổ chia sẻ không được đọc thành
+// “chưa từng kết nối” khi thiết bị vẫn trực tuyến.
+describe('DashboardPage — mốc kết nối ẩn theo quyền chia sẻ', () => {
+  it('healthDataVisible=false + lastSeenAt=null + freshness live → copy ẩn theo quyền', async () => {
+    const redactedStatus = {
+      ...SUBJECT_STATUS,
+      devices: [
+        {
+          ...SUBJECT_STATUS.devices[0],
+          healthDataVisible: false,
+          lastSeenAt: null,
+          lastMeasuredAt: null,
+          freshness: 'live',
+        },
+      ],
+    };
+    renderApp(
+      '/app/overview',
+      dashboardHandler({ status: () => mockResponse(redactedStatus) }),
+    );
+
+    expect(
+      await screen.findByText('mốc kết nối ẩn theo quyền chia sẻ', {}, SLOW),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Trực tuyến')).toBeInTheDocument();
+    expect(screen.queryByText('chưa từng kết nối')).not.toBeInTheDocument();
+  });
+
+  it('thiết bị bình thường lastSeenAt=null → giữ copy “chưa từng kết nối”', async () => {
+    const neverStatus = {
+      ...SUBJECT_STATUS,
+      devices: [
+        {
+          ...SUBJECT_STATUS.devices[0],
+          healthDataVisible: true,
+          lastSeenAt: null,
+          lastMeasuredAt: null,
+          freshness: 'never',
+        },
+      ],
+    };
+    renderApp(
+      '/app/overview',
+      dashboardHandler({ status: () => mockResponse(neverStatus) }),
+    );
+
+    expect(await screen.findByText('chưa từng kết nối', {}, SLOW)).toBeInTheDocument();
+    expect(
+      screen.queryByText('mốc kết nối ẩn theo quyền chia sẻ'),
+    ).not.toBeInTheDocument();
+  });
+});

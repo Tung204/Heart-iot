@@ -460,7 +460,8 @@ function AccountMenu({
  * - Admin không hồ sơ: nav chỉ Quản trị (tránh các trang sức khỏe 404).
  * - Dòng ngữ cảnh "Người được theo dõi" đặt trên H1, chỉ ở 5 loại trang
  *   subject-scoped (Hôm nay kể cả alias, Sức khỏe, Lịch sử, Cảnh báo, Thiết bị).
- * - Mở SSE cho hồ sơ đang xem; mất SSE → banner role=status.
+ * - Mở SSE cho hồ sơ đang xem khi người xem có quyền nhận cảnh báo; mất SSE →
+ *   banner role=status. Thiếu quyền thì không mở stream, không báo mất kết nối.
  * - Bị thu hồi quyền → banner role=alert + dọn cache đúng hồ sơ + điều hướng an toàn.
  */
 export function AppShell() {
@@ -496,7 +497,15 @@ export function AppShell() {
   const hideNotificationBanner = onSameIncident || onInbox;
   const dismissNewNotification = notifications.dismiss;
 
-  const subjectEvents = useSubjectEvents(activeSubject?.id ?? null, {
+  // Quyền nhận cảnh báo: chủ hồ sơ luôn nhận; người thân cần cờ `canReceiveAlerts`.
+  // Thiếu quyền là trạng thái nghiệp vụ: không mở SSE (server trả 403), không tải badge.
+  const canReceiveAlerts = Boolean(
+    activeSubject &&
+      !adminOnly &&
+      (activeSubject.role === 'owner' || activeSubject.permissions.canReceiveAlerts),
+  );
+
+  const subjectEvents = useSubjectEvents(canReceiveAlerts ? (activeSubject?.id ?? null) : null, {
     onRevoked: (subjectId) => {
       const name =
         subjects.data?.find((item) => item.id === subjectId)?.displayName ??
@@ -513,18 +522,13 @@ export function AppShell() {
 
   // Badge cảnh báo đang mở của hồ sơ đang xem: cùng query key với danh sách ngắn
   // trên Hôm nay nên hai nơi dùng chung một lần tải.
-  const canSeeAlerts = Boolean(
-    activeSubject &&
-      !adminOnly &&
-      (activeSubject.role === 'owner' || activeSubject.permissions.canReceiveAlerts),
-  );
   const openAlerts = useQuery({
     queryKey: activeSubject
       ? queryKeys.dashboardOpenAlerts(activeSubject.id)
       : (['subjects', 'none', 'alerts', 'shell'] as const),
     queryFn: ({ signal }) =>
       activeSubject ? fetchOpenAlerts(activeSubject.id, OPEN_ALERTS_LIMIT, signal) : null,
-    enabled: canSeeAlerts,
+    enabled: canReceiveAlerts,
     staleTime: 15_000,
   });
   const openAlertCount = openAlerts.data?.items.length ?? 0;

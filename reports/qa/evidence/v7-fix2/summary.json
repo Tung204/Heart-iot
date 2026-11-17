@@ -1,0 +1,859 @@
+{
+  "at": "2026-11-17T20:28:13.550Z",
+  "web": "http://127.0.0.1:4362",
+  "api": "http://127.0.0.1:3014/api/v1",
+  "setup": {
+    "measurement-only": {
+      "email": "fix2-measurement-only@demo.heart-iot.local",
+      "registeredNow": true,
+      "role": "caregiver",
+      "permissions": {
+        "historyDays": 30,
+        "canReceiveAlerts": false,
+        "canAcknowledge": false,
+        "canResolve": false,
+        "canViewAi": false,
+        "canViewMeasurements": true
+      },
+      "sharedFrom": "2026-11-17T20:28:13.676Z"
+    },
+    "receive-only": {
+      "email": "fix2-receive-only@demo.heart-iot.local",
+      "registeredNow": true,
+      "role": "caregiver",
+      "permissions": {
+        "historyDays": 30,
+        "canReceiveAlerts": true,
+        "canAcknowledge": true,
+        "canResolve": false,
+        "canViewAi": false,
+        "canViewMeasurements": false
+      },
+      "sharedFrom": "2026-11-17T20:28:13.758Z"
+    }
+  },
+  "shots": [
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\today-1280x900-measurement-only.png",
+      "eventRequests": [],
+      "alertRequests": [],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": null,
+      "deviceItems": []
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\overview-1280x900-measurement-only.png",
+      "eventRequests": [],
+      "alertRequests": [],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": true,
+      "alertsText": "Cảnh báo đang mở\n\nChủ hồ sơ không chia sẻ cảnh báo với bạn.",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": null,
+      "deviceItems": [
+        {
+          "text": "Vòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu",
+          "pills": [
+            "Chưa cập nhật gần đây"
+          ]
+        }
+      ]
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "today",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\today-390x844-measurement-only.png",
+      "eventRequests": [],
+      "alertRequests": [],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": null,
+      "deviceItems": []
+    },
+    {
+      "account": "measurement-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\overview-390x844-measurement-only.png",
+      "eventRequests": [],
+      "alertRequests": [],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/daily-summary?date=2026-11-18",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/insights?days=7",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": true,
+      "alertsText": "Cảnh báo đang mở\n\nChủ hồ sơ không chia sẻ cảnh báo với bạn.",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": null,
+      "deviceItems": [
+        {
+          "text": "Vòng đeo tay của bà An\n\nChưa cập nhật gần đây\nKết nối\nchưa từng kết nối\nPin\nchưa có thông tin\nLần đo gần nhất\nchưa có dữ liệu",
+          "pills": [
+            "Chưa cập nhật gần đây"
+          ]
+        }
+      ]
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "today",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\today-1280x900-receive-only.png",
+      "eventRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        }
+      ],
+      "alertRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": "1",
+      "deviceItems": []
+    },
+    {
+      "account": "receive-only",
+      "viewport": "1280x900",
+      "route": "overview",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\overview-1280x900-receive-only.png",
+      "eventRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        }
+      ],
+      "alertRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "Cảnh báo đang mở\n1 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 03:01 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →",
+      "alertRetryButtons": 0,
+      "alertLinks": [
+        "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+        "/app/alerts"
+      ],
+      "alertRegionError": false,
+      "navBadge": "1",
+      "deviceItems": [
+        {
+          "text": "Vòng đeo tay của bà An\n\nTrực tuyến\nKết nối\nmốc kết nối ẩn theo quyền chia sẻ\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này",
+          "pills": [
+            "Trực tuyến"
+          ]
+        }
+      ]
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "today",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\today-390x844-receive-only.png",
+      "eventRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        }
+      ],
+      "alertRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/emergency-contacts",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "",
+      "alertRetryButtons": 0,
+      "alertLinks": [],
+      "alertRegionError": false,
+      "navBadge": "1",
+      "deviceItems": []
+    },
+    {
+      "account": "receive-only",
+      "viewport": "390x844",
+      "route": "overview",
+      "shot": "reports\\qa\\evidence\\v7-fix2\\overview-390x844-receive-only.png",
+      "eventRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        }
+      ],
+      "alertRequests": [
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        }
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/me",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects",
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/notifications",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/events",
+          "resourceType": "eventsource",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/alerts?state=open&limit=20",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "resourceType": "fetch"
+        }
+      ],
+      "failed": [
+        {
+          "path": "/me",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects",
+          "error": "net::ERR_ABORTED"
+        },
+        {
+          "path": "/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/status",
+          "error": "net::ERR_ABORTED"
+        }
+      ],
+      "consoleErrors": [],
+      "hasRealtimeLostBanner": false,
+      "hasAlertsPermissionCopy": false,
+      "alertsText": "Cảnh báo đang mở\n1 cần chú ý\n\nNghi ngã — cần chú ý\n\nĐang mở Phát hiện 03:01 18 thg 11, 2026 · chưa có người xác nhận\n\nXem tất cả cảnh báo →",
+      "alertRetryButtons": 0,
+      "alertLinks": [
+        "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+        "/app/alerts"
+      ],
+      "alertRegionError": false,
+      "navBadge": "1",
+      "deviceItems": [
+        {
+          "text": "Vòng đeo tay của bà An\n\nTrực tuyến\nKết nối\nmốc kết nối ẩn theo quyền chia sẻ\nPin\nchưa có thông tin\nSố đo\nKhông được xem số đo của thiết bị này",
+          "pills": [
+            "Trực tuyến"
+          ]
+        }
+      ]
+    }
+  ]
+}

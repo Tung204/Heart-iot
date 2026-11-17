@@ -489,6 +489,40 @@ describe('AppShell — điều hướng bốn mục', () => {
   });
 });
 
+// P3-03 (QA chốt v7) — SSE chỉ mở khi người xem có quyền nhận cảnh báo.
+// Thiếu quyền là trạng thái nghiệp vụ: không mở `/events`, không có banner lỗi giả.
+describe('AppShell — SSE theo quyền nhận cảnh báo', () => {
+  beforeEach(() => {
+    resetFakeEventSource();
+    vi.stubGlobal('EventSource', FakeEventSource);
+  });
+
+  it('caregiver thiếu canReceiveAlerts → 0 stream /events, không banner “Mất cập nhật trực tiếp”', async () => {
+    const { fetchMock } = renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
+    // Chờ hồ sơ đang xem được chọn (điều kiện để mở SSE nếu đủ quyền).
+    await screen.findByText(/Theo dõi:/, {}, { timeout: 5000 });
+
+    expect(FakeEventSource.instances).toHaveLength(0);
+    expect(
+      fetchMock.mock.calls.some(([input]) => String(input).includes('/events')),
+    ).toBe(false);
+    expect(screen.queryByText(/Mất cập nhật trực tiếp/)).not.toBeInTheDocument();
+  });
+
+  it('caregiver có canReceiveAlerts → vẫn mở stream của hồ sơ như cũ', async () => {
+    const caregiverWithAlerts = [
+      {
+        ...CAREGIVER_ONLY[0],
+        permissions: { ...CAREGIVER_ONLY[0]!.permissions, canReceiveAlerts: true },
+      },
+    ];
+    renderShell({ user: OWNER_USER }, caregiverWithAlerts);
+
+    await waitFor(() => expect(FakeEventSource.instances.length).toBe(1), { timeout: 5000 });
+    expect(FakeEventSource.instances[0]!.url).toContain(`/subjects/${SUBJECTS[0]!.id}/events`);
+  });
+});
+
 // F09/F11 — menu tài khoản chỉ một bản trong DOM, đóng được bằng Escape/click ngoài,
 // aria-expanded khớp trạng thái và focus trả về trigger.
 describe('AppShell — menu tài khoản một bản, đóng được', () => {
