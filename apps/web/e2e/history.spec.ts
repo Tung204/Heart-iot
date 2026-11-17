@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 // E2E cho trang lịch sử (QA v2 P1-1/P1-2) — mock API bằng page.route, không cần API thật.
-// Dữ liệu mẫu khớp hợp đồng @annhien/contracts; 1.681 dòng chia 4 trang 500/500/500/181.
+// Dữ liệu mẫu khớp hợp đồng @heart-iot/contracts; 1.681 dòng chia 4 trang 500/500/500/181.
 
 const USER = {
   id: '0f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b',

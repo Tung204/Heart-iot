@@ -3,8 +3,8 @@ import {
   subjectStatusResponseSchema,
   type DailySummary,
   type SubjectStatusResponse,
-} from '@annhien/contracts/measurements';
-import { incidentListSchema, type IncidentList } from '@annhien/contracts/incidents';
+} from '@heart-iot/contracts/measurements';
+import { incidentListSchema, type IncidentList } from '@heart-iot/contracts/incidents';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /subjects/:id/status — thiết bị + policy + asOf. */

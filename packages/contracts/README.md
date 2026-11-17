@@ -1,6 +1,6 @@
 # Hợp đồng dữ liệu dùng chung
 
-Package `@annhien/contracts` giữ **zod schema + type** dùng cho API, web và simulator. Đây là nguồn hợp đồng đang thực thi trong mã; payload JSON trong `examples/` chỉ là mẫu tài liệu.
+Package `@heart-iot/contracts` giữ **zod schema + type** dùng cho API, web và simulator. Đây là nguồn hợp đồng đang thực thi trong mã; payload JSON trong `examples/` chỉ là mẫu tài liệu.
 
 ## Trạng thái
 
@@ -13,9 +13,9 @@ Package `@annhien/contracts` giữ **zod schema + type** dùng cho API, web và 
 ## Dùng trong code
 
 ```ts
-import { carePermissionsSchema, DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
-import { authSessionSchema } from '@annhien/contracts/auth';
-import { telemetryEnvelopeSchema } from '@annhien/contracts/telemetry';
+import { carePermissionsSchema, DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
+import { authSessionSchema } from '@heart-iot/contracts/auth';
+import { telemetryEnvelopeSchema } from '@heart-iot/contracts/telemetry';
 ```
 
 Package biên dịch sang `dist/` (CommonJS + type). Sau khi sửa schema:

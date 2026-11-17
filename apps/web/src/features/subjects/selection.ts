@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { SubjectSummary } from '@annhien/contracts/subjects';
+import type { SubjectSummary } from '@heart-iot/contracts/subjects';
 
 /**
  * Lựa chọn hồ sơ đang xem — dùng chung giữa SubjectSwitcher (nơi chọn)

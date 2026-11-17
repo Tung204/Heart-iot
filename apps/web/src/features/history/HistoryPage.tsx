@@ -1,8 +1,8 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import type { HeartRateQuality } from '@annhien/contracts';
-import type { MeasurementGap, MeasurementsResponse } from '@annhien/contracts/measurements';
+import type { HeartRateQuality } from '@heart-iot/contracts';
+import type { MeasurementGap, MeasurementsResponse } from '@heart-iot/contracts/measurements';
 import { ButtonLink } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';

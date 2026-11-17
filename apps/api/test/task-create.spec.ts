@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { eq } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
+import { DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
 import {
   createAdmin,
   createModuleTestApp,

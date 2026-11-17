@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, gt, gte, isNotNull, isNull, sql } from 'drizzle-orm';
-import type { UserSummary } from '@annhien/contracts';
+import type { UserSummary } from '@heart-iot/contracts';
 import type {
   ClaimResult,
   CreateDeviceInput,
@@ -8,9 +8,9 @@ import type {
   DeviceList,
   NewClaimCodeResult,
   ReleaseResult,
-} from '@annhien/contracts/devices';
-import type { DeviceStatus } from '@annhien/contracts/telemetry';
-import type { SubjectStatusResponse } from '@annhien/contracts/measurements';
+} from '@heart-iot/contracts/devices';
+import type { DeviceStatus } from '@heart-iot/contracts/telemetry';
+import type { SubjectStatusResponse } from '@heart-iot/contracts/measurements';
 import { DB, type AppDb } from '../database/database';
 import {
   deviceAssignments,

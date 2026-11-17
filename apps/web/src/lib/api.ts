@@ -1,4 +1,4 @@
-import { apiErrorSchema, type ErrorCode } from '@annhien/contracts';
+import { apiErrorSchema, type ErrorCode } from '@heart-iot/contracts';
 import type { ZodType } from 'zod';
 
 /** Mã lỗi ngoài hợp đồng server: lỗi mạng / phản hồi lệch hợp đồng. */

@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   createInvitationSchema,
   invitationTokenSchema,
   type CreateInvitationInput,
-} from '@annhien/contracts/care';
+} from '@heart-iot/contracts/care';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { CurrentUser, Public } from '../auth/auth.decorators';
 import { CareService } from './care.service';

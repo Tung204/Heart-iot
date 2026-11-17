@@ -1,4 +1,4 @@
-import type { ErrorCode } from '@annhien/contracts';
+import type { ErrorCode } from '@heart-iot/contracts';
 
 export class AppError extends Error {
   readonly code: ErrorCode;

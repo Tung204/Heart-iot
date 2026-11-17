@@ -11,8 +11,8 @@ import {
   type MaintenanceTaskList,
   type MaintenanceTaskQuery,
   type MaintenanceTaskSummary,
-} from '@annhien/contracts/tasks';
-import type { UserSummary } from '@annhien/contracts';
+} from '@heart-iot/contracts/tasks';
+import type { UserSummary } from '@heart-iot/contracts';
 import { DB, type AppDb } from '../database/database';
 import { deviceAssignments, maintenanceTasks } from '../database/schema';
 import { AccessService } from '../access/access.service';

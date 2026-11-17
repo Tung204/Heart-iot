@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { EmergencyContact } from '@annhien/contracts/contacts';
+import type { EmergencyContact } from '@heart-iot/contracts/contacts';
 import { EmergencyContactsSection } from './EmergencyContactsSection';
 import {
   errorEnvelope,

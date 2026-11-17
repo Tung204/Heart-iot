@@ -4,7 +4,7 @@ Giao diện web của Heart-iot: landing, đăng nhập/đăng ký, khung ứng 
 nghiệp vụ (tổng quan + xu hướng, lịch sử, cảnh báo, hồ sơ, thiết bị, chia sẻ + liên hệ khẩn cấp,
 thông báo, cài đặt tài khoản, trợ lý, công việc, Studio, quản trị). Các trang sau đăng nhập được
 **tách chunk theo route** để giảm bundle tải lần đầu.
-React 19 + TypeScript + Vite 8, React Router 7, TanStack Query 5, hợp đồng zod từ `@annhien/contracts`.
+React 19 + TypeScript + Vite 8, React Router 7, TanStack Query 5, hợp đồng zod từ `@heart-iot/contracts`.
 
 **Bản demo:** dữ liệu tổng hợp (nhãn "Nguồn: dữ liệu mô phỏng" khi API trả `source=synthetic`);
 cảnh báo chỉ hiển thị khi trang đang mở và kết nối máy chủ. Không có push khi đóng trình duyệt,
@@ -20,7 +20,7 @@ pnpm build      # typecheck + vite build
 pnpm test:e2e   # Playwright; cần web dev server
 ```
 
-Nếu build lỗi do contracts chưa build: chạy `pnpm --filter @annhien/contracts build` ở root.
+Nếu build lỗi do contracts chưa build: chạy `pnpm --filter @heart-iot/contracts build` ở root.
 
 Biến môi trường: `VITE_API_BASE_URL` (tùy chọn) — ghi đè base API, mặc định `/api/v1`
 (qua Vite proxy tới API dev tại `http://localhost:3000`).
@@ -43,7 +43,7 @@ src/
     devices/    /app/devices — trạng thái thiết bị, claim code, tháo gắn
     share/      /app/subjects/:id/share — mời, token một lần, quyền xem số đo, thu hồi
     notifications/ /app/notifications — hộp thư, đánh dấu đã đọc, badge/banner
-    invitations/ trang công khai /invite/:token (dùng @annhien/contracts/care)
+    invitations/ trang công khai /invite/:token (dùng @heart-iot/contracts/care)
     assistant/ /app/assistant — tóm tắt AI 7 ngày + hỏi đáp (owner/canViewAi, dataQuality, 429)
     tasks/     /app/tasks — công việc bảo trì: lọc open/closed, tạo việc (owner), đóng có lý do
     admin/     /app/admin — tổng quan, người dùng, thiết bị (cấp mã/xoay khóa), policy CAS, audit
@@ -65,7 +65,7 @@ e2e/            smoke, alerts, history (mock /api/v1)
 
 ## Quy ước
 
-- Mọi query/mutation dùng schema + type từ `@annhien/contracts/*` qua `parseResponse`;
+- Mọi query/mutation dùng schema + type từ `@heart-iot/contracts/*` qua `parseResponse`;
   không có schema tạm trong src.
 - Query keys tập trung ở `lib/query.ts`; sau mutation luôn invalidate đúng phạm vi.
 - 401 xử lý tập trung ở QueryCache/MutationCache → `/login?next=...` (xem `lib/session.ts`).

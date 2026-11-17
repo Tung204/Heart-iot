@@ -5,7 +5,7 @@
  */
 import request from 'supertest';
 import { and, eq, inArray } from 'drizzle-orm';
-import type { IncidentEnvelope } from '@annhien/contracts/telemetry';
+import type { IncidentEnvelope } from '@heart-iot/contracts/telemetry';
 import { DB, type AppDb } from '../src/database/database';
 import {
   alertActions,

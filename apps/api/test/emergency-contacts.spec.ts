@@ -1,10 +1,10 @@
 import request from 'supertest';
 import { and, eq, like } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS, type CarePermissions } from '@annhien/contracts';
+import { DEFAULT_CARE_PERMISSIONS, type CarePermissions } from '@heart-iot/contracts';
 import {
   emergencyContactListSchema,
   emergencyContactSchema,
-} from '@annhien/contracts/contacts';
+} from '@heart-iot/contracts/contacts';
 import {
   createAdmin,
   createModuleTestApp,

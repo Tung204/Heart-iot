@@ -1,5 +1,5 @@
 {
-  "name": "an-nhien",
+  "name": "heart-iot",
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@12.5.1",
@@ -7,17 +7,17 @@
     "node": ">=24"
   },
   "scripts": {
-    "build:contracts": "pnpm --filter @annhien/contracts build",
-    "build": "pnpm build:contracts && pnpm -r --filter @annhien/api --filter @annhien/web --filter @annhien/simulator build",
+    "build:contracts": "pnpm --filter @heart-iot/contracts build",
+    "build": "pnpm build:contracts && pnpm -r --filter @heart-iot/api --filter @heart-iot/web --filter @heart-iot/simulator build",
     "typecheck": "pnpm build:contracts && pnpm -r typecheck",
     "test": "pnpm build:contracts && pnpm -r --workspace-concurrency=1 test",
-    "test:e2e": "pnpm --filter @annhien/web test:e2e",
-    "dev:api": "pnpm build:contracts && pnpm --filter @annhien/api dev",
-    "dev:web": "pnpm build:contracts && pnpm --filter @annhien/web dev",
-    "db:generate": "pnpm --filter @annhien/api db:generate",
-    "db:migrate": "pnpm --filter @annhien/api db:migrate",
-    "seed": "pnpm build:contracts && pnpm --filter @annhien/api seed",
-    "demo": "pnpm --filter @annhien/simulator demo",
+    "test:e2e": "pnpm --filter @heart-iot/web test:e2e",
+    "dev:api": "pnpm build:contracts && pnpm --filter @heart-iot/api dev",
+    "dev:web": "pnpm build:contracts && pnpm --filter @heart-iot/web dev",
+    "db:generate": "pnpm --filter @heart-iot/api db:generate",
+    "db:migrate": "pnpm --filter @heart-iot/api db:migrate",
+    "seed": "pnpm build:contracts && pnpm --filter @heart-iot/api seed",
+    "demo": "pnpm --filter @heart-iot/simulator demo",
     "docs:build": "python tools/docs/build.py",
     "docs:check": "python tools/docs/build.py --check"
   },

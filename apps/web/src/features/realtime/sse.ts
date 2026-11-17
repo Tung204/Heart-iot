@@ -1,4 +1,4 @@
-import { alertUpdatedEventSchema, type AlertUpdatedEvent } from '@annhien/contracts/incidents';
+import { alertUpdatedEventSchema, type AlertUpdatedEvent } from '@heart-iot/contracts/incidents';
 
 /**
  * Logic thuần cho SSE — tách khỏi hook để test được không cần EventSource.

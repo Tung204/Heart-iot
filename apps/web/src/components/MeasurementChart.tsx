@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import type { MeasurementGap } from '@annhien/contracts/measurements';
+import type { MeasurementGap } from '@heart-iot/contracts/measurements';
 import { formatCompactDateTime, formatDate, formatTime } from '../lib/format';
 import './MeasurementChart.css';
 

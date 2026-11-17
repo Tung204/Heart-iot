@@ -3,9 +3,9 @@ import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
-import type { CarePermissions } from '@annhien/contracts';
-import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
+import { DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
+import type { CarePermissions } from '@heart-iot/contracts';
+import { ASSISTANT_DISCLAIMER } from '@heart-iot/contracts/assistant';
 import {
   ASSISTANT_AI_ADAPTER,
   AssistantAdapterError,

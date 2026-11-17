@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import type { IncidentType } from '@annhien/contracts';
-import type { IncidentEnvelope, IncidentEventType } from '@annhien/contracts/telemetry';
+import type { IncidentType } from '@heart-iot/contracts';
+import type { IncidentEnvelope, IncidentEventType } from '@heart-iot/contracts/telemetry';
 import type { SimDevice } from './device';
 
 /**

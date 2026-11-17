@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { PreviewResult, PublicationSummary, StudioWidget, ViewConfig } from '@annhien/contracts/studio';
-import { canonicalConfigJson } from '@annhien/contracts/studio';
+import type { PreviewResult, PublicationSummary, StudioWidget, ViewConfig } from '@heart-iot/contracts/studio';
+import { canonicalConfigJson } from '@heart-iot/contracts/studio';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
 import { Card } from '../../components/Card';

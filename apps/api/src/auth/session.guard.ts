@@ -1,6 +1,6 @@
 import { Injectable, type CanActivate, type ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { SESSION_COOKIE, type UserSummary } from '@annhien/contracts';
+import { SESSION_COOKIE, type UserSummary } from '@heart-iot/contracts';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
 import { IS_PUBLIC_KEY } from './auth.decorators';

@@ -1,5 +1,5 @@
 import type { Response } from 'express';
-import { SESSION_COOKIE } from '@annhien/contracts';
+import { SESSION_COOKIE } from '@heart-iot/contracts';
 import type { AppEnv } from '../config/env';
 
 export function setSessionCookie(res: Response, token: string, expiresAt: Date, env: AppEnv): void {

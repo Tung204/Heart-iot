@@ -3,7 +3,7 @@ import {
   telemetryEnvelopeSchema,
   type IncidentEnvelope,
   type TelemetryEnvelope,
-} from '@annhien/contracts/telemetry';
+} from '@heart-iot/contracts/telemetry';
 
 /**
  * HTTP client gửi bản tin thiết bị tới API ingest.

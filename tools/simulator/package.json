@@ -1,8 +1,8 @@
 {
-  "name": "@annhien/simulator",
+  "name": "@heart-iot/simulator",
   "version": "1.0.0",
   "private": true,
-  "description": "Thiết bị mô phỏng gửi telemetry và sự kiện vào API An Nhiên",
+  "description": "Thiết bị mô phỏng gửi telemetry và sự kiện vào API Heart-iot",
   "scripts": {
     "dev": "tsx src/cli.ts",
     "demo": "tsx src/cli.ts demo",
@@ -11,7 +11,7 @@
     "test": "node --import tsx --test test/*.test.ts"
   },
   "dependencies": {
-    "@annhien/contracts": "workspace:*",
+    "@heart-iot/contracts": "workspace:*",
     "zod": "4.6.7"
   },
   "devDependencies": {

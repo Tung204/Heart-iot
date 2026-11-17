@@ -1,5 +1,5 @@
 import { createParamDecorator, SetMetadata, type ExecutionContext } from '@nestjs/common';
-import type { UserSummary } from '@annhien/contracts';
+import type { UserSummary } from '@heart-iot/contracts';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 

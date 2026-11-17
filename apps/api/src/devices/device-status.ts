@@ -1,5 +1,5 @@
-import type { DeviceStatus } from '@annhien/contracts/telemetry';
-import type { PolicyValue } from '@annhien/contracts/policies';
+import type { DeviceStatus } from '@heart-iot/contracts/telemetry';
+import type { PolicyValue } from '@heart-iot/contracts/policies';
 import type { DeviceRow, TelemetryRow } from '../database/schema';
 
 /**

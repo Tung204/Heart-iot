@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { and, asc, desc, eq, isNull, lte } from 'drizzle-orm';
-import { notificationListSchema, type NotificationList } from '@annhien/contracts/notifications';
+import { notificationListSchema, type NotificationList } from '@heart-iot/contracts/notifications';
 import { DB, type AppDb } from '../database/database';
 import {
   careLinks,

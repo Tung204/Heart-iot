@@ -9,7 +9,7 @@ const UNAUTHENTICATED = {
 };
 
 // E2E smoke — landing công khai và vào trang đăng nhập.
-// Chạy: pnpm --filter @annhien/web test:e2e (cần dev server; trạng thái phiên
+// Chạy: pnpm --filter @heart-iot/web test:e2e (cần dev server; trạng thái phiên
 // được giả lập 401 để smoke không phụ thuộc API/DB cục bộ).
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/me', (route) =>

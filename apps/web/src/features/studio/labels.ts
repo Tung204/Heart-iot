@@ -3,7 +3,7 @@ import type {
   ViewScope,
   ViewStatus,
   WidgetType,
-} from '@annhien/contracts/studio';
+} from '@heart-iot/contracts/studio';
 
 /** Nhãn tiếng Việt cho enum hợp đồng — chữ là tín hiệu, màu chỉ hỗ trợ. */
 export const SCOPE_LABELS: Record<ViewScope, string> = {

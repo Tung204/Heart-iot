@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { telemetryEnvelopeSchema } from '@annhien/contracts/telemetry';
+import { telemetryEnvelopeSchema } from '@heart-iot/contracts/telemetry';
 import { runCli } from '../src/app';
 import { capture } from './capture';
 import {

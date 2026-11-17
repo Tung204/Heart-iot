@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, gte, gt, inArray, isNotNull, isNull, lte, lt, or, sql } from 'drizzle-orm';
-import { idSchema, isoDateTimeSchema, isSyntheticDataSource } from '@annhien/contracts';
+import { idSchema, isoDateTimeSchema, isSyntheticDataSource } from '@heart-iot/contracts';
 import type {
   Coverage,
   DailySummary,
   MeasurementGap,
   MeasurementPoint,
   MeasurementsResponse,
-} from '@annhien/contracts/measurements';
-import type { InsightsQuery, InsightsResponse } from '@annhien/contracts/insights';
+} from '@heart-iot/contracts/measurements';
+import type { InsightsQuery, InsightsResponse } from '@heart-iot/contracts/insights';
 import { DB, type AppDb } from '../database/database';
 import {
   deviceAssignments,

@@ -3,7 +3,7 @@ import {
   type IncidentEnvelope,
   type IngestAck,
   type TelemetryEnvelope,
-} from '@annhien/contracts/telemetry';
+} from '@heart-iot/contracts/telemetry';
 import type { DeviceClient } from './client';
 import { jsonLine, type Io } from './io';
 import {

@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { eq, inArray } from 'drizzle-orm';
-import { DEFAULT_CARE_PERMISSIONS } from '@annhien/contracts';
+import { DEFAULT_CARE_PERMISSIONS } from '@heart-iot/contracts';
 import {
   createModuleTestApp,
   createAdmin,

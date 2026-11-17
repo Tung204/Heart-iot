@@ -35,7 +35,7 @@ export const SUBJECT = {
   createdAt: '2026-11-01T00:00:00.000Z',
 };
 
-/** Cảnh báo mẫu hợp đồng @annhien/contracts/incidents. */
+/** Cảnh báo mẫu hợp đồng @heart-iot/contracts/incidents. */
 export const INCIDENT = {
   id: '2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b',
   subjectId: '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b',

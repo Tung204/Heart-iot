@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
-import { idSchema, type UserSummary } from '@annhien/contracts';
+import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   claimDeviceSchema,
   claimResultSchema,
@@ -13,11 +13,11 @@ import {
   type ClaimDeviceInput,
   type CreateDeviceInput,
   type ReleaseDeviceInput,
-} from '@annhien/contracts/devices';
+} from '@heart-iot/contracts/devices';
 import {
   subjectDevicesResponseSchema,
   subjectStatusResponseSchema,
-} from '@annhien/contracts/measurements';
+} from '@heart-iot/contracts/measurements';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';
 import { CurrentUser } from '../auth/auth.decorators';

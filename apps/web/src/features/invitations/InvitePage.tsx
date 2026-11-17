@@ -11,7 +11,7 @@ import { getApiErrorMessage, isNotFoundError, isUnauthorizedError } from '../../
 import { queryKeys } from '../../lib/query';
 import { useMe } from '../auth/useAuth';
 import { acceptInvitation, fetchPublicInvitation } from './api';
-import type { PublicInvitation } from '@annhien/contracts/care';
+import type { PublicInvitation } from '@heart-iot/contracts/care';
 
 function describePermissions(invitation: PublicInvitation): string[] {
   const items = [`Xem lịch sử tối đa ${invitation.permissions.historyDays} ngày`];

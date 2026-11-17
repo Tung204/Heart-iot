@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import type { DailyInsight, InsightsResponse } from '@annhien/contracts/insights';
+import type { DailyInsight, InsightsResponse } from '@heart-iot/contracts/insights';
 import { Button, ButtonLink } from '../../components/Button';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';

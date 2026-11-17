@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, eq, gte, inArray, isNotNull, isNull, lte, notInArray, or } from 'drizzle-orm';
 import { z } from 'zod';
-import { isSyntheticDataSource } from '@annhien/contracts';
+import { isSyntheticDataSource } from '@heart-iot/contracts';
 import {
   ASSISTANT_DISCLAIMER,
   assistantSummarySchema,
@@ -13,8 +13,8 @@ import {
   type AssistantSource,
   type AssistantSummary,
   type AssistantSummaryQuery,
-} from '@annhien/contracts/assistant';
-import type { MeasurementGapReason } from '@annhien/contracts/measurements';
+} from '@heart-iot/contracts/assistant';
+import type { MeasurementGapReason } from '@heart-iot/contracts/measurements';
 import { DB, type AppDb } from '../database/database';
 import {
   aiSummaries,

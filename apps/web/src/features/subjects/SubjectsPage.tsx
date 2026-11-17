@@ -13,7 +13,7 @@ import {
   type DeletionRequestRecorded,
   type SubjectSummary,
   type UpdateSubjectInput,
-} from '@annhien/contracts/subjects';
+} from '@heart-iot/contracts/subjects';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
 import { ErrorState } from '../../components/ErrorState';

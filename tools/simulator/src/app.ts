@@ -12,8 +12,8 @@ import { createConsoleIo, createSafeIo, jsonLine, type Io } from './io';
 import { defaultSleep } from './queue';
 import { SimulatorRuntime, isAccepted, type DeliveryResult } from './runtime';
 import { DEFAULT_SEED } from './rng';
-import type { IncidentEnvelope, IncidentEventType } from '@annhien/contracts/telemetry';
-import type { IncidentType } from '@annhien/contracts';
+import type { IncidentEnvelope, IncidentEventType } from '@heart-iot/contracts/telemetry';
+import type { IncidentType } from '@heart-iot/contracts';
 
 /**
  * Cài đặt CLI thiết bị mô phỏng. `runCli` trả exit code thay vì gọi process.exit

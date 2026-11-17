@@ -11,7 +11,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { SESSION_COOKIE, idSchema, type UserSummary } from '@annhien/contracts';
+import { SESSION_COOKIE, idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   authSessionSchema,
   changePasswordSchema,
@@ -23,7 +23,7 @@ import {
   type LoginInput,
   type RegisterInput,
   type UpdateProfileInput,
-} from '@annhien/contracts/auth';
+} from '@heart-iot/contracts/auth';
 import type { Request, Response } from 'express';
 import { ENV, type AppEnv } from '../config/env';
 import { AppError } from '../common/app-error';

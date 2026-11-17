@@ -7,7 +7,7 @@ import {
   type IncidentDetail,
   type IncidentList,
   type ResolveAlert,
-} from '@annhien/contracts/incidents';
+} from '@heart-iot/contracts/incidents';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 export interface AlertsListParams {

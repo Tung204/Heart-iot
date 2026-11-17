@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { AssistantPage } from './AssistantPage';
 import { setActiveSubjectId } from '../subjects/selection';
 import { formatDateTime, formatTime } from '../../lib/format';
-import { ASSISTANT_DISCLAIMER } from '@annhien/contracts/assistant';
+import { ASSISTANT_DISCLAIMER } from '@heart-iot/contracts/assistant';
 import {
   errorEnvelope,
   INCIDENT,

@@ -11,7 +11,7 @@ import {
   type InvitationCreated,
   type InvitationList,
   type PublicInvitation,
-} from '@annhien/contracts/care';
+} from '@heart-iot/contracts/care';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /** GET /subjects/:id/invitations — lời mời của hồ sơ (chỉ chủ hồ sơ). */

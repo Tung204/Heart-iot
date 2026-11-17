@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { NotificationItem } from '@annhien/contracts/notifications';
+import type { NotificationItem } from '@heart-iot/contracts/notifications';
 import { queryKeys } from '../../lib/query';
 import { fetchNotifications } from './api';
 

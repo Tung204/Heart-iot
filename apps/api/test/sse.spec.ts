@@ -9,7 +9,7 @@
 import request from 'supertest';
 import { eq } from 'drizzle-orm';
 import type { AddressInfo } from 'node:net';
-import type { IncidentEnvelope } from '@annhien/contracts/telemetry';
+import type { IncidentEnvelope } from '@heart-iot/contracts/telemetry';
 import { DB, type AppDb } from '../src/database/database';
 import { careLinks, deviceAssignments, devices, sessions, subjects, users } from '../src/database/schema';
 import { sha256 } from '../src/auth/password';

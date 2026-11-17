@@ -10,14 +10,14 @@ import {
   type IncidentDetail,
   type IncidentList,
   type ResolveAlert,
-} from '@annhien/contracts/incidents';
+} from '@heart-iot/contracts/incidents';
 import {
   ingestAckSchema,
   type IncidentEnvelope,
   type IncidentEventType,
   type IngestAck,
-} from '@annhien/contracts/telemetry';
-import { OWNER_PERMISSIONS, type CarePermissions, type IncidentState } from '@annhien/contracts';
+} from '@heart-iot/contracts/telemetry';
+import { OWNER_PERMISSIONS, type CarePermissions, type IncidentState } from '@heart-iot/contracts';
 import { DB, type AppDb } from '../database/database';
 import {
   alertActions,

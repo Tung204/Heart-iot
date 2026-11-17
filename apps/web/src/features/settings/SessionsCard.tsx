@@ -7,7 +7,7 @@ import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
 import { getApiErrorMessage } from '../../lib/api';
 import { formatDateTime } from '../../lib/format';
-import type { SessionSummary } from '@annhien/contracts/auth';
+import type { SessionSummary } from '@heart-iot/contracts/auth';
 import { useRevokeOtherSessions, useRevokeSession, useSessions } from './useAccountSettings';
 
 /**

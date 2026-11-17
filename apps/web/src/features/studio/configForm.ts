@@ -1,4 +1,4 @@
-import { viewConfigSchema, type StudioWidget, type ViewConfig } from '@annhien/contracts/studio';
+import { viewConfigSchema, type StudioWidget, type ViewConfig } from '@heart-iot/contracts/studio';
 import type { ZodIssue } from 'zod';
 
 /**

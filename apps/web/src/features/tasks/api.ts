@@ -8,7 +8,7 @@ import {
   type MaintenanceTaskList,
   type MaintenanceTaskStatus,
   type MaintenanceTaskSummary,
-} from '@annhien/contracts/tasks';
+} from '@heart-iot/contracts/tasks';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**

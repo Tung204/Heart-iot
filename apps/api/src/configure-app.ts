@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { API_PREFIX } from '@annhien/contracts';
+import { API_PREFIX } from '@heart-iot/contracts';
 import type { AppEnv } from './config/env';
 import { requestIdMiddleware } from './common/request-id.middleware';
 import { createOriginCheckMiddleware } from './common/origin-check.middleware';

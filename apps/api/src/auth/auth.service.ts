@@ -7,8 +7,8 @@ import {
   type RegisterInput,
   type SessionList,
   type UpdateProfileInput,
-} from '@annhien/contracts/auth';
-import type { UserSummary } from '@annhien/contracts';
+} from '@heart-iot/contracts/auth';
+import type { UserSummary } from '@heart-iot/contracts';
 import { ENV, type AppEnv } from '../config/env';
 import { DB } from '../database/database';
 import type { AppDb } from '../database/database';

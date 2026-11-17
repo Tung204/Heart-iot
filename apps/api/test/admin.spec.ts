@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { and, asc, count, eq } from 'drizzle-orm';
-import type { PolicyValue } from '@annhien/contracts/policies';
+import type { PolicyValue } from '@heart-iot/contracts/policies';
 import {
   createModuleTestApp,
   createAdmin,

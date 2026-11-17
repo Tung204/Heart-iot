@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, type OnApplicationShutdown, type OnModuleInit } from '@nestjs/common';
 import { connect, type MqttClient } from 'mqtt';
 import { z } from 'zod';
-import { telemetryEnvelopeSchema } from '@annhien/contracts/telemetry';
+import { telemetryEnvelopeSchema } from '@heart-iot/contracts/telemetry';
 import { ENV, type AppEnv } from '../config/env';
 import { DB, type AppDb } from '../database/database';
 import { devices } from '../database/schema';

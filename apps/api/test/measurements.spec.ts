@@ -2,7 +2,7 @@ import request from 'supertest';
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { and, eq } from 'drizzle-orm';
-import type { TelemetryEnvelope } from '@annhien/contracts/telemetry';
+import type { TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
