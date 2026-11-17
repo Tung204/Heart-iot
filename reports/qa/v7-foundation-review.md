@@ -1,19 +1,65 @@
 # Review độc lập — W1 foundation (v7)
 
-**Trạng thái:** **chưa merge được** ở `dd01cbe` (nhánh `Tung204/v7-foundation`) vì còn P1 về focus ring trên rail và cỡ H1 mobile. Đây là review foundation, không phải nghiệm thu toàn bộ v7; các trang P/C/H/R/A vẫn là presentation cũ và được ghi riêng ở §6.
+**Trạng thái sau re-check `d4af4da`:** **merge được nhánh foundation để mở W2**, kèm các điều kiện ở §“Re-check d4af4da”. Đây không phải nghiệm thu toàn bộ v7: P2-02 inbox vẫn thuộc C, nợ target của trang P/C/H vẫn còn, và các trang P/C/H/R/A chưa được thay presentation.
 
 - **Worktree review:** `C:/Users/nguye/orca/workspaces/DATN/v7-f1-review`
-- **Branch review:** `Tung204/v7-f1-review` (tách khỏi `dd01cbe`)
-- **Base so sánh:** `a10c8ea..dd01cbe`
+- **Branch review:** `recheck` (tách từ `d4af4da`); báo cáo gốc trước đó ở `Tung204/v7-f1-review`
+- **Base so sánh re-check:** `f7c1322..d4af4da`; review gốc `a10c8ea..dd01cbe`
 - **Người kiểm / provider:** Pi, `moxuna / deepseek-v4.1-flash`
 - **Thời điểm đo:** 17/11/2026, Asia/Ho_Chi_Minh
 - **Web:** `http://127.0.0.1:4360` (Vite 8.3.8, dev server)
-- **API:** `http://127.0.0.1:3101`, `WEB_ORIGIN=http://127.0.0.1:4360`, PGlite `.data/qa-f1-review` (seed demo cục bộ; cổng 3000 đang bị worktree khác chiếm nên dùng 3101)
+- **API:** `http://127.0.0.1:3101`, `WEB_ORIGIN=http://127.0.0.1:4360`, PGlite `.data/qa-f1-recheck` (seed demo cục bộ `@demo.heart-iot.local`; cổng 3000 đang bị worktree khác chiếm nên dùng 3101)
 - **Browser:** Playwright `@playwright/test` 1.65.1, Chromium `159.0.8154.6`, headless
-- **Tài khoản:** owner `ba-an@demo.annhien.local`, caregiver `minh@demo.annhien.local`, admin `admin@demo.annhien.local`; chỉ đăng nhập/đọc, không gửi mutation nghiệp vụ.
+- **Tài khoản:** owner `ba-an@demo.heart-iot.local`, caregiver `minh@demo.heart-iot.local`, admin `admin@demo.heart-iot.local`; chỉ đăng nhập/đọc, không gửi mutation nghiệp vụ.
 - **Ghi chú môi trường:** không dùng lại API 3000/ảnh 4350 của worktree foundation. Login UI qua `127.0.0.1:4360` với Origin 4360 trả session và cookie `an_session`, nên cấu hình `WEB_ORIGIN` của API là thật, không bỏ qua.
 
-## 1. Kết luận trước
+## Re-check `d4af4da` (17/11/2026)
+
+Phạm vi đúng các finding của review trước: P1-01, P1-02, P2-03, P2-04, P2-01; P2-02 chỉ xác nhận deferred. Không review lại toàn bộ page lane.
+
+### Bảng finding → số đo mới → trạng thái
+
+| Finding | Cách kiểm độc lập | Số đo / kết quả mới | Trạng thái |
+| --- | --- | --- | --- |
+| **P1-01** focus rail | Playwright Chromium 159.0.8154.6, login owner, `/app` 1280×900, Tab qua skip-link → brand → 4 nav → account; đọc computed outline và nền; mở menu bằng Enter để kiểm ring nền sáng | Brand, 3 nav thường và account: **3px solid trắng, offset 3px**, nền `rgb(21,37,62)`, contrast **15,37:1**; nav active `Hôm nay`: **3px trắng**, nền `rgb(40,73,118)`, **9,11:1**; account trong phiên này nền rail nên **15,37:1**, không phải 9,11 như JSON cũ (vẫn >3:1). Menu nền trắng: item “Tài khoản” **3px xanh `rgb(23,75,197)`, offset 3px**, contrast **7,37:1** trên nền `#fff`. Rule `shell.css:345–349`, token `tokens.css:46–47`. | **Đóng**. Chênh số account 9,11 → 15,37 là lỗi ghi bằng chứng, không phải lỗi tương phản. |
+| **P1-02** H1 mobile | Đo `getComputedStyle(h1).fontSize` trên `/app`, `/app/overview`, `/app/subjects`, `/app/admin` tại 390×844, 360×740, 390×844 chữ lớn (root 20px) và 1280×900; kiểm `h1` count và overflowX | Cả 4 route: **24px** ở 390 và 360; **30px** khi root 20px; **32px** desktop. `h1Count=1`; `docSW=docCW` ở 16 lượt đo. `.page-title` mobile dùng `base.css:167–172`; các override `.today/.subjects/.assistant` đã bị xoá. | **Đóng**. |
+| **P2-03** badge `20+` | Chạy đúng test fixture 20 item + `nextCursor`; đọc code `AppShell.tsx:135–149,531–532,580` | `vitest run src/app/AppShell.test.tsx -t "badge hiện 20+"`: **1 test, 44 skipped, exit 0**. Code dùng `capped = Boolean(nextCursor)`, render `20+`, label `20+ cảnh báo đang mở`. Seed chỉ có 1 cảnh báo nên không có runtime 21 item. | **Đóng** ở mức code + fixture; runtime nhiều trang chưa dựng. |
+| **P2-04** ArrowDown/ArrowUp | Browser 1280×900 và 390×844: trigger đóng → ArrowDown; Escape; ArrowUp; Enter; Tab-out; click ngoài; Escape lần cuối | ArrowDown: `aria-expanded=true`, menu mở, focus **“Tài khoản”** (mục đầu); ArrowUp: mở, focus **“Đăng xuất”** (mục cuối); Escape: đóng, focus trả trigger; click ngoài: đóng; Tab-out: đóng sau 3 Tab (qua Aa → Đăng xuất → ra ngoài), focus ra khỏi menu. Cùng kết quả ở 1280 và 390. Trigger key handler `AppShell.tsx:306–317,359`; test `AppShell.test.tsx:540`. | **Đóng**. |
+| **P2-01** cổng target | Đọc script QA ngoài repo `C:/tmp/v7-foundation-qa/qa.mjs:46`; kiểm `metrics.json` (`targetSelectors` + `targets`); tự quét lại 390/1280 và phân loại target thuộc shell; đối chiếu bảng owner P/C/H | Script có đúng 5 selector: `a[href]`, `button`, `select`, `summary`, `[role="menuitem"]`; metrics 32 route/viewport, `targetSelectors` ghi cùng danh sách. Tự quét: **shell 0 target <44px** (brand mobile 145,8×44; nav 97,5×64; account 54×54; desktop brand/nav 184×44, account 184×62). Page: **52 lượt, 11 target DOM unique** <44px, cộng **F3 CSS 40px** thành 12 dòng bảng; owner P (login/register), C (`/app`, alerts), H (overview, F3) khớp handoff §5.2. | **Đóng phạm vi F (shell)**; nợ target page vẫn P/C/H. Ghi chú: “12 unique” phải hiểu là 11 DOM + F3 CSS, không phải 12 target DOM. |
+| **P2-02** inbox | Mở `/app/notifications`; đọc URL/H1/H2/body/context; grep `AlertsPage`; so source | URL cuối `…/app/alerts?view=notifications` (replace); H1 “Cảnh báo”, **0 H2**, **0** `.subject-context`, không có “Thông báo đã nhận”/“Đánh dấu đã đọc”; body vẫn list cảnh báo. `AlertsPage.tsx` không có `useSearchParams`; `router.tsx:93` chỉ Navigate. | **Còn** — deferred C, không phải lỗi F; không dùng ảnh `alerts-inbox` làm bằng chứng inbox. |
+
+### Cổng lệnh sau fix (worktree sạch, package `@heart-iot`)
+
+| Lệnh | Kết quả thật |
+| --- | --- |
+| `pnpm install --frozen-lockfile` | exit 0; tạo link workspace `@heart-iot/contracts` sau rename |
+| `pnpm build:contracts` | exit 0 |
+| `pnpm --filter @heart-iot/web typecheck` | exit 0; `tsc -p tsconfig.json --noEmit` |
+| `pnpm --filter @heart-iot/web exec vitest run src/app/AppShell.test.tsx` | 1 file / **45 test**, exit 0; test badge riêng 1 test, exit 0; test ArrowDown/Up riêng 1 test, exit 0 |
+| `pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1` | **37 file / 291 test**, exit 0, 113,71 s |
+| `pnpm --filter @heart-iot/web build` | exit 0; `✓ built in 306ms` (số của phiên re-check, không phải 510ms trong handoff) |
+
+### Ảnh mới đã mở (8 ảnh)
+
+- `today-390x844.png`: H1 “Hôm nay” 24px, context trên H1, 4 nav bottom, không tràn ngang.
+- `overview-390x844.png`: H1 “Sức khỏe” 24px, context trên H1, bottom-nav; các link phụ nhỏ vẫn thấy.
+- `subjects-390x844.png`: H1 “Người thân” 24px, không context, nav Người thân active.
+- `admin-390x844-admin.png`: H1 “Quản trị” 24px, admin không hồ sơ, bottom-nav chỉ Quản trị.
+- `today-390x844-large.png`: root 20px, H1 30px, chip wrap không đẩy document.
+- `account-menu-open-1280x900.png`: menu nền sáng, item “Tài khoản” có ring xanh; không chứng minh số đo focus rail (đã đo riêng).
+- `overview-1280x900.png`: H1 desktop 32px, bố cục dashboard; không chứng minh target page.
+- `register-390x844.png`: link “Đăng nhập” 18px vẫn còn — ảnh xác nhận nợ P, không phải F.
+
+### Kết luận re-check
+
+**Merge được nhánh foundation `d4af4da` để mở W2**, không phải merge toàn bộ v7, với điều kiện:
+
+1. **P2-02 vẫn là cổng C** trước khi đóng W2: `AlertsPage` phải đọc `?view=notifications` và render H2/hàng/mark-read; hiện chỉ redirect.
+2. **Nợ target page 52 lượt / 11 DOM unique + F3 CSS** thuộc P/C/H; F đã đóng phần shell (0 vi phạm) nhưng không được tuyên bố cổng 44px toàn app đã xong.
+3. **Sửa ghi chú bằng chứng trước khi merge:** account rail thực đo **15,37:1**, không phải 9,11; “12 target unique” gồm **11 DOM + F3 CSS**; script QA `qa.mjs` đang ở ngoài repo nên cần lưu/đường dẫn tái lập.
+4. **Các nợ ngoài phạm vi re-check** (P2-05 keyframes/F3, P2-06 pinned context/status H1, P2-07 F01/F02, P2-08 landing/admin) vẫn theo handoff; không dùng kết luận này để nói v7 đã hoàn tất.
+
+## 1. Kết luận lịch sử trước re-check
 
 **Chưa merge được.** Hai lỗi thuộc foundation, không phải trang feature:
 
@@ -22,7 +68,9 @@
 
 Ngoài ra cổng bằng chứng target ≥44px của handoff chưa đo link và đang báo thiếu; `/app/alerts?view=notifications` chưa phải inbox; badge `20+` chưa có; menu chưa mở bằng ArrowDown khi đang đóng. Các mục này là P2 (xem §3–§4).
 
-## 2. Lời khai → cách kiểm → kết quả thật
+## 2. Lời khai → cách kiểm → kết quả thật (bản gốc `dd01cbe`)
+
+> Các số trong §2–§9 là bản gốc trước fix; số hiện hành sau fix nằm ở mục “Re-check `d4af4da`” phía trên.
 
 ### 2.1. Đã kiểm lại bằng lệnh/trình duyệt
 
@@ -255,11 +303,13 @@ Ngoài ra cổng bằng chứng target ≥44px của handoff chưa đo link và 
 
 `main.tsx` hiện: `fonts → tokens → base → primitives → layout → public-simple → app-simple → admin-simple → shell`. Khớp mô tả handoff và D1 ở chỗ shell nằm cuối; `primitives.css` đứng trước legacy nên override feature có hiệu lực (đó là lý do F3 40px vẫn thắng primitive). Không phát hiện import trùng/thiếu; nhưng thứ tự này là điều kiện để lỗi F3 còn sống.
 
-## 7. Ảnh đã mở và giá trị chứng minh
+## 7. Ảnh đã mở ở bản gốc `dd01cbe`
+
+> Ảnh trong worktree đã được F chụp lại ở `d4af4da`; các số H1 25px/20px dưới đây là bản gốc, không dùng cho kết luận hiện hành. Xem mục “Re-check `d4af4da`” để có số mới.
 
 Đã mở 20 ảnh trong `reports/qa/evidence/v7-foundation/` (không chỉ đọc tên):
 
-- **Chứng minh được:** `today-1280x900.png`, `today-390x844.png` (context trên H1, 4 nav, badge, rail/topbar), `today-390x844-large.png` (root lớn, H1 25px, chip 39,1px), `history-1280x900.png` (chart và bảng), `devices-1280x900.png` (subject context + nav Người thân), `alerts-1280x900.png` (H1/context/badge), `subjects-390x844.png` (không context, H1 20px), `admin-1280x900-admin.png`/`admin-390x844-admin.png` (admin không hồ sơ, nav chỉ Quản trị), `assistant-alias-1280x900.png` (alias active Hôm nay + context), `account-menu-open-1280x900.png`/`mobile-account-menu-390x844.png` (item 44px, menu không Studio), `login-1280x900.png`/`login-390x844.png`/`landing-360x740.png`/`landing-390x844.png` (token nền/chữ, trang legacy).
+- **Chứng minh được:** `today-1280x900.png`, `today-390x844.png` (context trên H1, 4 nav, badge, rail/topbar), `today-390x844-large.png` (bản gốc root lớn, H1 25px; bản mới 30px), `history-1280x900.png` (chart và bảng), `devices-1280x900.png` (subject context + nav Người thân), `alerts-1280x900.png` (H1/context/badge), `subjects-390x844.png` (bản gốc không context, H1 20px; bản mới 24px), `admin-1280x900-admin.png`/`admin-390x844-admin.png` (admin không hồ sơ, nav chỉ Quản trị), `assistant-alias-1280x900.png` (alias active Hôm nay + context), `account-menu-open-1280x900.png`/`mobile-account-menu-390x844.png` (item 44px, menu không Studio), `login-1280x900.png`/`login-390x844.png`/`landing-360x740.png`/`landing-390x844.png` (token nền/chữ, trang legacy).
 - **Không chứng minh được điều đã khai:**
   - `alerts-inbox-1280x900.png` giống ảnh alerts thường, không có H2 “Thông báo đã nhận”/hàng thông báo/mark-read; không chứng minh inbox.
   - `landing-*` vẫn H1 “vẫn an tâm”, 3 card và hero vòng ECG; không chứng minh landing §5.1.
@@ -271,7 +321,9 @@ Ngoài ra cổng bằng chứng target ≥44px của handoff chưa đo link và 
   - `history-1280x900.png` chỉ desktop; không chứng minh 390/local scroll; script riêng mới xác nhận `.chart__scroll` cuộn cục bộ.
   - `assistant-alias` chứng minh active nav/context, không chứng minh alias chunk loading trên production build.
 
-## 8. Kết luận merge
+## 8. Kết luận lịch sử tại `dd01cbe` (trước re-check)
+
+> Phần này giữ lịch sử review gốc. Kết luận hiện hành nằm ở mục “Re-check `d4af4da`” phía trên.
 
 **Chưa merge được** ở `dd01cbe`. Điều kiện cụ thể trước khi merge làm nền W2:
 

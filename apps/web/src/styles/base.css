@@ -1,5 +1,6 @@
 /* ============================================================
-   Theo dõi sức khỏe — nền tảng cơ bản
+   v7 — nền tảng cơ bản: reset, typography, focus, utility dùng chung.
+   Không selector theo màn hình nghiệp vụ ở file này.
    ============================================================ */
 
 *,
@@ -17,11 +18,12 @@ html {
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-ui);
   font-size: var(--text-md);
-  line-height: 1.65;
-  color: var(--color-ink);
-  background-color: var(--color-paper);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-body);
+  color: var(--text-primary);
+  background-color: var(--bg-app);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -30,22 +32,35 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: 0;
+  color: var(--text-primary);
   overflow-wrap: break-word;
 }
 
 h1 {
   font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
 }
 h2 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-xl);
+  line-height: 1.4;
 }
 h3 {
-  font-size: var(--text-xl);
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.4;
+}
+h4 {
+  font-size: var(--text-md);
+}
+
+@media (max-width: 767px) {
+  h1 {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-title);
+  }
 }
 
 p,
@@ -59,13 +74,13 @@ ol {
 }
 
 a {
-  color: var(--color-teal-deep);
+  color: var(--action);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
 }
 a:hover {
-  color: var(--color-teal);
+  color: var(--action-hover);
 }
 
 img,
@@ -82,34 +97,51 @@ textarea {
   color: inherit;
 }
 
-/* Focus ring rõ ràng cho điều hướng bàn phím */
+button {
+  cursor: pointer;
+}
+
+/* Focus ring rõ ràng cho điều hướng bàn phím — 3px + offset 3px. */
 :focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
   border-radius: var(--radius-s);
+}
+
+/* Trên nền mực (rail) dùng ring trắng để vẫn đủ tương phản. */
+.on-dark :focus-visible,
+.on-dark:focus-visible {
+  outline-color: var(--focus-on-dark);
 }
 
 ::selection {
-  background: var(--color-teal-soft);
+  background: var(--action-soft);
+  color: var(--text-primary);
 }
 
-/* Skip link — phần tử đầu trang, hiện khi focus */
+/* Skip link — phần tử đầu trang, hiện khi focus. */
 .skip-link {
   position: fixed;
-  top: var(--space-4);
-  left: var(--space-4);
-  z-index: 100;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-ink);
-  color: var(--color-white);
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-skip-link);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  background: var(--nav-bg);
+  color: var(--nav-text);
   border-radius: var(--radius-s);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   text-decoration: none;
-  transform: translateY(-400%);
+  transform: translateY(-200%);
   transition: transform var(--motion-fast);
 }
-.skip-link:focus {
+.skip-link:focus,
+.skip-link:focus-visible {
   transform: translateY(0);
+  outline: 3px solid var(--focus-on-dark);
+  outline-offset: 3px;
 }
 
 .container {
@@ -128,32 +160,57 @@ textarea {
 
 .page-title {
   font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+}
+
+/* H1 sản phẩm: desktop 2rem, mobile 1.5rem (30px khi root chữ lớn 20px). */
+@media (max-width: 767px) {
+  .page-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-title);
+  }
 }
 
 .page-lead {
   font-size: var(--text-lg);
-  color: var(--color-ink-soft);
-  max-width: 38rem;
+  color: var(--text-secondary);
+  max-width: var(--measure-text);
 }
 
 .section-title {
-  font-size: var(--text-2xl);
-  margin-bottom: var(--space-4);
+  font-size: var(--text-xl);
+  line-height: 1.4;
+  margin-bottom: var(--space-3);
 }
 
-/* Thương hiệu */
+/* Nhãn nhỏ phía trên tiêu đề (khi thật sự cần nhóm nội dung). */
+.eyebrow {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+}
+
+/* Mã kỹ thuật: chỉ serial, digest, request ID, JSON. */
+.code-text {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  overflow-wrap: anywhere;
+}
+
+/* Thương hiệu — một họ sans, không serif; target ≥44px do caller bảo đảm. */
 .brand {
-  font-family: var(--font-display);
-  /* 600 thay vì 700: Newsreader chỉ nạp một weight, giảm 1 file font/lần tải (P1-3). */
-  font-weight: 600;
-  font-size: 1.875rem;
-  line-height: 1.1;
-  color: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  font-family: var(--font-ui);
+  font-weight: var(--weight-bold);
+  font-size: 1rem;
+  line-height: 1.15;
+  color: var(--text-primary);
   text-decoration: none;
-  letter-spacing: 0.01em;
 }
 .brand:hover {
-  color: var(--color-teal-deep);
+  color: var(--action-hover);
 }
 
 /* Truy cập chỉ bằng bàn phím / trợ năng */
@@ -167,4 +224,10 @@ textarea {
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Bỏ margin mặc định của khối văn bản trong vùng nghiệp vụ cũ. */
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
 }

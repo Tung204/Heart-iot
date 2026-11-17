@@ -87,9 +87,19 @@ function notification(overrides: Record<string, unknown> = {}) {
 // khi người dùng giảm chuyển động; hover chỉ áp dụng trên thiết bị có con trỏ.
 // CSS được đọc trực tiếp từ file nguồn (không snapshot) vì hành vi nằm ở CSS.
 const STYLES_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../styles');
+const COMPONENTS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../components');
 
-function readStyle(name: 'layout.css' | 'tokens.css'): string {
-  return readFileSync(resolve(STYLES_DIR, name), 'utf8');
+function readStyle(
+  name:
+    | 'layout.css'
+    | 'tokens.css'
+    | 'shell.css'
+    | 'primitives.css'
+    | 'base.css'
+    | 'app-simple.css',
+): string {
+  const dir = name === 'primitives.css' ? COMPONENTS_DIR : STYLES_DIR;
+  return readFileSync(resolve(dir, name), 'utf8');
 }
 
 /** Nội dung các khối @media đúng điều kiện, khớp ngoặc nhọn nên không phụ thuộc format. */
@@ -126,6 +136,23 @@ function countOccurrences(haystack: string, needle: string): number {
   return haystack.split(needle).length - 1;
 }
 
+/** Nội dung khai báo của một rule phẳng (không lồng), khớp ngoặc nhọn. */
+function ruleBody(css: string, selector: string): string {
+  const start = css.indexOf(`${selector} {`);
+  if (start === -1) return '';
+  const open = css.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < css.length; i += 1) {
+    const ch = css.charAt(i);
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return css.slice(open + 1, i);
+    }
+  }
+  return '';
+}
+
 interface NotificationPayload {
   items: ReturnType<typeof notification>[];
   unreadCount: number;
@@ -136,6 +163,8 @@ interface ShellOptions {
   notifications?: NotificationPayload | (() => NotificationPayload);
   /** Số cảnh báo đang mở trả cho badge điều hướng. */
   openAlerts?: unknown[];
+  /** Còn trang cảnh báo sau (nextCursor) → badge phải là `count+`. */
+  openAlertsNextCursor?: string | null;
   /** Trang bắt đầu; mặc định /app. */
   initialEntries?: string[];
 }
@@ -194,7 +223,10 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
       return mockResponse(payload ?? { items: [], unreadCount: 0 });
     }
     if (u.includes('/alerts?')) {
-      return mockResponse({ items: options.openAlerts ?? [], nextCursor: null });
+      return mockResponse({
+        items: options.openAlerts ?? [],
+        nextCursor: options.openAlertsNextCursor ?? null,
+      });
     }
     return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
   });
@@ -215,9 +247,27 @@ function renderShell(me: unknown, subjects: unknown[], options: ShellOptions = {
                 </div>
               }
             />
-            <Route path="overview" element={<p>trang sức khỏe</p>} />
+            <Route
+              path="overview"
+              element={
+                <div>
+                  <h1>Sức khỏe</h1>
+                  <p>trang sức khỏe</p>
+                </div>
+              }
+            />
             <Route path="history" element={<p>trang lịch sử</p>} />
+            <Route
+              path="assistant"
+              element={
+                <div>
+                  <p>nội dung trang</p>
+                </div>
+              }
+            />
             <Route path="alerts" element={<p>trang cảnh báo</p>} />
+            <Route path="alerts/:id" element={<p>trang chi tiết cảnh báo</p>} />
+            <Route path="devices" element={<p>trang thiết bị</p>} />
             <Route path="settings" element={<p>trang tài khoản</p>} />
             <Route path="studio" element={<p>trang studio</p>} />
             <Route path="admin" element={<p>trang quản trị</p>} />
@@ -410,6 +460,24 @@ describe('AppShell — điều hướng bốn mục', () => {
     }
   });
 
+  it('badge hiện 20+ và label “20+ cảnh báo đang mở” khi IncidentList còn nextCursor', async () => {
+    const items = Array.from({ length: 20 }, (_, index) => ({
+      ...INCIDENT,
+      id: `2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a${String(index).padStart(2, '0')}`,
+    }));
+    renderShell({ user: OWNER_USER }, SUBJECTS, {
+      openAlerts: items,
+      openAlertsNextCursor: 'cursor-trang-2',
+    });
+    await screen.findByText('nội dung trang');
+
+    const links = await screen.findAllByRole('link', { name: /20\+ cảnh báo đang mở/ });
+    expect(links).toHaveLength(2);
+    for (const link of links) {
+      expect(link.querySelector('.shell__nav-badge')).toHaveTextContent('20+');
+    }
+  });
+
   it('caregiver thiếu canReceiveAlerts → không tải cảnh báo, không có badge', async () => {
     const { fetchMock } = renderShell({ user: OWNER_USER }, CAREGIVER_ONLY);
     await screen.findByText('nội dung trang');
@@ -467,6 +535,29 @@ describe('AppShell — menu tài khoản một bản, đóng được', () => {
     expect(document.querySelector('.shell__account-menu')).toBeNull();
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
+  it('ArrowDown/ArrowUp khi menu đang đóng mở menu và focus mục đầu/cuối', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS);
+    await screen.findByText('nội dung trang');
+    const user = userEvent.setup();
+
+    const trigger = await screen.findByRole('button', { name: 'Tài khoản của Bà An' });
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    const menu = accountMenu();
+    await waitFor(() =>
+      expect(within(menu).getByRole('menuitem', { name: 'Tài khoản' })).toHaveFocus(),
+    );
+
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(trigger).toHaveFocus());
+    await user.keyboard('{ArrowUp}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await waitFor(() =>
+      expect(within(accountMenu()).getByRole('menuitem', { name: 'Đăng xuất' })).toHaveFocus(),
+    );
   });
 
   it('bấm ra ngoài đóng menu', async () => {
@@ -765,10 +856,11 @@ describe('AppShell — thông báo gộp vào Cảnh báo', () => {
     });
     const user = userEvent.setup();
     const link = await screen.findByRole('link', { name: 'Xem thông báo' });
-    expect(link).toHaveAttribute('href', '/app/alerts');
+    // Banner toàn tài khoản mở đúng incident của thông báo, không về list của hồ sơ đang chọn.
+    expect(link).toHaveAttribute('href', `/app/alerts/${notification().incidentId}`);
     await user.click(link);
 
-    expect(await screen.findByText('trang cảnh báo')).toBeInTheDocument();
+    expect(await screen.findByText('trang chi tiết cảnh báo')).toBeInTheDocument();
     expect(screen.queryByText(/Có thông báo mới cho hồ sơ/)).not.toBeInTheDocument();
   });
 
@@ -879,6 +971,50 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     expect(first).not.toHaveClass('shell__route--enter');
   });
 
+  it('CSS: tên tài khoản cắt bằng ellipsis, vai trò xuống dòng — không cắt giữa glyph', () => {
+    const shell = readStyle('shell.css');
+
+    for (const selector of ['.shell__account-trigger-name', '.shell__account-name']) {
+      const body = ruleBody(shell, selector);
+      expect(body).toMatch(/overflow:\s*hidden/);
+      expect(body).toMatch(/text-overflow:\s*ellipsis/);
+      expect(body).toMatch(/white-space:\s*nowrap/);
+    }
+
+    for (const selector of ['.shell__account-trigger-role', '.shell__account-role']) {
+      const body = ruleBody(shell, selector);
+      expect(body).toMatch(/white-space:\s*normal/);
+      expect(body).toMatch(/overflow-wrap:\s*anywhere/);
+      expect(body).not.toMatch(/text-overflow|overflow:\s*hidden/);
+    }
+
+    // Khung chữ co được trong hàng flex để ellipsis/wrap có hiệu lực.
+    expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/min-width:\s*0/);
+    expect(ruleBody(shell, '.shell__account-trigger-text')).toMatch(/flex:\s*1 1 auto/);
+  });
+
+  it('CSS: focus trên rail dùng ring trắng; H1 mobile 1.5rem, bỏ override legacy', () => {
+    const shell = readStyle('shell.css');
+    for (const selector of [
+      '.shell__sidebar .brand:focus-visible',
+      '.shell__sidebar .shell__nav-link:focus-visible',
+      '.shell__sidebar .shell__account-trigger:focus-visible',
+    ]) {
+      expect(shell).toContain(selector);
+    }
+    const railFocus = ruleBody(shell, '.shell__sidebar .shell__account-trigger:focus-visible');
+    expect(railFocus).toMatch(/outline-color:\s*var\(--focus-on-dark\)/);
+
+    const base = readStyle('base.css');
+    const mobileTitle = mediaBlocks(base, '(max-width: 767px)').join('\n');
+    expect(mobileTitle).toMatch(/\.page-title\s*\{[^}]*font-size:\s*var\(--text-2xl\)/);
+
+    // Không còn override typography foundation ở CSS feature.
+    expect(readStyle('app-simple.css')).not.toContain('.today .page-title');
+    expect(readStyle('app-simple.css')).not.toContain('.subjects-page__header .page-title');
+    expect(readStyle('layout.css')).not.toContain('.assistant .page-title');
+  });
+
   it('CSS: @media (prefers-reduced-motion: reduce) tắt animation mới', () => {
     const tokens = mediaBlocks(readStyle('tokens.css'), '(prefers-reduced-motion: reduce)').join(
       '\n',
@@ -887,28 +1023,129 @@ describe('AppShell — chuyển động nhẹ, có mục đích', () => {
     expect(tokens).toMatch(/animation-duration:\s*0\.01ms\s*!important/);
     expect(tokens).toMatch(/animation-iteration-count:\s*1\s*!important/);
 
-    const layout = mediaBlocks(readStyle('layout.css'), '(prefers-reduced-motion: reduce)').join(
+    const shell = mediaBlocks(readStyle('shell.css'), '(prefers-reduced-motion: reduce)').join(
       '\n',
     );
-    // Khối riêng cho thành phần mới: tắt hẳn thay vì rút ngắn.
-    expect(layout).toContain('.shell__route--enter');
-    expect(layout).toContain('.shell__banner--notice');
-    expect(layout).toContain('.shell__account-trigger');
-    expect(layout).toMatch(/animation:\s*none/);
+    // Khối riêng cho thành phần shell: tắt hẳn thay vì rút ngắn.
+    expect(shell).toContain('.shell__route--enter');
+    expect(shell).toContain('.shell__banner--notice');
+    expect(shell).toContain('.shell__account-trigger');
+    expect(shell).toMatch(/animation:\s*none/);
   });
 
   it('CSS: hover của nút/link chỉ nằm trong @media (hover: hover)', () => {
-    const layout = readStyle('layout.css');
-    const hover = mediaBlocks(layout, '(hover: hover)').join('\n');
+    const primitives = readStyle('primitives.css');
+    const primitiveHover = mediaBlocks(primitives, '(hover: hover)').join('\n');
+    for (const selector of ['.button:hover:not(:disabled)']) {
+      expect(primitiveHover).toContain(selector);
+      // Không còn bản hover nào ngoài khối @media (hover: hover).
+      expect(countOccurrences(primitives, selector)).toBe(
+        countOccurrences(primitiveHover, selector),
+      );
+    }
+
+    const shell = readStyle('shell.css');
+    const shellHover = mediaBlocks(shell, '(hover: hover)').join('\n');
     for (const selector of [
-      '.button:hover:not(:disabled)',
       '.shell__nav-link:hover',
       '.shell__account-trigger:hover',
       '.shell__account-item:hover',
     ]) {
-      expect(hover).toContain(selector);
-      // Không còn bản hover nào ngoài khối @media (hover: hover).
-      expect(countOccurrences(layout, selector)).toBe(countOccurrences(hover, selector));
+      expect(shellHover).toContain(selector);
+      expect(countOccurrences(shell, selector)).toBe(countOccurrences(shellHover, selector));
     }
+  });
+});
+
+// v8/W1 — dòng ngữ cảnh do shell render trên H1, chỉ ở 5 loại trang subject-scoped;
+// nav active theo nhóm (history→Sức khỏe, devices→Người thân, alias→Hôm nay).
+describe('AppShell — ngữ cảnh hồ sơ trên H1, nav theo nhóm route', () => {
+  it('dòng ngữ cảnh “Người được theo dõi” đứng trước H1 của trang', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, { initialEntries: ['/app/overview'] });
+    await screen.findByText('trang sức khỏe');
+
+    const context = await screen.findByRole('group', { name: 'Người được theo dõi' });
+    expect(context).toHaveTextContent('Theo dõi:');
+    expect(context).toHaveTextContent('Bà Năm');
+    const heading = screen.getByRole('heading', { level: 1, name: 'Sức khỏe' });
+    expect(
+      context.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // Không phục hồi card “Hồ sơ đang xem” full-width.
+    expect(document.querySelector('.subject-switcher')).toBeNull();
+  });
+
+  it('/app/history → mục Sức khỏe đang active (không phải Hôm nay)', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, { initialEntries: ['/app/history'] });
+    await screen.findByText('trang lịch sử');
+
+    const rail = document.querySelectorAll('.shell__sidebar .shell__nav-link[aria-current="page"]');
+    const bottom = document.querySelectorAll('.shell__bottomnav > a[aria-current="page"]');
+    expect(rail).toHaveLength(1);
+    expect(bottom).toHaveLength(1);
+    expect(rail[0]).toHaveTextContent('Sức khỏe');
+    expect(bottom[0]).toHaveTextContent('Sức khỏe');
+  });
+
+  it('/app/devices → mục Người thân đang active', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, { initialEntries: ['/app/devices'] });
+    await screen.findByText('trang thiết bị');
+
+    const rail = document.querySelectorAll('.shell__sidebar .shell__nav-link[aria-current="page"]');
+    const bottom = document.querySelectorAll('.shell__bottomnav > a[aria-current="page"]');
+    expect(rail).toHaveLength(1);
+    expect(bottom).toHaveLength(1);
+    expect(rail[0]).toHaveTextContent('Người thân');
+    expect(bottom[0]).toHaveTextContent('Người thân');
+  });
+
+  it('/app/assistant (alias) → mục Hôm nay và vẫn có ngữ cảnh hồ sơ', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, { initialEntries: ['/app/assistant'] });
+    await screen.findByText('nội dung trang');
+
+    for (const link of document.querySelectorAll('.shell__nav-link[aria-current="page"]')) {
+      expect(link).toHaveTextContent('Hôm nay');
+    }
+    expect(
+      await screen.findByRole('group', { name: 'Người được theo dõi' }),
+    ).toHaveTextContent('Bà Năm');
+  });
+
+  it('inbox Cảnh báo (?view=notifications) không render dòng chọn hồ sơ', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, {
+      initialEntries: ['/app/alerts?view=notifications'],
+    });
+    await screen.findByText('trang cảnh báo');
+
+    expect(
+      screen.queryByRole('group', { name: 'Người được theo dõi' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Theo dõi:/)).not.toBeInTheDocument();
+  });
+});
+
+describe('AppShell — banner thông báo mới theo đúng phạm vi', () => {
+  it('đang mở inbox ?view=notifications → không lặp banner toàn tài khoản', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, {
+      initialEntries: ['/app/alerts?view=notifications'],
+      notifications: { items: [notification()], unreadCount: 1 },
+    });
+    await screen.findByText('trang cảnh báo');
+
+    await waitFor(() =>
+      expect(screen.queryByText(/Có thông báo mới cho hồ sơ/)).not.toBeInTheDocument(),
+    );
+  });
+
+  it('đang mở đúng incident của thông báo → không lặp banner', async () => {
+    renderShell({ user: OWNER_USER }, SUBJECTS, {
+      initialEntries: [`/app/alerts/${notification().incidentId}`],
+      notifications: { items: [notification()], unreadCount: 1 },
+    });
+    await screen.findByText('trang chi tiết cảnh báo');
+
+    await waitFor(() =>
+      expect(screen.queryByText(/Có thông báo mới cho hồ sơ/)).not.toBeInTheDocument(),
+    );
   });
 });

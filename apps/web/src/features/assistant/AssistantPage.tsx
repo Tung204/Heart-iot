@@ -16,7 +16,6 @@ import { useEmergencyContacts } from '../contacts/useEmergencyContacts';
 import { useMe } from '../auth/useAuth';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
-import { SubjectContextLine } from '../subjects/SubjectSwitcher';
 import { askAssistant, assistantAskSchema } from './api';
 
 /** Cùng cỡ danh sách với badge điều hướng để hai nơi dùng chung một lần tải. */
@@ -444,7 +443,6 @@ export function AssistantPage() {
     <div className="stack today">
       <header className="today__header">
         <h1 className="page-title">Hôm nay</h1>
-        <SubjectContextLine />
       </header>
 
       {!activeSubject ? null : (

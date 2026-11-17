@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../lib/query';
+import { purgeSubjectData, queryKeys } from '../../lib/query';
 import { handleRealtimeEvent, nextBackoffMs, parseSseData } from './sse';
 
 /** Base URL API — giữ đồng bộ với lib/api (không export trực tiếp để tránh vòng phụ thuộc). */
@@ -78,9 +78,9 @@ export function useSubjectEvents(
           revokedRef.current = true;
           closeSource();
           if (subjectId) {
-            // Thu hồi có hiệu lực ngay: xóa dữ liệu nhạy cảm khỏi cache hiển thị.
-            queryClient.removeQueries({ queryKey: ['subjects', subjectId] });
-            queryClient.removeQueries({ queryKey: ['alerts'] });
+            // Thu hồi có hiệu lực ngay: dọn đúng dữ liệu của hồ sơ này theo
+            // registry (không xoá toàn bộ hộp thư/cảnh báo của hồ sơ khác).
+            purgeSubjectData(queryClient, subjectId);
             onRevokedRef.current?.(subjectId);
           }
           setStatus('revoked');

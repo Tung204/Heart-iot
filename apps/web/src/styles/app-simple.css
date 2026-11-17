@@ -1,15 +1,6 @@
-/* Giao diện ứng dụng tối giản — Hôm nay là màn mặc định, nav bốn mục.
-   Chỉ thêm phần giao diện mới; hành vi và quyền vẫn do component/API quyết định. */
-
-/* ---------- Khung: menu tài khoản gọn, không email ---------- */
-
-.shell__safety-note {
-  border: 0;
-  background: transparent;
-  padding: 0;
-}
-
-/* ---------- Hôm nay ---------- */
+/* v7 W1 — CSS feature (legacy) của màn ứng dụng; selector foundation
+   (shell/account/context line/button/field...) đã rút khỏi file này.
+   Owner lane C/H/R chuyển tiếp sang stylesheet feature ở W2/W3. */
 
 .today {
   gap: var(--space-4);
@@ -185,9 +176,6 @@
 }
 
 @media (max-width: 639px) {
-  .today .page-title {
-    font-size: var(--text-xl);
-  }
   .today-status__text {
     font-size: var(--text-lg);
   }
@@ -332,9 +320,6 @@
 }
 
 @media (max-width: 639px) {
-  .subjects-page__header .page-title {
-    font-size: var(--text-xl);
-  }
   .subject-list__actions {
     flex: 1 1 100%;
     gap: var(--space-1) var(--space-2);
@@ -343,72 +328,6 @@
 
 /* ---------- Dòng ngữ cảnh hồ sơ (Hôm nay) ---------- */
 
-.subject-context {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1) var(--space-2);
-  min-width: 0;
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
-.subject-context__name {
-  color: var(--color-ink);
-  font-size: var(--text-md);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.subject-context__role {
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
-.subject-context__select {
-  max-width: 100%;
-  min-height: 2.75rem;
-  padding: 0 var(--space-2);
-  border: 1px solid transparent;
-  border-bottom-color: var(--color-line-strong);
-  border-radius: var(--radius-s);
-  background: transparent;
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: var(--text-md);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.subject-context__select:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.subject-context__link {
-  font-weight: 600;
-}
-
-.subject-context__retry {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-teal-deep);
-  font: inherit;
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.subject-context__retry:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-/* ---------- P1/P2 v4-fix: trạng thái an toàn, menu Thêm, đăng xuất ---------- */
-
-/* F03 — dòng phụ cảnh báo độ tươi thiết bị, không bị chìm trong nền. */
 .today-status__detail {
   flex: 1 1 100%;
   margin: 0;
@@ -430,36 +349,6 @@
 }
 
 /* F15 — hỏi lại trước khi đăng xuất, đặt trong menu tài khoản. */
-.shell__logout-confirm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-  margin-top: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px solid var(--color-line);
-}
-
-.shell__logout-confirm-text {
-  margin: 0;
-  min-width: 0;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-
-.shell__logout-confirm-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.shell__account-menu .shell__logout-confirm-actions .button {
-  flex: 1 1 7rem;
-  min-height: 44px;
-}
-
-/* T02 — câu giới hạn y tế/nguồn của từng câu trả lời, không lẫn với nguồn số liệu. */
 .assistant-msg__disclaimer {
   margin: var(--space-2) 0 0;
   color: var(--color-ink-muted);

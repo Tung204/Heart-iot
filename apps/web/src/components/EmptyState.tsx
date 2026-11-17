@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { createElement, type ReactNode } from 'react';
+import type { HeadingLevel } from './Card';
 
 interface EmptyStateProps {
   title: string;
@@ -7,28 +8,27 @@ interface EmptyStateProps {
   action?: ReactNode;
   /** Ghi chú nhỏ dưới hành động (ví dụ "sẽ có ở wave sau"). */
   actionNote?: string;
+  /** Trang đã có H1 thì dùng H2 (mặc định); trong section dùng H3. */
+  headingLevel?: HeadingLevel;
+  className?: string;
 }
 
 /**
  * Trạng thái "chưa có dữ liệu" — luôn diễn đạt bằng chữ,
  * KHÔNG hiển thị số 0 giả thay cho dữ liệu chưa từng có.
+ * Không icon minh hoạ lớn; một bước có thể làm là đủ.
  */
-export function EmptyState({ title, description, action, actionNote }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  action,
+  actionNote,
+  headingLevel = 2,
+  className,
+}: EmptyStateProps) {
   return (
-    <div className="empty-state">
-      <svg
-        className="empty-state__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
-      </svg>
-      <h3 className="empty-state__title">{title}</h3>
+    <div className={`empty-state${className ? ` ${className}` : ''}`}>
+      {createElement(`h${headingLevel}`, { className: 'empty-state__title' }, title)}
       {description ? <p className="empty-state__desc">{description}</p> : null}
       {action ? <div className="empty-state__action">{action}</div> : null}
       {actionNote ? <p className="empty-state__note">{actionNote}</p> : null}

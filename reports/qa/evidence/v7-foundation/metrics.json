@@ -1,0 +1,3342 @@
+{
+  "generatedAt": "2026-11-17T16:25:07.887Z",
+  "web": "http://127.0.0.1:4350",
+  "targetSelectors": [
+    "a[href]",
+    "button",
+    "select",
+    "summary",
+    "[role=\"menuitem\"]"
+  ],
+  "results": [
+    {
+      "kind": "account-menu-keyboard",
+      "viewport": "1280x900",
+      "opened": "true",
+      "menuVisible": true,
+      "firstItemFocused": "Tài khoản",
+      "closed": "false",
+      "focusReturned": true
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "h1FontSizes": [
+        "56px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 200.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản",
+          "w": 144.4,
+          "h": 48
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 120.9,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 376,
+          "bottom": 424,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 376,
+          "bottom": 424,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-1280x900.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "h1FontSizes": [
+        "30.4px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Đăng nhập",
+          "w": 342,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 539,
+          "bottom": 587,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-1280x900.png"
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "role": "guest",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Tạo tài khoản"
+      ],
+      "h1FontSizes": [
+        "30.4px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Tạo tài khoản",
+          "w": 342,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Tạo tài khoản",
+          "top": 637,
+          "bottom": 685,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\register-1280x900.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "h1FontSizes": [
+        "32px"
+      ],
+      "pageTitleSize": "32px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Gọi Người thân (demo)",
+          "w": 61.7,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem cảnh báo",
+          "w": 148,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 184,
+          "h": 62
+        },
+        {
+          "sel": "button",
+          "text": "Gửi câu hỏi",
+          "w": 60.8,
+          "h": 72
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "targetCount": 14,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 364,
+          "bottom": 436,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 229,
+          "bottom": 273,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-1280x900.png"
+    },
+    {
+      "route": "/app/overview",
+      "name": "overview",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Sức khỏe"
+      ],
+      "h1FontSizes": [
+        "32px"
+      ],
+      "pageTitleSize": "32px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 184,
+          "h": 62
+        },
+        {
+          "sel": "button",
+          "text": "7 ngày",
+          "w": 80.7,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "14 ngày",
+          "w": 89.3,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "30 ngày",
+          "w": 92.8,
+          "h": 44.8
+        }
+      ],
+      "targetCount": 16,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\overview-1280x900.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "h1FontSizes": [
+        "32px"
+      ],
+      "pageTitleSize": "32px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chi tiết",
+          "w": 77.3,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 184,
+          "h": 62
+        },
+        {
+          "sel": "button",
+          "text": "Đang mở",
+          "w": 99.4,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Đã đóng",
+          "w": 95.9,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Xác nhận",
+          "w": 91.4,
+          "h": 44
+        }
+      ],
+      "targetCount": 12,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 342,
+          "bottom": 386,
+          "inFirstViewport": true,
+          "limit": 900
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 342,
+          "bottom": 386,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-1280x900.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "h1FontSizes": [
+        "32px"
+      ],
+      "pageTitleSize": "32px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem sức khỏe",
+          "w": 104.3,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chia sẻ",
+          "w": 59.6,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Thiết bị",
+          "w": 61.1,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 184,
+          "h": 62
+        },
+        {
+          "sel": "button",
+          "text": "Thêm người",
+          "w": 107.1,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Sửa tên hồ sơ Bà Trần Thị An",
+          "w": 78.6,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Lưu trữ hồ sơ",
+          "w": 97,
+          "h": 57.2
+        },
+        {
+          "sel": "button",
+          "text": "Yêu cầu xóa dữ liệu",
+          "w": 97,
+          "h": 76.8
+        },
+        {
+          "sel": "summary",
+          "text": "Thêm thao tác",
+          "w": 110,
+          "h": 44
+        }
+      ],
+      "targetCount": 15,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 32,
+          "bottom": 76,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-1280x900.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "1280x900",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "h1FontSizes": [
+        "32px"
+      ],
+      "pageTitleSize": "32px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản trị",
+          "w": 184,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Quản trị hệ thống",
+          "w": 184,
+          "h": 62
+        },
+        {
+          "sel": "button",
+          "text": "Tổng quan",
+          "w": 100,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Người dùng",
+          "w": 105.4,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Thiết bị",
+          "w": 79.1,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Nâng cao",
+          "w": 93.2,
+          "h": 44
+        },
+        {
+          "sel": "summary",
+          "text": "Chi tiết vận hành",
+          "w": 1000,
+          "h": 44
+        }
+      ],
+      "targetCount": 9,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 122,
+          "bottom": 166,
+          "inFirstViewport": true,
+          "limit": 900
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-1280x900-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "h1FontSizes": [
+        "34.4px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 200.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản",
+          "w": 342,
+          "h": 48
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 342,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 315,
+          "bottom": 363,
+          "inFirstViewport": true,
+          "limit": 844
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 375,
+          "bottom": 423,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-390x844.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "h1FontSizes": [
+        "25.6px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Đăng nhập",
+          "w": 320,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 508,
+          "bottom": 556,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-390x844.png"
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "role": "guest",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Tạo tài khoản"
+      ],
+      "h1FontSizes": [
+        "25.6px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Tạo tài khoản",
+          "w": 320,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Tạo tài khoản",
+          "top": 607,
+          "bottom": 655,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\register-390x844.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Gọi Người thân (demo)",
+          "w": 160.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem cảnh báo",
+          "w": 160.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Gửi câu hỏi",
+          "w": 60.8,
+          "h": 72
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "targetCount": 14,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 411,
+          "bottom": 483,
+          "inFirstViewport": true,
+          "limit": 771
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 268,
+          "bottom": 312,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-390x844.png"
+    },
+    {
+      "route": "/app/overview",
+      "name": "overview",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Sức khỏe"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "7 ngày",
+          "w": 86.4,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "14 ngày",
+          "w": 95,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "30 ngày",
+          "w": 98.6,
+          "h": 44.8
+        }
+      ],
+      "targetCount": 16,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\overview-390x844.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chi tiết",
+          "w": 77.3,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Đang mở",
+          "w": 99.4,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Đã đóng",
+          "w": 95.9,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Xác nhận",
+          "w": 91.4,
+          "h": 44
+        }
+      ],
+      "targetCount": 12,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 418,
+          "bottom": 462,
+          "inFirstViewport": true,
+          "limit": 771
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 418,
+          "bottom": 462,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-390x844.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem sức khỏe",
+          "w": 104.3,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chia sẻ",
+          "w": 59.6,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Thiết bị",
+          "w": 61.1,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Thêm người",
+          "w": 107.1,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Sửa tên hồ sơ Bà Trần Thị An",
+          "w": 78.6,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Lưu trữ hồ sơ",
+          "w": 110,
+          "h": 57.2
+        },
+        {
+          "sel": "button",
+          "text": "Yêu cầu xóa dữ liệu",
+          "w": 110,
+          "h": 57.2
+        },
+        {
+          "sel": "summary",
+          "text": "Thêm thao tác",
+          "w": 110,
+          "h": 44
+        }
+      ],
+      "targetCount": 15,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 73,
+          "bottom": 117,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-390x844.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "390x844",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản trị",
+          "w": 390,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Quản trị hệ thống",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Tổng quan",
+          "w": 172,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Người dùng",
+          "w": 172,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Thiết bị",
+          "w": 172,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Nâng cao",
+          "w": 172,
+          "h": 44
+        },
+        {
+          "sel": "summary",
+          "text": "Chi tiết vận hành",
+          "w": 358,
+          "h": 44
+        }
+      ],
+      "targetCount": 9,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 154,
+          "bottom": 198,
+          "inFirstViewport": true,
+          "limit": 771
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-390x844-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "h1FontSizes": [
+        "34.4px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 200.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản",
+          "w": 312,
+          "h": 48
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 312,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 334,
+          "bottom": 382,
+          "inFirstViewport": true,
+          "limit": 740
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 394,
+          "bottom": 442,
+          "inFirstViewport": true,
+          "limit": 740
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-360x740.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "h1FontSizes": [
+        "25.6px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Đăng nhập",
+          "w": 290,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 125.5,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 456,
+          "bottom": 504,
+          "inFirstViewport": true,
+          "limit": 740
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-360x740.png"
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "role": "guest",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Tạo tài khoản"
+      ],
+      "h1FontSizes": [
+        "25.6px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 218.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        },
+        {
+          "sel": "button",
+          "text": "Tạo tài khoản",
+          "w": 290,
+          "h": 48
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 76,
+          "h": 18
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Tạo tài khoản",
+          "top": 566,
+          "bottom": 614,
+          "inFirstViewport": true,
+          "limit": 740
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\register-360x740.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Gọi Người thân (demo)",
+          "w": 145.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem cảnh báo",
+          "w": 145.5,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Gửi câu hỏi",
+          "w": 60.8,
+          "h": 72
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "targetCount": 14,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 146.8,
+          "h": 24.8
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 90.8,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 100.6,
+          "h": 31.7
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 54.8,
+          "h": 31.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 411,
+          "bottom": 483,
+          "inFirstViewport": true,
+          "limit": 667
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 268,
+          "bottom": 312,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-360x740.png"
+    },
+    {
+      "route": "/app/overview",
+      "name": "overview",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Sức khỏe"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "7 ngày",
+          "w": 124.7,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "14 ngày",
+          "w": 133.3,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "30 ngày",
+          "w": 266,
+          "h": 44.8
+        }
+      ],
+      "targetCount": 16,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 86.5,
+          "h": 20
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 160.8,
+          "h": 18
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 52.6,
+          "h": 21.7
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 166.3,
+          "h": 21.7
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\overview-360x740.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chi tiết",
+          "w": 77.3,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Đang mở",
+          "w": 99.4,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Đã đóng",
+          "w": 95.9,
+          "h": 44.8
+        },
+        {
+          "sel": "button",
+          "text": "Xác nhận",
+          "w": 91.4,
+          "h": 44
+        }
+      ],
+      "targetCount": 12,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 168.9,
+          "h": 24.8
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 457,
+          "bottom": 501,
+          "inFirstViewport": true,
+          "limit": 667
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 457,
+          "bottom": 501,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-360x740.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem sức khỏe",
+          "w": 104.3,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chia sẻ",
+          "w": 59.6,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Thiết bị",
+          "w": 61.1,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 90,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Thêm người",
+          "w": 107.1,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Sửa tên hồ sơ Bà Trần Thị An",
+          "w": 78.6,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Lưu trữ hồ sơ",
+          "w": 110,
+          "h": 57.2
+        },
+        {
+          "sel": "button",
+          "text": "Yêu cầu xóa dữ liệu",
+          "w": 110,
+          "h": 57.2
+        },
+        {
+          "sel": "summary",
+          "text": "Thêm thao tác",
+          "w": 110,
+          "h": 44
+        }
+      ],
+      "targetCount": 15,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 73,
+          "bottom": 117,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-360x740.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "360x740",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "h1FontSizes": [
+        "24px"
+      ],
+      "pageTitleSize": "24px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 236.4,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 145.8,
+          "h": 44
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản trị",
+          "w": 360,
+          "h": 64
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Quản trị hệ thống",
+          "w": 54,
+          "h": 54
+        },
+        {
+          "sel": "button",
+          "text": "Tổng quan",
+          "w": 157,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Người dùng",
+          "w": 157,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Thiết bị",
+          "w": 157,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Nâng cao",
+          "w": 157,
+          "h": 44
+        },
+        {
+          "sel": "summary",
+          "text": "Chi tiết vận hành",
+          "w": 328,
+          "h": 44
+        }
+      ],
+      "targetCount": 9,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 154,
+          "bottom": 198,
+          "inFirstViewport": true,
+          "limit": 667
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-360x740-admin.png"
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "role": "guest",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân ở nhà, mình vẫn an tâm"
+      ],
+      "h1FontSizes": [
+        "43px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 250.7,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản",
+          "w": 330,
+          "h": 60
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 330,
+          "h": 60
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "a.button--primary",
+          "text": "Tạo tài khoản",
+          "top": 472,
+          "bottom": 532,
+          "inFirstViewport": true,
+          "limit": 844
+        },
+        {
+          "sel": "a.button--secondary",
+          "text": "Đăng nhập",
+          "top": 547,
+          "bottom": 607,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\landing-390x844-large.png"
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "role": "guest",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Đăng nhập"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 273.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 156.9,
+          "h": 23
+        },
+        {
+          "sel": "button",
+          "text": "Đăng nhập",
+          "w": 308,
+          "h": 60
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Tạo tài khoản mới",
+          "w": 156.9,
+          "h": 23
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Đăng nhập",
+          "top": 511,
+          "bottom": 571,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\login-390x844-large.png"
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "role": "guest",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Tạo tài khoản"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": null,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 273.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 95,
+          "h": 23
+        },
+        {
+          "sel": "button",
+          "text": "Tạo tài khoản",
+          "w": 308,
+          "h": 60
+        }
+      ],
+      "targetCount": 4,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Đăng nhập",
+          "w": 95,
+          "h": 23
+        }
+      ],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Tạo tài khoản",
+          "top": 625,
+          "bottom": 685,
+          "inFirstViewport": true,
+          "limit": 844
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\register-390x844-large.png"
+    },
+    {
+      "route": "/app",
+      "name": "today",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Hôm nay"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": "30px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 182.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Gọi Người thân (demo)",
+          "w": 152.5,
+          "h": 50
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem cảnh báo",
+          "w": 152.5,
+          "h": 78
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 183.5,
+          "h": 31
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 67,
+          "h": 67
+        },
+        {
+          "sel": "button",
+          "text": "Gửi câu hỏi",
+          "w": 75.4,
+          "h": 90
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 113,
+          "h": 39.1
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 125.3,
+          "h": 39.1
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 68,
+          "h": 39.1
+        }
+      ],
+      "targetCount": 14,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe 7 ngày →",
+          "w": 183.5,
+          "h": 31
+        },
+        {
+          "sel": "button",
+          "text": "Nhịp tim?",
+          "w": 113,
+          "h": 39.1
+        },
+        {
+          "sel": "button",
+          "text": "Cảnh báo?",
+          "w": 125.3,
+          "h": 39.1
+        },
+        {
+          "sel": "button",
+          "text": "Pin?",
+          "w": 68,
+          "h": 39.1
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "button[type=\"submit\"]",
+          "text": "Gửi câu hỏi",
+          "top": 560,
+          "bottom": 650,
+          "inFirstViewport": true,
+          "limit": 739
+        },
+        {
+          "sel": "a.button",
+          "text": "Gọi Người thân (demo)",
+          "top": 373,
+          "bottom": 423,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\today-390x844-large.png"
+    },
+    {
+      "route": "/app/overview",
+      "name": "overview",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Sức khỏe"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": "30px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 182.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 108.2,
+          "h": 25
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 211.1,
+          "h": 31
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 201,
+          "h": 23
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 207.8,
+          "h": 27.1
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 65.7,
+          "h": 27.1
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 207.8,
+          "h": 27.1
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 67,
+          "h": 67
+        },
+        {
+          "sel": "button",
+          "text": "7 ngày",
+          "w": 126.6,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "14 ngày",
+          "w": 137.4,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "30 ngày",
+          "w": 274,
+          "h": 55
+        }
+      ],
+      "targetCount": 16,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "← Hôm nay",
+          "w": 108.2,
+          "h": 25
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 211.1,
+          "h": 31
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem tất cả cảnh báo →",
+          "w": 201,
+          "h": 23
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 207.8,
+          "h": 27.1
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản lý",
+          "w": 65.7,
+          "h": 27.1
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem lịch sử và biểu đồ →",
+          "w": 207.8,
+          "h": 27.1
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\overview-390x844-large.png"
+    },
+    {
+      "route": "/app/alerts",
+      "name": "alerts",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Cảnh báo"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": "30px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 182.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 211.1,
+          "h": 31
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chi tiết",
+          "w": 96.1,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 67,
+          "h": 67
+        },
+        {
+          "sel": "button",
+          "text": "Đang mở",
+          "w": 123.2,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "Đã đóng",
+          "w": 118.9,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "Xác nhận",
+          "w": 113.8,
+          "h": 55
+        }
+      ],
+      "targetCount": 12,
+      "smallTargets": [
+        {
+          "sel": "a[href]",
+          "text": "Nghi ngã — cần chú ý",
+          "w": 211.1,
+          "h": 31
+        }
+      ],
+      "contextLine": "Theo dõi: Bà Trần Thị An",
+      "primary": [
+        {
+          "sel": "a.button",
+          "text": "Chi tiết",
+          "top": 657,
+          "bottom": 712,
+          "inFirstViewport": true,
+          "limit": 739
+        },
+        {
+          "sel": "button.button",
+          "text": "Xác nhận",
+          "top": 657,
+          "bottom": 712,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\alerts-390x844-large.png"
+    },
+    {
+      "route": "/app/subjects",
+      "name": "subjects",
+      "role": "owner",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Người thân"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": "30px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 182.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Xem sức khỏe",
+          "w": 130.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Chia sẻ",
+          "w": 74.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Thiết bị",
+          "w": 76.4,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Hôm nay",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Cảnh báo11 cảnh báo đang mở",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Sức khỏe",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "a[href]",
+          "text": "Người thân",
+          "w": 97.5,
+          "h": 96.3
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Trần Thị An",
+          "w": 67,
+          "h": 67
+        },
+        {
+          "sel": "button",
+          "text": "Thêm người",
+          "w": 133.4,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "Sửa tên hồ sơ Bà Trần Thị An",
+          "w": 97.8,
+          "h": 55
+        },
+        {
+          "sel": "button",
+          "text": "Lưu trữ hồ sơ",
+          "w": 137.5,
+          "h": 71
+        },
+        {
+          "sel": "button",
+          "text": "Yêu cầu xóa dữ liệu",
+          "w": 137.5,
+          "h": 71
+        },
+        {
+          "sel": "summary",
+          "text": "Thêm thao tác",
+          "w": 137.5,
+          "h": 55
+        }
+      ],
+      "targetCount": 15,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Thêm người",
+          "top": 91,
+          "bottom": 146,
+          "inFirstViewport": true,
+          "limit": 739
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\subjects-390x844-large.png"
+    },
+    {
+      "route": "/app/admin",
+      "name": "admin",
+      "role": "admin",
+      "viewport": "390x844-large",
+      "h1Count": 1,
+      "h1s": [
+        "Quản trị"
+      ],
+      "h1FontSizes": [
+        "30px"
+      ],
+      "pageTitleSize": "30px",
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "wide": [],
+      "targets": [
+        {
+          "sel": "a[href]",
+          "text": "Chuyển tới nội dung chính",
+          "w": 295.5,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Theo dõi sức khỏe",
+          "w": 182.3,
+          "h": 55
+        },
+        {
+          "sel": "a[href]",
+          "text": "Quản trị",
+          "w": 390,
+          "h": 80
+        },
+        {
+          "sel": "button",
+          "text": "Tài khoản của Quản trị hệ thống",
+          "w": 67,
+          "h": 67
+        },
+        {
+          "sel": "button",
+          "text": "Tổng quan",
+          "w": 166.5,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Người dùng",
+          "w": 166.5,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Thiết bị",
+          "w": 166.5,
+          "h": 44
+        },
+        {
+          "sel": "button",
+          "text": "Nâng cao",
+          "w": 166.5,
+          "h": 44
+        },
+        {
+          "sel": "summary",
+          "text": "Chi tiết vận hành",
+          "w": 350,
+          "h": 44
+        }
+      ],
+      "targetCount": 9,
+      "smallTargets": [],
+      "contextLine": null,
+      "primary": [
+        {
+          "sel": "button.button",
+          "text": "Tổng quan",
+          "top": 223,
+          "bottom": 267,
+          "inFirstViewport": true,
+          "limit": 755
+        }
+      ],
+      "screenshot": "C:\\Users\\nguye\\orca\\workspaces\\DATN\\v7-foundation\\reports\\qa\\evidence\\v7-foundation\\admin-390x844-large-admin.png"
+    }
+  ]
+}

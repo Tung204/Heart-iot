@@ -7,10 +7,16 @@ interface TextFieldProps extends Omit<ComponentProps<'input'>, 'id' | 'className
   hint?: string;
 }
 
-/** Trường nhập có label thật, hint và thông báo lỗi nối bằng aria-describedby. */
+/**
+ * Trường nhập có label thật, hint và thông báo lỗi.
+ * Khi cùng có hint + error, `aria-describedby` nối cả hai (không nuốt hint).
+ * Lỗi có `role="alert"` và giữ id ổn định theo field để caller focus được.
+ */
 export function TextField({ id, label, error, hint, required, ...inputProps }: TextFieldProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+
   return (
     <div className="field">
       <label className="field__label" htmlFor={id}>
@@ -31,7 +37,7 @@ export function TextField({ id, label, error, hint, required, ...inputProps }: T
         id={id}
         className={`field__input${error ? ' field__input--error' : ''}`}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : hintId}
+        aria-describedby={describedBy}
         required={required}
         {...inputProps}
       />

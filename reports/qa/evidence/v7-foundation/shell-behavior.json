@@ -1,0 +1,159 @@
+{
+  "activeNav": [
+    {
+      "path": "/app/history",
+      "expect": "Sức khỏe",
+      "rail": "Sức khỏe",
+      "bottom": "Sức khỏe",
+      "contextBeforeH1": true,
+      "contextText": "Theo dõi: Bà Trần Thị An",
+      "h1": "Lịch sử đo"
+    },
+    {
+      "path": "/app/devices",
+      "expect": "Người thân",
+      "rail": "Người thân",
+      "bottom": "Người thân",
+      "contextBeforeH1": true,
+      "contextText": "Theo dõi: Bà Trần Thị An",
+      "h1": "Thiết bị"
+    },
+    {
+      "path": "/app/assistant",
+      "expect": "Hôm nay",
+      "rail": "Hôm nay",
+      "bottom": "Hôm nay",
+      "contextBeforeH1": true,
+      "contextText": "Theo dõi: Bà Trần Thị An",
+      "h1": "Hôm nay"
+    }
+  ],
+  "inbox": {
+    "hasContext": false,
+    "railActive": "Cảnh báo11 cảnh báo đang mở",
+    "h1": "Cảnh báo"
+  },
+  "legacyNotifications": {
+    "url": "http://127.0.0.1:4350/app/alerts?view=notifications"
+  },
+  "accountMenu": {
+    "open": "true",
+    "items": [
+      {
+        "text": "Tài khoản",
+        "w": 166,
+        "h": 44
+      },
+      {
+        "text": "AaBật chữ lớn",
+        "w": 166,
+        "h": 44
+      },
+      {
+        "text": "Đăng xuất",
+        "w": 166,
+        "h": 44
+      }
+    ],
+    "small": [],
+    "hasStudio": false,
+    "hasAdmin": null
+  },
+  "accountMenuAfterEscape": {
+    "open": "false",
+    "focusOnTrigger": true
+  },
+  "accountMenuArrowDown": {
+    "open": "true",
+    "focused": "Tài khoản",
+    "menuVisible": true
+  },
+  "accountMenuArrowUp": {
+    "open": "true",
+    "focused": "Đăng xuất",
+    "menuVisible": true
+  },
+  "computed": {
+    "bodyFont": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+    "bodyFontSize": "16px",
+    "bodyBackground": "rgb(244, 247, 251)",
+    "bodyColor": "rgb(24, 38, 61)",
+    "h1Font": "\"Be Vietnam Pro\", \"Segoe UI\", system-ui, sans-serif",
+    "h1Size": "32px",
+    "railBackground": "rgb(21, 37, 62)",
+    "railColor": "rgb(255, 255, 255)",
+    "primaryBg": "rgb(23, 75, 197)",
+    "primaryColor": "rgb(255, 255, 255)",
+    "secondaryBg": "rgb(255, 255, 255)",
+    "secondaryBorder": "rgb(122, 138, 161)",
+    "secondaryColor": "rgb(24, 38, 61)",
+    "topbarDisplay": "none",
+    "rootFontSize": "16px"
+  },
+  "focus": [
+    {
+      "label": "brand",
+      "selector": ".shell__sidebar .brand",
+      "text": "Theo dõisức khỏe",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(21, 37, 62)",
+      "contrast": 15.37,
+      "isFocusVisible": true
+    },
+    {
+      "label": "nav",
+      "selector": ".shell__sidebar .shell__nav-link:not(.is-active)",
+      "text": "Cảnh báo11 cảnh báo đang mở",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(21, 37, 62)",
+      "contrast": 15.37,
+      "isFocusVisible": true
+    },
+    {
+      "label": "nav-active",
+      "selector": ".shell__sidebar .shell__nav-link.is-active",
+      "text": "Hôm nay",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(40, 73, 118)",
+      "contrast": 9.11,
+      "isFocusVisible": true
+    },
+    {
+      "label": "account",
+      "selector": ".shell__sidebar .shell__account-trigger",
+      "text": "TATrần Thị AnChủ hồ sơ▾",
+      "outlineWidth": "3px",
+      "outlineColor": "rgb(255, 255, 255)",
+      "outlineOffset": "3px",
+      "background": "rgb(40, 73, 118)",
+      "contrast": 9.11,
+      "isFocusVisible": true
+    }
+  ],
+  "largeTextDesktop": {
+    "rootFontSize": "20px",
+    "railWidth": 310,
+    "overflowX": 0,
+    "bodyFontSize": "20px"
+  },
+  "mobileMenu": {
+    "open": true,
+    "withinViewport": true,
+    "itemSmall": [],
+    "navLabelFontSize": "14px",
+    "bottomNavHeight": 65,
+    "topbarHeight": 57
+  },
+  "contrast": {
+    "bodyOnApp": 14.13,
+    "primaryButton": 7.37,
+    "secondaryButton": 15.18,
+    "navLinkOnRail": 15.37
+  }
+}

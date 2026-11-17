@@ -17,6 +17,13 @@ function buttonClass(variant: ButtonVariant, size: ButtonSize, fullWidth: boolea
   return parts.join(' ');
 }
 
+/**
+ * Nút thao tác. API khoá ở F1:
+ * - `variant`: primary | secondary | subtle | danger | danger-quiet
+ * - `size`: sm | md — cả hai ≥44px chiều cao chạm (không hạ target cho `sm`)
+ * - native props của `<button>` (type mặc định `button`), `ref` nhận như prop React 19.
+ * Nhãn khi pending do caller quyết định; component không tự đổi chữ.
+ */
 export function Button({
   variant = 'primary',
   size = 'md',
@@ -37,7 +44,7 @@ export function Button({
   );
 }
 
-/** Nút điều hướng (thẻ <a> qua React Router) cùng kiểu dáng với Button. */
+/** Nút điều hướng (thẻ <a> qua React Router) cùng kiểu dáng và target với Button. */
 export function ButtonLink({
   to,
   variant = 'primary',

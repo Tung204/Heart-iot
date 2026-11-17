@@ -1,0 +1,609 @@
+{
+  "generatedAt": "2026-11-17T15:24:22.091Z",
+  "web": "http://127.0.0.1:4350",
+  "results": [
+    {
+      "viewport": "1280x900",
+      "name": "default",
+      "displayName": "Trần Thị An",
+      "trigger": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 95,
+          "h": 16.3,
+          "right": 172
+        },
+        "textRect": {
+          "w": 62.3,
+          "h": 16,
+          "right": 139.3
+        },
+        "scrollW": 95,
+        "clientW": 95,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "16.25px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 142,
+          "h": 21.7,
+          "right": 179
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 104.1
+        },
+        "scrollW": 142,
+        "clientW": 142,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "triggerName": {
+        "text": "Trần Thị An",
+        "rect": {
+          "w": 95,
+          "h": 17.5,
+          "right": 172
+        },
+        "textRect": {
+          "w": 79.2,
+          "h": 18,
+          "right": 156.2
+        },
+        "scrollW": 95,
+        "clientW": 95,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "normal",
+        "lineHeight": "17.5px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "railWidth": 216,
+      "menuName": {
+        "text": "Trần Thị An",
+        "rect": {
+          "w": 142,
+          "h": 24.8,
+          "right": 179
+        },
+        "textRect": {
+          "w": 90.5,
+          "h": 20,
+          "right": 127.5
+        },
+        "scrollW": 142,
+        "clientW": 142,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 184,
+      "menuWithinViewport": true
+    },
+    {
+      "viewport": "1280x900",
+      "name": "long",
+      "displayName": "Nguyễn Thị Phương Thảo Nguyên",
+      "trigger": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 95,
+          "h": 16.3,
+          "right": 172
+        },
+        "textRect": {
+          "w": 62.3,
+          "h": 16,
+          "right": 139.3
+        },
+        "scrollW": 95,
+        "clientW": 95,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "16.25px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 142,
+          "h": 21.7,
+          "right": 179
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 104.1
+        },
+        "scrollW": 142,
+        "clientW": 142,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "triggerName": {
+        "text": "Nguyễn Thị Phương Thảo Nguyên",
+        "rect": {
+          "w": 95,
+          "h": 17.5,
+          "right": 172
+        },
+        "textRect": {
+          "w": 228.9,
+          "h": 18,
+          "right": 305.9
+        },
+        "scrollW": 229,
+        "clientW": 95,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "normal",
+        "lineHeight": "17.5px",
+        "textClippedX": true,
+        "clippedBy": null
+      },
+      "railWidth": 216,
+      "menuName": {
+        "text": "Nguyễn Thị Phương Thảo Nguyên",
+        "rect": {
+          "w": 142,
+          "h": 24.8,
+          "right": 179
+        },
+        "textRect": {
+          "w": 261.6,
+          "h": 20,
+          "right": 298.6
+        },
+        "scrollW": 262,
+        "clientW": 142,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": true,
+        "clippedBy": null
+      },
+      "menuWidth": 184,
+      "menuWithinViewport": true,
+      "screenshot": "C:/Users/nguye/orca/workspaces/DATN/v7-foundation/reports/qa/evidence/v7-foundation/account-long-1280x900.png"
+    },
+    {
+      "viewport": "1280x900",
+      "name": "short",
+      "displayName": "An",
+      "trigger": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 95,
+          "h": 16.3,
+          "right": 172
+        },
+        "textRect": {
+          "w": 62.3,
+          "h": 16,
+          "right": 139.3
+        },
+        "scrollW": 95,
+        "clientW": 95,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "16.25px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 142,
+          "h": 21.7,
+          "right": 179
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 104.1
+        },
+        "scrollW": 142,
+        "clientW": 142,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "triggerName": {
+        "text": "An",
+        "rect": {
+          "w": 95,
+          "h": 17.5,
+          "right": 172
+        },
+        "textRect": {
+          "w": 18.9,
+          "h": 18,
+          "right": 95.9
+        },
+        "scrollW": 95,
+        "clientW": 95,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "normal",
+        "lineHeight": "17.5px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "railWidth": 216,
+      "menuName": {
+        "text": "An",
+        "rect": {
+          "w": 142,
+          "h": 24.8,
+          "right": 179
+        },
+        "textRect": {
+          "w": 21.6,
+          "h": 20,
+          "right": 58.6
+        },
+        "scrollW": 142,
+        "clientW": 142,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 184,
+      "menuWithinViewport": true
+    },
+    {
+      "viewport": "390x844",
+      "name": "default",
+      "displayName": "Trần Thị An",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 353
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 174.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "Trần Thị An",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 353
+        },
+        "textRect": {
+          "w": 90.5,
+          "h": 20,
+          "right": 197.5
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true
+    },
+    {
+      "viewport": "390x844",
+      "name": "long",
+      "displayName": "Nguyễn Thị Phương Thảo Nguyên",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 353
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 174.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "Nguyễn Thị Phương Thảo Nguyên",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 353
+        },
+        "textRect": {
+          "w": 261.6,
+          "h": 20,
+          "right": 368.6
+        },
+        "scrollW": 262,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": true,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true,
+      "screenshot": "C:/Users/nguye/orca/workspaces/DATN/v7-foundation/reports/qa/evidence/v7-foundation/account-long-390x844.png"
+    },
+    {
+      "viewport": "390x844",
+      "name": "short",
+      "displayName": "An",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 353
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 174.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "An",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 353
+        },
+        "textRect": {
+          "w": 21.6,
+          "h": 20,
+          "right": 128.6
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true
+    },
+    {
+      "viewport": "360x740",
+      "name": "default",
+      "displayName": "Trần Thị An",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 323
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 144.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "Trần Thị An",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 323
+        },
+        "textRect": {
+          "w": 90.5,
+          "h": 20,
+          "right": 167.5
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true
+    },
+    {
+      "viewport": "360x740",
+      "name": "long",
+      "displayName": "Nguyễn Thị Phương Thảo Nguyên",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 323
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 144.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "Nguyễn Thị Phương Thảo Nguyên",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 323
+        },
+        "textRect": {
+          "w": 261.6,
+          "h": 20,
+          "right": 338.6
+        },
+        "scrollW": 262,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": true,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true,
+      "screenshot": "C:/Users/nguye/orca/workspaces/DATN/v7-foundation/reports/qa/evidence/v7-foundation/account-long-360x740.png"
+    },
+    {
+      "viewport": "360x740",
+      "name": "short",
+      "displayName": "An",
+      "trigger": null,
+      "menu": {
+        "text": "Chủ hồ sơ",
+        "rect": {
+          "w": 246,
+          "h": 21.7,
+          "right": 323
+        },
+        "textRect": {
+          "w": 67.1,
+          "h": 18,
+          "right": 144.1
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "overflow": "visible",
+        "overflowWrap": "anywhere",
+        "lineHeight": "21.7px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuName": {
+        "text": "An",
+        "rect": {
+          "w": 246,
+          "h": 24.8,
+          "right": 323
+        },
+        "textRect": {
+          "w": 21.6,
+          "h": 20,
+          "right": 98.6
+        },
+        "scrollW": 246,
+        "clientW": 246,
+        "whiteSpace": "nowrap",
+        "textOverflow": "ellipsis",
+        "overflow": "hidden",
+        "overflowWrap": "break-word",
+        "lineHeight": "24.8px",
+        "textClippedX": false,
+        "clippedBy": null
+      },
+      "menuWidth": 288,
+      "menuWithinViewport": true
+    }
+  ]
+}

@@ -6,14 +6,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react';
-import {
-  Link,
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-  useNavigationType,
-} from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert } from '../components/Alert';
 import { AppErrorBoundary } from '../components/AppErrorBoundary';
@@ -29,14 +22,16 @@ import {
   setActiveSubjectId,
   useActiveSubject,
 } from '../features/subjects/selection';
+import { SubjectContextLine } from '../features/subjects/SubjectSwitcher';
 import { useSubjects } from '../features/subjects/useSubjects';
-import { queryKeys } from '../lib/query';
+import { purgeSubjectData, queryKeys } from '../lib/query';
+import { NAV_SECTIONS, resolveRouteScope, type NavSection } from './routeScope';
 
 type NavIconName = 'home' | 'alert' | 'health' | 'person' | 'admin';
 
 type AccountPlacement = 'sidebar' | 'topbar';
 
-/** Một nguồn duy nhất cho menu tài khoản: desktop ở cuối sidebar, mobile ở topbar. */
+/** Một nguồn duy nhất cho menu tài khoản: desktop ở cuối rail, mobile ở topbar. */
 function useIsDesktop(): boolean {
   const supportsMediaQuery = () =>
     typeof window !== 'undefined' && typeof window.matchMedia === 'function';
@@ -62,8 +57,7 @@ const OPEN_ALERTS_LIMIT = 20;
 /**
  * Đưa người dùng về đầu nội dung khi đổi trang trong /app.
  * - Chỉ chạy khi `pathname` đổi; đổi query param cùng trang không cuộn.
- * - POP (tải lần đầu/reload, back/forward) và URL có `#hash`: không can thiệp,
- *   để trình duyệt tự khôi phục vị trí hoặc cuộn tới đúng mục được chỉ định.
+ * - POP (tải lần đầu/reload, back/forward) và URL có `#hash`: không can thiệp.
  */
 function useResetScrollOnNavigate() {
   const { pathname, hash } = useLocation();
@@ -73,22 +67,16 @@ function useResetScrollOnNavigate() {
   useEffect(() => {
     if (navigationType === 'POP' || hash) return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    // focus main để trình đọc màn hình đọc từ đầu trang; preventScroll giữ cuộn ở đầu.
     mainRef.current?.focus({ preventScroll: true });
-    // Cố ý chỉ phụ thuộc `pathname`: đổi query param/hash không được tự cuộn.
+    // Cố ý chỉ phụ thuộc `pathname`.
   }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return mainRef;
 }
 
 /**
- * Chuyển trang mềm, có mục đích: chỉ khi `pathname` đổi.
- * - Lần tải đầu (POP/reload) không chạy hiệu ứng nên không làm chậm first paint.
- * - Render lại do query/refetch/Sse hay đổi query param, hash giữ nguyên pathname
- *   nên không tạo lại phần tử và không nhấp nháy nội dung.
- * - `key` theo pathname buộc trang mới mount lại, nhờ đó CSS animation
- *   (fade + dịch lên, xem `.shell__route--enter`) chạy đúng một lần. Hiệu ứng
- *   chỉ dùng opacity/transform nên không gây layout shift, không che nav.
+ * Chuyển trang mềm: chỉ khi `pathname` đổi mới gắn lớp hiện dần (opacity 120ms).
+ * Lần tải đầu và mọi render do query/refetch/đổi query param giữ nguyên phần tử.
  */
 function useRouteTransition(pathname: string): { path: string; animate: boolean } {
   const [route, setRoute] = useState({ path: pathname, animate: false });
@@ -125,9 +113,11 @@ function NavIcon({ name }: { name: NavIconName }) {
     <svg
       className="shell__nav-icon"
       viewBox="0 0 24 24"
+      width="22"
+      height="22"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.7"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -142,12 +132,21 @@ function NavIcon({ name }: { name: NavIconName }) {
  * Badge số trên mục điều hướng. Con số chỉ là phần nhìn (aria-hidden);
  * trình đọc màn hình đọc câu đầy đủ nên không phụ thuộc màu sắc.
  */
-function NavBadge({ count, label }: { count: number; label: string }) {
+function NavBadge({
+  count,
+  capped,
+  label,
+}: {
+  count: number;
+  /** Còn trang sau (nextCursor) → hiển thị `count+` thay vì số tuyệt đối. */
+  capped: boolean;
+  label: string;
+}) {
   if (count <= 0) return null;
   return (
     <>
       <span className="shell__nav-badge" aria-hidden="true">
-        {count > 99 ? '99+' : count}
+        {capped ? `${count}+` : count > 99 ? '99+' : count}
       </span>
       <span className="visually-hidden">{label}</span>
     </>
@@ -207,11 +206,11 @@ function LogoutConfirm({
 }
 
 /**
- * Menu tài khoản gọn thay cho khối Đăng xuất/Aa trần ở sidebar.
- * - Chỉ render một bản: sidebar ở desktop, topbar ở mobile.
- * - Tên + vai trò, không email; Tài khoản mở /app/settings.
- * - Quản trị chỉ admin; không còn link Studio (route /app/studio giữ nguyên).
- * - Đóng bằng Escape/click ngoài; Escape trả focus về trigger.
+ * Menu tài khoản gọn ở avatar:
+ * - Một bản duy nhất: rail ở desktop, topbar ở mobile.
+ * - Tên + vai trò, không email; Tài khoản → /app/settings; Quản trị chỉ admin.
+ * - Aa chữ lớn và Đăng xuất (hỏi lại) trong cùng menu; không Studio.
+ * - Đóng bằng Escape/click ngoài/focus-out; arrow/Home/End; focus trả trigger.
  */
 function AccountMenu({
   user,
@@ -237,6 +236,8 @@ function AccountMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const logoutRef = useRef<HTMLButtonElement>(null);
+  /** Mục cần focus ngay sau khi menu mở (ArrowUp → mục cuối). */
+  const initialFocusRef = useRef<'first' | 'last'>('first');
 
   const displayName = user?.displayName || 'Tài khoản';
 
@@ -256,7 +257,14 @@ function AccountMenu({
 
   useEffect(() => {
     if (!open) return;
-    menuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], button:not([disabled])',
+      ) ?? [],
+    );
+    const target = initialFocusRef.current === 'last' ? items[items.length - 1] : items[0];
+    target?.focus();
+    initialFocusRef.current = 'first';
 
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
@@ -268,8 +276,6 @@ function AccountMenu({
       if (containerRef.current?.contains(event.target)) return;
       closeMenu(false);
     };
-    // Tab ra khỏi menu (hoặc focus bị chuyển đi nơi khác) thì đóng, không để
-    // popup mở che nội dung trong khi focus đã ở ngoài (R-18).
     const closeOnFocusOut = (event: FocusEvent) => {
       if (!(event.target instanceof Node)) return;
       if (containerRef.current?.contains(event.target)) return;
@@ -287,8 +293,30 @@ function AccountMenu({
     };
   }, [open, closeMenu]);
 
-  // Điều hướng bằng mũi tên/Home/End cho role="menu" (ARIA APG); Tab vẫn đi
-  // qua từng mục và focusout ở trên sẽ đóng menu khi rời khỏi.
+  const focusMenuItem = (edge: 'first' | 'last') => {
+    const items = Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>(
+        '[role="menuitem"], button:not([disabled])',
+      ) ?? [],
+    );
+    (edge === 'last' ? items[items.length - 1] : items[0])?.focus();
+  };
+
+  // ArrowDown/ArrowUp trên trigger đang đóng cũng mở menu (ARIA APG menu button).
+  const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const edge = event.key === 'ArrowUp' ? 'last' : 'first';
+    if (open) {
+      if (!confirming) focusMenuItem(edge);
+      return;
+    }
+    initialFocusRef.current = edge;
+    setOpen(true);
+    setConfirming(false);
+  };
+
+  // Điều hướng bằng mũi tên/Home/End cho role="menu" (ARIA APG).
   const handleMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (confirming) return;
     const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
@@ -302,7 +330,8 @@ function AccountMenu({
     const activeIndex = items.indexOf(document.activeElement as HTMLElement);
     let nextIndex = 0;
     if (event.key === 'End') nextIndex = items.length - 1;
-    else if (event.key === 'ArrowDown') nextIndex = activeIndex < 0 ? 0 : (activeIndex + 1) % items.length;
+    else if (event.key === 'ArrowDown')
+      nextIndex = activeIndex < 0 ? 0 : (activeIndex + 1) % items.length;
     else if (event.key === 'ArrowUp') {
       nextIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1;
     }
@@ -310,16 +339,15 @@ function AccountMenu({
     items[nextIndex]?.focus();
   };
 
-  const accountLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `shell__account-item${isActive ? ' is-active' : ''}`;
+  const accountItemClass = (path: string) => {
+    const active = location.pathname === path;
+    return `shell__account-item${active ? ' is-active' : ''}`;
+  };
 
   const closeAfterNavigate = () => closeMenu(false);
 
   return (
-    <div
-      className={`shell__account shell__account--${placement}`}
-      ref={containerRef}
-    >
+    <div className={`shell__account shell__account--${placement}`} ref={containerRef}>
       <button
         ref={triggerRef}
         type="button"
@@ -328,6 +356,7 @@ function AccountMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls="shell-account-menu"
+        onKeyDown={handleTriggerKeyDown}
         onClick={() => {
           if (open) {
             closeMenu(true);
@@ -342,9 +371,7 @@ function AccountMenu({
         </span>
         <span className="shell__account-trigger-text">
           <span className="shell__account-trigger-name">{displayName}</span>
-          {roleLabel ? (
-            <span className="shell__account-trigger-role">{roleLabel}</span>
-          ) : null}
+          {roleLabel ? <span className="shell__account-trigger-role">{roleLabel}</span> : null}
         </span>
         <span className="shell__account-chevron" aria-hidden="true">
           ▾
@@ -365,23 +392,25 @@ function AccountMenu({
             {roleLabel ? <p className="shell__account-role">{roleLabel}</p> : null}
           </div>
 
-          <NavLink
+          <Link
             to="/app/settings"
             role="menuitem"
-            className={accountLinkClass}
+            className={accountItemClass('/app/settings')}
+            aria-current={location.pathname === '/app/settings' ? 'page' : undefined}
             onClick={closeAfterNavigate}
           >
             Tài khoản
-          </NavLink>
+          </Link>
           {isAdmin ? (
-            <NavLink
+            <Link
               to="/app/admin"
               role="menuitem"
-              className={accountLinkClass}
+              className={accountItemClass('/app/admin')}
+              aria-current={location.pathname === '/app/admin' ? 'page' : undefined}
               onClick={closeAfterNavigate}
             >
               Quản trị
-            </NavLink>
+            </Link>
           ) : null}
 
           <div className="shell__account-row" role="none">
@@ -425,14 +454,14 @@ function AccountMenu({
 }
 
 /**
- * Khung ứng dụng /app — bốn mục chính: Hôm nay, Cảnh báo, Sức khỏe, Người thân.
- * - Mobile (<1024px): topbar (brand + menu tài khoản) + bottom-nav 4 mục.
- * - Desktop (≥1024px): sidebar bên trái, menu tài khoản ở cuối sidebar.
- * - Admin không có hồ sơ: nav chỉ Quản trị; Tài khoản nằm trong menu.
- * - Mở SSE cho hồ sơ đang xem (cảnh báo cập nhật ngay cả khi ở màn hình khác).
- * - Badge cảnh báo đang mở trên mục Cảnh báo.
- * - Mất SSE → banner “Mất cập nhật trực tiếp — đang thử lại” cho tới khi nối lại.
- * - Bị thu hồi quyền (`revoked`) → thông báo rõ + điều hướng về không gian an toàn.
+ * Khung ứng dụng /app:
+ * - Desktop ≥1024px: rail xanh mực 216px, bốn mục chính ở trên, avatar ở dưới.
+ * - <1024px: header gọn + thanh dưới bốn mục; không menu "Thêm".
+ * - Admin không hồ sơ: nav chỉ Quản trị (tránh các trang sức khỏe 404).
+ * - Dòng ngữ cảnh "Người được theo dõi" đặt trên H1, chỉ ở 5 loại trang
+ *   subject-scoped (Hôm nay kể cả alias, Sức khỏe, Lịch sử, Cảnh báo, Thiết bị).
+ * - Mở SSE cho hồ sơ đang xem; mất SSE → banner role=status.
+ * - Bị thu hồi quyền → banner role=alert + dọn cache đúng hồ sơ + điều hướng an toàn.
  */
 export function AppShell() {
   const me = useMe();
@@ -452,22 +481,20 @@ export function AppShell() {
 
   const isAdmin = user?.role === 'admin';
   const subjectsData = subjects.data ?? [];
-  // Admin không có hồ sơ chỉ thấy Quản trị; tránh các trang sức khỏe sẽ 404.
   const adminOnly = isAdmin && subjectsData.length === 0;
+  const scope = resolveRouteScope(location.pathname, location.search);
 
   // Banner thông báo toàn tài khoản: tải 20 giây/lần (tab ẩn thì dừng)
   // hoặc ngay khi SSE `notification.sent` invalidate cùng query key.
-  const notifications = useUnreadNotifications(
-    me.isSuccess && subjects.isSuccess && !adminOnly,
-  );
-  // Cảnh báo đã gộp thông báo; đang ở đó thì danh sách đã hiển thị — không cần banner.
-  const onAlertsPage = location.pathname.startsWith('/app/alerts');
+  const notifications = useUnreadNotifications(me.isSuccess && subjects.isSuccess && !adminOnly);
+  // Chỉ ẩn banner khi đang mở đúng incident của thông báo hoặc đúng chế độ inbox.
+  const newNotification = notifications.newNotification;
+  const onSameIncident =
+    Boolean(newNotification) &&
+    location.pathname === `/app/alerts/${newNotification?.incidentId}`;
+  const onInbox = scope.inbox;
+  const hideNotificationBanner = onSameIncident || onInbox;
   const dismissNewNotification = notifications.dismiss;
-  useEffect(() => {
-    // Xóa ngay khi đang ở trang cảnh báo (kể cả thông báo tới lúc đang mở trang đó)
-    // để không hiện lại banner cũ khi người dùng rời trang.
-    if (onAlertsPage) dismissNewNotification();
-  }, [onAlertsPage, notifications.newNotification, dismissNewNotification]);
 
   const subjectEvents = useSubjectEvents(activeSubject?.id ?? null, {
     onRevoked: (subjectId) => {
@@ -476,13 +503,12 @@ export function AppShell() {
         activeSubject?.displayName ??
         'hồ sơ này';
       setRevokedInfo({ subjectId, name });
+      purgeSubjectData(queryClient, subjectId);
       void queryClient.invalidateQueries({ queryKey: queryKeys.subjects });
       if (getActiveSubjectId() === subjectId) setActiveSubjectId(null);
       navigate('/app', { replace: true });
     },
   });
-  // Còn lần thử lại > 0 nghĩa là stream đã mất kết nối và chưa mở lại được;
-  // giữ banner trong lúc chờ (status “connecting”) tới khi onopen reset về 0.
   const realtimeLost = subjectEvents.retryAttempt > 0 && subjectEvents.status !== 'revoked';
 
   // Badge cảnh báo đang mở của hồ sơ đang xem: cùng query key với danh sách ngắn
@@ -502,7 +528,8 @@ export function AppShell() {
     staleTime: 15_000,
   });
   const openAlertCount = openAlerts.data?.items.length ?? 0;
-  const openAlertLabel = `${openAlertCount} cảnh báo đang mở`;
+  const openAlertCapped = Boolean(openAlerts.data?.nextCursor);
+  const openAlertLabel = `${openAlertCapped ? `${openAlertCount}+` : openAlertCount} cảnh báo đang mở`;
 
   // Vai trò hiển thị dưới tên người dùng — không hiện email thô trong shell.
   const roleLabel = isAdmin
@@ -523,37 +550,38 @@ export function AppShell() {
     });
   };
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `shell__nav-link${isActive ? ' is-active' : ''}`;
+  type NavItem = { section: NavSection; label: string; to: string; icon: NavIconName };
 
-  // Admin không có hồ sơ: chỉ Quản trị; Tài khoản nằm trong menu.
-  // Người dùng có hồ sơ: đúng bốn mục, không có mục thứ năm.
-  const navItems = adminOnly ? (
-    <NavLink to="/app/admin" className={navLinkClass}>
-      <NavIcon name="admin" />
-      <span>Quản trị</span>
-    </NavLink>
-  ) : (
-    <>
-      <NavLink to="/app" end className={navLinkClass}>
-        <NavIcon name="home" />
-        <span>Hôm nay</span>
-      </NavLink>
-      <NavLink to="/app/alerts" className={navLinkClass}>
-        <NavIcon name="alert" />
-        <span>Cảnh báo</span>
-        <NavBadge count={openAlertCount} label={openAlertLabel} />
-      </NavLink>
-      <NavLink to="/app/overview" className={navLinkClass}>
-        <NavIcon name="health" />
-        <span>Sức khỏe</span>
-      </NavLink>
-      <NavLink to="/app/subjects" className={navLinkClass}>
-        <NavIcon name="person" />
-        <span>Người thân</span>
-      </NavLink>
-    </>
-  );
+  const navItems: NavItem[] = adminOnly
+    ? [{ section: 'admin', label: 'Quản trị', to: '/app/admin', icon: 'admin' }]
+    : [
+        { ...NAV_SECTIONS[0]!, icon: 'home' },
+        { ...NAV_SECTIONS[1]!, icon: 'alert' },
+        { ...NAV_SECTIONS[2]!, icon: 'health' },
+        { ...NAV_SECTIONS[3]!, icon: 'person' },
+      ];
+
+  const renderNavItem = (item: NavItem, placement: 'rail' | 'bottom') => {
+    const active = scope.section === item.section;
+    const className =
+      placement === 'rail'
+        ? `shell__nav-link${active ? ' is-active' : ''}`
+        : `${active ? 'is-active' : ''}`;
+    return (
+      <Link
+        key={item.to}
+        to={item.to}
+        className={className || undefined}
+        aria-current={active ? 'page' : undefined}
+      >
+        <NavIcon name={item.icon} />
+        <span>{item.label}</span>
+        {item.section === 'alerts' ? (
+          <NavBadge count={openAlertCount} capped={openAlertCapped} label={openAlertLabel} />
+        ) : null}
+      </Link>
+    );
+  };
 
   const accountMenu = (
     <AccountMenu
@@ -573,12 +601,17 @@ export function AppShell() {
 
       <aside className="shell__sidebar">
         <div className="shell__brand">
-          <Link to="/app" className="brand">
-            Theo dõi sức khỏe
+          <Link to="/app" className="brand" aria-label="Theo dõi sức khỏe">
+            <span className="shell__brand-line" aria-hidden="true">
+              Theo dõi
+            </span>
+            <span className="shell__brand-line" aria-hidden="true">
+              sức khỏe
+            </span>
           </Link>
         </div>
         <nav className="shell__nav" aria-label="Điều hướng ứng dụng">
-          {navItems}
+          {navItems.map((item) => renderNavItem(item, 'rail'))}
         </nav>
         {isDesktop ? accountMenu : null}
       </aside>
@@ -591,37 +624,40 @@ export function AppShell() {
                 Theo dõi sức khỏe
               </Link>
             </div>
-            <div className="shell__topbar-actions">
-              {isDesktop ? null : accountMenu}
-            </div>
+            <div className="shell__topbar-actions">{isDesktop ? null : accountMenu}</div>
           </div>
         </header>
 
-        <main id="main" ref={mainRef} tabIndex={-1} className="shell__main">
+        <main
+          id="main"
+          ref={mainRef}
+          tabIndex={-1}
+          className={`shell__main${scope.today ? ' shell__main--today' : ''}`}
+        >
           <div className="shell__content">
             {revokedInfo ? (
-              <Alert tone="warning" title="Bạn đã mất quyền xem hồ sơ">
-                Quyền xem hồ sơ <strong>{revokedInfo.name}</strong> đã bị thu hồi. Dữ liệu của
-                hồ sơ này đã được xóa khỏi màn hình và các luồng đang mở đã đóng.
-                <div style={{ marginTop: '0.75rem' }}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setRevokedInfo(null)}
-                  >
+              <Alert tone="warning" announce="alert" title="Bạn đã mất quyền xem hồ sơ">
+                Quyền xem hồ sơ <strong>{revokedInfo.name}</strong> đã bị thu hồi. Dữ liệu của hồ
+                sơ này đã được xóa khỏi màn hình và các luồng đang mở đã đóng.
+                <div className="shell__banner-actions">
+                  <Button variant="secondary" size="sm" onClick={() => setRevokedInfo(null)}>
                     Đã hiểu
                   </Button>
                 </div>
               </Alert>
             ) : null}
-            {notifications.newNotification && !onAlertsPage ? (
+            {newNotification && !hideNotificationBanner ? (
               <div className="shell__banner shell__banner--notice" role="status">
                 <p className="shell__banner-text">
                   Có thông báo mới cho hồ sơ{' '}
-                  <strong>{notifications.newNotification.subjectName}</strong>
+                  <strong>{newNotification.subjectName}</strong>
                 </p>
                 <div className="shell__banner-actions">
-                  <ButtonLink to="/app/alerts" variant="secondary" size="sm">
+                  <ButtonLink
+                    to={`/app/alerts/${newNotification.incidentId}`}
+                    variant="secondary"
+                    size="sm"
+                  >
                     Xem thông báo
                   </ButtonLink>
                   <Button
@@ -645,8 +681,12 @@ export function AppShell() {
                 </p>
               </div>
             ) : null}
-            {/* Key theo pathname: lỗi của trang trước không dính sang trang mới và
-                hiệu ứng chuyển trang chạy lại đúng một lần cho nội dung mới. */}
+
+            {/* Ngữ cảnh người được theo dõi đặt trên H1 của trang. Chỉ render
+                `selected`; trang ghim (alert/share/Studio data) tự render pinned. */}
+            {scope.context === 'selected' ? <SubjectContextLine scope="selected" /> : null}
+
+            {/* Key theo pathname: lỗi của trang trước không dính sang trang mới. */}
             <div
               key={routeTransition.path}
               className={`shell__route${routeTransition.animate ? ' shell__route--enter' : ''}`}
@@ -659,7 +699,7 @@ export function AppShell() {
         </main>
 
         <nav className="shell__bottomnav" aria-label="Điều hướng ứng dụng">
-          {navItems}
+          {navItems.map((item) => renderNavItem(item, 'bottom'))}
         </nav>
       </div>
     </div>
