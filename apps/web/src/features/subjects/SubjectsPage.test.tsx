@@ -3,8 +3,15 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { SubjectsPage } from './SubjectsPage';
+import { archiveSubject, requestSubjectDeletion } from './api';
 import { setActiveSubjectId } from './selection';
-import { errorEnvelope, mockResponse, renderPage, type FetchHandler } from '../../test/utils';
+import {
+  errorEnvelope,
+  mockResponse,
+  renderPage,
+  stubFetch,
+  type FetchHandler,
+} from '../../test/utils';
 
 const OWNER_SUBJECT = {
   id: '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b',
@@ -34,7 +41,14 @@ const CAREGIVER_SUBJECT = {
   ownerUserId: '9f8d7a6b-5c4d-4e3f-8a9b-0c1d2e3f4a5b',
   displayName: 'Bà An',
   role: 'caregiver',
-  permissions: { ...OWNER_SUBJECT.permissions, canResolve: false, canViewAi: false },
+  // Người thân chỉ nhận cảnh báo, không xem số đo — trạng thái này phải đọc
+  // được bằng chữ trên hàng hồ sơ, không chỉ bằng màu.
+  permissions: {
+    ...OWNER_SUBJECT.permissions,
+    canViewMeasurements: false,
+    canResolve: false,
+    canViewAi: false,
+  },
 };
 
 const DELETION_RESPONSE = {
@@ -68,13 +82,97 @@ function subjectRow(name: string): HTMLElement {
   return screen.getByText(name, { exact: true }).closest('li') as HTMLElement;
 }
 
-/** Thao tác quản trị hồ sơ nằm trong “Thêm thao tác”; mở đúng thẻ trước khi bấm. */
+/** Thao tác quản trị hồ sơ nằm trong disclosure “Quản lý hồ sơ”; mở đúng thẻ trước khi bấm. */
 async function openOwnerActions(
   user: ReturnType<typeof userEvent.setup>,
   name: string,
 ): Promise<void> {
-  await user.click(within(subjectRow(name)).getByText('Thêm thao tác'));
+  await user.click(within(subjectRow(name)).getByText('Quản lý hồ sơ'));
 }
+
+/**
+ * W0 R3: hai lời gọi phá hủy phải nằm trong `subjects/api.ts` (không trong page)
+ * để kiểm payload/hợp đồng độc lập với JSX. Test viết trước khi tách hàm.
+ */
+describe('subjects/api — lưu trữ và yêu cầu xóa: payload + semantics', () => {
+  it('archiveSubject gửi POST /subjects/:id/archive đúng body và coi 204 là thành công', async () => {
+    const calls: { url: string; method: string; body: unknown }[] = [];
+    stubFetch((url, init) => {
+      calls.push({
+        url: String(url),
+        method: init?.method ?? 'GET',
+        body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      });
+      return mockResponse(undefined, 204);
+    });
+
+    await expect(
+      archiveSubject(OWNER_SUBJECT.id, {
+        reason: 'Đã bàn giao thiết bị cho cơ sở mới.',
+        confirmationName: 'Bà Năm',
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(calls).toEqual([
+      {
+        url: `/api/v1/subjects/${OWNER_SUBJECT.id}/archive`,
+        method: 'POST',
+        body: { reason: 'Đã bàn giao thiết bị cho cơ sở mới.', confirmationName: 'Bà Năm' },
+      },
+    ]);
+  });
+
+  it('archiveSubject giữ nguyên 409 thành ApiError CONFLICT để UI mời tải lại', async () => {
+    stubFetch(() =>
+      mockResponse(errorEnvelope('Hồ sơ đã được lưu trữ trước đó.', 'CONFLICT'), 409),
+    );
+
+    await expect(
+      archiveSubject(OWNER_SUBJECT.id, { reason: 'Lý do hợp lệ.', confirmationName: 'Bà Năm' }),
+    ).rejects.toMatchObject({ status: 409, code: 'CONFLICT' });
+  });
+
+  it('requestSubjectDeletion gửi POST đúng endpoint và trả bản ghi `recorded` (dữ liệu chưa xóa)', async () => {
+    const calls: { url: string; method: string; body: unknown }[] = [];
+    stubFetch((url, init) => {
+      calls.push({
+        url: String(url),
+        method: init?.method ?? 'GET',
+        body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      });
+      return mockResponse(DELETION_RESPONSE, 202);
+    });
+
+    const recorded = await requestSubjectDeletion(OWNER_SUBJECT.id, {
+      reason: 'Gia đình yêu cầu xóa sau khi ngừng theo dõi.',
+      confirmationName: 'Bà Năm',
+    });
+
+    expect(calls).toEqual([
+      {
+        url: `/api/v1/subjects/${OWNER_SUBJECT.id}/deletion-requests`,
+        method: 'POST',
+        body: {
+          reason: 'Gia đình yêu cầu xóa sau khi ngừng theo dõi.',
+          confirmationName: 'Bà Năm',
+        },
+      },
+    ]);
+    expect(recorded).toEqual(DELETION_RESPONSE);
+    expect(recorded.status).toBe('recorded');
+  });
+
+  it('requestSubjectDeletion từ chối phản hồi sai hợp đồng (status khác `recorded`)', async () => {
+    stubFetch(() => mockResponse({ ...DELETION_RESPONSE, status: 'deleted' }, 202));
+
+    await expect(
+      requestSubjectDeletion(OWNER_SUBJECT.id, {
+        reason: 'Gia đình yêu cầu xóa sau khi ngừng theo dõi.',
+        confirmationName: 'Bà Năm',
+      }),
+    ).rejects.toMatchObject({ code: 'CONTRACT_MISMATCH' });
+  });
+});
 
 describe('SubjectsPage — lưu trữ và yêu cầu xóa dữ liệu (FR-14)', () => {
   it('mở form lưu trữ, chặn thiếu lý do/sai tên, gửi đúng body, chuyển hồ sơ sau khi thành công', async () => {
@@ -323,11 +421,11 @@ describe('SubjectsPage — hàng gọn, thêm người và chọn hồ sơ', () 
     const user = userEvent.setup();
 
     await screen.findByText('Bà Năm', { exact: true });
-    expect(screen.queryByLabelText(/^Tên hiển thị/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Tên người được theo dõi/)).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Thêm người' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Thêm người' }));
-    expect(await screen.findByLabelText(/^Tên hiển thị/)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Tên người được theo dõi/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Đóng' })).toHaveAttribute(
       'aria-expanded',
       'true',
@@ -335,7 +433,7 @@ describe('SubjectsPage — hàng gọn, thêm người và chọn hồ sơ', () 
 
     await user.click(screen.getByRole('button', { name: 'Đóng' }));
     await waitFor(() =>
-      expect(screen.queryByLabelText(/^Tên hiển thị/)).not.toBeInTheDocument(),
+      expect(screen.queryByLabelText(/^Tên người được theo dõi/)).not.toBeInTheDocument(),
     );
   });
 
@@ -345,6 +443,61 @@ describe('SubjectsPage — hàng gọn, thêm người và chọn hồ sơ', () 
 
     expect(await screen.findByText(/Chưa có hồ sơ nào/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Thêm người' }));
-    expect(await screen.findByLabelText(/^Tên hiển thị/)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/^Tên người được theo dõi/)).toBeInTheDocument();
+  });
+
+  it('hàng hồ sơ ghi vai trò và trạng thái chia sẻ bằng chữ, không chỉ bằng màu', async () => {
+    renderPage(<SubjectsPage />, listOnly([OWNER_SUBJECT, CAREGIVER_SUBJECT]));
+
+    await screen.findByText('Bà Năm', { exact: true });
+    const ownerRow = subjectRow('Bà Năm');
+    expect(within(ownerRow).getByText('Chủ hồ sơ')).toBeInTheDocument();
+    // Chủ hồ sơ không có "cửa sổ lịch sử" chia sẻ: không hiện số ngày.
+    expect(within(ownerRow).queryByText(/xem số đo/)).toBeNull();
+    expect(within(ownerRow).getByText('nhận cảnh báo')).toBeInTheDocument();
+    // Owner có đường chia sẻ theo ngữ cảnh và disclosure quản lý riêng.
+    expect(
+      within(ownerRow).getByRole('link', { name: 'Chia sẻ và liên hệ' }),
+    ).toBeInTheDocument();
+    expect(within(ownerRow).getByText('Quản lý hồ sơ')).toBeInTheDocument();
+
+    const caregiverRow = subjectRow('Bà An');
+    expect(within(caregiverRow).getByText('Người thân xem hộ')).toBeInTheDocument();
+    expect(within(caregiverRow).getByText('không xem số đo')).toBeInTheDocument();
+    expect(within(caregiverRow).queryByText('Quản lý hồ sơ')).not.toBeInTheDocument();
+    expect(
+      within(caregiverRow).queryByRole('link', { name: 'Chia sẻ và liên hệ' }),
+    ).not.toBeInTheDocument();
+    // Người thân vẫn có đường xem thiết bị theo quyền.
+    expect(within(caregiverRow).getByRole('link', { name: 'Thiết bị' })).toBeInTheDocument();
+  });
+
+  it('Escape huỷ xác nhận nguy hiểm: không gọi API, focus trả về nút đã mở', async () => {
+    const { calls, fetchHandler } = recordCalls((call) => {
+      if (call.path === '/subjects' && call.method === 'GET') {
+        return mockResponse({ items: [OWNER_SUBJECT] });
+      }
+      return undefined;
+    });
+    renderPage(<SubjectsPage />, fetchHandler);
+    const user = userEvent.setup();
+
+    await screen.findByText('Bà Năm', { exact: true });
+    await openOwnerActions(user, 'Bà Năm');
+    const archiveTrigger = within(subjectRow('Bà Năm')).getByRole('button', {
+      name: 'Lưu trữ hồ sơ',
+    });
+    await user.click(archiveTrigger);
+    await screen.findByRole('heading', { name: 'Lưu trữ hồ sơ “Bà Năm”' });
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Lưu trữ hồ sơ “Bà Năm”' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(calls.filter((call) => call.method === 'POST')).toHaveLength(0);
+    expect(archiveTrigger).toHaveFocus();
   });
 });

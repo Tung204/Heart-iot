@@ -31,7 +31,7 @@ export function EmergencyContactCard({
   const items = contacts.data.items;
   if (items.length === 0) {
     return (
-      <Card title="Liên hệ khẩn cấp" className="ec-card">
+      <Card title="Liên hệ khẩn cấp">
         {isOwner ? (
           <>
             <p className="field__hint">
@@ -57,17 +57,17 @@ export function EmergencyContactCard({
   const others = items.filter((item) => item.id !== primary.id);
 
   return (
-    <Card title="Liên hệ khẩn cấp" className="ec-card">
-      <div className="ec-card__primary">
-        <div className="ec-card__primary-main">
-          <p className="ec-card__label">Liên hệ chính</p>
-          <p className="ec-card__name">{primary.name}</p>
-          <p className="ec-list__meta">
+    <Card title="Liên hệ khẩn cấp">
+      <div className="contact-primary">
+        <div className="contact-primary__main">
+          <p className="people-meta">Liên hệ chính</p>
+          <p className="contact-primary__name">{primary.name}</p>
+          <p className="people-meta">
             {primary.relationship} · {primary.phone}
           </p>
         </div>
         <a
-          className="button button--primary button--md ec-call"
+          className="button button--primary button--md"
           href={toTelHref(primary.phone)}
           aria-label={`Gọi ${primary.name}`}
         >
@@ -76,22 +76,26 @@ export function EmergencyContactCard({
       </div>
 
       {others.length > 0 ? (
-        <details className="ec-more">
-          <summary>Liên hệ khác ({others.length})</summary>
-          <ul className="ec-list">
+        <details className="contact-more">
+          <summary className="contact-more__summary">Liên hệ khác ({others.length})</summary>
+          <ul className="people-list">
             {others.map((contact) => (
-              <li key={contact.id} className="ec-list__item">
-                <div className="ec-list__main">
-                  <p className="ec-list__name">{contact.name}</p>
-                  <p className="ec-list__meta">{contact.relationship}</p>
+              <li key={contact.id} className="people-row">
+                <div className="people-row__identity">
+                  <p className="people-row__name">{contact.name}</p>
+                  <p className="people-row__meta">
+                    <span>{contact.relationship}</span>
+                  </p>
                 </div>
-                <a
-                  className="ec-phone"
-                  href={toTelHref(contact.phone)}
-                  aria-label={`Gọi ${contact.name}`}
-                >
-                  {contact.phone}
-                </a>
+                <div className="people-row__actions">
+                  <a
+                    className="contact-phone"
+                    href={toTelHref(contact.phone)}
+                    aria-label={`Gọi ${contact.name}`}
+                  >
+                    {contact.phone}
+                  </a>
+                </div>
               </li>
             ))}
           </ul>

@@ -1,0 +1,470 @@
+/* ============================================================
+   Lane R — bố cục dùng chung cho Người thân, Chia sẻ và liên hệ,
+   Thiết bị, Công việc bảo trì, Tài khoản.
+
+   Chỉ đặt placement/row/surface; primitive (button/field/card/alert/
+   pill) do `components/primitives.css` sở hữu. Không định nghĩa lại
+   primitive ở đây và không dùng `!important`.
+   ============================================================ */
+
+/* ---------- Hàng action dưới H1 + link theo ngữ cảnh ---------- */
+
+.people-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.people-textlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-1);
+  color: var(--action);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .people-textlink:hover {
+    color: var(--action-hover);
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Surface cho form/khối hành động đang mở ---------- */
+
+.people-surface {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--action-soft) 55%, var(--bg-surface));
+}
+
+.people-surface__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.people-empty {
+  margin: 0;
+  max-width: var(--measure-text);
+  color: var(--text-secondary);
+}
+
+.people-notice__dismiss {
+  margin-top: var(--space-3);
+}
+
+/* ---------- Hàng dữ liệu (một bản ghi = một hàng) ---------- */
+
+.people-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-5);
+  min-width: 0;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.people-list > .people-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Khối mở tại chỗ (form sửa, xác nhận, kết quả) chiếm trọn hàng. */
+.people-row > :not(.people-row__identity):not(.people-row__actions) {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.people-row__identity {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.people-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.people-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.people-row__actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.people-row__action {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-1);
+  color: var(--action);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .people-row__action:hover {
+    color: var(--action-hover);
+    text-decoration: underline;
+  }
+}
+
+@media (max-width: 639px) {
+  .people-row__actions {
+    flex: 1 1 100%;
+    gap: var(--space-1) var(--space-2);
+  }
+}
+
+/* ---------- Xác nhận tại chỗ (hai bước) ---------- */
+
+.people-confirm {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-m);
+  background: var(--bg-subtle);
+}
+
+.people-confirm__text {
+  margin: 0;
+  max-width: var(--measure-text);
+  overflow-wrap: anywhere;
+}
+
+.people-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Khối xác nhận nguy hiểm ---------- */
+
+.people-danger {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--border-subtle));
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--danger-soft) 60%, var(--bg-surface));
+}
+
+.people-danger__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.people-danger__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: 1.35;
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+.people-danger__lead {
+  margin: 0;
+  max-width: var(--measure-text);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.people-danger__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  max-width: var(--measure-text);
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.people-danger__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.people-danger__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.people-danger__result {
+  min-width: 0;
+}
+
+.people-danger__result-meta {
+  margin-top: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.people-danger__result code {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Nhóm action + chữ phụ dùng chung ---------- */
+
+.people-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.people-actions--between {
+  justify-content: space-between;
+}
+
+.people-meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.people-meta--strong {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.people-code {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Bộ lọc dạng hai lựa chọn ---------- */
+
+.people-filter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.people-filter__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .people-filter__item:hover {
+    background: var(--bg-subtle);
+  }
+}
+
+.people-filter__item[aria-pressed='true'] {
+  background: var(--action-soft);
+  color: var(--action);
+  box-shadow: inset 0 0 0 1px var(--action);
+}
+
+/* ---------- Điều hướng trong trang (anchor 44px) ---------- */
+
+.people-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people-jump__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-1);
+  color: var(--action);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .people-jump__link:hover {
+    color: var(--action-hover);
+    text-decoration: underline;
+  }
+}
+
+/* ---------- Section dạng cột label hẹp (Tài khoản) ---------- */
+
+.people-settings-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.people-settings-section:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.people-settings-section__head {
+  min-width: 0;
+}
+
+.people-settings-section__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1.4;
+}
+
+.people-settings-section__lead {
+  margin: var(--space-1) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  max-width: var(--measure-text);
+}
+
+.people-settings-section__body {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .people-settings-section {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-6);
+    align-items: start;
+  }
+
+  .people-settings-section__body {
+    max-width: var(--measure-form);
+  }
+}
+
+/* ---------- Cặp nhãn/giá trị theo hàng ---------- */
+
+.people-kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.people-kv dt {
+  color: var(--text-secondary);
+}
+
+.people-kv dd {
+  margin: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .people-kv {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .people-kv dt {
+    margin-top: var(--space-2);
+  }
+
+  .people-kv dd {
+    margin-bottom: var(--space-1);
+  }
+}
+
+/* ---------- Khối form một cột ---------- */
+
+.people-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: var(--measure-form);
+}
+
+.people-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Breadcrumb (ngoài PageHeader) ---------- */
+
+.people-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  width: fit-content;
+  color: var(--action);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.people-breadcrumb:hover {
+  text-decoration: underline;
+}

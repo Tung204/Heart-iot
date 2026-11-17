@@ -45,6 +45,19 @@ const CARE_LINK = {
 
 const SHARE_PATH = `/app/subjects/${SUBJECT.id}/share`;
 
+const CAREGIVER_SUBJECT = {
+  ...SUBJECT,
+  ownerUserId: '9f8d7a6b-5c4d-4e3f-8a9b-0c1d2e3f4a5b',
+  role: 'caregiver',
+  permissions: { ...SUBJECT.permissions, canResolve: false, canViewAi: false },
+};
+
+/** Mở form mời: form không tự bật để không đẩy lời mời đã gửi xuống dưới. */
+async function openInviteForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole('button', { name: 'Mời người thân' }));
+  await screen.findByLabelText(/Email người được mời/);
+}
+
 function shareHandler(onCreate: (body: unknown) => void): FetchHandler {
   return (url, init) => {
     const u = String(url);
@@ -89,6 +102,7 @@ describe('SharePage — quyền xem số đo tách khỏi quyền nhận cảnh 
     const user = userEvent.setup();
     renderApp(SHARE_PATH, shareHandler((body) => bodies.push(body)));
 
+    await openInviteForm(user);
     const measureCheckbox = await screen.findByRole(
       'checkbox',
       { name: 'Cho phép xem số đo và lịch sử' },
@@ -132,5 +146,47 @@ describe('SharePage — quyền xem số đo tách khỏi quyền nhận cảnh 
     expect(meta.length).toBeGreaterThan(0);
     // Không báo “xem 30 ngày lịch sử” khi quyền số đo đang tắt.
     expect(screen.queryByText(/xem số đo 30 ngày/)).not.toBeInTheDocument();
+  });
+
+  it('người thân (không phải owner) không gọi API invitations/care-links', async () => {
+    const calls: string[] = [];
+    const handler: FetchHandler = (url, init) => {
+      const u = String(url);
+      calls.push(`${init?.method ?? 'GET'} ${u}`);
+      if (u.endsWith('/me')) return mockResponse(SESSION);
+      if (u.endsWith('/subjects')) return mockResponse({ items: [CAREGIVER_SUBJECT] });
+      if (u.includes('/emergency-contacts')) return mockResponse({ items: [] });
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    };
+    renderApp(`/app/subjects/${CAREGIVER_SUBJECT.id}/share`, handler);
+
+    expect(
+      await screen.findByText('Chỉ chủ hồ sơ quản lý chia sẻ', {}, { timeout: 5000 }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(calls.some((call) => call.endsWith('/subjects'))).toBe(true));
+    expect(calls.filter((call) => call.includes('/invitations'))).toHaveLength(0);
+    expect(calls.filter((call) => call.includes('/care-links'))).toHaveLength(0);
+    expect(calls.filter((call) => call.includes('/emergency-contacts'))).toHaveLength(0);
+  });
+
+  it('token lời mời chỉ hiện một lần: ẩn là mất khỏi DOM, không xem lại được', async () => {
+    const user = userEvent.setup();
+    renderApp(SHARE_PATH, shareHandler(() => undefined));
+
+    await openInviteForm(user);
+    await user.type(screen.getByLabelText(/Email người được mời/), 'chi.hoa@example.test');
+    await user.click(screen.getByRole('button', { name: 'Tạo lời mời' }));
+
+    const token = 'x'.repeat(40);
+    await waitFor(() =>
+      expect(document.querySelector('.share-created__url')?.textContent ?? '').toContain(token),
+    );
+    expect(
+      screen.getByText(/Đường dẫn và mã chỉ hiển thị đúng một lần này/),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ẩn đường dẫn và mã' }));
+    expect(document.querySelector('.share-created__url')).toBeNull();
+    expect(screen.queryByText('Đã tạo lời mời')).not.toBeInTheDocument();
   });
 });
