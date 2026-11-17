@@ -5,8 +5,9 @@
 
 - **Worktree**: `C:/Users/nguye/orca/workspaces/DATN/v7-foundation`
 - **Branch**: `Tung204/v7-foundation` (chưa merge, chưa push)
-- **Base**: `a10c8ea` (spec W1) → **code SHA (đã đo)**: `8dbcc1f`
-  (foundation `aad596c` + fix topbar); sau đó là commit bằng chứng/handoff này.
+- **Base**: `a10c8ea` (spec W1) → **code SHA (đã đo)**: `7a8bb2b`
+  (foundation `aad596c` + topbar `8dbcc1f` + fix tên/vai trò tài khoản
+  `7a8bb2b`); sau đó là commit bằng chứng/handoff này.
 - **Provider/model thực tế**: `moxuna / deepseek-v4.1-flash`
 - **Môi trường đo**: web dev `http://127.0.0.1:4350`; API dev `http://127.0.0.1:3000`
   với `PGLITE_DATA_DIR=.data/qa-v7-foundation`, chỉ đăng nhập demo + đọc.
@@ -53,14 +54,19 @@ text-size-toggle/page-header/page-section`). Không đổi tên lớp cũ.
   | --- | --- |
   | `/app`, `/app/assistant` | Hôm nay |
   | `/app/alerts`, `/app/alerts/:id` | Cảnh báo |
-  | `/app/history`, `/app/measurements/history` | Sức khỏe |
+  | `/app/overview`, `/app/history` | Sức khỏe |
   | `/app/devices` | Người thân |
-  | `/app/subjects` | không mục nào |
+  | `/app/subjects`, `/app/subjects/:id/*` | Người thân (`people`) |
+  | `/app/tasks`, `/app/settings`, `/app/studio/*` | không mục nào |
   | `/app/admin/*` | Quản trị |
 
   `aria-current="page"` trên cả rail và bottom-nav. Admin **không có hồ sơ** chỉ
   thấy “Quản trị”; `/app` tự chuyển `/app/admin` (giữ guard hiện có ở
   `AssistantPage`). `history` và `devices` trước đây không active → đã sửa.
+  `/app/subjects` trả `section: 'people'` và `context: 'collection'` trong
+  `routeScope.ts`, nên mục **Người thân** active (đúng ảnh `subjects-360x740`);
+  context `collection` nghĩa là trang danh sách tự render ngữ cảnh, shell không
+  render dòng chọn.
 - Menu tài khoản mở từ avatar: `Tài khoản`, `Quản trị` (chỉ admin), `Aa` bật/tắt
   chữ lớn, `Đăng xuất`. **Không có Studio.** Mở bằng Enter/Space/ArrowDown;
   ArrowUp/Down/Home/End di chuyển; Escape, click ngoài, focus ra ngoài đều đóng;
@@ -74,7 +80,8 @@ text-size-toggle/page-header/page-section`). Không đổi tên lớp cũ.
   `prefers-reduced-motion`.
 - Dòng ngữ cảnh hồ sơ: một dòng, **trên H1**, chỉ render khi `scope='selected'`
   và route thuộc 5 trang (`/app`, history, alerts, devices, assistant). Nhãn
-  accessible “Người được theo dõi”. Không hiện ở `/app/subjects`, inbox, admin.
+  accessible “Người được theo dõi”. Không hiện ở `/app/subjects` (scope
+  `collection`), inbox và admin (scope `none`).
 
 ### Router / cache
 - Giữ lazy chunk, alias `/app/assistant`, `NotFoundPage`, `ProtectedRoute`,
@@ -98,6 +105,25 @@ text-size-toggle/page-header/page-section`). Không đổi tên lớp cũ.
   xanh xám (không shimmer); `<noscript>` giữ, copy trung thực (“Cần JavaScript
   để dùng ứng dụng…”). Không còn “An Nhiên”.
 
+### Fix pass sau review lead (`7a8bb2b`)
+- **Tên/vai trò tài khoản:** `.shell__account-trigger-text` thêm `flex: 1 1 auto`
+  + `min-width: 0`; tên ở trigger và menu một dòng, `overflow: hidden` +
+  `text-overflow: ellipsis`; vai trò `white-space: normal` +
+  `overflow-wrap: anywhere` (xuống dòng, không clip ngang). Không đặt
+  `overflow: hidden` trên phần tử chứa vai trò.
+- **Đo lại:** displayName mặc định/dài (`Nguyễn Thị Phương Thảo Nguyên`)/ngắn ×
+  rail 216px, menu 390×844 và 360×740. Tên dài ellipsis đúng (trigger
+  `scrollWidth 229 > clientWidth 95`; menu `262 > 142`), “Chủ hồ sơ” luôn đủ
+  chữ, cao 16.3px một dòng, ký tự cuối nằm trong box, menu trong viewport
+  (`account-name-audit.json`, 3 ảnh `account-long-*`).
+- **Trung thực về lỗi cũ:** không tái hiện được việc cắt giữa glyph bằng DOM ở
+  bản trước (`scrollWidth = clientWidth`, ký tự cuối vẫn trong box); ở ảnh 1x
+  glyph “ơ” trông giống “a”. Thay đổi trên loại bỏ khả năng cắt do thiếu chỗ và
+  được khoá bằng test CSS, nhưng không khẳng định đã tái hiện đúng ảnh báo.
+- **Tài liệu:** bảng nav sửa `/app/subjects` → Người thân (`people`, context
+  `collection`); bổ sung phạm vi target <44px (F7) để không hiểu là F đã đo hết
+  page legacy.
+
 ## 2. Cổng kiểm — kết quả thật
 
 ```text
@@ -105,17 +131,28 @@ $ pnpm --filter @annhien/web typecheck
 tsc -p tsconfig.json --noEmit        # exit 0
 
 $ pnpm --filter @annhien/web build
-✓ built in 451ms                     # exit 0
+✓ built in 451ms                     # exit 0 (W1 gốc)
 
 $ pnpm --filter @annhien/web exec vitest run --no-file-parallelism --maxWorkers=1
 Test Files  37 passed (37)
-     Tests  287 passed (287)
-  Duration  141.00s
+     Tests  287 passed (287)          # W1 gốc (aad596c)
 
 $ ... vitest run <10 file trọng tâm>  # AppShell, router, ProtectedRoute,
 Test Files  10 passed (10)            # TextSizeToggle, ErrorBoundary, primitives,
      Tests  83 passed (83)            # useSubjectEvents, useUnreadNotifications,
                                       # SubjectSwitcher, lib/query
+
+# Fix pass 7a8bb2b (tên/vai trò tài khoản) — chạy lại:
+$ pnpm --filter @annhien/web typecheck
+tsc -p tsconfig.json --noEmit        # exit 0
+$ pnpm --filter @annhien/web exec vitest run src/app/AppShell.test.tsx
+Test Files  1 passed (1)
+     Tests  42 passed (42)           # +1 test CSS tên/vai trò
+$ pnpm --filter @annhien/web exec vitest run --no-file-parallelism --maxWorkers=1
+Test Files  37 passed (37)
+     Tests  288 passed (288)
+$ pnpm --filter @annhien/web build
+✓ built in 321ms                     # exit 0
 ```
 
 `pnpm build:contracts` đã chạy trước typecheck (exit 0).
@@ -129,18 +166,24 @@ Test Files  10 passed (10)            # TextSizeToggle, ErrorBoundary, primitive
 | `scrollWidth ≤ clientWidth` | 24/24, overflowX = 0 (cả body) |
 | Đúng một H1 | 24/24 |
 | CTA chính trong viewport đầu | 100% (`primary.txt` đủ) |
-| Target ≥44px | 12 vi phạm, **chỉ** 3 chip gợi ý Hôm nay (finding F1, lane C) |
-| Dòng ngữ cảnh trên H1 | today/alerts/history/devices/assistant ✓; subjects/inbox/admin ✗ đúng thiết kế |
+| Target ≥44px | 12 vi phạm trong **6 route được đo**, chỉ 3 chip gợi ý Hôm nay (F1, lane C) — xem phạm vi ở §5 |
+| Tên/vai trò tài khoản | default/dài/ngắn × rail 216px, menu 390/360: ký tự cuối trong box, tên dài ellipsis, “Chủ hồ sơ” 1 dòng 16.3px, menu trong viewport (`account-name-audit.json`) |
+| Dòng ngữ cảnh trên H1 | today/alerts/history/devices/assistant ✓; subjects (`collection`)/inbox/admin (`none`) không render — đúng thiết kế |
 | Menu tài khoản bàn phím | mở, item 44px, Escape đóng, focus về avatar ✓ |
 | Focus ring | 3px `#174bc5`, offset 3px |
 | Font | Be Vietnam Pro; body 16px; H1 32px; large-text root 20px; topbar 57px (56 + border) |
 | Tương phản | body 14.13:1; nút primary 7.37:1; secondary 15.18:1; nav rail 15.37:1 |
 | `/app/notifications` | → `/app/alerts?view=notifications` (replace) |
 
-Ảnh + JSON: `reports/qa/evidence/v7-foundation/` (31 PNG + `metrics.json` +
-`shell-behavior.json` + `css-ledger.md`). Tên file `<route>-<viewport>[-state].png`,
-ví dụ `today-390x844.png`, `alerts-390x844-large.png`,
-`mobile-account-menu-390x844.png`, `admin-1280x900-admin.png`.
+Ảnh + JSON: `reports/qa/evidence/v7-foundation/` (34 PNG + `metrics.json` +
+`shell-behavior.json` + `account-name-audit.json` + `css-ledger.md`). Tên file
+`<route>-<viewport>[-state].png`, ví dụ `today-390x844.png`,
+`alerts-390x844-large.png`, `mobile-account-menu-390x844.png`,
+`admin-1280x900-admin.png`. Ba ảnh `account-long-{1280x900,390x844,360x740}.png`
+là stress test với `displayName` dài (chặn response `/me` + `/auth/login`, không
+phải dữ liệu seed). `metrics.json` + ảnh route đo tại `8dbcc1f`;
+`account-name-audit.json` + 3 ảnh `account-long-*` đo tại `7a8bb2b` (chỉ đổi
+CSS tên/vai trò, không đổi bố cục trang).
 
 ## 3. Test diff đáng chú ý
 
@@ -155,6 +198,9 @@ ví dụ `today-390x844.png`, `alerts-390x844-large.png`,
 - `router.test.tsx`: khẳng định search `?view=notifications` + `replace`.
 - Mới: `components/primitives.test.tsx`, `lib/query.test.ts` (purge theo subject),
   `useSubjectEvents.test.tsx` thêm ca thu hồi B chỉ xoá B, giữ A.
+- `AppShell.test.tsx` fix pass: thêm test CSS đọc rule của 4 selector tên/vai trò
+  (ellipsis ở tên, wrap ở vai trò, `flex`/`min-width` của khung chữ) — 42 test
+  trong file, không nới assertion cũ.
 
 ## 4. Delta W0 #1–#11 — đối chiếu
 
@@ -186,6 +232,19 @@ ví dụ `today-390x844.png`, `alerts-390x844-large.png`,
 | F4 | `.alert-row__side` định nghĩa 2 lần trong `layout.css` (nợ cũ) | 415, 951 | C |
 | F5 | 19 alias `--color-*` cũ vẫn còn để W2 chuyển; xoá khi lane xong | `tokens.css` | F/W2 |
 | F6 | `AppShell.test.tsx` đọc nội dung CSS để kiểm token — dễ vỡ khi tách file | — | F/W3 |
+| F7 | Phạm vi đo target: F chỉ đo 6 route × 4 viewport; **chưa** đo toàn bộ page legacy (settings, share, studio, tasks, admin subpages…) | 24 tổ hợp | P/C/H/R/A + F (W3) |
+
+**Phạm vi target <44px (để reviewer không hiểu nhầm là F đã đo hết page):**
+
+- Trong 24 tổ hợp W1, target <44px chỉ gồm: 3 chip gợi ý Hôm nay (F1) và link
+  “Tạo tài khoản mới” ở form đăng nhập (F2). Các target còn lại của 6 route đo
+  được đều ≥44px.
+- Ba link “Xem sức khỏe / Chia sẻ / Thiết bị” ở `/app/subjects` **không** vi
+  phạm: đo lại 390×844 = 104.3×44.0, 59.6×44.0, 61.1×44.0
+  (`min-height: 2.75rem` trong `app-simple.css`); vì vậy không có trong F1/F2.
+- Các trang legacy khác (settings, share, studio, tasks, admin subpages) chưa
+  được đo toàn bộ target trong W1; lane sở hữu phải tự kiểm khi chuyển CSS
+  (F7). Các vi phạm tiềm ẩn vẫn thuộc P/C/H/R/A, không phải F.
 
 Ngoài ra: `.site-header__nav .button` (P) và `.adm-filter-form .field` (A) còn
 override primitive trong `layout.css`; đã ghi trong ledger, không sửa vì thuộc
@@ -194,7 +253,8 @@ lane và không ảnh hưởng cổng W1.
 ## 6. Cách tích hợp
 
 ```bash
-git -C C:/Users/nguye/orca/workspaces/DATN/v7-foundation log --oneline -1   # 8dbcc1f
+git -C C:/Users/nguye/orca/workspaces/DATN/v7-foundation log --oneline -1   # tip = commit handoff này
+git -C C:/Users/nguye/orca/workspaces/DATN/v7-foundation show --stat 7a8bb2b  # code SHA cần merge
 # merge branch Tung204/v7-foundation khi coordinator duyệt; KHÔNG push từ worker
 ```
 
@@ -205,8 +265,8 @@ git -C C:/Users/nguye/orca/workspaces/DATN/v7-foundation log --oneline -1   # 8d
 
 ## 7. Ghi chú quy trình
 
-- Commit gộp thành **một** commit foundation (`aad596c`) + một fix topbar
-  (`8dbcc1f`) thay vì nhiều commit
+- Commit gộp thành **một** commit foundation (`aad596c`) + fix topbar
+  (`8dbcc1f`) + fix tên/vai trò tài khoản (`7a8bb2b`) thay vì nhiều commit
   phase: bản tách phase đầu bị thiếu 2 file primitive (`PageHeader`, `Section`)
   nên commit trung gian không typecheck; đã squash trước khi bàn giao, branch
   chưa push nên không ảnh hưởng ai. Không merge.
