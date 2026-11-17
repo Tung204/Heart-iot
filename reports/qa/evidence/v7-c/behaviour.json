@@ -1,0 +1,243 @@
+{
+  "incidentHref": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+  "tabs": {
+    "before": {
+      "url": "/app/alerts",
+      "current": [
+        {
+          "text": "Cảnh báo",
+          "current": "page"
+        },
+        {
+          "text": "Thông báo đã nhận1, 1 chưa đọc",
+          "current": null
+        }
+      ]
+    },
+    "afterTab": {
+      "url": "/app/alerts?view=notifications",
+      "current": [
+        {
+          "text": "Cảnh báo",
+          "current": null
+        },
+        {
+          "text": "Thông báo đã nhận1, 1 chưa đọc",
+          "current": "page"
+        }
+      ]
+    },
+    "afterReload": {
+      "url": "/app/alerts?view=notifications",
+      "h1": "Cảnh báo",
+      "h2": "Thông báo đã nhận"
+    },
+    "afterBack": {
+      "url": "/app/alerts",
+      "current": [
+        {
+          "text": "Cảnh báo",
+          "current": "page"
+        },
+        {
+          "text": "Thông báo đã nhận1, 1 chưa đọc",
+          "current": null
+        }
+      ]
+    }
+  },
+  "markRead": {
+    "unreadBefore": 1,
+    "titleBefore": "Chưa đọc\nNghi ngã — Bà Trần Thị An",
+    "summaryBefore": "Bạn có 1 thông báo chưa đọc.",
+    "titleAfterClick": "Nghi ngã — Bà Trần Thị An",
+    "pillAfterClick": "Đã đọc",
+    "unreadAfterReload": 0,
+    "summaryAfterReload": "Bạn đã đọc hết thông báo.",
+    "firstItemStateAfterReload": "Đã đọc",
+    "persisted": true
+  },
+  "ask": {
+    "answers": 1,
+    "alerts": 0,
+    "errors": []
+  },
+  "firstViewport": [
+    {
+      "path": "/app",
+      "viewport": "1280x900",
+      "navTop": null,
+      "boxes": {
+        ".today-signal__actions .button": {
+          "top": 195.1,
+          "bottom": 243.1,
+          "height": 48,
+          "aboveNav": true
+        },
+        "#assistant-question": {
+          "top": 361.9,
+          "bottom": 405.9,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".today-ask__submit": {
+          "top": 361.9,
+          "bottom": 409.9,
+          "height": 48,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app/alerts",
+      "viewport": "1280x900",
+      "navTop": null,
+      "boxes": {
+        ".alerts-row__actions .button": {
+          "top": 356.7,
+          "bottom": 400.7,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".alerts-row__actions a": {
+          "top": 356.7,
+          "bottom": 400.7,
+          "height": 44,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app",
+      "viewport": "390x844",
+      "navTop": 779,
+      "boxes": {
+        ".today-signal__actions .button": {
+          "top": 249.4,
+          "bottom": 297.4,
+          "height": 48,
+          "aboveNav": true
+        },
+        "#assistant-question": {
+          "top": 404.2,
+          "bottom": 448.2,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".today-ask__submit": {
+          "top": 456.2,
+          "bottom": 504.2,
+          "height": 48,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app/alerts",
+      "viewport": "390x844",
+      "navTop": 779,
+      "boxes": {
+        ".alerts-row__actions .button": {
+          "top": 521.9,
+          "bottom": 565.9,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".alerts-row__actions a": {
+          "top": 521.9,
+          "bottom": 565.9,
+          "height": 44,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app",
+      "viewport": "360x740",
+      "navTop": 675,
+      "boxes": {
+        ".today-signal__actions .button": {
+          "top": 249.4,
+          "bottom": 297.4,
+          "height": 48,
+          "aboveNav": true
+        },
+        "#assistant-question": {
+          "top": 404.2,
+          "bottom": 448.2,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".today-ask__submit": {
+          "top": 456.2,
+          "bottom": 504.2,
+          "height": 48,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app/alerts",
+      "viewport": "360x740",
+      "navTop": 675,
+      "boxes": {
+        ".alerts-row__actions .button": {
+          "top": 521.9,
+          "bottom": 565.9,
+          "height": 44,
+          "aboveNav": true
+        },
+        ".alerts-row__actions a": {
+          "top": 521.9,
+          "bottom": 565.9,
+          "height": 44,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app",
+      "viewport": "390x844-large",
+      "navTop": 746.8,
+      "boxes": {
+        ".today-signal__actions .button": {
+          "top": 311.3,
+          "bottom": 371.3,
+          "height": 60,
+          "aboveNav": true
+        },
+        "#assistant-question": {
+          "top": 504.3,
+          "bottom": 559.3,
+          "height": 55,
+          "aboveNav": true
+        },
+        ".today-ask__submit": {
+          "top": 569.3,
+          "bottom": 629.3,
+          "height": 60,
+          "aboveNav": true
+        }
+      }
+    },
+    {
+      "path": "/app/alerts",
+      "viewport": "390x844-large",
+      "navTop": 746.8,
+      "boxes": {
+        ".alerts-row__actions .button": {
+          "top": 677.9,
+          "bottom": 732.9,
+          "height": 55,
+          "aboveNav": true
+        },
+        ".alerts-row__actions a": {
+          "top": 677.9,
+          "bottom": 732.9,
+          "height": 55,
+          "aboveNav": true
+        }
+      }
+    }
+  ]
+}
