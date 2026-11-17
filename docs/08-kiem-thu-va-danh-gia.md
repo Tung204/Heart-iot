@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 15/11/2026:** đã có test tự động và kết quả chạy thật cho lát cắt phần mềm v1/v2 trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 18/11/2026 (giao diện v7):** đã có test tự động và kết quả chạy thật cho lát cắt phần mềm v1–v7 trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -11,7 +11,28 @@
 
 Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
 
-## Bằng chứng chạy ngày 15/11/2026
+## Bằng chứng chạy ngày 18/11/2026 (giao diện v7)
+
+Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, Vitest (jsdom) cho web, Playwright Chromium cho E2E. Web unit và API chạy tuần tự để số liệu tái lập được; E2E chạy cấu hình mặc định của Playwright. Không dùng các con số này thay cho lần chạy ở máy khác.
+
+| Hạng mục | Lệnh | Kết quả thật |
+| --- | --- | --- |
+| API | `pnpm --filter @heart-iot/api test` | **20/20 suite, 219/219 test pass**, 59,4 s |
+| Web unit | `pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1` | **38/38 file, 346/346 test pass**, 112,0 s |
+| Simulator | `cd tools/simulator && npm test` | **23/23 test pass**; phải chạy `pnpm build:contracts` trước vì worktree chưa có `packages/contracts/dist` |
+| E2E | `pnpm --filter @heart-iot/web test:e2e` | **26/26 pass**, 7,0 s; Playwright tự bật Vite cổng 5173 và dùng API đang chạy ở cổng 3000 |
+| Contracts build | `pnpm build:contracts` | pass (chạy để simulator test có `dist`) |
+| Docs HTML | `tools/docs/.venv/Scripts/python.exe tools/docs/build.py` rồi `--check` | sinh lại `docs/html/index.html` (483.535 byte); `--check` báo khớp nguồn, 354 liên kết/275 ID |
+| Payload mẫu | `node tools/docs/check-examples.mjs` | parse **5/5** payload mẫu bằng schema tương ứng |
+| Typecheck | `pnpm -r typecheck` | **không chạy lại** trong lượt này |
+| API randomized | `cd apps/api && pnpm test:random --seed=...` | **không chạy lại** trong lượt này |
+| Web production build | `cd apps/web && pnpm build` | **không chạy lại** trong lượt này |
+| Seed demo | `cd apps/api && pnpm seed` | **không chạy lại** trong lượt này |
+| MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **không chạy lại** trong lượt này |
+
+**Kết luận có giới hạn:** trên máy dev ngày 18/11/2026, API 219 test, web 346 test, simulator 23 test và E2E 26 test đều xanh; HTML tài liệu và payload mẫu khớp nguồn. Lượt này **không** đo typecheck, build production, randomized, seed hay MQTT; không có bằng chứng nào cho PostgreSQL/MQTT thật, firmware, độ chính xác té ngã, p95 trên mạng thật hay khả dụng người cao tuổi — không dùng các con số trên để tuyên bố “release-ready”.
+
+## Bằng chứng chạy ngày 15/11/2026 (trước v7 — lịch sử)
 
 Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, Vitest cho web, Playwright Chromium cho E2E. Đây là số đo trên nhánh master sau khi hợp nhất các fix cuối; không dùng số này thay cho lần chạy ở máy khác.
 

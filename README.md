@@ -4,14 +4,14 @@
 
 Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ, web responsive cho người dùng/người thân/quản trị, simulator thiết bị và bộ dữ liệu demo tổng hợp. Thiết kế gốc nằm trong `docs/`; kế hoạch và trạng thái triển khai ở [docs/14](docs/14-ke-hoach-trien-khai-phan-mem.md).
 
-> **Trạng thái 15/11/2026 — v4 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **`/app` là Hôm nay** (một câu trạng thái, một hành động, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính 4 mục. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push, chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm; HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
+> **Trạng thái 18/11/2026 — v7 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **v7 xây lại toàn bộ lớp trình bày** (token/primitive dùng chung, shell mới, CSS tách theo feature) mà không đổi nghiệp vụ hay API: **`/app` là Hôm nay** (một câu trạng thái, hành động chính, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính **4 mục Hôm nay/Cảnh báo/Sức khỏe/Người thân**, không còn menu “Thêm”. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, chưa Web Push, chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm; HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
 
 ## Tính năng hiện có
 
 - **Tài khoản và phiên:** đăng ký/đăng nhập/đăng xuất bằng cookie HttpOnly + bảng `sessions`; đổi tên hiển thị, đổi mật khẩu (giữ phiên hiện tại, thu hồi phiên khác), xem và thu hồi từng phiên; admin khóa tài khoản sẽ thu hồi phiên.
-- **Hồ sơ và chia sẻ:** tạo/sửa hồ sơ, mời người thân, chấp nhận/thu hồi quyền, giới hạn số ngày lịch sử. `/app` là Hôm nay; `/app/overview` là Sức khỏe chi tiết. Quyền `canViewMeasurements` tách khỏi quyền nhận cảnh báo: người thân có thể nhận cảnh báo mà không xem nhịp tim/bước chân/lịch sử/CSV.
+- **Hồ sơ và chia sẻ:** tạo/sửa hồ sơ, mời người thân, chấp nhận/thu hồi quyền, giới hạn số ngày lịch sử. `/app` là Hôm nay; `/app/overview` là Sức khỏe chi tiết; nav chính chỉ 4 mục, mọi trang khác đi vào từ đúng ngữ cảnh hồ sơ (Thiết bị, Chia sẻ và liên hệ, Công việc) hoặc từ menu tài khoản. Quyền `canViewMeasurements` tách khỏi quyền nhận cảnh báo: người thân có thể nhận cảnh báo mà không xem nhịp tim/bước chân/lịch sử/CSV.
 - **Dữ liệu đo:** ingest telemetry HTTP, chống trùng, gán theo assignment tại `measured_at`, cách ly mẫu lệch giờ/ngoài assignment; tổng hợp ngày, lịch sử có khoảng thiếu/độ phủ, CSV, xu hướng 7/14/30 ngày.
-- **Cảnh báo:** vòng đời `suspected → unconfirmed/open → acknowledged → resolved/cancelled`, ack/resolve compare-and-set, outbox trong ứng dụng + SSE. Badge thông báo chưa đọc và banner cảnh báo mới hiển thị toàn tài khoản; stream bị thu hồi khi mất quyền, khóa tài khoản hoặc phiên hết hạn.
+- **Cảnh báo:** vòng đời `suspected → unconfirmed/open → acknowledged → resolved/cancelled`, ack/resolve compare-and-set, outbox trong ứng dụng + SSE. Nav Cảnh báo mang badge **số cảnh báo đang mở** của hồ sơ đang xem (tối đa 20, `20+` khi còn trang sau); hộp thông báo toàn tài khoản ở `/app/alerts?view=notifications` và banner “Có thông báo mới” dẫn đúng incident; stream bị thu hồi khi mất quyền, khóa tài khoản hoặc phiên hết hạn.
 - **Liên hệ khẩn cấp:** tối đa 5 liên hệ/hồ sơ, một liên hệ chính, số điện thoại có `tel:` trong chi tiết cảnh báo; chỉ chủ hồ sơ ghi, người thân có quyền nhận cảnh báo được đọc.
 - **Việc bảo trì:** xem/đóng việc theo quyền hồ sơ; chủ hồ sơ tạo việc cho thiết bị đang gắn (kiểm thiết bị, hạn xử lý, lý do đóng).
 - **Lưu trữ và yêu cầu xóa:** chủ hồ sơ lưu trữ hồ sơ (thu hồi liên kết chia sẻ, **không xóa** dữ liệu) hoặc ghi nhận yêu cầu xóa dữ liệu để xử lý thủ công. Chưa có quy trình xóa cứng, retention tự động hay xóa xuyên backup/AI cache.
@@ -74,28 +74,26 @@ pnpm -r typecheck
 cd apps/api && pnpm test                  # Jest, PGlite in-memory
 cd apps/web && pnpm test                  # Vitest + Testing Library
 cd apps/web && pnpm build                 # typecheck + Vite production build
-cd tools/simulator && npm test            # node:test
-cd apps/web && pnpm test:e2e              # Playwright 10 test; cần API + web server
+cd tools/simulator && npm test            # node:test (cần pnpm build:contracts trước)
+cd apps/web && pnpm test:e2e              # Playwright 26 test; cần API + web server
 python tools/docs/build.py --check        # HTML khớp nguồn Markdown/JSON
 node tools/docs/check-examples.mjs        # mọi payload mẫu parse bằng schema (cần pnpm build:contracts)
 node infra/check-mqtt-exposure.mjs        # broker không anonymous, 1883 không mở ra ngoài loopback
 ```
 
-Kết quả chạy ngày **15/11/2026** trên worktree này:
+Kết quả chạy ngày **18/11/2026** trên worktree này (sau khi hợp nhất các lane giao diện v7):
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`cd apps/api && pnpm test`) | **20 suite / 219 test pass**, 197,6 s |
-| Web unit (`cd apps/web && pnpm test`) | **35 file / 250 test pass**, ~20 s |
+| API (`pnpm --filter @heart-iot/api test`) | **20 suite / 219 test pass**, 59,4 s |
+| Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **38 file / 346 test pass**, 112,0 s |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
-| E2E (`cd apps/web && pnpm test:e2e`) | **26/26 pass**; gồm landing/login/public, Hôm nay, lịch sử và test 60 giây không refetch |
-| Typecheck (`pnpm -r typecheck`) | contracts/api/web/simulator pass |
-| Contracts (`pnpm build:contracts`) | pass |
-| Web production build (`cd apps/web && pnpm build`) | **pass**; bundle tách theo route, chunk lớn nhất ~271 kB (chưa đo mạng thật) |
-| Docs HTML (`python tools/docs/build.py --check`) | pass sau khi sinh lại; xem `tools/docs/README.md` |
-| Payload mẫu | parse đủ bằng schema tương ứng; script fail nếu file mẫu chưa khai báo schema |
+| E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
+| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; 354 liên kết/275 ID |
+| Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
+| Typecheck, web production build, API randomized, seed, MQTT exposure | **không chạy lại** trong lượt này |
 
-Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
+Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; ảnh và số đo giao diện v7 ở `reports/qa/evidence/v7-*/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
 
 ## Thành phần
 
@@ -134,8 +132,8 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** unit/integration API 219 test, web 250 test, randomized 219/219, E2E 26/26 và build web đã qua trên máy dev. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
-- **Giao diện:** đã tách chunk theo route; lần đo gần nhất trước v2 có chunk lớn nhất ~265 kB, chưa đo trên mạng thật.
+- **Kiểm thử:** unit/integration API 219 test, web 346 test, E2E 26/26 và simulator 23 test đã qua trên máy dev ngày 18/11/2026; lượt đó chưa chạy lại randomized, build production, seed hay typecheck. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp
 
