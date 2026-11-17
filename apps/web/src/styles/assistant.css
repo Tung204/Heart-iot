@@ -1,0 +1,312 @@
+/* ============================================================
+   v7 — Hôm nay (kể cả alias /app/assistant): tín hiệu ưu tiên,
+   ô hỏi trợ lý AI và hội thoại.
+   Nút/field/notice dùng primitive; file này chỉ đặt bố cục.
+   Đặc tả: reports/orchestration/v7/design-system.md §5.4.
+   ============================================================ */
+
+.today-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .today-page {
+    gap: var(--space-4);
+  }
+}
+
+.today-page__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ---------- Dải tín hiệu ưu tiên (không card thường xuyên) ---------- */
+
+.today-signal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-inline-start: 4px solid var(--border-control);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+.today-signal__text {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.today-signal__detail {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.today-signal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.today-signal--alert {
+  border-color: var(--danger);
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.today-signal--calm {
+  border-inline-start-color: var(--action);
+}
+
+.today-signal--muted {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.today-signal--error {
+  border-color: var(--danger);
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* ---------- Link phụ + dòng giới hạn (đứng trên ô hỏi) ---------- */
+
+.today-note-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+.today-note-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.today-note-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  color: var(--action);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.today-note-link:hover {
+  color: var(--action-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.today-note {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ---------- Hỏi trợ lý AI ---------- */
+
+.today-ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+}
+
+/* Đủ thoáng ở desktop; giữ hành động chính trong viewport đầu trên máy nhỏ + chữ lớn. */
+@media (min-width: 480px) {
+  .today-signal {
+    padding: var(--space-3) var(--space-4);
+  }
+  .today-ask {
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+}
+
+.today-ask__title {
+  font-size: var(--text-xl);
+}
+
+.today-ask__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.today-ask__label {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.today-ask__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .today-ask__row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+/* Composer 1 dòng như §2.3 (textarea.field__input legacy đang ép cao hơn trong
+   layout.css — rule đó thuộc F và sẽ bị retire ở W3; ở đây chỉ đặt lại cho
+   đúng ô hỏi của trang, không định nghĩa lại .field__input toàn cục). */
+textarea.today-ask__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--target-min);
+  max-height: 12rem;
+  resize: vertical;
+}
+
+.today-ask__submit {
+  flex: none;
+}
+
+@media (max-width: 639px) {
+  .today-ask__submit {
+    width: 100%;
+  }
+}
+
+.today-ask__hint {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.today-ask__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.today-suggestion {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-align: start;
+}
+
+.today-suggestion:hover:not(:disabled) {
+  border-color: var(--action);
+  background: var(--action-soft);
+  color: var(--action-hover);
+}
+
+.today-suggestion:disabled {
+  cursor: not-allowed;
+  border-color: var(--border-subtle);
+  background: var(--bg-subtle);
+  color: var(--text-disabled);
+}
+
+/* ---------- Hội thoại: câu hỏi nền nhạt, câu trả lời nền trắng ---------- */
+
+.today-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  max-width: var(--measure-conversation);
+}
+
+.today-turn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.today-msg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  min-width: 0;
+}
+
+.today-msg--user {
+  border-color: var(--action);
+  background: var(--action-soft);
+}
+
+.today-msg--assistant {
+  background: var(--bg-surface);
+}
+
+.today-msg--pending {
+  border-style: dashed;
+}
+
+.today-msg__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.today-msg__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+}
+
+.today-msg__text {
+  overflow-wrap: anywhere;
+}
+
+.today-msg__disclaimer {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.today-answer__text {
+  line-height: var(--leading-body);
+  overflow-wrap: anywhere;
+}
+
+.today-answer__sources {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.today-answer__sources-label {
+  font-weight: var(--weight-semibold);
+}
+
+.today-answer__sources ul {
+  padding-inline-start: var(--space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-suggestion,
+  .today-note-link {
+    transition: none;
+  }
+}

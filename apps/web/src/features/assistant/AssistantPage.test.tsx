@@ -177,9 +177,9 @@ describe('Hôm nay (/app)', () => {
     // Ô hỏi + ba gợi ý ngắn; hội thoại chưa xuất hiện trước câu hỏi đầu tiên.
     expect(screen.getByLabelText(/^Câu hỏi/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Nhịp tim?' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Cảnh báo?' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Pin?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nhịp tim tuần này' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cảnh báo đang mở' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pin thiết bị' })).toBeInTheDocument();
     expect(screen.queryByRole('log')).not.toBeInTheDocument();
 
     // Nguồn dữ liệu mô phỏng + giới hạn cấp cứu xuất hiện đúng một lần.
@@ -344,7 +344,7 @@ describe('Hôm nay (/app)', () => {
     expect(screen.getAllByRole('link', { name: /Sức khỏe/ })).toHaveLength(1);
   });
 
-  it('link Sức khỏe 7 ngày + dòng giới hạn đứng ngay dưới khối trạng thái, không trôi theo hội thoại', async () => {
+  it('link Sức khỏe 7 ngày + dòng giới hạn đứng sau ô hỏi/hội thoại theo thứ tự §5.4', async () => {
     renderPage(<AssistantPage />, todayHandler());
     const user = userEvent.setup();
 
@@ -352,18 +352,19 @@ describe('Hôm nay (/app)', () => {
     const note = screen.getByText('Dữ liệu mô phỏng · không thay thế cấp cứu.');
     const input = screen.getByLabelText(/^Câu hỏi/);
 
-    // Cùng một khối meta và đứng trước ô hỏi, không nằm sau hội thoại.
+    // Cùng một khối meta, đứng SAU composer để hành động chính nằm trong viewport đầu.
     expect(link.parentElement?.parentElement).toBe(note.parentElement);
     expect(
-      link.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+      input.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
     await user.type(input, 'Nhịp tim hôm nay thế nào?');
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
     const thread = await screen.findByRole('log');
 
+    // Hội thoại chen giữa composer và khối link/giới hạn thì link vẫn ở sau thread.
     expect(
-      link.compareDocumentPosition(thread) & Node.DOCUMENT_POSITION_FOLLOWING,
+      thread.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
 
@@ -618,11 +619,11 @@ describe('Hôm nay (/app)', () => {
     await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`);
     await user.type(screen.getByLabelText(/^Câu hỏi/), 'Pin thiết bị còn bao nhiêu?');
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
-    await waitFor(() => expect(document.querySelector('.assistant-msg--pending')).not.toBeNull());
+    await waitFor(() => expect(document.querySelector('.today-msg--pending')).not.toBeNull());
 
     await user.click(screen.getByRole('button', { name: 'Đổi hồ sơ' }));
     await waitFor(() =>
-      expect(document.querySelector('.assistant-msg--pending')).toBeNull(),
+      expect(document.querySelector('.today-msg--pending')).toBeNull(),
     );
     expect(screen.queryByText('Pin thiết bị còn bao nhiêu?')).not.toBeInTheDocument();
 
@@ -712,6 +713,81 @@ describe('Hôm nay (/app)', () => {
 
     expect(await screen.findByText('Trình duyệt chặn thao tác gửi')).toBeInTheDocument();
     expect(screen.queryByText('Chủ hồ sơ không chia sẻ số đo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('log')).not.toBeInTheDocument();
+  });
+});
+
+/** Harness hai chiều: A → B → A không đổi pathname, chỉ đổi hồ sơ đang chọn. */
+function TwoWaySwitchHarness() {
+  return (
+    <>
+      <button type="button" onClick={() => setActiveSubjectId(SECOND_SUBJECT.id)}>
+        Sang hồ sơ B
+      </button>
+      <button type="button" onClick={() => setActiveSubjectId(OWNER_SUBJECT.id)}>
+        Quay lại hồ sơ A
+      </button>
+      <SubjectContextLine />
+      <AssistantPage />
+    </>
+  );
+}
+
+describe('Hôm nay — cấu trúc màn và câu trả lời đến muộn', () => {
+  afterEach(() => {
+    setActiveSubjectId(null);
+  });
+
+  it('một H1, H2 "Hỏi trợ lý AI", label câu hỏi theo hồ sơ; không tự gọi tóm tắt', async () => {
+    const calls = emptyCalls();
+    renderPage(<AssistantPage />, todayHandler({ calls }));
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Hôm nay' }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Hỏi trợ lý AI' }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Câu hỏi về Bà Năm')).toBeInTheDocument();
+    // Trang không tự gọi summary chỉ để lấp khoảng trống.
+    expect(calls.assistant).toHaveLength(0);
+  });
+
+  it('A → B → A khi câu trả lời A còn chờ: không dán câu trả lời cũ vào thread mới', async () => {
+    let resolveAsk: ((response: Response) => void) | null = null;
+    renderPage(
+      <TwoWaySwitchHarness />,
+      todayHandler({
+        subjects: [OWNER_SUBJECT, SECOND_SUBJECT],
+        ask: () =>
+          new Promise<Response>((resolve) => {
+            resolveAsk = resolve;
+          }),
+      }),
+    );
+    const user = userEvent.setup();
+
+    await screen.findByText(`Không có cảnh báo mở. Dữ liệu cập nhật ${LAST_SEEN_TEXT}.`);
+    await user.type(screen.getByLabelText(/^Câu hỏi/), 'Pin thiết bị còn bao nhiêu?');
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }));
+    await waitFor(() =>
+      expect(document.querySelector('.today-msg--pending')).not.toBeNull(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Sang hồ sơ B' }));
+    await waitFor(() =>
+      expect(document.querySelector('.today-msg--pending')).toBeNull(),
+    );
+    await user.click(screen.getByRole('button', { name: 'Quay lại hồ sơ A' }));
+    await screen.findByLabelText('Câu hỏi về Bà Năm');
+
+    await act(async () => {
+      resolveAsk?.(mockResponse({ ...READY_ANSWER, answer: 'Câu trả lời cũ không được hiện.' }));
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByText('Câu trả lời cũ không được hiện.')).not.toBeInTheDocument();
     expect(screen.queryByRole('log')).not.toBeInTheDocument();
   });
 });

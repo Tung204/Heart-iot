@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { AssistantAnswer } from '@heart-iot/contracts/assistant';
 import { Alert } from '../../components/Alert';
 import { Button, ButtonLink } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { StatusPill } from '../../components/StatusPill';
 import { formatDateTime, formatTime } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
@@ -17,6 +18,7 @@ import { useMe } from '../auth/useAuth';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
 import { askAssistant, assistantAskSchema } from './api';
+import '../../styles/assistant.css';
 
 /** Cùng cỡ danh sách với badge điều hướng để hai nơi dùng chung một lần tải. */
 const OPEN_ALERTS_LIMIT = 20;
@@ -33,18 +35,12 @@ function isForbiddenError(error: unknown): boolean {
  */
 function isOriginBlockedError(error: unknown): boolean {
   return (
-    isForbiddenError(error) &&
-    isApiError(error) &&
-    /origin|thao tác ghi/i.test(error.message)
+    isForbiddenError(error) && isApiError(error) && /origin|thao tác ghi/i.test(error.message)
   );
 }
 
 function isMeasurementPermissionError(error: unknown): boolean {
-  return (
-    isForbiddenError(error) &&
-    isApiError(error) &&
-    /số đo|chia sẻ/i.test(error.message)
-  );
+  return isForbiddenError(error) && isApiError(error) && /số đo|chia sẻ/i.test(error.message);
 }
 
 const ALERTS_FORBIDDEN_TEXT = 'Bạn không có quyền xem cảnh báo của hồ sơ này.';
@@ -89,26 +85,26 @@ function SourcesList({ sources }: { sources: AssistantAnswer['sources'] }) {
 
 function AnswerView({ answer }: { answer: AssistantAnswer }) {
   return (
-    <div className="assistant-msg assistant-msg--assistant">
-      <div className="assistant-msg__head">
-        <p className="assistant-msg__label">Trợ lý</p>
+    <div className="today-msg today-msg--assistant">
+      <div className="today-msg__head">
+        <p className="today-msg__label">Trợ lý</p>
         <ProviderBadge status={answer.status} provider={answer.provider} />
         {answer.dataQuality?.synthetic ? (
           <StatusPill tone="sand">Dữ liệu mô phỏng</StatusPill>
         ) : null}
       </div>
-      <p className="ai-answer__text">{answer.answer}</p>
-      <p className="assistant-msg__disclaimer">{answer.disclaimer}</p>
+      <p className="today-answer__text">{answer.answer}</p>
+      <p className="today-msg__disclaimer">{answer.disclaimer}</p>
       <SourcesList sources={answer.sources} />
     </div>
   );
 }
 
-/** Câu hỏi gợi ý ngắn; câu hỏi đầy đủ vẫn được điền vào ô hỏi khi bấm. */
+/** Gợi ý câu hỏi: bấm để điền, không tự gửi (đặc tả §5.4). */
 const SUGGESTED_QUESTIONS = [
-  { label: 'Nhịp tim?', question: 'Nhịp tim tuần này thế nào?' },
-  { label: 'Cảnh báo?', question: 'Có cảnh báo nào đang mở không?' },
-  { label: 'Pin?', question: 'Pin thiết bị gần nhất còn bao nhiêu?' },
+  { label: 'Nhịp tim tuần này', question: 'Nhịp tim tuần này thế nào?' },
+  { label: 'Cảnh báo đang mở', question: 'Có cảnh báo nào đang mở không?' },
+  { label: 'Pin thiết bị', question: 'Pin thiết bị gần nhất còn bao nhiêu?' },
 ];
 
 type ConversationTurn = {
@@ -120,20 +116,19 @@ type ConversationTurn = {
 type TodayStatus = {
   tone: 'calm' | 'alert' | 'muted' | 'error';
   text: string;
-  /** Dòng phụ cho tín hiệu an toàn (ví dụ thiết bị ngoại tuyến) khi thẻ chính là cảnh báo. */
+  /** Dòng phụ cho tín hiệu an toàn (ví dụ thiết bị ngoại tuyến) khi dải chính là cảnh báo. */
   detail?: string;
   action?: ReactNode;
 };
 
 /**
- * `/app` — Hôm nay: màn mặc định, chỉ trả lời bốn câu hỏi.
- * - Ai: một dòng tên hồ sơ đang xem ngay dưới H1 (select nhỏ khi có nhiều hồ sơ).
- * - Hôm nay thế nào: một thẻ trạng thái ngắn từ status + cảnh báo đang mở.
- * - Cần làm gì: hành động chính ngay trong thẻ (xem cảnh báo, kiểm tra thiết bị).
- * - Hỏi ở đâu: ô hỏi trợ lý; hội thoại chỉ xuất hiện sau câu hỏi đầu tiên.
+ * `/app` — Hôm nay (alias `/app/assistant`): biết việc cần làm ngay và hỏi về dữ liệu.
+ * - Ngữ cảnh hồ sơ do shell render một dòng phía trên H1; trang không tự render lại.
+ * - Một dải tín hiệu ưu tiên từ status + cảnh báo đang mở, hành động chính ngay trong dải.
+ * - Ô hỏi trợ lý AI + ba gợi ý; hội thoại chỉ xuất hiện sau câu hỏi đầu tiên.
  *
  * Không gọi API tóm tắt 7 ngày ở màn đầu. Cảnh báo vẫn độc lập với trợ lý:
- * trợ lý không tự xác nhận/đóng cảnh báo.
+ * trợ lý không tự xác nhận/đóng cảnh báo và lỗi AI không che cảnh báo.
  */
 export function AssistantPage() {
   const me = useMe();
@@ -189,7 +184,11 @@ export function AssistantPage() {
   // pathname, nên phải reset ngay trong render để không lộ câu trả lời của hồ sơ
   // cũ dưới hồ sơ mới (kể cả trước khi effect chạy).
   const [threadSubjectId, setThreadSubjectId] = useState(subjectId);
+  // Epoch tăng mỗi lần đổi hồ sơ: phản hồi của epoch cũ bị bỏ, kể cả khi người
+  // dùng đổi A → B → A trong lúc request đầu còn bay.
+  const threadEpoch = useRef(0);
   if (threadSubjectId !== subjectId) {
+    threadEpoch.current += 1;
     setThreadSubjectId(subjectId);
     setTurns([]);
     setQuestion('');
@@ -197,15 +196,22 @@ export function AssistantPage() {
   }
   const currentSubjectIdRef = useRef(subjectId);
   currentSubjectIdRef.current = subjectId;
+  const currentEpochRef = useRef(threadEpoch.current);
+  currentEpochRef.current = threadEpoch.current;
   const turnCounter = useRef(0);
   const threadEndRef = useRef<HTMLDivElement>(null);
 
   const ask = useMutation({
-    mutationFn: (input: { subjectId: string; question: string }) =>
+    mutationFn: (input: { subjectId: string; question: string; epoch: number }) =>
       askAssistant(input.subjectId, { question: input.question }),
     onSuccess: (answer, input) => {
-      // Hồ sơ đã đổi trong lúc chờ: bỏ kết quả của hồ sơ cũ, không append nhầm.
-      if (input.subjectId !== currentSubjectIdRef.current) return;
+      // Hồ sơ đã đổi (hoặc đã đổi rồi quay lại) trong lúc chờ: bỏ kết quả cũ.
+      if (
+        input.subjectId !== currentSubjectIdRef.current ||
+        input.epoch !== currentEpochRef.current
+      ) {
+        return;
+      }
       turnCounter.current += 1;
       setTurns((previous) => [
         ...previous,
@@ -263,7 +269,7 @@ export function AssistantPage() {
     }
     if (!subjectId) return;
     setFieldErrors({ fields: {}, general: [] });
-    ask.mutate({ subjectId, question: parsed.data.question });
+    ask.mutate({ subjectId, question: parsed.data.question, epoch: threadEpoch.current });
   };
 
   const devices = status.data?.devices ?? [];
@@ -403,7 +409,7 @@ export function AssistantPage() {
         } cảnh báo đang mở.`,
         detail: deviceWarning ?? undefined,
         action: (
-          <div className="today-status__actions">
+          <div className="today-signal__actions">
             {primaryContact ? (
               <a
                 className="button button--primary button--md"
@@ -440,44 +446,38 @@ export function AssistantPage() {
   const hasConversation = turns.length > 0 || askPending;
 
   return (
-    <div className="stack today">
-      <header className="today__header">
+    <div className="today-page">
+      <header className="today-page__head">
         <h1 className="page-title">Hôm nay</h1>
       </header>
 
-      {!activeSubject ? null : (
+      {!activeSubject ? (
+        <EmptyState
+          title="Chưa có hồ sơ để theo dõi"
+          headingLevel={2}
+          description="Thêm người cần theo dõi để xem cảnh báo và hỏi trợ lý về dữ liệu của họ."
+          action={<ButtonLink to="/app/subjects">Thêm người</ButtonLink>}
+        />
+      ) : (
         <>
           <section
-            className={`today-status today-status--${statusCard.tone}`}
+            className={`today-signal today-signal--${statusCard.tone}`}
             aria-label="Trạng thái hôm nay"
           >
-            <p className="today-status__text">{statusCard.text}</p>
+            <p className="today-signal__text">{statusCard.text}</p>
             {statusCard.detail ? (
-              <p className="today-status__detail">{statusCard.detail}</p>
+              <p className="today-signal__detail">{statusCard.detail}</p>
             ) : null}
-            {statusCard.action ? (
-              <div className="today-status__action">{statusCard.action}</div>
-            ) : null}
+            {statusCard.action ? <div>{statusCard.action}</div> : null}
           </section>
 
-          {/* Link phụ và dòng giới hạn đứng ngay dưới khối trạng thái, trên ô hỏi:
-              không bị hội thoại dài đẩy xuống đáy trang. */}
-          <div className="today-meta">
-            <nav className="today-links" aria-label="Xem thêm">
-              <Link className="today-links__item" to="/app/overview">
-                Sức khỏe 7 ngày →
-              </Link>
-            </nav>
-            <p className="today__note">{TODAY_LIMIT_NOTE}</p>
-          </div>
-
           <section className="today-ask" aria-labelledby="today-ask-heading">
-            <h2 id="today-ask-heading" className="visually-hidden">
-              Hỏi trợ lý về hồ sơ này
+            <h2 id="today-ask-heading" className="today-ask__title">
+              Hỏi trợ lý AI
             </h2>
             <form className="today-ask__form" onSubmit={handleAsk} noValidate>
-              <label className="visually-hidden" htmlFor="assistant-question">
-                Câu hỏi
+              <label className="today-ask__label" htmlFor="assistant-question">
+                Câu hỏi về {activeSubject.displayName}
               </label>
               <div className="today-ask__row">
                 <textarea
@@ -495,6 +495,7 @@ export function AssistantPage() {
                 />
                 <Button
                   type="submit"
+                  className="today-ask__submit"
                   aria-label={askPending ? 'Đang trả lời câu hỏi' : 'Gửi câu hỏi'}
                   disabled={askPending || askBlocked}
                 >
@@ -514,9 +515,7 @@ export function AssistantPage() {
               {!canUseAi ? (
                 <p className="today-ask__hint">Trợ lý chưa được bật cho hồ sơ này.</p>
               ) : !canViewMeasurements ? (
-                <p className="today-ask__hint">
-                  Trợ lý cần quyền xem số đo để trả lời.
-                </p>
+                <p className="today-ask__hint">Trợ lý cần quyền xem số đo để trả lời.</p>
               ) : null}
               {askError ? (
                 isForbiddenError(askError) ? (
@@ -546,13 +545,12 @@ export function AssistantPage() {
               ) : null}
             </form>
 
-            <div className="ai-suggestions today-ask__suggestions" aria-label="Gợi ý câu hỏi">
+            <div className="today-ask__suggestions" role="group" aria-label="Gợi ý câu hỏi">
               {SUGGESTED_QUESTIONS.map((suggestion) => (
                 <button
                   key={suggestion.label}
                   type="button"
-                  className="ai-suggestion"
-                  title={suggestion.question}
+                  className="today-suggestion"
                   disabled={askBlocked}
                   onClick={() => setQuestion(suggestion.question)}
                 >
@@ -562,20 +560,20 @@ export function AssistantPage() {
             </div>
 
             {hasConversation ? (
-              <div className="assistant-thread today-thread" role="log" aria-label="Hội thoại">
+              <div className="today-thread" role="log" aria-label="Hội thoại">
                 {turns.map((turn) => (
-                  <article key={turn.id} className="assistant-turn">
-                    <div className="assistant-msg assistant-msg--user">
-                      <p className="assistant-msg__label">Bạn</p>
-                      <p className="assistant-msg__text">{turn.question}</p>
+                  <article key={turn.id} className="today-turn">
+                    <div className="today-msg today-msg--user">
+                      <p className="today-msg__label">Bạn</p>
+                      <p className="today-msg__text">{turn.question}</p>
                     </div>
                     <AnswerView answer={turn.answer} />
                   </article>
                 ))}
                 {askPending ? (
-                  <div className="assistant-msg assistant-msg--assistant assistant-msg--pending">
-                    <p className="assistant-msg__label">Trợ lý</p>
-                    <p className="assistant-msg__text" role="status">
+                  <div className="today-msg today-msg--assistant today-msg--pending">
+                    <p className="today-msg__label">Trợ lý</p>
+                    <p className="today-msg__text" role="status">
                       Đang trả lời…
                     </p>
                   </div>
@@ -584,11 +582,21 @@ export function AssistantPage() {
               </div>
             ) : null}
           </section>
+
+          {/* Theo thứ tự §5.4: link Sức khỏe + giới hạn đứng sau ô hỏi/hội thoại,
+              không chen giữa dải tín hiệu và composer. */}
+          <div className="today-note-row">
+            <nav className="today-note-links" aria-label="Xem thêm">
+              <Link className="today-note-link" to="/app/overview">
+                Sức khỏe 7 ngày →
+              </Link>
+            </nav>
+            <p className="today-note">{TODAY_LIMIT_NOTE}</p>
+          </div>
         </>
       )}
 
-      {/* Khi chưa có hồ sơ vẫn giữ dòng giới hạn, nhưng không đặt sau ô hỏi. */}
-      {activeSubject ? null : <p className="today__note">{TODAY_LIMIT_NOTE}</p>}
+      {activeSubject ? null : <p className="today-note">{TODAY_LIMIT_NOTE}</p>}
     </div>
   );
 }

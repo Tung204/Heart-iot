@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { AlertDetailPage } from './AlertDetailPage';
+import { setActiveSubjectId } from '../subjects/selection';
 import {
   errorEnvelope,
   INCIDENT,
@@ -14,9 +15,15 @@ import {
   USER,
 } from '../../test/utils';
 
+interface DetailEntryState {
+  alertsView?: 'alerts' | 'notifications';
+  alertsFilter?: 'open' | 'closed';
+}
+
 function renderDetail(
   handler: (url: string, init?: RequestInit) => Response,
   subject: typeof SUBJECT = SUBJECT,
+  state?: DetailEntryState,
 ) {
   // Cố định hồ sơ cho các test quyền; handler chỉ cần lo endpoint cảnh báo.
   const fetchMock = stubFetch((url, init) => {
@@ -29,7 +36,9 @@ function renderDetail(
   });
   const utils = render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[`/app/alerts/${INCIDENT.id}`]}>
+      <MemoryRouter
+        initialEntries={[{ pathname: `/app/alerts/${INCIDENT.id}`, state }]}
+      >
         <Routes>
           <Route path="/app/alerts/:id" element={<AlertDetailPage />} />
         </Routes>
@@ -303,5 +312,139 @@ describe('AlertDetailPage — quyền ghi cảnh báo', () => {
       ),
     ).toBe(true);
     expect(screen.queryByText(/không chia sẻ quyền nhận cảnh báo/)).not.toBeInTheDocument();
+  });
+});
+
+// D3 / trang chi tiết ghim theo đối tượng của cảnh báo: quyền và dòng nhận diện
+// lấy từ `detail.subjectId`, không lấy hồ sơ đang chọn trong shell.
+describe('AlertDetailPage — ngữ cảnh ghim theo detail.subjectId', () => {
+  const OTHER_SUBJECT = {
+    ...SUBJECT,
+    id: '9f8e7d6c-5b4a-4392-8170-0f1e2d3c4b5a',
+    displayName: 'Ông Bình',
+    role: 'owner',
+  };
+
+  afterEach(() => {
+    setActiveSubjectId(null);
+  });
+
+  it('đang chọn hồ sơ khác vẫn hiện đúng người của cảnh báo và đúng quyền của người đó', async () => {
+    // Cảnh báo thuộc SUBJECT (Bà Năm) với quyền chỉ nhận cảnh báo; hồ sơ đang chọn
+    // là Ông Bình (owner, đủ quyền) — không được mượn quyền của Ông Bình.
+    const incidentSubject = {
+      ...SUBJECT,
+      role: 'caregiver',
+      permissions: { ...SUBJECT.permissions, canReceiveAlerts: true, canAcknowledge: false },
+    };
+    setActiveSubjectId(OTHER_SUBJECT.id);
+    stubFetch((url) => {
+      const u = String(url);
+      if (u.endsWith('/subjects')) {
+        return mockResponse({ items: [incidentSubject, OTHER_SUBJECT] });
+      }
+      if (u.includes(`/alerts/${INCIDENT.id}`)) return mockResponse(DETAIL);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[`/app/alerts/${INCIDENT.id}`]}>
+          <Routes>
+            <Route path="/app/alerts/:id" element={<AlertDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    const context = await screen.findByRole('group', { name: 'Người được theo dõi' });
+    expect(context).toHaveTextContent('Bà Năm');
+    expect(context).not.toHaveTextContent('Ông Bình');
+
+    // Quyền của Bà Năm: được nhận cảnh báo nhưng không được xác nhận.
+    expect(
+      screen.queryByRole('button', { name: 'Tôi đang hỗ trợ' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText('Bạn không có quyền xác nhận cảnh báo này (do chủ hồ sơ cài đặt).'),
+    ).toBeInTheDocument();
+  });
+
+  it('liên hệ khẩn cấp lỗi không chặn gửi xác nhận cảnh báo', async () => {
+    const { fetchMock } = renderDetail((url, init) => {
+      const u = url;
+      if (u.includes('/emergency-contacts')) {
+        return mockResponse(errorEnvelope('Máy chủ liên hệ đang bận.', 'INTERNAL'), 500);
+      }
+      if (u.includes('/acknowledge') && init?.method === 'POST') {
+        return mockResponse({
+          ...DETAIL,
+          state: 'acknowledged',
+          acknowledgedBy: { userId: USER.id, displayName: 'Trần Thị An' },
+        });
+      }
+      if (u.includes(`/alerts/${INCIDENT.id}`)) return mockResponse(DETAIL);
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+    const user = userEvent.setup();
+
+    const ack = await screen.findByRole('button', { name: 'Tôi đang hỗ trợ' });
+    expect(ack).toBeEnabled();
+    await user.click(ack);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Đang có người hỗ trợ' }),
+    ).toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.some(
+        ([input, init]) =>
+          String(input).includes(`/alerts/${INCIDENT.id}/acknowledge`) &&
+          (init as RequestInit | undefined)?.method === 'POST',
+      ),
+    ).toBe(true);
+  });
+
+  it('nút quay lại trỏ danh sách cảnh báo, và về đúng hộp thông báo khi mở từ inbox', async () => {
+    const first = renderDetail(detailHandler());
+    expect(await screen.findByRole('link', { name: /Về danh sách cảnh báo/ })).toHaveAttribute(
+      'href',
+      '/app/alerts',
+    );
+    first.unmount();
+
+    renderDetail(detailHandler(), SUBJECT, { alertsView: 'notifications' });
+    expect(await screen.findByRole('link', { name: /Về danh sách cảnh báo/ })).toHaveAttribute(
+      'href',
+      '/app/alerts?view=notifications',
+    );
+  });
+
+  it('timeline không bịa giờ: sự kiện thiếu measuredAt chỉ hiện giờ nhận', async () => {
+    renderDetail((url) => {
+      if (url.includes(`/alerts/${INCIDENT.id}`)) {
+        return mockResponse({
+          ...DETAIL,
+          events: [
+            {
+              eventRevision: 1,
+              eventType: 'sos.confirmed',
+              measuredAt: null,
+              receivedAt: '2026-11-14T08:00:02.000Z',
+              applied: false,
+              conflictReason: 'Phiên bản cũ',
+            },
+          ],
+        });
+      }
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    });
+
+    expect(await screen.findByText(/Xác nhận yêu cầu trợ giúp/)).toBeInTheDocument();
+    expect(screen.queryByText(/Xảy ra/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Nhận/)).toBeInTheDocument();
+    expect(screen.getByText(/không áp dụng/)).toBeInTheDocument();
+    expect(screen.getByText(/Phiên bản cũ/)).toBeInTheDocument();
   });
 });

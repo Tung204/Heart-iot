@@ -1,0 +1,2645 @@
+[
+  {
+    "route": "/app/alerts",
+    "viewport": "1280x900",
+    "largeText": false,
+    "screenshot": "alerts-1280x900.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "bodyClientWidth": 1280,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 14,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 184,
+        "height": 62
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 88.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 85.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 216.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 131.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 109.3,
+        "height": 44
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts?view=notifications",
+    "viewport": "1280x900",
+    "largeText": false,
+    "screenshot": "alerts-inbox-1280x900.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "bodyClientWidth": 1280,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 0,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": null
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": "page"
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 184,
+        "height": 62
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo Nghi ngã của Bà Trần Thị An",
+        "width": 114,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đánh dấu đã đọc thông báo về Nghi ngã của Bà Trần Thị An",
+        "width": 145.5,
+        "height": 44
+      }
+    ]
+  },
+  {
+    "route": "/app",
+    "viewport": "1280x900",
+    "largeText": false,
+    "screenshot": "today-1280x900.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "bodyClientWidth": 1280,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 184,
+        "height": 62
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 633.3,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 60.8,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      }
+    ]
+  },
+  {
+    "route": "/app/assistant",
+    "viewport": "1280x900",
+    "largeText": false,
+    "screenshot": "assistant-1280x900.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "bodyClientWidth": 1280,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 184,
+        "height": 62
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 633.3,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 60.8,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+    "viewport": "1280x900",
+    "largeText": false,
+    "screenshot": "alert-detail-1280x900.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 1280,
+    "clientWidth": 1280,
+    "bodyScrollWidth": 1280,
+    "bodyClientWidth": 1280,
+    "h1": [
+      "Nghi ngã"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 184,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 184,
+        "height": 62
+      },
+      {
+        "tag": "a",
+        "text": "← Về danh sách cảnh báo",
+        "width": 1000,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 154.6,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Đóng cảnh báo",
+        "width": 155.4,
+        "height": 48
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "alerts-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 14,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 88.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 85.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 216.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 131.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 109.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts?view=notifications",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "alerts-inbox-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 0,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": null
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": "page"
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo Nghi ngã của Bà Trần Thị An",
+        "width": 114,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đánh dấu đã đọc thông báo về Nghi ngã của Bà Trần Thị An",
+        "width": 145.5,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "today-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 332,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 332,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/assistant",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "assistant-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 332,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 332,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "alert-detail-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Nghi ngã"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "← Về danh sách cảnh báo",
+        "width": 358,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 154.6,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Đóng cảnh báo",
+        "width": 155.4,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts",
+    "viewport": "360x740",
+    "largeText": false,
+    "screenshot": "alerts-360x740.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 14,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 88.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 85.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 216.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 131.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 109.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts?view=notifications",
+    "viewport": "360x740",
+    "largeText": false,
+    "screenshot": "alerts-inbox-360x740.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 0,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": null
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": "page"
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 185.5,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo Nghi ngã của Bà Trần Thị An",
+        "width": 114,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đánh dấu đã đọc thông báo về Nghi ngã của Bà Trần Thị An",
+        "width": 145.5,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app",
+    "viewport": "360x740",
+    "largeText": false,
+    "screenshot": "today-360x740.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 302,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 302,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/assistant",
+    "viewport": "360x740",
+    "largeText": false,
+    "screenshot": "assistant-360x740.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 302,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 302,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+    "viewport": "360x740",
+    "largeText": false,
+    "screenshot": "alert-detail-360x740.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Nghi ngã"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "← Về danh sách cảnh báo",
+        "width": 328,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 154.6,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Đóng cảnh báo",
+        "width": 155.4,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts",
+    "viewport": "390x844-large",
+    "largeText": true,
+    "screenshot": "alerts-390x844-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 14,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 96.6,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 231.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 110.1,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 106.3,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 270.6,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 164,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 136.2,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts?view=notifications",
+    "viewport": "390x844-large",
+    "largeText": true,
+    "screenshot": "alerts-inbox-390x844-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 0,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": null
+      },
+      {
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "current": "page"
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 96.6,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận1, 1 chưa đọc",
+        "width": 231.3,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo Nghi ngã của Bà Trần Thị An",
+        "width": 142.5,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Đánh dấu đã đọc thông báo về Nghi ngã của Bà Trần Thị An",
+        "width": 181.4,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app",
+    "viewport": "390x844-large",
+    "largeText": true,
+    "screenshot": "today-390x844-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 76.6,
+        "height": 60
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 184.5,
+        "height": 60
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 318,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 318,
+        "height": 60
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 184.1,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 196.7,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 125.2,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 183.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app/assistant",
+    "viewport": "390x844-large",
+    "largeText": true,
+    "screenshot": "assistant-390x844-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 76.6,
+        "height": 60
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 184.5,
+        "height": 60
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 318,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 318,
+        "height": 60
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 184.1,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 196.7,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 125.2,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 183.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff",
+    "viewport": "390x844-large",
+    "largeText": true,
+    "screenshot": "alert-detail-390x844-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Nghi ngã"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 11,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "← Về danh sách cảnh báo",
+        "width": 350,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 76.6,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 192.8,
+        "height": 60
+      },
+      {
+        "tag": "button",
+        "text": "Đóng cảnh báo",
+        "width": 193.7,
+        "height": 60
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts (mở hỏi lại xác nhận)",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "alerts-ack-confirm-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 77.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận",
+        "width": 153.6,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 88.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 85.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 216.5,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Có, tôi đang hỗ trợ",
+        "width": 157.4,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Hủy",
+        "width": 52.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 109.3,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts/ffffffff-ffff-4fff-8fff-ffffffffffff (mở form đóng)",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "alert-detail-resolve-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Nghi ngã"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "← Về danh sách cảnh báo",
+        "width": 358,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 154.6,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Thu gọn",
+        "width": 97.8,
+        "height": 48
+      },
+      {
+        "tag": "select",
+        "text": "Đã hỗ trợ người được theo dõiKhông cần hành động thêmBáo động nhầmKhác",
+        "width": 358,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 358,
+        "height": 85.2
+      },
+      {
+        "tag": "button",
+        "text": "Xác nhận đóng cảnh báo",
+        "width": 232,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Hủy",
+        "width": 64.6,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app (hỏi trợ lý, có câu trả lời)",
+    "viewport": "390x844",
+    "largeText": false,
+    "screenshot": "today-thread-390x844.png",
+    "dpr": 1,
+    "rootFontSize": "16px",
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "bodyScrollWidth": 390,
+    "bodyClientWidth": 390,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 236.4,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 145.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 54,
+        "height": 54
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 61.7,
+        "height": 48
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 148,
+        "height": 48
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 332,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 332,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 147.7,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 157.8,
+        "height": 44
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 100.6,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 146.8,
+        "height": 44
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 97.5,
+        "height": 64
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 97.5,
+        "height": 64
+      }
+    ]
+  },
+  {
+    "route": "/app",
+    "viewport": "360x740-large",
+    "largeText": true,
+    "screenshot": "today-360x740-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Hôm nay"
+    ],
+    "contextLines": 1,
+    "tabs": [],
+    "smallTargets": [],
+    "targetCount": 15,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Gọi Người thân (demo)",
+        "width": 76.6,
+        "height": 60
+      },
+      {
+        "tag": "a",
+        "text": "Xem cảnh báo",
+        "width": 184.5,
+        "height": 60
+      },
+      {
+        "tag": "textarea",
+        "text": "",
+        "width": 288,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Gửi câu hỏi",
+        "width": 288,
+        "height": 60
+      },
+      {
+        "tag": "button",
+        "text": "Nhịp tim tuần này",
+        "width": 184.1,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Cảnh báo đang mở",
+        "width": 196.7,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Pin thiết bị",
+        "width": 125.2,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe 7 ngày →",
+        "width": 183.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 96.3
+      }
+    ]
+  },
+  {
+    "route": "/app/alerts",
+    "viewport": "360x740-large",
+    "largeText": true,
+    "screenshot": "alerts-360x740-large.png",
+    "dpr": 1,
+    "rootFontSize": "20px",
+    "scrollWidth": 360,
+    "clientWidth": 360,
+    "bodyScrollWidth": 360,
+    "bodyClientWidth": 360,
+    "h1": [
+      "Cảnh báo"
+    ],
+    "contextLines": 1,
+    "tabs": [
+      {
+        "text": "Cảnh báo",
+        "current": "page"
+      },
+      {
+        "text": "Thông báo đã nhận",
+        "current": null
+      }
+    ],
+    "smallTargets": [],
+    "targetCount": 14,
+    "targets": [
+      {
+        "tag": "a",
+        "text": "Chuyển tới nội dung chính",
+        "width": 295.5,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Theo dõi sức khỏe",
+        "width": 182.3,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tài khoản của Trần Thị An",
+        "width": 67,
+        "height": 67
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo",
+        "width": 96.6,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Thông báo đã nhận",
+        "width": 192,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Đang mở",
+        "width": 110.1,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Đã đóng",
+        "width": 106.3,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Nghi ngã — cần chú ý",
+        "width": 270.6,
+        "height": 55
+      },
+      {
+        "tag": "button",
+        "text": "Tôi đang hỗ trợ",
+        "width": 164,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Xem chi tiết",
+        "width": 136.2,
+        "height": 55
+      },
+      {
+        "tag": "a",
+        "text": "Hôm nay",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Cảnh báo11 cảnh báo đang mở",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Sức khỏe",
+        "width": 90,
+        "height": 96.3
+      },
+      {
+        "tag": "a",
+        "text": "Người thân",
+        "width": 90,
+        "height": 96.3
+      }
+    ]
+  }
+]
