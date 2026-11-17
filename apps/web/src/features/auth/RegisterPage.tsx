@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
@@ -19,6 +19,21 @@ const FIELD_ORDER = [
   ['confirmPassword', 'register-confirm'],
 ] as const;
 
+/** Giữ `next` nội bộ, tránh open-redirect; `/app` là mặc định nên bỏ tham số. */
+function withNext(path: string, next: string): string {
+  return next === '/app' ? path : `${path}?next=${encodeURIComponent(next)}`;
+}
+
+/**
+ * Nhãn màn hình là “Tên của bạn” (không phải tên người được theo dõi), nên
+ * thông điệp lỗi lấy từ helper dùng chung được đổi cụm từ tương ứng.
+ */
+function normalizeNameError(errors: Record<string, string>): Record<string, string> {
+  const message = errors.displayName;
+  if (!message) return errors;
+  return { ...errors, displayName: message.replace(/tên hiển thị/gi, 'tên của bạn') };
+}
+
 export function RegisterPage() {
   const me = useMe();
   const registerMutation = useRegister();
@@ -31,6 +46,8 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Xem LoginPage: khoá ref chặn gửi hai lần trước khi nút kịp disabled.
+  const submitLock = useRef(false);
 
   useFocusFirstError(fieldErrors, FIELD_ORDER);
   // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
@@ -42,33 +59,36 @@ export function RegisterPage() {
     return <Navigate to={next} replace />;
   }
   if (me.isPending) {
+    // Xem LoginPage: loader toàn trang trong lúc kiểm phiên.
     return <PageLoader label="Đang kiểm tra phiên đăng nhập…" />;
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitLock.current) return;
     setFormError(null);
     const values = { displayName, email, password };
     const parsed = registerSchema.safeParse(values);
-    if (!parsed.success) {
-      const errors = fieldErrorMap(parsed.error, values).fields;
-      if (password !== confirmPassword) {
-        errors.confirmPassword = 'Mật khẩu nhập lại không khớp.';
-      }
-      setFieldErrors(errors);
-      return;
-    }
+    const errors: Record<string, string> = parsed.success
+      ? {}
+      : fieldErrorMap(parsed.error, values).fields;
     if (password !== confirmPassword) {
-      setFieldErrors({ confirmPassword: 'Mật khẩu nhập lại không khớp.' });
+      errors.confirmPassword = 'Mật khẩu nhập lại không khớp.';
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(normalizeNameError(errors));
       return;
     }
+    if (!parsed.success) return;
     setFieldErrors({});
+    submitLock.current = true;
     registerMutation.mutate(parsed.data, {
       onSuccess: () => navigate(next, { replace: true }),
       onError: (error) => {
+        submitLock.current = false;
         const apiFields = apiValidationFieldErrors(error);
         if (apiFields) {
-          setFieldErrors(apiFields.fields);
+          setFieldErrors(normalizeNameError(apiFields.fields));
           if (apiFields.general.length > 0) setFormError(apiFields.general[0] ?? null);
         } else {
           setFormError(getApiErrorMessage(error));
@@ -80,16 +100,15 @@ export function RegisterPage() {
   return (
     <AuthLayout
       title="Tạo tài khoản"
-      intro="Theo dõi sức khỏe người thân cùng trợ lý AI."
       footer={
-        <p className="auth-footer">
-          Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+        <p className="auth-switch">
+          Đã có tài khoản? <Link to={withNext('/login', next)}>Đăng nhập</Link>
         </p>
       }
     >
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
+          <div className="auth-form__error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không tạo được tài khoản">
               {formError}
             </Alert>
@@ -97,7 +116,7 @@ export function RegisterPage() {
         ) : null}
         <TextField
           id="register-name"
-          label="Tên hiển thị"
+          label="Tên của bạn"
           type="text"
           autoComplete="name"
           required

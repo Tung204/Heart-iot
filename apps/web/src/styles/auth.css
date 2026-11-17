@@ -1,0 +1,315 @@
+/* ============================================================
+   v7 — khung công khai cho đăng nhập, đăng ký và lời mời.
+   Cột form gọn một cột (tối đa 32rem) + dải phụ xanh nhạt trên desktop;
+   mobile bỏ dải phụ. Không thẻ nổi giữa nền kem, không hai cột form.
+   ============================================================ */
+
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-surface);
+}
+
+/* ---------- Header brand 44px ---------- */
+
+.auth-topbar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.auth-topbar__inner {
+  width: 100%;
+  max-width: var(--max-page);
+  margin-inline: auto;
+  /* Header mobile đúng 44px brand + 4px padding block (design §5.2). */
+  padding: 0.25rem var(--space-5);
+}
+
+.auth-topbar .brand {
+  font-size: 1.0625rem;
+  letter-spacing: 0;
+  white-space: normal;
+}
+
+/* ---------- Khung cột form + dải phụ ---------- */
+
+.auth-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-columns {
+  width: 100%;
+  max-width: var(--max-page);
+  margin-inline: auto;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .auth-columns {
+    grid-template-columns: minmax(0, 32rem) minmax(16rem, 28rem);
+    justify-content: space-between;
+    gap: var(--space-7);
+    padding-top: var(--space-5);
+  }
+}
+
+.auth-columns--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 32rem;
+  min-width: 0;
+  padding-block: var(--space-2) var(--space-4);
+}
+
+.auth-panel--wide {
+  max-width: 40rem;
+}
+
+.auth-panel__title {
+  margin: 0 0 var(--space-2);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: var(--leading-title);
+  text-wrap: balance;
+}
+
+.auth-panel__intro {
+  margin: 0 0 var(--space-4);
+  max-width: 46ch;
+  color: var(--text-secondary);
+}
+
+/* ---------- Form: một cột, label → input → lỗi ngay dưới field ---------- */
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.auth-form > .button {
+  margin-top: var(--space-2);
+}
+
+.auth-form .field {
+  gap: var(--space-1);
+}
+
+/* Hộp lỗi server nhận focus; lỗi field vẫn được ưu tiên focus trước. */
+.auth-form__error {
+  margin-bottom: var(--space-1);
+}
+
+/* ---------- Link chuyển đổi chế độ: target ≥44px ---------- */
+
+.auth-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-1);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.auth-switch a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding-inline: var(--space-1);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---------- Dòng nguồn/giới hạn + trạng thái ---------- */
+
+.auth-footnote {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.auth-status {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ---------- Dải phụ desktop: một câu về quyền và cảnh báo ---------- */
+
+.auth-aside {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .auth-aside {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+    justify-self: end;
+    width: 100%;
+    max-width: 28rem;
+    min-height: 20rem;
+    padding: var(--space-6);
+    border-left: 3px solid var(--action);
+    border-radius: var(--radius-m);
+    background: var(--action-soft);
+  }
+}
+
+.auth-aside__text {
+  margin: 0;
+  max-width: 24ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+/* ---------- Lời mời: bảng quyền dạng label/value, một CTA ---------- */
+
+.auth-message {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+}
+
+.invite-intro {
+  margin: var(--space-3) 0 0;
+  color: var(--text-secondary);
+}
+
+.invite-facts {
+  margin: var(--space-4) 0 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Mobile: label: value trên cùng dòng, xuống dòng tự nhiên — gọn để CTA
+   vẫn ở phần trên khi danh sách quyền dài. */
+.invite-facts__row {
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.invite-facts dt {
+  display: inline;
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.invite-facts dt::after {
+  content: ': ';
+}
+
+.invite-facts dd {
+  display: inline;
+  margin: 0;
+  line-height: 1.45;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 560px) {
+  .invite-facts__row {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+  }
+
+  .invite-facts dt {
+    display: block;
+  }
+
+  .invite-facts dt::after {
+    content: none;
+  }
+
+  .invite-facts dd {
+    display: block;
+  }
+}
+
+.invite-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.invite-actions .button {
+  max-width: 100%;
+}
+
+.invite-actions .alert {
+  width: 100%;
+}
+
+.invite-actions .auth-switch {
+  margin-top: 0;
+}
+
+/* ---------- Chữ lớn + màn thấp: giữ submit trong màn đầu 360×740 ---------- */
+
+html[data-text-size='large'] .auth-columns {
+  gap: var(--space-4);
+}
+
+html[data-text-size='large'] .auth-form {
+  gap: var(--space-2);
+}
+
+/* Auth compact: control vẫn ≥44px nhưng không phình 60px khi root 20px. */
+html[data-text-size='large'] .auth-form .field__input,
+html[data-text-size='large'] .auth-form > .button {
+  min-height: max(var(--target-min), 2.4rem);
+}
+
+@media (max-height: 800px) {
+  html[data-text-size='large'] .auth-columns {
+    padding-top: var(--space-1);
+  }
+
+  html[data-text-size='large'] .auth-panel {
+    padding-top: 0;
+  }
+
+  html[data-text-size='large'] .auth-panel__title {
+    margin-bottom: var(--space-1);
+  }
+
+  html[data-text-size='large'] .auth-panel__intro {
+    margin-bottom: var(--space-2);
+    line-height: 1.35;
+  }
+
+  html[data-text-size='large'] .auth-switch {
+    margin-top: var(--space-1);
+  }
+
+  html[data-text-size='large'] .auth-footnote {
+    margin-top: var(--space-2);
+    line-height: 1.35;
+  }
+
+  /* Lời mời có thể vừa đủ 740px: giữ CTA chính trong màn đầu 360×740. */
+  html[data-text-size='large'] .invite-actions {
+    margin-top: var(--space-3);
+  }
+}
