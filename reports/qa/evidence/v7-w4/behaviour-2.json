@@ -1,0 +1,353 @@
+{
+  "at": "2026-11-17T19:12:58.434Z",
+  "steps": {
+    "alert-list-ack-2step-success": {
+      "ok": false,
+      "ms": 3334,
+      "error": "Error: no acknowledged state"
+    },
+    "alert-list-ack-409": {
+      "ok": true,
+      "ms": 3956,
+      "incidentId": "13c7a305-5926-47c0-a180-022050abc3fc",
+      "version": 2,
+      "externalAckStatus": 200,
+      "uiStatus": 409,
+      "uiRequestBody": "{\"expectedVersion\":2}",
+      "conflictSnippet": "Cảnh báo đã có người xác nhận",
+      "rowAcknowledgedBy": true
+    },
+    "subject-switch-clears-state": {
+      "ok": false,
+      "ms": 32439,
+      "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Gửi', exact: true })\u001b[22m\n"
+    },
+    "focus-ring-actual": {
+      "ok": true,
+      "ms": 1856,
+      "stops": [
+        {
+          "tag": "A",
+          "text": "Theo dõi\nsức khỏe",
+          "className": "brand",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 24,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Hôm nay",
+          "className": "shell__nav-link is-active",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 108,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Cảnh báo\n4\n4 cảnh báo đang mở",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 156,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Sức khỏe",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 204,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Người thân",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 252,
+          "inRail": true
+        },
+        {
+          "tag": "BUTTON",
+          "text": "TA\nTrần Thị An\nChủ hồ sơ\n▾",
+          "className": "shell__account-trigger",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 814,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Gọi",
+          "className": "button button--primary button--md",
+          "outlineColor": "rgb(23, 75, 197)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 268,
+          "y": 225,
+          "inRail": false
+        },
+        {
+          "tag": "A",
+          "text": "Xem cảnh báo",
+          "className": "button button--secondary button--md",
+          "outlineColor": "rgb(23, 75, 197)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 338,
+          "y": 225,
+          "inRail": false
+        },
+        {
+          "tag": "TEXTAREA",
+          "text": "",
+          "className": "field__input today-ask__input",
+          "outlineColor": "rgb(23, 75, 197)",
+          "outlineWidth": "3px",
+          "outlineOffset": "2px",
+          "x": 265,
+          "y": 392,
+          "inRail": false
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Gửi",
+          "className": "button button--primary button--md today-ask__submit",
+          "outlineColor": "rgb(23, 75, 197)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 906,
+          "y": 392,
+          "inRail": false
+        }
+      ],
+      "light": [
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Theo dõi\nsức khỏe",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Hôm nay",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Cảnh báo\n4\n4 cảnh báo đang mở",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Sức khỏe",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Người thân",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "TA\nTrần Thị An\nChủ hồ sơ\n▾",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "Chuyển tới nội dung chính\nTheo dõi\nsức k",
+          "outlineColor": "rgb(24, 38, 61)",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px"
+        }
+      ],
+      "railRings": [
+        {
+          "tag": "A",
+          "text": "Theo dõi\nsức khỏe",
+          "className": "brand",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 24,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Hôm nay",
+          "className": "shell__nav-link is-active",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 108,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Cảnh báo\n4\n4 cảnh báo đang mở",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 156,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Sức khỏe",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 204,
+          "inRail": true
+        },
+        {
+          "tag": "A",
+          "text": "Người thân",
+          "className": "shell__nav-link",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 252,
+          "inRail": true
+        },
+        {
+          "tag": "BUTTON",
+          "text": "TA\nTrần Thị An\nChủ hồ sơ\n▾",
+          "className": "shell__account-trigger",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px",
+          "x": 16,
+          "y": 814,
+          "inRail": true
+        }
+      ],
+      "lightRings": [
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Theo dõi\nsức khỏe",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Hôm nay",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Cảnh báo\n4\n4 cảnh báo đang mở",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Sức khỏe",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "text": "Người thân",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "text": "TA\nTrần Thị An\nChủ hồ sơ\n▾",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineWidth": "3px",
+          "outlineOffset": "3px"
+        },
+        {
+          "tag": "BODY",
+          "id": "",
+          "text": "Chuyển tới nội dung chính\nTheo dõi\nsức k",
+          "outlineColor": "rgb(24, 38, 61)",
+          "outlineWidth": "3px",
+          "outlineOffset": "0px"
+        }
+      ]
+    },
+    "reduced-motion-actual": {
+      "ok": true,
+      "ms": 1409,
+      "styles": [
+        {
+          "selector": ".shell__route",
+          "animationDuration": "1e-05s",
+          "transitionDuration": "1e-05s"
+        },
+        {
+          "selector": ".button",
+          "animationDuration": "1e-05s",
+          "transitionDuration": "1e-05s"
+        },
+        {
+          "selector": ".page-title",
+          "animationDuration": "1e-05s",
+          "transitionDuration": "1e-05s"
+        },
+        {
+          "selector": "a",
+          "animationDuration": "1e-05s",
+          "transitionDuration": "1e-05s"
+        }
+      ],
+      "effective": "0,01 ms (1e-05s) — tắt thực tế"
+    }
+  }
+}

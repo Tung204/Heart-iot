@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-17T19:15:28.782Z",
+  "steps": {
+    "alert-list-ack-2step-success": {
+      "ok": true,
+      "ms": 3876,
+      "incidentId": "46af8934-2006-444e-bc45-d199425ce154",
+      "confirmText": "Bạn đã liên hệ và đang hỗ trợ?\n\nCó, tôi đang hỗ trợ\nHủy",
+      "postsBeforeConfirm": 0,
+      "status": 200,
+      "requestBody": "{\"expectedVersion\":2}",
+      "uiShows": "Đã xác nhận bởi Trần Thị An"
+    },
+    "subject-switch-clears-state": {
+      "ok": false,
+      "ms": 19742,
+      "error": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Gửi', exact: true }) to be visible\u001b[22m\n"
+    }
+  }
+}
