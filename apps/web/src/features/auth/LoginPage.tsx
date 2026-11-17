@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Alert } from '../../components/Alert';
 import { Button } from '../../components/Button';
@@ -17,6 +17,13 @@ const FIELD_ORDER = [
   ['password', 'login-password'],
 ] as const;
 
+const INTRO = 'Xem tình hình người thân và cảnh báo.';
+
+/** Giữ `next` nội bộ, tránh open-redirect; `/app` là mặc định nên bỏ tham số. */
+function withNext(path: string, next: string): string {
+  return next === '/app' ? path : `${path}?next=${encodeURIComponent(next)}`;
+}
+
 export function LoginPage() {
   const me = useMe();
   const loginMutation = useLogin();
@@ -27,6 +34,9 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Chặn gửi hai lần ngay trong cùng một nhịp: trạng thái disabled của nút chỉ
+  // có sau lần render kế tiếp, còn khoá ref có hiệu lực tức thì.
+  const submitLock = useRef(false);
 
   useFocusFirstError(fieldErrors, FIELD_ORDER);
   // Lỗi máy chủ không gắn field: focus hộp lỗi; nếu có lỗi field thì field được ưu tiên.
@@ -38,11 +48,14 @@ export function LoginPage() {
     return <Navigate to={next} replace />;
   }
   if (me.isPending) {
+    // Kiểm tra phiên là bước chặn trước khi biết đây là form hay chuyển hướng;
+    // dùng loader toàn trang giống ProtectedRoute để không nháy form/CTA.
     return <PageLoader label="Đang kiểm tra phiên đăng nhập…" />;
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (submitLock.current) return;
     setFormError(null);
     const values = { email, password };
     const parsed = loginSchema.safeParse(values);
@@ -51,9 +64,11 @@ export function LoginPage() {
       return;
     }
     setFieldErrors({});
+    submitLock.current = true;
     loginMutation.mutate(parsed.data, {
       onSuccess: () => navigate(next, { replace: true }),
       onError: (error) => {
+        submitLock.current = false;
         const apiFields = apiValidationFieldErrors(error);
         if (apiFields) {
           setFieldErrors(apiFields.fields);
@@ -68,19 +83,17 @@ export function LoginPage() {
   return (
     <AuthLayout
       title="Đăng nhập"
-      intro="Xem tình hình người thân và cảnh báo."
+      intro={INTRO}
       footer={
-        <p className="auth-footer">
+        <p className="auth-switch">
           Chưa có tài khoản?{' '}
-          <Link to={next === '/app' ? '/register' : `/register?next=${encodeURIComponent(next)}`}>
-            Tạo tài khoản mới
-          </Link>
+          <Link to={withNext('/register', next)}>Tạo tài khoản mới</Link>
         </p>
       }
     >
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {formError ? (
-          <div className="auth-card__form-error" ref={formErrorRef} tabIndex={-1}>
+          <div className="auth-form__error" ref={formErrorRef} tabIndex={-1}>
             <Alert tone="error" title="Không đăng nhập được">
               {formError}
             </Alert>

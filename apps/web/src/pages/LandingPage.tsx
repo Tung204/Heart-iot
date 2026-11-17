@@ -4,34 +4,38 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SkipLink } from '../components/SkipLink';
 import { useMe } from '../features/auth/useAuth';
 import { isUnauthorizedError } from '../lib/api';
+import '../styles/public.css';
 
 /**
- * Dòng an toàn ngay dưới CTA. Phải giữ đủ bốn ý: dữ liệu mô phỏng, cảnh báo chỉ
+ * Dòng giới hạn ngay dưới CTA. Phải giữ đủ bốn ý: dữ liệu mô phỏng, cảnh báo chỉ
  * có khi web đang kết nối, không tự gọi cấp cứu và không thay thế cấp cứu.
  */
 export const HERO_SAFETY_NOTE =
   'Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.';
 
-const CAPABILITIES = [
+const INFO_ROWS = [
   {
+    icon: 'device',
     title: 'Theo dõi',
     text: 'Nhịp tim, vận động và kết nối thiết bị của người thân.',
   },
   {
-    title: 'Báo khi cần',
+    icon: 'alert',
+    title: 'Cảnh báo',
     text: 'Cảnh báo do hệ thống tạo, không phụ thuộc trợ lý.',
   },
   {
-    title: 'Hỏi trợ lý',
+    icon: 'assistant',
+    title: 'Trợ lý AI',
     text: 'Hỏi trợ lý AI về số liệu của người thân.',
   },
 ] as const;
 
-/** Biểu tượng nét mảnh cho 3 thẻ — chỉ để phân biệt nhanh, không mang thông tin. */
-function CapabilityIcon({ index }: { index: number }) {
+type InfoIcon = (typeof INFO_ROWS)[number]['icon'];
+
+/** Biểu tượng nét mảnh cho ba hàng thông tin — chỉ để phân biệt nhanh. */
+function RowIcon({ name }: { name: InfoIcon }) {
   const common = {
-    width: 26,
-    height: 26,
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
@@ -40,18 +44,20 @@ function CapabilityIcon({ index }: { index: number }) {
     strokeLinejoin: 'round' as const,
     'aria-hidden': true,
   };
-  if (index === 0) {
+
+  if (name === 'device') {
     return (
       <svg {...common}>
-        <path d="M20.4 5.6a5.2 5.2 0 0 0-7.4 0L12 6.6l-1-1a5.2 5.2 0 0 0-7.4 7.4l1 1L12 21l7.4-7 1-1a5.2 5.2 0 0 0 0-7.4Z" />
+        <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+        <path d="M10.5 18.5h3" />
       </svg>
     );
   }
-  if (index === 1) {
+  if (name === 'alert') {
     return (
       <svg {...common}>
-        <path d="M18 8.5a6 6 0 1 0-12 0c0 6-2.5 7.5-2.5 7.5h17S18 14.5 18 8.5Z" />
-        <path d="M10.3 19.5a2.1 2.1 0 0 0 3.4 0" />
+        <path d="M12 3.5 2.8 19a1.6 1.6 0 0 0 1.4 2.4h15.6A1.6 1.6 0 0 0 21.2 19L12 3.5Z" />
+        <path d="M12 9v4.5M12 17h.01" />
       </svg>
     );
   }
@@ -63,44 +69,12 @@ function CapabilityIcon({ index }: { index: number }) {
   );
 }
 
-/** Hình minh hoạ thuần trang trí: một nhịp tim đi qua vòng tín hiệu. */
-function HeroArt() {
-  return (
-    <div className="hero-art" aria-hidden="true">
-      <svg viewBox="0 0 360 360" focusable="false">
-        <circle
-          cx="180"
-          cy="180"
-          r="164"
-          fill="none"
-          stroke="var(--color-line-strong)"
-          strokeWidth="1.5"
-          strokeDasharray="2 10"
-          strokeLinecap="round"
-        />
-        <circle cx="180" cy="180" r="122" fill="var(--color-surface)" />
-        <circle
-          cx="180"
-          cy="180"
-          r="122"
-          fill="none"
-          stroke="var(--color-teal)"
-          strokeOpacity="0.2"
-          strokeWidth="10"
-        />
-        <path
-          d="M70 180h56l16-44 22 88 18-58 12 26h26l14-26 20 48 14-34h32"
-          fill="none"
-          stroke="var(--color-teal)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx="300" cy="180" r="7" fill="var(--color-brick)" />
-      </svg>
-    </div>
-  );
-}
+/** Sơ đồ chữ: thiết bị → dữ liệu/cảnh báo → người hỗ trợ và trợ lý AI. */
+const FLOW_STEPS = [
+  { label: 'Thiết bị', hint: 'Nhịp tim, vận động, kết nối' },
+  { label: 'Dữ liệu · Cảnh báo', hint: 'Theo người được chọn' },
+  { label: 'Người hỗ trợ · Trợ lý AI', hint: 'Cùng xem và phối hợp' },
+] as const;
 
 export function LandingPage() {
   const me = useMe();
@@ -115,24 +89,24 @@ export function LandingPage() {
       <SkipLink />
       <SiteHeader />
       <main id="main" tabIndex={-1}>
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="container hero__inner">
-            <div className="hero__copy">
-              <h1 id="hero-title" className="hero__title">
-                Người thân ở nhà, mình vẫn an tâm
+        <section className="landing-hero" aria-labelledby="hero-title">
+          <div className="container landing-hero__inner">
+            <div className="landing-hero__copy">
+              <h1 id="hero-title" className="landing-hero__title">
+                Theo dõi sức khỏe người thân
               </h1>
-              <p className="hero__lead">
-                Nhịp tim, vận động và kết nối thiết bị của người thân được ghi lại; bạn nhận
-                cảnh báo khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.
+              <p className="landing-hero__lead">
+                Xem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.
               </p>
+
               {me.isPending ? (
                 // Đang kiểm phiên: chỉ báo tải, không render CTA để CTA không nhấp nháy.
-                <p className="hero__session hero__loading" role="status" aria-busy="true">
-                  <span className="hero__spinner" aria-hidden="true" />
+                <p className="landing-session" role="status" aria-busy="true">
                   Đang kiểm tra phiên đăng nhập…
                 </p>
               ) : null}
-              <div className="hero__actions">
+
+              <div className="landing-hero__actions">
                 {user ? <ButtonLink to="/app">Mở ứng dụng</ButtonLink> : null}
                 {guest ? (
                   <>
@@ -143,12 +117,13 @@ export function LandingPage() {
                   </>
                 ) : null}
               </div>
+
               {sessionFailed ? (
                 // Không kiểm tra được phiên ≠ khách: giữ đường vào và cho thử lại.
                 // Nếu đã có người dùng trong bộ đệm thì không mời đăng nhập/đăng ký lại.
-                <div className="hero__session">
+                <div className="landing-session">
                   <p role="status">Không kiểm tra được phiên đăng nhập.</p>
-                  <div className="hero__session-actions">
+                  <div className="landing-session__actions">
                     {!user ? (
                       <>
                         <ButtonLink to="/login" variant="secondary">
@@ -169,25 +144,39 @@ export function LandingPage() {
                   </div>
                 </div>
               ) : null}
-              <p className="hero__note">{HERO_SAFETY_NOTE}</p>
+
+              <p className="landing-hero__note">{HERO_SAFETY_NOTE}</p>
             </div>
-            <HeroArt />
+
+            <figure className="landing-map" aria-labelledby="landing-map-caption">
+              <ol className="landing-map__flow" role="list">
+                {FLOW_STEPS.map((step) => (
+                  <li className="landing-map__step" key={step.label}>
+                    <span className="landing-map__label">{step.label}</span>
+                    <span className="landing-map__hint">{step.hint}</span>
+                  </li>
+                ))}
+              </ol>
+              <figcaption id="landing-map-caption" className="landing-map__caption">
+                Dữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.
+              </figcaption>
+            </figure>
           </div>
         </section>
 
-        <section className="section landing-section" aria-labelledby="capabilities-heading">
+        <section className="landing-rows" aria-labelledby="landing-rows-title">
           <div className="container">
-            <h2 id="capabilities-heading" className="section-title">
-              Ứng dụng làm gì
+            <h2 id="landing-rows-title" className="landing-rows__title">
+              Theo dõi, cảnh báo và hỏi đáp
             </h2>
-            <ul className="capabilities" role="list">
-              {CAPABILITIES.map((item, index) => (
-                <li className="capability" key={item.title}>
-                  <span className="capability__icon">
-                    <CapabilityIcon index={index} />
+            <ul className="landing-rows__list" role="list">
+              {INFO_ROWS.map((row) => (
+                <li className="landing-row" key={row.title}>
+                  <span className="landing-row__icon">
+                    <RowIcon name={row.icon} />
                   </span>
-                  <h3 className="capability__title">{item.title}</h3>
-                  <p className="capability__text">{item.text}</p>
+                  <h3 className="landing-row__title">{row.title}</h3>
+                  <p className="landing-row__text">{row.text}</p>
                 </li>
               ))}
             </ul>

@@ -1,0 +1,283 @@
+{
+  "generatedAt": "2026-11-17T17:42:19.778Z",
+  "web": "http://127.0.0.1:4351",
+  "results": [
+    {
+      "name": "landing",
+      "state": "signed-in",
+      "viewport": "1280x900",
+      "dpr": 1,
+      "rootFontSize": "16px",
+      "h1": [
+        "Theo dõi sức khỏe người thân"
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "sessionText": null,
+      "heroLinks": [
+        "Mở ứng dụng"
+      ],
+      "sessionLinks": [],
+      "sessionButtons": [],
+      "activeElement": "BODY",
+      "errors": [],
+      "inputs": [],
+      "submit": null,
+      "asideVisible": false
+    },
+    {
+      "name": "landing",
+      "state": "session-error",
+      "viewport": "390x844",
+      "dpr": 2,
+      "rootFontSize": "16px",
+      "h1": [
+        "Theo dõi sức khỏe người thân"
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "sessionText": "Không kiểm tra được phiên đăng nhập.Đăng nhậpTạo tài khoảnThử lại",
+      "heroLinks": [],
+      "sessionLinks": [
+        "Đăng nhập",
+        "Tạo tài khoản"
+      ],
+      "sessionButtons": [
+        "Thử lại"
+      ],
+      "activeElement": "BODY",
+      "errors": [],
+      "inputs": [],
+      "submit": null,
+      "asideVisible": false
+    },
+    {
+      "name": "landing",
+      "state": "pending",
+      "viewport": "390x844",
+      "dpr": 2,
+      "rootFontSize": "16px",
+      "h1": [
+        "Theo dõi sức khỏe người thân"
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "sessionText": "Đang kiểm tra phiên đăng nhập…",
+      "heroLinks": [],
+      "sessionLinks": [],
+      "sessionButtons": [],
+      "activeElement": "BODY",
+      "errors": [],
+      "inputs": [],
+      "submit": null,
+      "asideVisible": false
+    },
+    {
+      "name": "login",
+      "state": "field-errors",
+      "viewport": "390x844",
+      "dpr": 2,
+      "rootFontSize": "16px",
+      "h1": [
+        "Đăng nhập"
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "sessionText": null,
+      "heroLinks": [],
+      "sessionLinks": [],
+      "sessionButtons": [],
+      "activeElement": "login-email",
+      "errors": [
+        {
+          "text": "Vui lòng nhập email.",
+          "rect": {
+            "x": 24,
+            "y": 235.375,
+            "width": 342,
+            "height": 21,
+            "top": 235.375,
+            "right": 366,
+            "bottom": 256.375,
+            "left": 24
+          }
+        },
+        {
+          "text": "Vui lòng nhập mật khẩu.",
+          "rect": {
+            "x": 24,
+            "y": 342.765625,
+            "width": 342,
+            "height": 21,
+            "top": 342.765625,
+            "right": 366,
+            "bottom": 363.765625,
+            "left": 24
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "login-email",
+          "rect": {
+            "x": 24,
+            "y": 183.375,
+            "width": 342,
+            "height": 48,
+            "top": 183.375,
+            "right": 366,
+            "bottom": 231.375,
+            "left": 24
+          }
+        },
+        {
+          "id": "login-password",
+          "rect": {
+            "x": 24,
+            "y": 290.765625,
+            "width": 342,
+            "height": 48,
+            "top": 290.765625,
+            "right": 366,
+            "bottom": 338.765625,
+            "left": 24
+          }
+        }
+      ],
+      "submit": {
+        "x": 24,
+        "y": 379.765625,
+        "width": 342,
+        "height": 48,
+        "top": 379.765625,
+        "right": 366,
+        "bottom": 427.765625,
+        "left": 24
+      },
+      "asideVisible": false
+    },
+    {
+      "name": "register",
+      "state": "field-errors",
+      "viewport": "360x740-large",
+      "dpr": 2,
+      "rootFontSize": "20px",
+      "h1": [
+        "Tạo tài khoản"
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "sessionText": null,
+      "heroLinks": [],
+      "sessionLinks": [],
+      "sessionButtons": [],
+      "activeElement": "register-name",
+      "errors": [
+        {
+          "text": "Vui lòng nhập tên của bạn.",
+          "rect": {
+            "x": 30,
+            "y": 205,
+            "width": 300,
+            "height": 26.25,
+            "top": 205,
+            "right": 330,
+            "bottom": 231.25,
+            "left": 30
+          }
+        },
+        {
+          "text": "Vui lòng nhập email.",
+          "rect": {
+            "x": 30,
+            "y": 334.25,
+            "width": 300,
+            "height": 26.25,
+            "top": 334.25,
+            "right": 330,
+            "bottom": 360.5,
+            "left": 30
+          }
+        },
+        {
+          "text": "Vui lòng nhập mật khẩu.",
+          "rect": {
+            "x": 30,
+            "y": 494.75,
+            "width": 300,
+            "height": 26.25,
+            "top": 494.75,
+            "right": 330,
+            "bottom": 521,
+            "left": 30
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "register-name",
+          "rect": {
+            "x": 30,
+            "y": 145,
+            "width": 300,
+            "height": 55,
+            "top": 145,
+            "right": 330,
+            "bottom": 200,
+            "left": 30
+          }
+        },
+        {
+          "id": "register-email",
+          "rect": {
+            "x": 30,
+            "y": 274.25,
+            "width": 300,
+            "height": 55,
+            "top": 274.25,
+            "right": 330,
+            "bottom": 329.25,
+            "left": 30
+          }
+        },
+        {
+          "id": "register-password",
+          "rect": {
+            "x": 30,
+            "y": 434.75,
+            "width": 300,
+            "height": 55,
+            "top": 434.75,
+            "right": 330,
+            "bottom": 489.75,
+            "left": 30
+          }
+        },
+        {
+          "id": "register-confirm",
+          "rect": {
+            "x": 30,
+            "y": 564,
+            "width": 300,
+            "height": 55,
+            "top": 564,
+            "right": 330,
+            "bottom": 619,
+            "left": 30
+          }
+        }
+      ],
+      "submit": {
+        "x": 30,
+        "y": 639,
+        "width": 300,
+        "height": 55,
+        "top": 639,
+        "right": 330,
+        "bottom": 694,
+        "left": 30
+      },
+      "asideVisible": false
+    }
+  ]
+}

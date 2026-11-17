@@ -1,0 +1,365 @@
+/* ============================================================
+   v7 — trang công khai: landing `/`, trang 404 công khai.
+   Nền trắng lạnh, một H1, một câu giá trị, một hành động chính.
+   Không hero nhịp tim, không nền kem/serif, không khối tính năng dài.
+   Chỉ trang công khai dùng file này; khung /app do shell.css quản lý.
+   ============================================================ */
+
+/* ---------- Khung trang + header/footer công khai ---------- */
+
+.public {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-surface);
+}
+
+.public > main {
+  flex: 1;
+}
+
+/*
+ * SiteHeader/SiteFooter là component dùng chung (không sửa trong lane P),
+ * nên đặt lại hình thức ngay tại đây bằng selector cùng đặc tả; file này
+ * nạp sau layout.css/public-simple.css nên không cần !important.
+ */
+.site-header {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+}
+
+.site-header .brand {
+  font-size: 1.0625rem;
+  letter-spacing: 0;
+  white-space: normal;
+}
+
+.site-footer {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding-block: var(--space-5);
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ---------- Landing: vùng giới thiệu 7/5 ---------- */
+
+.landing-hero {
+  padding-block: var(--space-6) var(--space-7);
+  background: var(--bg-surface);
+}
+
+.landing-hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .landing-hero__inner {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-7);
+    align-items: center;
+  }
+}
+
+.landing-hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* H1 landing: 2.5rem desktop, 1.75rem mobile — không quá 3 dòng ở 360px. */
+.landing-hero__title {
+  max-width: 20ch;
+  font-size: clamp(1.75rem, 4.4vw, 2.5rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .landing-hero__title {
+    line-height: 1.1;
+  }
+}
+
+.landing-hero__lead {
+  max-width: 44ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.landing-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+@media (max-width: 430px) {
+  .landing-hero__actions {
+    flex-direction: column;
+  }
+
+  .landing-hero__actions .button {
+    width: 100%;
+  }
+}
+
+/* Dòng giới hạn ngay dưới CTA: đủ bốn ý, không ẩn bớt bằng CSS. */
+.landing-hero__note {
+  max-width: 54ch;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Trạng thái phiên: đang kiểm tra hoặc lỗi mạng-5xx (khác khách 401). */
+.landing-session {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 46ch;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.landing-session__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ---------- Sơ đồ chữ: thiết bị → dữ liệu/cảnh báo → người hỗ trợ ---------- */
+
+.landing-map {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-subtle);
+  min-width: 0;
+}
+
+.landing-map__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-map__step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  background: var(--bg-surface);
+}
+
+/* Mũi tên nối các bước: vẽ bằng viền, không phải ký tự/emoji. */
+.landing-map__step + .landing-map__step::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(var(--space-4) * -1 + 3px);
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--border-control);
+  border-bottom: 2px solid var(--border-control);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.landing-map__label {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+}
+
+.landing-map__hint {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.landing-map__caption {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 900px) {
+  .landing-map {
+    justify-self: end;
+    width: 100%;
+    max-width: 26rem;
+    padding: var(--space-5);
+  }
+}
+
+/* ---------- Ba hàng thông tin (không phải ba thẻ tính năng) ---------- */
+
+.landing-rows {
+  padding-block: var(--space-6) var(--space-7);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.landing-rows__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xl);
+  line-height: 1.4;
+}
+
+.landing-rows__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.landing-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'icon title'
+    'icon text';
+  gap: var(--space-1) var(--space-3);
+  align-items: start;
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.landing-row__icon {
+  grid-area: icon;
+  display: inline-flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--action);
+}
+
+.landing-row__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.landing-row__title {
+  grid-area: title;
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+}
+
+.landing-row__text {
+  grid-area: text;
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+}
+
+@media (min-width: 768px) {
+  .landing-row {
+    grid-template-columns: 1.5rem 12rem minmax(0, 1fr);
+    grid-template-areas: 'icon title text';
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .landing-row__icon {
+    margin-top: 0;
+  }
+}
+
+/* ---------- 404 công khai: layout phẳng, không dùng thẻ auth ---------- */
+
+.public-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 44rem;
+  padding-block: var(--space-7) var(--space-8);
+}
+
+.not-found__code {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.not-found__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.6vw, 2rem);
+  line-height: var(--leading-title);
+}
+
+.not-found__text {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+}
+
+.not-found__note {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ---------- Chữ lớn + màn thấp: giữ CTA trong màn đầu ---------- */
+
+@media (max-height: 800px) {
+  html[data-text-size='large'] .landing-hero {
+    padding-block: var(--space-2) var(--space-4);
+  }
+
+  html[data-text-size='large'] .landing-hero__copy {
+    gap: var(--space-2);
+  }
+
+  html[data-text-size='large'] .landing-hero__lead {
+    line-height: 1.35;
+  }
+
+  html[data-text-size='large'] .landing-hero__actions {
+    gap: var(--space-2);
+  }
+
+  html[data-text-size='large'] .landing-hero__note {
+    line-height: 1.35;
+  }
+}

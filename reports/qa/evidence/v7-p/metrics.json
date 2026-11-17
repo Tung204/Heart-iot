@@ -1,0 +1,2271 @@
+{
+  "generatedAt": "2026-11-17T17:42:15.193Z",
+  "web": "http://127.0.0.1:4351",
+  "api": "http://127.0.0.1:3010",
+  "playwright": "1.65.1",
+  "browser": "chromium",
+  "note": "Token lời mời không ghi vào metrics; route được thay bằng <token>. 401 /me và 422 token ngắn là phản hồi mong đợi.",
+  "tokenLength": 43,
+  "results": [
+    {
+      "route": "/",
+      "name": "landing",
+      "state": "guest",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "landing-1280x900-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Theo dõi sức khỏe người thân",
+          "fontSize": "40px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 88,
+        "y": 281.1,
+        "width": 144.4,
+        "height": 48,
+        "bottom": 329.1,
+        "right": 232.4,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản",
+          "width": 144.4,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 120.9,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTheo dõi sức khỏe người thân\n\nXem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.\n\nTạo tài khoản\nĐăng nhập\n\nDữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.\n\nThiết bị\nNhịp tim, vận động, kết nối\nDữ liệu · Cảnh báo\nTheo người được chọn\nNgười hỗ trợ · Trợ lý AI\nCùng xem và phối hợp\nDữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.\nTheo dõi, cảnh báo và hỏi đáp\nTheo dõi\n\nNhịp tim, vận động và kết nối thiết bị của người thân.\n\nCảnh báo\n\nCảnh báo do hệ thống tạo, không phụ thuộc trợ lý.\n\nTrợ lý AI\n\nHỏi trợ lý AI về số liệu của người thân.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "state": "guest",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "login-1280x900-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Đăng nhập",
+          "fontSize": "32px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập",
+        "x": 88,
+        "y": 348.2,
+        "width": 512,
+        "height": 48,
+        "bottom": 396.2,
+        "right": 600,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Đăng nhập",
+          "width": 512,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": true,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nĐăng nhập\n\nXem tình hình người thân và cảnh báo.\n\nEmail *\nMật khẩu *\nĐăng nhập\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nChỉ người được chủ hồ sơ mời mới xem được số đo và nhận cảnh báo."
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "state": "guest",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "register-1280x900-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Tạo tài khoản",
+          "fontSize": "32px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 88,
+        "y": 497.2,
+        "width": 512,
+        "height": 48,
+        "bottom": 545.2,
+        "right": 600,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tạo tài khoản",
+          "width": 512,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 84,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": true,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTạo tài khoản\nTên của bạn *\nEmail *\nMật khẩu *\n\nTối thiểu 10 ký tự.\n\nNhập lại mật khẩu *\nTạo tài khoản\n\nĐã có tài khoản?\nĐăng nhập\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nChỉ người được chủ hồ sơ mời mới xem được số đo và nhận cảnh báo."
+    },
+    {
+      "route": "/invite/<token>",
+      "name": "invite-valid",
+      "state": "guest",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "invite-valid-1280x900-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/<token>",
+          "status": 200
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời theo dõi",
+          "fontSize": "32px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập để tiếp tục",
+        "x": 88,
+        "y": 493.5,
+        "width": 211.2,
+        "height": 48,
+        "bottom": 541.5,
+        "right": 299.2,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập để tiếp tục",
+          "width": 211.2,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời theo dõi\n\nTrần Thị An mời bạn theo dõi Bà Trần Thị An với vai trò Người thân.\n\nSố đo và lịch sử\nXem số đo, tối đa 30 ngày\nCảnh báo\nNhận cảnh báo\nHỗ trợ\nXác nhận hỗ trợ\nĐóng cảnh báo\nKhông đóng cảnh báo\nTrợ lý AI\nKhông xem câu trả lời từ trợ lý AI\nHết hạn\n00:20 21 thg 11, 2026\nĐăng nhập để tiếp tục\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/abc1234567",
+      "name": "invite-invalid",
+      "state": "token-422",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "invite-invalid-1280x900-token-422.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời không hợp lệ",
+          "fontSize": "32px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 88,
+        "y": 208.2,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 256.2,
+        "right": 223.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời không hợp lệ\n\nLink lời mời không đúng định dạng hoặc đã thiếu ký tự. Hãy kiểm tra lại link, hoặc nhờ người mời gửi lại lời mời mới.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/khong-ton-tai",
+      "name": "not-found",
+      "state": "404",
+      "viewport": "1280x900",
+      "viewportSize": "1280x900",
+      "dpr": 1,
+      "largeText": false,
+      "screenshot": "not-found-1280x900-404.png",
+      "apiStatuses": [],
+      "consoleErrors": [],
+      "allConsoleErrors": [],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Không tìm thấy trang",
+          "fontSize": "32px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 88,
+        "y": 257.2,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 305.2,
+        "right": 223.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\n\nLỗi 404\n\nKhông tìm thấy trang\n\nĐường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "state": "guest",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "landing-390x844-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Theo dõi sức khỏe người thân",
+          "fontSize": "28px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 24,
+        "y": 243.4,
+        "width": 342,
+        "height": 48,
+        "bottom": 291.4,
+        "right": 366,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản",
+          "width": 342,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 342,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTheo dõi sức khỏe người thân\n\nXem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.\n\nTạo tài khoản\nĐăng nhập\n\nDữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.\n\nThiết bị\nNhịp tim, vận động, kết nối\nDữ liệu · Cảnh báo\nTheo người được chọn\nNgười hỗ trợ · Trợ lý AI\nCùng xem và phối hợp\nDữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.\nTheo dõi, cảnh báo và hỏi đáp\nTheo dõi\n\nNhịp tim, vận động và kết nối thiết bị của người thân.\n\nCảnh báo\n\nCảnh báo do hệ thống tạo, không phụ thuộc trợ lý.\n\nTrợ lý AI\n\nHỏi trợ lý AI về số liệu của người thân.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "state": "guest",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "login-390x844-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Đăng nhập",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập",
+        "x": 24,
+        "y": 329.8,
+        "width": 342,
+        "height": 48,
+        "bottom": 377.8,
+        "right": 366,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Đăng nhập",
+          "width": 342,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nĐăng nhập\n\nXem tình hình người thân và cảnh báo.\n\nEmail *\nMật khẩu *\nĐăng nhập\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "state": "guest",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "register-390x844-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Tạo tài khoản",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 24,
+        "y": 478.8,
+        "width": 342,
+        "height": 48,
+        "bottom": 526.8,
+        "right": 366,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tạo tài khoản",
+          "width": 342,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 84,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTạo tài khoản\nTên của bạn *\nEmail *\nMật khẩu *\n\nTối thiểu 10 ký tự.\n\nNhập lại mật khẩu *\nTạo tài khoản\n\nĐã có tài khoản?\nĐăng nhập\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/<token>",
+      "name": "invite-valid",
+      "state": "guest",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "invite-valid-390x844-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/<token>",
+          "status": 200
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời theo dõi",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập để tiếp tục",
+        "x": 24,
+        "y": 461.6,
+        "width": 211.2,
+        "height": 48,
+        "bottom": 509.6,
+        "right": 235.2,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập để tiếp tục",
+          "width": 211.2,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời theo dõi\n\nTrần Thị An mời bạn theo dõi Bà Trần Thị An với vai trò Người thân.\n\nSố đo và lịch sửXem số đo, tối đa 30 ngày\nCảnh báoNhận cảnh báo\nHỗ trợXác nhận hỗ trợ\nĐóng cảnh báoKhông đóng cảnh báo\nTrợ lý AIKhông xem câu trả lời từ trợ lý AI\nHết hạn00:20 21 thg 11, 2026\nĐăng nhập để tiếp tục\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/abc1234567",
+      "name": "invite-invalid",
+      "state": "token-422",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "invite-invalid-390x844-token-422.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời không hợp lệ",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 24,
+        "y": 214.6,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 262.6,
+        "right": 159.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời không hợp lệ\n\nLink lời mời không đúng định dạng hoặc đã thiếu ký tự. Hãy kiểm tra lại link, hoặc nhờ người mời gửi lại lời mời mới.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/khong-ton-tai",
+      "name": "not-found",
+      "state": "404",
+      "viewport": "390x844",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "not-found-390x844-404.png",
+      "apiStatuses": [],
+      "consoleErrors": [],
+      "allConsoleErrors": [],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Không tìm thấy trang",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 24,
+        "y": 296.4,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 344.4,
+        "right": 159.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\n\nLỗi 404\n\nKhông tìm thấy trang\n\nĐường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "state": "guest",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "landing-360x740-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Theo dõi sức khỏe người thân",
+          "fontSize": "28px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 24,
+        "y": 243.4,
+        "width": 312,
+        "height": 48,
+        "bottom": 291.4,
+        "right": 336,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản",
+          "width": 312,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 312,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTheo dõi sức khỏe người thân\n\nXem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.\n\nTạo tài khoản\nĐăng nhập\n\nDữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.\n\nThiết bị\nNhịp tim, vận động, kết nối\nDữ liệu · Cảnh báo\nTheo người được chọn\nNgười hỗ trợ · Trợ lý AI\nCùng xem và phối hợp\nDữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.\nTheo dõi, cảnh báo và hỏi đáp\nTheo dõi\n\nNhịp tim, vận động và kết nối thiết bị của người thân.\n\nCảnh báo\n\nCảnh báo do hệ thống tạo, không phụ thuộc trợ lý.\n\nTrợ lý AI\n\nHỏi trợ lý AI về số liệu của người thân.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "state": "guest",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "login-360x740-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Đăng nhập",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập",
+        "x": 24,
+        "y": 329.8,
+        "width": 312,
+        "height": 48,
+        "bottom": 377.8,
+        "right": 336,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Đăng nhập",
+          "width": 312,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nĐăng nhập\n\nXem tình hình người thân và cảnh báo.\n\nEmail *\nMật khẩu *\nĐăng nhập\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "state": "guest",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "register-360x740-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Tạo tài khoản",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 24,
+        "y": 478.8,
+        "width": 312,
+        "height": 48,
+        "bottom": 526.8,
+        "right": 336,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tạo tài khoản",
+          "width": 312,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 84,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTạo tài khoản\nTên của bạn *\nEmail *\nMật khẩu *\n\nTối thiểu 10 ký tự.\n\nNhập lại mật khẩu *\nTạo tài khoản\n\nĐã có tài khoản?\nĐăng nhập\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/<token>",
+      "name": "invite-valid",
+      "state": "guest",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "invite-valid-360x740-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/<token>",
+          "status": 200
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời theo dõi",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập để tiếp tục",
+        "x": 24,
+        "y": 511.2,
+        "width": 211.2,
+        "height": 48,
+        "bottom": 559.2,
+        "right": 235.2,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập để tiếp tục",
+          "width": 211.2,
+          "height": 48,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 133.5,
+          "height": 44,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời theo dõi\n\nTrần Thị An mời bạn theo dõi Bà Trần Thị An với vai trò Người thân.\n\nSố đo và lịch sửXem số đo, tối đa 30 ngày\nCảnh báoNhận cảnh báo\nHỗ trợXác nhận hỗ trợ\nĐóng cảnh báoKhông đóng cảnh báo\nTrợ lý AIKhông xem câu trả lời từ trợ lý AI\nHết hạn00:20 21 thg 11, 2026\nĐăng nhập để tiếp tục\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/abc1234567",
+      "name": "invite-invalid",
+      "state": "token-422",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "invite-invalid-360x740-token-422.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Lời mời không hợp lệ",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 24,
+        "y": 214.6,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 262.6,
+        "right": 159.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời không hợp lệ\n\nLink lời mời không đúng định dạng hoặc đã thiếu ký tự. Hãy kiểm tra lại link, hoặc nhờ người mời gửi lại lời mời mới.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/khong-ton-tai",
+      "name": "not-found",
+      "state": "404",
+      "viewport": "360x740",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": false,
+      "screenshot": "not-found-360x740-404.png",
+      "apiStatuses": [],
+      "consoleErrors": [],
+      "allConsoleErrors": [],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "16px",
+      "h1": [
+        {
+          "text": "Không tìm thấy trang",
+          "fontSize": "24px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 24,
+        "y": 296.4,
+        "width": 135.5,
+        "height": 48,
+        "bottom": 344.4,
+        "right": 159.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 236.4,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 155,
+          "height": 44,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 135.5,
+          "height": 48,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\n\nLỗi 404\n\nKhông tìm thấy trang\n\nĐường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "state": "guest",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "landing-390x844-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Theo dõi sức khỏe người thân",
+          "fontSize": "35px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 30,
+        "y": 304,
+        "width": 330,
+        "height": 60,
+        "bottom": 364,
+        "right": 360,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản",
+          "width": 330,
+          "height": 60,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 330,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTheo dõi sức khỏe người thân\n\nXem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.\n\nTạo tài khoản\nĐăng nhập\n\nDữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.\n\nThiết bị\nNhịp tim, vận động, kết nối\nDữ liệu · Cảnh báo\nTheo người được chọn\nNgười hỗ trợ · Trợ lý AI\nCùng xem và phối hợp\nDữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.\nTheo dõi, cảnh báo và hỏi đáp\nTheo dõi\n\nNhịp tim, vận động và kết nối thiết bị của người thân.\n\nCảnh báo\n\nCảnh báo do hệ thống tạo, không phụ thuộc trợ lý.\n\nTrợ lý AI\n\nHỏi trợ lý AI về số liệu của người thân.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "state": "guest",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "login-390x844-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Đăng nhập",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập",
+        "x": 30,
+        "y": 433,
+        "width": 330,
+        "height": 55,
+        "bottom": 488,
+        "right": 360,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Đăng nhập",
+          "width": 330,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 166.9,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nĐăng nhập\n\nXem tình hình người thân và cảnh báo.\n\nEmail *\nMật khẩu *\nĐăng nhập\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "state": "guest",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "register-390x844-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Tạo tài khoản",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 30,
+        "y": 578.3,
+        "width": 330,
+        "height": 55,
+        "bottom": 633.3,
+        "right": 360,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tạo tài khoản",
+          "width": 330,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 105,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTạo tài khoản\nTên của bạn *\nEmail *\nMật khẩu *\n\nTối thiểu 10 ký tự.\n\nNhập lại mật khẩu *\nTạo tài khoản\n\nĐã có tài khoản?\nĐăng nhập\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/<token>",
+      "name": "invite-valid",
+      "state": "guest",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "invite-valid-390x844-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/<token>",
+          "status": 200
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Lời mời theo dõi",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập để tiếp tục",
+        "x": 30,
+        "y": 699,
+        "width": 263.5,
+        "height": 60,
+        "bottom": 759,
+        "right": 293.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập để tiếp tục",
+          "width": 263.5,
+          "height": 60,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 166.9,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời theo dõi\n\nTrần Thị An mời bạn theo dõi Bà Trần Thị An với vai trò Người thân.\n\nSố đo và lịch sửXem số đo, tối đa 30 ngày\nCảnh báoNhận cảnh báo\nHỗ trợXác nhận hỗ trợ\nĐóng cảnh báoKhông đóng cảnh báo\nTrợ lý AIKhông xem câu trả lời từ trợ lý AI\nHết hạn00:20 21 thg 11, 2026\nĐăng nhập để tiếp tục\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/abc1234567",
+      "name": "invite-invalid",
+      "state": "token-422",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "invite-invalid-390x844-large-token-422.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Lời mời không hợp lệ",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 30,
+        "y": 299,
+        "width": 168.9,
+        "height": 60,
+        "bottom": 359,
+        "right": 198.9,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 168.9,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời không hợp lệ\n\nLink lời mời không đúng định dạng hoặc đã thiếu ký tự. Hãy kiểm tra lại link, hoặc nhờ người mời gửi lại lời mời mới.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/khong-ton-tai",
+      "name": "not-found",
+      "state": "404",
+      "viewport": "390x844-large",
+      "viewportSize": "390x844",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "not-found-390x844-large-404.png",
+      "apiStatuses": [],
+      "consoleErrors": [],
+      "allConsoleErrors": [],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Không tìm thấy trang",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 30,
+        "y": 401.3,
+        "width": 168.9,
+        "height": 60,
+        "bottom": 461.3,
+        "right": 198.9,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 168.9,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\n\nLỗi 404\n\nKhông tìm thấy trang\n\nĐường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/",
+      "name": "landing",
+      "state": "guest",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "landing-360x740-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Theo dõi sức khỏe người thân",
+          "fontSize": "35px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 30,
+        "y": 247.3,
+        "width": 300,
+        "height": 60,
+        "bottom": 307.3,
+        "right": 330,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản",
+          "width": 300,
+          "height": 60,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 300,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTheo dõi sức khỏe người thân\n\nXem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.\n\nTạo tài khoản\nĐăng nhập\n\nDữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.\n\nThiết bị\nNhịp tim, vận động, kết nối\nDữ liệu · Cảnh báo\nTheo người được chọn\nNgười hỗ trợ · Trợ lý AI\nCùng xem và phối hợp\nDữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.\nTheo dõi, cảnh báo và hỏi đáp\nTheo dõi\n\nNhịp tim, vận động và kết nối thiết bị của người thân.\n\nCảnh báo\n\nCảnh báo do hệ thống tạo, không phụ thuộc trợ lý.\n\nTrợ lý AI\n\nHỏi trợ lý AI về số liệu của người thân.\n\nTheo dõi sức khỏe — người thân từ xa."
+    },
+    {
+      "route": "/login",
+      "name": "login",
+      "state": "guest",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "login-360x740-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Đăng nhập",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập",
+        "x": 30,
+        "y": 385,
+        "width": 300,
+        "height": 55,
+        "bottom": 440,
+        "right": 330,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Đăng nhập",
+          "width": 300,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 166.9,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nĐăng nhập\n\nXem tình hình người thân và cảnh báo.\n\nEmail *\nMật khẩu *\nĐăng nhập\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/register",
+      "name": "register",
+      "state": "guest",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "register-360x740-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Tạo tài khoản",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Tạo tài khoản",
+        "x": 30,
+        "y": 548.3,
+        "width": 300,
+        "height": 55,
+        "bottom": 603.3,
+        "right": 330,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "button",
+          "text": "Tạo tài khoản",
+          "width": 300,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập",
+          "width": 105,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nTạo tài khoản\nTên của bạn *\nEmail *\nMật khẩu *\n\nTối thiểu 10 ký tự.\n\nNhập lại mật khẩu *\nTạo tài khoản\n\nĐã có tài khoản?\nĐăng nhập\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/<token>",
+      "name": "invite-valid",
+      "state": "guest",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "invite-valid-360x740-large-guest.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/<token>",
+          "status": 200
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Lời mời theo dõi",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Đăng nhập để tiếp tục",
+        "x": 30,
+        "y": 659,
+        "width": 263.5,
+        "height": 60,
+        "bottom": 719,
+        "right": 293.5,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Đăng nhập để tiếp tục",
+          "width": 263.5,
+          "height": 60,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Tạo tài khoản mới",
+          "width": 166.9,
+          "height": 55,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời theo dõi\n\nTrần Thị An mời bạn theo dõi Bà Trần Thị An với vai trò Người thân.\n\nSố đo và lịch sửXem số đo, tối đa 30 ngày\nCảnh báoNhận cảnh báo\nHỗ trợXác nhận hỗ trợ\nĐóng cảnh báoKhông đóng cảnh báo\nTrợ lý AIKhông xem câu trả lời từ trợ lý AI\nHết hạn00:20 21 thg 11, 2026\nĐăng nhập để tiếp tục\n\nChưa có tài khoản?\nTạo tài khoản mới\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/invite/abc1234567",
+      "name": "invite-invalid",
+      "state": "token-422",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "invite-invalid-360x740-large-token-422.png",
+      "apiStatuses": [
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        },
+        {
+          "path": "/api/v1/me",
+          "status": 401
+        },
+        {
+          "path": "/api/v1/invitations/abc1234567",
+          "status": 422
+        }
+      ],
+      "consoleErrors": [],
+      "allConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+      ],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Lời mời không hợp lệ",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 30,
+        "y": 293,
+        "width": 168.9,
+        "height": 60,
+        "bottom": 353,
+        "right": 198.9,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 168.9,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\nLời mời không hợp lệ\n\nLink lời mời không đúng định dạng hoặc đã thiếu ký tự. Hãy kiểm tra lại link, hoặc nhờ người mời gửi lại lời mời mới.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu."
+    },
+    {
+      "route": "/khong-ton-tai",
+      "name": "not-found",
+      "state": "404",
+      "viewport": "360x740-large",
+      "viewportSize": "360x740",
+      "dpr": 2,
+      "largeText": true,
+      "screenshot": "not-found-360x740-large-404.png",
+      "apiStatuses": [],
+      "consoleErrors": [],
+      "allConsoleErrors": [],
+      "pageErrors": [],
+      "title": "Theo dõi sức khỏe",
+      "rootFontSize": "20px",
+      "h1": [
+        {
+          "text": "Không tìm thấy trang",
+          "fontSize": "30px"
+        }
+      ],
+      "h1Count": 1,
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "cta": {
+        "text": "Về trang chủ",
+        "x": 30,
+        "y": 440.3,
+        "width": 168.9,
+        "height": 60,
+        "bottom": 500.3,
+        "right": 198.9,
+        "inFirstViewport": true
+      },
+      "targets": [
+        {
+          "tag": "a",
+          "text": "Chuyển tới nội dung chính",
+          "width": 295.5,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Theo dõi sức khỏe",
+          "width": 193.7,
+          "height": 55,
+          "disabled": false
+        },
+        {
+          "tag": "a",
+          "text": "Về trang chủ",
+          "width": 168.9,
+          "height": 60,
+          "disabled": false
+        }
+      ],
+      "smallTargets": [],
+      "asideVisible": false,
+      "skipLink": true,
+      "bodyText": "Chuyển tới nội dung chính\nTheo dõi sức khỏe\n\nLỗi 404\n\nKhông tìm thấy trang\n\nĐường dẫn này không tồn tại hoặc đã được chuyển đi. Nếu bạn mở từ link lời mời, hãy kiểm tra link còn đủ ký tự hoặc nhờ người mời gửi lại.\n\nVề trang chủ\n\nDữ liệu mô phỏng · không thay thế cấp cứu.\n\nTheo dõi sức khỏe — người thân từ xa."
+    }
+  ]
+}

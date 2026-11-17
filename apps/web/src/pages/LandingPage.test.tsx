@@ -13,19 +13,19 @@ const HERO_NOTE =
   'Dữ liệu mô phỏng · cảnh báo chỉ hiện khi web đang kết nối · không tự gọi cấp cứu · không thay thế cấp cứu.';
 const SESSION_UNKNOWN = 'Không kiểm tra được phiên đăng nhập.';
 
-// FR-01 (phần công khai) — trang giới thiệu tối giản: một màn giới thiệu,
-// một section 3 thẻ, một dòng dữ liệu mô phỏng ngay dưới CTA trong màn đầu.
+// FR-01 (phần công khai) — landing v7: một H1, một câu giá trị, CTA rõ, sơ đồ
+// chữ và ba hàng thông tin ngắn; không hero nhịp tim/ba thẻ tính năng.
 describe('LandingPage', () => {
-  it('một màn giới thiệu: h1, đúng một CTA mỗi đích và dòng dữ liệu mô phỏng dưới CTA', async () => {
+  it('khách: một H1, một câu giá trị, CTA đúng đích và dòng giới hạn sau CTA', async () => {
     renderApp('/', () => me401Response());
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Người thân ở nhà, mình vẫn an tâm' }),
+      screen.getByRole('heading', { level: 1, name: 'Theo dõi sức khỏe người thân' }),
     ).toBeInTheDocument();
-    // Không còn tên tự đặt trong nội dung trang.
-    expect(screen.queryByText(/An Nhiên/)).toBeNull();
+    expect(
+      screen.getByText('Xem dữ liệu thiết bị, xử lý cảnh báo và hỏi trợ lý AI.'),
+    ).toBeInTheDocument();
 
-    // Mỗi đích đúng một link: header chỉ logo, hero là nơi duy nhất có CTA.
     const registerLinks = await screen.findAllByRole('link', { name: 'Tạo tài khoản' });
     expect(registerLinks).toHaveLength(1);
     const registerLink = registerLinks[0]!;
@@ -33,58 +33,59 @@ describe('LandingPage', () => {
     const loginLinks = screen.getAllByRole('link', { name: 'Đăng nhập' });
     expect(loginLinks).toHaveLength(1);
     expect(loginLinks[0]).toHaveAttribute('href', '/login');
+
+    // Header chỉ logo, hero là nơi duy nhất có CTA.
     const header = document.querySelector('header.site-header') as HTMLElement | null;
     expect(header).not.toBeNull();
     if (header) {
       expect(within(header).getAllByRole('link')).toHaveLength(1);
-      expect(within(header).getByRole('link', { name: 'Theo dõi sức khỏe' })).toBeInTheDocument();
-      expect(within(header).queryByRole('link', { name: 'Đăng nhập' })).toBeNull();
+      expect(within(header).getByRole('link', { name: 'Theo dõi sức khỏe' })).toHaveAttribute(
+        'href',
+        '/',
+      );
     }
 
-    // Dòng cảnh báo nằm trong hero, sau CTA chính — không tách khối, không lặp ở footer.
-    // R-01/R-02: phải giữ đủ nghĩa an toàn, không được rút gọn mất ý nào.
+    // Dòng giới hạn nằm trong hero, sau CTA chính, đủ bốn ý và không bị rút gọn.
     const note = screen.getByText(HERO_NOTE);
-    expect(note.closest('.hero')).not.toBeNull();
-    expect(registerLink.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(note.closest('.landing-hero')).not.toBeNull();
+    expect(
+      registerLink.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(note).toHaveTextContent('Dữ liệu mô phỏng');
     expect(note).toHaveTextContent('cảnh báo chỉ hiện khi web đang kết nối');
     expect(note).toHaveTextContent('không tự gọi cấp cứu');
     expect(note).toHaveTextContent('không thay thế cấp cứu');
-    expect(note.textContent).not.toMatch(/cảnh báo chỉ hiện khi web mở\./);
+
+    // Sơ đồ chữ thay cho ảnh/hero nhịp tim.
+    expect(document.querySelector('figure.landing-map')).not.toBeNull();
+    expect(screen.getByText('Dữ liệu từ thiết bị tới người hỗ trợ và trợ lý AI.')).toBeInTheDocument();
+    expect(screen.getByText('Người hỗ trợ · Trợ lý AI')).toBeInTheDocument();
 
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(screen.queryByText(/An Nhiên/)).toBeNull();
     expect(screen.queryByText(/bản demo|đồ án|giảng viên|nghiệm thu|chưa được duyệt/i)).toBeNull();
+    // Không hứa năng lực y tế/AI chưa có.
+    expect(document.body.textContent).not.toMatch(/chẩn đoán|điều trị|tự gọi cấp cứu thay bạn/i);
   });
 
-  it('hero giới thiệu trợ lý AI và đúng 3 thẻ một câu', () => {
+  it('ba hàng thông tin ngắn thay cho khối ba thẻ tính năng', () => {
     renderApp('/', () => me401Response());
 
-    const hero = document.querySelector('.hero') as HTMLElement | null;
-    expect(hero).not.toBeNull();
-    if (hero) {
-      expect(
-        within(hero).getByText(
-          'Nhịp tim, vận động và kết nối thiết bị của người thân được ghi lại; bạn nhận cảnh báo khi có bất thường. Trợ lý AI trả lời câu hỏi về số liệu của người thân.',
-        ),
-      ).toBeInTheDocument();
-    }
-
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Ứng dụng làm gì' }),
+      screen.getByRole('heading', { level: 2, name: 'Theo dõi, cảnh báo và hỏi đáp' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(3);
+    const rows = document.querySelectorAll('.landing-row');
+    expect(rows).toHaveLength(3);
+    expect(document.querySelector('.capability')).toBeNull();
+    expect(document.querySelectorAll('.card')).toHaveLength(0);
     expect(screen.getByRole('heading', { level: 3, name: 'Theo dõi' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 3, name: 'Báo khi cần' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 3, name: 'Hỏi trợ lý' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { level: 3, name: 'Hỏi đáp' })).toBeNull();
-    expect(
-      screen.getByText('Nhịp tim, vận động và kết nối thiết bị của người thân.'),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Cảnh báo' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Trợ lý AI' })).toBeInTheDocument();
+    expect(screen.getByText('Nhịp tim, vận động và kết nối thiết bị của người thân.')).toBeInTheDocument();
     expect(screen.getByText('Cảnh báo do hệ thống tạo, không phụ thuộc trợ lý.')).toBeInTheDocument();
     expect(screen.getByText('Hỏi trợ lý AI về số liệu của người thân.')).toBeInTheDocument();
 
-    // Các khối copy dài của bản cũ đã bỏ hẳn.
-    expect(screen.queryByRole('heading', { name: /An Nhiên/ })).toBeNull();
+    // Copy dài/khối lặp của bản cũ đã bỏ hẳn.
     expect(screen.queryByRole('heading', { name: 'Cách hoạt động' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Trợ lý ở trung tâm' })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'Ranh giới an toàn' })).toBeNull();
@@ -115,7 +116,7 @@ describe('LandingPage', () => {
     expect(screen.queryByRole('link', { name: 'Tạo tài khoản' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Đăng nhập' })).toBeNull();
     expect(screen.queryByRole('button', { name: /Thử lại/ })).toBeNull();
-    expect(document.querySelector('.hero__actions')?.querySelectorAll('a')).toHaveLength(0);
+    expect(document.querySelector('.landing-hero__actions')?.querySelectorAll('a')).toHaveLength(0);
 
     resolveMe(me401Response());
     expect(await screen.findByRole('link', { name: 'Tạo tài khoản' })).toBeInTheDocument();
@@ -134,12 +135,12 @@ describe('LandingPage', () => {
     });
 
     const message = await screen.findByText(SESSION_UNKNOWN);
-    const session = message.closest('.hero__session') as HTMLElement | null;
+    const session = message.closest('.landing-session') as HTMLElement | null;
     expect(session).not.toBeNull();
     if (!session) return;
 
-    // Không giả làm khách: CTA khách nằm trong khối lỗi, không nằm trong .hero__actions.
-    expect(document.querySelector('.hero__actions')?.querySelectorAll('a')).toHaveLength(0);
+    // Không giả làm khách: CTA khách nằm trong khối lỗi, không nằm trong hàng CTA.
+    expect(document.querySelector('.landing-hero__actions')?.querySelectorAll('a')).toHaveLength(0);
     expect(
       within(session)
         .getAllByRole('link')
