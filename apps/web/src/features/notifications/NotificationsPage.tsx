@@ -183,6 +183,8 @@ export function NotificationsPage({ headingLevel = 1, now }: NotificationsPagePr
                     <Link
                       className="inbox-item__link"
                       to={`/app/alerts/${item.incidentId}`}
+                      // Giữ ngữ cảnh để nút quay lại ở trang chi tiết về đúng tab hộp thư.
+                      state={{ alertsView: 'notifications' }}
                       aria-label={`Xem cảnh báo ${ALERT_TYPE_LABELS[item.incidentType]} của ${item.subjectName}`}
                     >
                       Xem cảnh báo

@@ -16,12 +16,12 @@ Sửa (8):
 | `apps/web/src/features/alerts/AlertsPage.test.tsx` | +162/−35 |
 | `apps/web/src/features/alerts/AlertDetailPage.tsx` | +231/−111 |
 | `apps/web/src/features/alerts/AlertDetailPage.test.tsx` | +145/−2 |
-| `apps/web/src/features/notifications/NotificationsPage.tsx` | +171/−77 |
-| `apps/web/src/features/notifications/NotificationsPage.test.tsx` | +142/−7 |
+| `apps/web/src/features/notifications/NotificationsPage.tsx` | +173/−77 |
+| `apps/web/src/features/notifications/NotificationsPage.test.tsx` | +172/−8 |
 | `apps/web/src/features/assistant/AssistantPage.tsx` | +77/−69 |
 | `apps/web/src/features/assistant/AssistantPage.test.tsx` | +85/−9 |
 
-`git diff --stat`: **8 file, 1365 insertions, 539 deletions**.
+`git diff --stat`: **8 file, 1397 insertions, 540 deletions**.
 
 Thêm (3): `apps/web/src/styles/alerts.css` (447 dòng), `apps/web/src/styles/assistant.css` (312), `apps/web/src/features/notifications/notifications.css` (147).
 
@@ -55,6 +55,7 @@ Không sửa: `features/alerts/labels.ts` (đóng băng), `app/*`, `lib/*`, `com
 - Chấm chưa đọc `aria-hidden` + nhãn ẩn "Chưa đọc"; sau khi đọc hiện pill **Đã đọc** thay nút.
 - Thời gian tương đối + tuyệt đối khi hover/focus-within (`24 phút trước (00:15 18 thg 11, 2026)`); prop `now` để test tất định.
 - Ghi chú "Đánh dấu đã đọc không xác nhận hay đóng cảnh báo."; empty state "Bạn đã đọc hết thông báo.".
+- Link **Xem cảnh báo** mang `state.alertsView = 'notifications'` để trang chi tiết quay lại đúng tab hộp thư (không rơi về tab Cảnh báo).
 
 **AlertDetailPage**
 
@@ -84,7 +85,7 @@ Không sửa: `features/alerts/labels.ts` (đóng băng), `app/*`, `lib/*`, `com
 | --- | --- | --- |
 | `features/alerts/AlertsPage.test.tsx` | 13 | Thêm: tab đúng href/`aria-current`, `?view=notifications` mount inbox trong trang (1 H1 + H2, không có nút ack/resolve trong inbox), ack hai bước + Hủy không POST, 409 có tên người xác nhận, refetch giữ danh sách + thông báo cũ, lỗi 500 + thử lại, ma trận quyền (không receive → không gọi API; chỉ receive → chỉ gợi ý), empty/error. Test cũ "một click → POST" đổi thành hai bước theo design:200. |
 | `features/alerts/AlertDetailPage.test.tsx` | 12 | Thêm: ngữ cảnh/quyền theo `detail.subjectId` khi shell chọn hồ sơ khác, contacts 500 không chặn ack, back link theo state (list vs inbox), timeline thiếu `measuredAt` chỉ có "Nhận" + "không áp dụng" + lý do xung đột. Test cũ vẫn giữ cho luồng ack/resolve/404. |
-| `features/notifications/NotificationsPage.test.tsx` | 7 | Viết lại: ngữ nghĩa chấm chưa đọc, thời gian tương đối + tuyệt đối (`now`), href đúng `incidentId`, mark-read optimistic **sống sau remount** (fake server có trạng thái), rollback 500 + thử lại, không có ack/resolve, error state. |
+| `features/notifications/NotificationsPage.test.tsx` | 8 | Viết lại: ngữ nghĩa chấm chưa đọc, thời gian tương đối + tuyệt đối (`now`), href đúng `incidentId`, mark-read optimistic **sống sau remount** (fake server có trạng thái), rollback 500 + thử lại, không có ack/resolve, error state; link chi tiết mang state để quay lại tab hộp thư. |
 | `features/notifications/useUnreadNotifications.test.tsx` | 4 | Không đổi. |
 | `features/assistant/AssistantPage.test.tsx` | 28 | Cập nhật nhãn gợi ý theo design:188; thêm: đúng 1 H1 + H2 "Hỏi trợ lý AI", label theo hồ sơ, không gọi summary khi mount, kịch bản A→B→A bỏ câu trả lời muộn, thứ tự note row **sau** composer/thread (design:183). |
 
@@ -99,20 +100,20 @@ TYPECHECK_EXIT=0
 
 $ pnpm --filter @heart-iot/web exec vitest run src/features/alerts src/features/notifications src/features/assistant --no-file-parallelism --maxWorkers=1
  Test Files  5 passed (5)
-      Tests  64 passed (64)
+      Tests  65 passed (65)
 LANE_EXIT=0
 
 $ pnpm --filter @heart-iot/web exec vitest run
  Test Files  37 passed (37)
-      Tests  306 passed (306)
+      Tests  307 passed (307)
 FULL_EXIT=0
 
 $ pnpm --filter @heart-iot/web build
-✓ built in 359ms
+✓ built in 260ms
 BUILD_EXIT=0
 ```
 
-Per-file lane: AlertsPage 13, AlertDetailPage 12, NotificationsPage 7, useUnreadNotifications 4, AssistantPage 28.
+Per-file lane: AlertsPage 13, AlertDetailPage 12, NotificationsPage 8, useUnreadNotifications 4, AssistantPage 28.
 
 ## 6. E2E hiện có: 4 pass / 1 fail do copy v6
 

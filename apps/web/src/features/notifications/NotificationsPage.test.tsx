@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { NotificationItem } from '@heart-iot/contracts/notifications';
 import { NotificationsPage } from './NotificationsPage';
 import { formatDateTime, formatRelativeTime } from '../../lib/format';
-import { errorEnvelope, mockResponse, renderPage } from '../../test/utils';
+import { errorEnvelope, mockResponse, renderPage, stubFetch } from '../../test/utils';
 
 const SUBJECT_ID = '1f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b';
 const INCIDENT_ID = '2f3d4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b';
@@ -124,6 +126,33 @@ describe('NotificationsPage — hộp thông báo toàn tài khoản', () => {
       name: 'Xem cảnh báo Nghi ngã của Bà Năm',
     });
     expect(link).toHaveAttribute('href', `/app/alerts/${INCIDENT_ID}`);
+  });
+
+  it('link chi tiết mang ngữ cảnh hộp thư để trang chi tiết quay lại đúng tab', async () => {
+    stubFetch(notificationsHandler({ items: [{ ...UNREAD }], unreadCount: 1 }));
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    function Probe() {
+      const location = useLocation();
+      const state = location.state as { alertsView?: string } | null;
+      return <p>alertsView:{state?.alertsView ?? 'none'}</p>;
+    }
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/app/alerts?view=notifications']}>
+          <Routes>
+            <Route path="/app/alerts" element={<NotificationsPage now={NOW} />} />
+            <Route path="/app/alerts/:id" element={<Probe />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await userEvent.click(
+      await screen.findByRole('link', { name: 'Xem cảnh báo Nghi ngã của Bà Năm' }),
+    );
+    expect(await screen.findByText('alertsView:notifications')).toBeInTheDocument();
   });
 
   it('đánh dấu đã đọc: đổi ngay (optimistic), giữ đúng sau khi tải lại', async () => {
