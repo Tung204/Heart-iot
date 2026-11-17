@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -272,5 +273,43 @@ describe('RecentInsightsCard — trạng thái và dữ liệu', () => {
     renderPage(<RecentInsightsCard subjectId={null} />);
     expect(screen.queryByRole('heading', { name: 'Xu hướng gần đây' })).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+// v7 lane H — keepPreviousData phải ràng identity: đổi hồ sơ không hiện insight cũ.
+describe('RecentInsightsCard — đổi hồ sơ', () => {
+  const OTHER_SUBJECT_ID = '9f2d3a4b-5c6d-4e7f-8a9b-0c1d2e3f4a5b';
+
+  it('hồ sơ mới đang tải → chỉ loading, không hiện số liệu của hồ sơ trước', async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubFetch((url) => {
+      if (String(url).includes(`/subjects/${SUBJECT.id}/insights`)) {
+        return mockResponse(makeResponse());
+      }
+      // Hồ sơ mới: giữ request treo để kiểm trạng thái chuyển.
+      return new Promise<Response>(() => {});
+    });
+
+    function Harness() {
+      const [subjectId, setSubjectId] = useState<string>(SUBJECT.id);
+      return (
+        <div>
+          <button type="button" onClick={() => setSubjectId(OTHER_SUBJECT_ID)}>
+            Đổi hồ sơ
+          </button>
+          <RecentInsightsCard subjectId={subjectId} />
+        </div>
+      );
+    }
+
+    renderPage(<Harness />);
+
+    expect(await screen.findByText('74.2 bpm')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Đổi hồ sơ' }));
+
+    // Dữ liệu hồ sơ cũ biến mất ngay, thay bằng loading của hồ sơ mới.
+    await waitFor(() => expect(screen.queryByText('74.2 bpm')).toBeNull());
+    expect(screen.getByText('Đang tải xu hướng…')).toBeInTheDocument();
+    expect(screen.queryByText('2/3')).toBeNull();
   });
 });

@@ -2,7 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HistoryPage } from './HistoryPage';
-import { errorEnvelope, mockResponse, renderPage, stubFetch, SUBJECT } from '../../test/utils';
+import {
+  errorEnvelope,
+  mockResponse,
+  renderApp,
+  renderPage,
+  stubFetch,
+  SUBJECT,
+} from '../../test/utils';
 
 // FR-05 / lịch sử đo — chưa có dữ liệu phải ghi rõ bằng chữ, không hiện số 0 giả.
 describe('HistoryPage — chưa có dữ liệu', () => {
@@ -379,5 +386,108 @@ describe('HistoryPage — thiếu quyền xem số đo', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Không tải được dữ liệu đo')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Tải CSV' })).not.toBeInTheDocument();
+  });
+});
+// v7 lane H — khoảng lọc nằm trong URL: reload/back không mất lựa chọn.
+describe('HistoryPage — lựa chọn khoảng nằm trong URL', () => {
+  const pageOf = (count: number) => ({
+    items: Array.from({ length: count }, (_, index) => {
+      const measuredAt = new Date(Date.UTC(2026, 10, 14, 9, 0, 0) - index * 15_000).toISOString();
+      return {
+        measuredAt,
+        receivedAt: measuredAt,
+        heartRateBpm: 70,
+        heartRateQuality: 'valid',
+        motionQuality: 'valid',
+        stepsSinceBoot: 1000 + index,
+        batteryPercent: 80,
+        isLate: false,
+        isQuarantined: false,
+      };
+    }),
+    nextCursor: null,
+    coverage: {
+      from: '2026-11-13T09:00:00.000Z',
+      to: '2026-11-14T09:00:00.000Z',
+      expectedIntervalSeconds: 15,
+      observedCount: count,
+      expectedCount: 5760,
+      percent: 50,
+    },
+    gaps: [],
+    excludedUnsyncedCount: 0,
+  });
+
+  function historyAppHandler() {
+    return (url: string) => {
+      const u = String(url);
+      if (u.endsWith('/me')) {
+        return mockResponse({
+          user: {
+            id: '0f1d2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b',
+            email: 'con@example.com',
+            displayName: 'Ngọc',
+            role: 'user',
+            status: 'active',
+            createdAt: '2026-11-14T09:00:00.000Z',
+          },
+          sessionExpiresAt: '2026-11-21T09:00:00.000Z',
+        });
+      }
+      if (u.endsWith('/subjects')) return mockResponse({ items: [SUBJECT] });
+      if (u.includes(`/subjects/${SUBJECT.id}/measurements`)) return mockResponse(pageOf(12));
+      return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+    };
+  }
+
+  it('?days=30 chọn sẵn 30 ngày, cửa sổ query đúng 30 ngày', async () => {
+    const { fetchMock } = renderApp('/app/history?days=30', historyAppHandler());
+
+    const thirty = await screen.findByRole(
+      'button',
+      { name: '30 ngày' },
+      { timeout: 5000 },
+    );
+    expect(thirty).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '24 giờ' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    const measurementUrl = new URL(
+      fetchMock.mock.calls
+        .map((call) => String(call[0]))
+        .find((url) => url.includes('/measurements'))!,
+      'http://localhost',
+    );
+    const from = new Date(measurementUrl.searchParams.get('from')!).getTime();
+    const to = new Date(measurementUrl.searchParams.get('to')!).getTime();
+    expect(to - from).toBeGreaterThanOrEqual(30 * 24 * 3600 * 1000 - 5_000);
+    expect(screen.getByText('Dữ liệu hiển thị là dữ liệu mô phỏng.')).toBeInTheDocument();
+  });
+
+  it('đổi khoảng ghi vào URL; Back của trình duyệt trả lại khoảng trước', async () => {
+    const user = userEvent.setup();
+    const { router } = renderApp('/app/history?days=30', historyAppHandler());
+
+    expect(
+      await screen.findByRole('button', { name: '30 ngày' }, { timeout: 5000 }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(screen.getByRole('button', { name: '7 ngày' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?days=7'));
+    expect(screen.getByRole('button', { name: '7 ngày' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await act(async () => {
+      await router.navigate(-1);
+    });
+    await waitFor(() => expect(router.state.location.search).toBe('?days=30'));
+    expect(screen.getByRole('button', { name: '30 ngày' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

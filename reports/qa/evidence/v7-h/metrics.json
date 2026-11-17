@@ -1,0 +1,1756 @@
+{
+  "generatedAt": "2026-11-17T17:42:58.007Z",
+  "web": "http://127.0.0.1:4353",
+  "api": "http://127.0.0.1:3353/api/v1",
+  "account": "ba-an@demo.heart-iot.local",
+  "viewports": [
+    {
+      "name": "1280x900",
+      "width": 1280,
+      "height": 900,
+      "large": false,
+      "dpr": 1
+    },
+    {
+      "name": "390x844",
+      "width": 390,
+      "height": 844,
+      "large": false,
+      "dpr": 1
+    },
+    {
+      "name": "360x740",
+      "width": 360,
+      "height": 740,
+      "large": false,
+      "dpr": 1
+    },
+    {
+      "name": "1280x900-large",
+      "width": 1280,
+      "height": 900,
+      "large": true,
+      "dpr": 1
+    },
+    {
+      "name": "390x844-large",
+      "width": 390,
+      "height": 844,
+      "large": true,
+      "dpr": 1
+    },
+    {
+      "name": "360x740-large",
+      "width": 360,
+      "height": 740,
+      "large": true,
+      "dpr": 1
+    }
+  ],
+  "results": [
+    {
+      "state": "overview",
+      "viewport": "1280x900",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "32px",
+          "top": 148,
+          "height": 40
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 17,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 490,
+        "dlBottom": 601,
+        "valueText": "63 bpm",
+        "valueTop": 516,
+        "valueBottom": 554,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": true
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-1280x900.png"
+    },
+    {
+      "state": "history",
+      "viewport": "1280x900",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "32px",
+          "top": 144,
+          "height": 40
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 76.9,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 78.7,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 90.8,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 76.9,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 78.7,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 90.8,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 966,
+        "scrollWidth": 966,
+        "svgWidth": 966,
+        "tickHeights": [
+          19,
+          19,
+          19
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A22.399Z&to=2026-11-17T17%3A42%3A22.399Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:22.399Z",
+          "to": "2026-11-17T17:42:22.399Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A22.399Z&to=2026-11-17T17%3A42%3A22.399Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:22.399Z",
+          "to": "2026-11-17T17:42:22.399Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-1280x900.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "1280x900",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "32px",
+          "top": 144,
+          "height": 40
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 76.9,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 78.7,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 90.8,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 76.9,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 78.7,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 90.8,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 966,
+        "scrollWidth": 966,
+        "svgWidth": 966,
+        "tickHeights": [
+          19,
+          19,
+          19
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A24.159Z&to=2026-11-17T17%3A42%3A24.159Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:24.159Z",
+          "to": "2026-11-17T17:42:24.159Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A24.159Z&to=2026-11-17T17%3A42%3A24.159Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:24.159Z",
+          "to": "2026-11-17T17:42:24.159Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-1280x900.png"
+    },
+    {
+      "state": "overview",
+      "viewport": "390x844",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "24px",
+          "top": 145,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 16,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 473,
+        "dlBottom": 694,
+        "valueText": "63 bpm",
+        "valueTop": 473,
+        "valueBottom": 501,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": true
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-390x844.png"
+    },
+    {
+      "state": "history",
+      "viewport": "390x844",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "24px",
+          "top": 181,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 108.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 109.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 122,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 108.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 109.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 122,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 332,
+        "scrollWidth": 720,
+        "svgWidth": 720,
+        "tickHeights": [
+          14,
+          14,
+          14
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A28.367Z&to=2026-11-17T17%3A42%3A28.367Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:28.367Z",
+          "to": "2026-11-17T17:42:28.367Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A28.367Z&to=2026-11-17T17%3A42%3A28.367Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:28.367Z",
+          "to": "2026-11-17T17:42:28.367Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-390x844.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "390x844",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "24px",
+          "top": 181,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 108.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 109.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 122,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 108.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 109.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 122,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 332,
+        "scrollWidth": 720,
+        "svgWidth": 720,
+        "tickHeights": [
+          14,
+          14,
+          14
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A30.057Z&to=2026-11-17T17%3A42%3A30.057Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:30.057Z",
+          "to": "2026-11-17T17:42:30.057Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A30.057Z&to=2026-11-17T17%3A42%3A30.057Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:30.057Z",
+          "to": "2026-11-17T17:42:30.057Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-390x844.png"
+    },
+    {
+      "state": "overview",
+      "viewport": "360x740",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "24px",
+          "top": 145,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 16,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 473,
+        "dlBottom": 694,
+        "valueText": "63 bpm",
+        "valueTop": 473,
+        "valueBottom": 501,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": true
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-360x740.png"
+    },
+    {
+      "state": "history",
+      "viewport": "360x740",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "24px",
+          "top": 181,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 98.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 99.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 112,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 98.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 99.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 112,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 302,
+        "scrollWidth": 720,
+        "svgWidth": 720,
+        "tickHeights": [
+          14,
+          14,
+          14
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A34.284Z&to=2026-11-17T17%3A42%3A34.284Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:34.284Z",
+          "to": "2026-11-17T17:42:34.284Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A34.284Z&to=2026-11-17T17%3A42%3A34.284Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:34.284Z",
+          "to": "2026-11-17T17:42:34.284Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-360x740.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "360x740",
+      "dpr": 1,
+      "htmlFontSize": "16px",
+      "textSizeAttr": null,
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "24px",
+          "top": 181,
+          "height": 31
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 98.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 99.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 112,
+          "h": 44
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 98.1,
+          "h": 44
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 99.9,
+          "h": 44
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 112,
+          "h": 44
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 302,
+        "scrollWidth": 720,
+        "svgWidth": 720,
+        "tickHeights": [
+          14,
+          14,
+          14
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A36.439Z&to=2026-11-17T17%3A42%3A36.439Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:36.439Z",
+          "to": "2026-11-17T17:42:36.439Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A36.439Z&to=2026-11-17T17%3A42%3A36.439Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:36.439Z",
+          "to": "2026-11-17T17:42:36.439Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-360x740.png"
+    },
+    {
+      "state": "overview",
+      "viewport": "1280x900-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "40px",
+          "top": 185,
+          "height": 50
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 17,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 611,
+        "dlBottom": 778,
+        "valueText": "63 bpm",
+        "valueTop": 670,
+        "valueBottom": 718,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": true
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-1280x900-large.png"
+    },
+    {
+      "state": "history",
+      "viewport": "1280x900-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "40px",
+          "top": 180,
+          "height": 50
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 95.7,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 97.9,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 113,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 95.7,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 97.9,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 113,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 848,
+        "scrollWidth": 848,
+        "svgWidth": 848,
+        "tickHeights": [
+          16,
+          16,
+          16
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A40.662Z&to=2026-11-17T17%3A42%3A40.662Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:40.662Z",
+          "to": "2026-11-17T17:42:40.662Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A40.662Z&to=2026-11-17T17%3A42%3A40.662Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:40.662Z",
+          "to": "2026-11-17T17:42:40.662Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-1280x900-large.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "1280x900-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 1280,
+        "height": 900
+      },
+      "docScrollWidth": 1280,
+      "docClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "bodyClientWidth": 1280,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "40px",
+          "top": 180,
+          "height": 50
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 95.7,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 97.9,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 113,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 95.7,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 97.9,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 113,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 848,
+        "scrollWidth": 848,
+        "svgWidth": 848,
+        "tickHeights": [
+          16,
+          16,
+          16
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A42.864Z&to=2026-11-17T17%3A42%3A42.864Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:42.864Z",
+          "to": "2026-11-17T17:42:42.864Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A42.864Z&to=2026-11-17T17%3A42%3A42.864Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:42.864Z",
+          "to": "2026-11-17T17:42:42.864Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-1280x900-large.png"
+    },
+    {
+      "state": "overview",
+      "viewport": "390x844-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "30px",
+          "top": 182,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 16,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 602,
+        "dlBottom": 878,
+        "valueText": "63 bpm",
+        "valueTop": 602,
+        "valueBottom": 638,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": false
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-390x844-large.png"
+    },
+    {
+      "state": "history",
+      "viewport": "390x844-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "30px",
+          "top": 226,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 102.8,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 105,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 120.2,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 102.8,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 105,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 120.2,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 318,
+        "scrollWidth": 900,
+        "svgWidth": 900,
+        "tickHeights": [
+          18,
+          18,
+          18
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A47.102Z&to=2026-11-17T17%3A42%3A47.102Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:47.102Z",
+          "to": "2026-11-17T17:42:47.102Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A47.102Z&to=2026-11-17T17%3A42%3A47.102Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:47.102Z",
+          "to": "2026-11-17T17:42:47.102Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-390x844-large.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "390x844-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 390,
+        "height": 844
+      },
+      "docScrollWidth": 390,
+      "docClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "bodyClientWidth": 390,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "30px",
+          "top": 226,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 102.8,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 105,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 120.2,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 102.8,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 105,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 120.2,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 318,
+        "scrollWidth": 900,
+        "svgWidth": 900,
+        "tickHeights": [
+          18,
+          18,
+          18
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A48.800Z&to=2026-11-17T17%3A42%3A48.800Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:48.800Z",
+          "to": "2026-11-17T17:42:48.800Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A48.800Z&to=2026-11-17T17%3A42%3A48.800Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:48.800Z",
+          "to": "2026-11-17T17:42:48.800Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-390x844-large.png"
+    },
+    {
+      "state": "overview",
+      "viewport": "360x740-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Sức khỏe",
+          "fontSize": "30px",
+          "top": 182,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 16,
+      "smallTargets": [],
+      "filterTargets": [],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [],
+      "chart": null,
+      "firstMetric": {
+        "dlTop": 602,
+        "dlBottom": 878,
+        "valueText": "63 bpm",
+        "valueTop": 602,
+        "valueBottom": 638,
+        "valueFullyInFirstViewport": true,
+        "dlFullyInFirstViewport": false
+      },
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": false,
+      "hasSyntheticSourcePill": true,
+      "csvLink": null,
+      "h2s": [
+        "Cảnh báo đang mở",
+        "Tổng hợp hôm nay",
+        "Xu hướng gần đây",
+        "Thiết bị"
+      ],
+      "consoleErrors": [],
+      "screenshot": "overview-360x740-large.png"
+    },
+    {
+      "state": "history",
+      "viewport": "360x740-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "30px",
+          "top": 226,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item is-active",
+          "w": 150.4,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 152.6,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item",
+          "w": 308,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "true",
+          "disabled": false,
+          "w": 150.4,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 152.6,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 308,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 288,
+        "scrollWidth": 900,
+        "svgWidth": 900,
+        "tickHeights": [
+          18,
+          18,
+          18
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A53.310Z&to=2026-11-17T17%3A42%3A53.310Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-11-16-2026-11-17.csv\"",
+        "bytes": 30481,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-11-16T17:42:53.310Z",
+          "to": "2026-11-17T17:42:53.310Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-11-16T17%3A42%3A53.310Z&to=2026-11-17T17%3A42%3A53.310Z"
+        },
+        "measurementParams": {
+          "from": "2026-11-16T17:42:53.310Z",
+          "to": "2026-11-17T17:42:53.310Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-360x740-large.png"
+    },
+    {
+      "state": "history-30d",
+      "viewport": "360x740-large",
+      "dpr": 1,
+      "htmlFontSize": "20px",
+      "textSizeAttr": "large",
+      "viewportInner": {
+        "width": 360,
+        "height": 740
+      },
+      "docScrollWidth": 360,
+      "docClientWidth": 360,
+      "bodyScrollWidth": 360,
+      "bodyClientWidth": 360,
+      "overflowX": 0,
+      "h1Count": 1,
+      "h1s": [
+        {
+          "text": "Lịch sử đo",
+          "fontSize": "30px",
+          "top": 226,
+          "height": 39
+        }
+      ],
+      "contextLineCount": 1,
+      "contextText": [
+        "Theo dõi: Bà Trần Thị An"
+      ],
+      "targetCount": 14,
+      "smallTargets": [],
+      "filterTargets": [
+        {
+          "text": "24 giờ",
+          "className": "history-range__item",
+          "w": 150.4,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "className": "history-range__item",
+          "w": 152.6,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "className": "history-range__item is-active",
+          "w": 308,
+          "h": 55
+        }
+      ],
+      "filterAllAtLeast44": true,
+      "rangeButtons": [
+        {
+          "text": "24 giờ",
+          "pressed": "false",
+          "disabled": false,
+          "w": 150.4,
+          "h": 55
+        },
+        {
+          "text": "7 ngày",
+          "pressed": "false",
+          "disabled": false,
+          "w": 152.6,
+          "h": 55
+        },
+        {
+          "text": "30 ngày",
+          "pressed": "true",
+          "disabled": false,
+          "w": 308,
+          "h": 55
+        }
+      ],
+      "chart": {
+        "scrollClientWidth": 288,
+        "scrollWidth": 900,
+        "svgWidth": 900,
+        "tickHeights": [
+          18,
+          18,
+          18
+        ],
+        "tickFontSize": "11px"
+      },
+      "firstMetric": null,
+      "simulationLabel": true,
+      "hasSimulationNoteHistory": true,
+      "hasSyntheticSourcePill": false,
+      "csvLink": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A55.242Z&to=2026-11-17T17%3A42%3A55.242Z",
+      "h2s": [
+        "Độ phủ và khoảng thiếu"
+      ],
+      "consoleErrors": [],
+      "csv": {
+        "ok": true,
+        "status": 200,
+        "contentType": "text/csv; charset=utf-8",
+        "contentDisposition": "attachment; filename=\"subject-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-2026-10-18-2026-11-17.csv\"",
+        "bytes": 180203,
+        "headerLine": "﻿measured_at,received_at,heart_rate_bpm,heart_rate_quality,motion_quality,steps_since_boot",
+        "csv": {
+          "from": "2026-10-18T17:42:55.242Z",
+          "to": "2026-11-17T17:42:55.242Z",
+          "href": "http://127.0.0.1:3353/api/v1/subjects/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/export.csv?from=2026-10-18T17%3A42%3A55.242Z&to=2026-11-17T17%3A42%3A55.242Z"
+        },
+        "measurementParams": {
+          "from": "2026-10-18T17:42:55.242Z",
+          "to": "2026-11-17T17:42:55.242Z"
+        },
+        "sameRange": true
+      },
+      "screenshot": "history-30d-360x740-large.png"
+    }
+  ]
+}

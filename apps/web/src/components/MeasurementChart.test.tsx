@@ -21,11 +21,27 @@ describe('MeasurementChart — vùng cuộn focusable', () => {
     const region = screen.getByRole('group', {
       name: /Biểu đồ nhịp tim có thể cuộn ngang/,
     });
-    expect(region).toHaveClass('chart__scroll');
+    expect(region).toHaveClass('measure-chart__scroll');
     expect(region).toHaveAttribute('tabindex', '0');
     expect(region).toHaveAccessibleName(/Dùng phím mũi tên trái\/phải/);
 
     expect(screen.getByRole('img', { name: /Biểu đồ nhịp tim/ })).toBeInTheDocument();
     expect(screen.getByText(/Bảng\/danh sách dữ liệu bên dưới liệt kê từng lần đo/)).toBeInTheDocument();
+  });
+});
+
+// v7 lane H — không có mẫu hợp lệ thì nói rõ bằng chữ, không vẽ điểm giả.
+describe('MeasurementChart — không có điểm hợp lệ', () => {
+  it('empty state hiển thị câu giải thích và không có polyline/circle', () => {
+    const { container } = render(<MeasurementChart points={[]} gaps={[]} range={RANGE} />);
+
+    expect(
+      screen.getByText(/Chưa có mẫu nhịp tim hợp lệ trong khoảng này/),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Chưa có mẫu hợp lệ để vẽ biểu đồ')).toBeInTheDocument();
+    expect(container.querySelectorAll('polyline')).toHaveLength(0);
+    expect(container.querySelectorAll('polygon')).toHaveLength(0);
+    expect(container.querySelectorAll('circle')).toHaveLength(0);
+    expect(screen.getByRole('img', { name: /chưa có mẫu hợp lệ để vẽ/ })).toBeInTheDocument();
   });
 });

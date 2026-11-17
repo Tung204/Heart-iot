@@ -1,29 +1,30 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { HeartRateQuality } from '@heart-iot/contracts';
 import type { MeasurementGap, MeasurementsResponse } from '@heart-iot/contracts/measurements';
-import { ButtonLink } from '../../components/Button';
+import { Button, ButtonLink } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { MeasurementChart, type ChartPoint } from '../../components/MeasurementChart';
+import { PageHeader } from '../../components/PageHeader';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
-import { Button } from '../../components/Button';
 import { clampRangeToHistoryDays, formatCompactDateTime, formatDateTime } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
 import { exportCsvUrl, fetchMeasurements } from './api';
+import '../../styles/health.css';
 
 type RangeKey = '24h' | '7d' | '30d';
 type Measurement = MeasurementsResponse['items'][number];
 
-const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; hours: number }> = [
-  { key: '24h', label: '24 giờ', hours: 24 },
-  { key: '7d', label: '7 ngày', hours: 7 * 24 },
-  { key: '30d', label: '30 ngày', hours: 30 * 24 },
+const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; hours: number; days: number }> = [
+  { key: '24h', label: '24 giờ', hours: 24, days: 1 },
+  { key: '7d', label: '7 ngày', hours: 7 * 24, days: 7 },
+  { key: '30d', label: '30 ngày', hours: 30 * 24, days: 30 },
 ];
 
 const GAP_REASON_LABELS: Record<MeasurementGap['reason'], string> = {
@@ -54,15 +55,17 @@ const INITIAL_VISIBLE_ROWS = 10;
 
 const MINUTE_MS = 60_000;
 
-/** Cùng breakpoint với `table-wrap--history` / `measurement-cards` trong layout.css. */
+/** Cùng breakpoint với CSS `.history-cards` trong styles/health.css. */
 const COMPACT_VIEWPORT_QUERY = '(max-width: 767px)';
 
-/** Theo dõi breakpoint để chỉ render MỘT biến thể bảng hoặc thẻ. */
+/** Theo dõi breakpoint để chỉ render MỘT biến thể bảng hoặc danh sách. */
 function useMediaQuery(query: string): boolean {
   const supportsMediaQuery = () =>
     typeof window !== 'undefined' && typeof window.matchMedia === 'function';
 
-  const [matches, setMatches] = useState(() => (supportsMediaQuery() ? window.matchMedia(query).matches : false));
+  const [matches, setMatches] = useState(() =>
+    supportsMediaQuery() ? window.matchMedia(query).matches : false,
+  );
 
   useEffect(() => {
     if (!supportsMediaQuery()) return;
@@ -74,6 +77,13 @@ function useMediaQuery(query: string): boolean {
   }, [query]);
 
   return matches;
+}
+
+/** Lựa chọn khoảng nằm trong URL (`?days=1|7|30`) để back/forward không mất lựa chọn. */
+function rangeKeyFromParam(value: string | null): RangeKey {
+  if (value === '7') return '7d';
+  if (value === '30') return '30d';
+  return '24h';
 }
 
 const MeasurementTableRow = memo(function MeasurementTableRow({ item }: { item: Measurement }) {
@@ -94,10 +104,12 @@ const MeasurementTableRow = memo(function MeasurementTableRow({ item }: { item: 
       <td>{item.stepsSinceBoot}</td>
       <td>{item.batteryPercent !== null ? `${item.batteryPercent}%` : 'chưa rõ'}</td>
       <td>
-        {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}{' '}
-        {item.measuredAt === null ? (
-          <StatusPill tone="neutral">Đồng hồ chưa đồng bộ</StatusPill>
-        ) : null}
+        <span className="history-flags">
+          {item.isLate ? <StatusPill tone="warning">Nhận trễ</StatusPill> : null}
+          {item.measuredAt === null ? (
+            <StatusPill tone="neutral">Đồng hồ chưa đồng bộ</StatusPill>
+          ) : null}
+        </span>
       </td>
     </tr>
   );
@@ -105,15 +117,17 @@ const MeasurementTableRow = memo(function MeasurementTableRow({ item }: { item: 
 
 const MeasurementCardItem = memo(function MeasurementCardItem({ item }: { item: Measurement }) {
   return (
-    <li className="measurement-card">
-      <div className="measurement-card__head">
-        <p className="measurement-card__time">
+    <li className="history-card">
+      <div className="history-card__head">
+        <p className="history-card__time">
           {item.measuredAt ? formatCompactDateTime(item.measuredAt) : 'Không rõ giờ đo'}
         </p>
-        {item.isLate ? <StatusPill tone="sand">Nhận trễ</StatusPill> : null}
-        {item.measuredAt === null ? <StatusPill tone="neutral">Chưa đồng bộ</StatusPill> : null}
+        <span className="history-flags">
+          {item.isLate ? <StatusPill tone="warning">Nhận trễ</StatusPill> : null}
+          {item.measuredAt === null ? <StatusPill tone="neutral">Chưa đồng bộ</StatusPill> : null}
+        </span>
       </div>
-      <dl className="measurement-card__facts">
+      <dl className="history-card__facts">
         <div>
           <dt>Nhịp tim</dt>
           <dd>
@@ -143,6 +157,7 @@ const MeasurementCardItem = memo(function MeasurementCardItem({ item }: { item: 
     </li>
   );
 });
+
 /** 403 ở lịch sử đo là trạng thái quyền, không phải lỗi kỹ thuật. */
 function isForbiddenError(error: unknown): boolean {
   return isApiError(error) && (error.status === 403 || error.code === 'FORBIDDEN');
@@ -161,15 +176,18 @@ function MeasurementsNotShared() {
 
 /**
  * /app/history — lịch sử đo trong khoảng 24h/7 ngày/30 ngày (giới hạn theo quyền).
- * - Bảng dữ liệu + biểu đồ SVG có nhãn trục; bảng là phương án cho screen reader.
- * - Đánh dấu khoảng thiếu, mẫu nhận trễ, đồng hồ chưa đồng bộ.
+ * - Bộ lọc khoảng nằm trong URL; quay lại trang vẫn giữ lựa chọn.
+ * - from/to (và CSV) clamp theo historyDays + sharedFrom; server vẫn là chốt quyền.
+ * - Biểu đồ SVG có nhãn trục; bảng/danh sách là phương án thay thế, một biến thể
+ *   theo breakpoint. Đánh dấu khoảng thiếu, mẫu nhận trễ, đồng hồ chưa đồng bộ.
  * - Không có dữ liệu → ghi rõ "Chưa có dữ liệu", không hiện số 0 giả.
- * - Cửa sổ thời gian cố định theo lần chọn khoảng: không refetch/reset trang mỗi phút.
+ * - Cửa sổ thời gian cố định theo lần chọn khoảng: không refetch/reset mỗi phút.
  */
 export function HistoryPage() {
   const subjects = useSubjects();
   const activeSubject = useActiveSubject(subjects.data);
-  const [rangeKey, setRangeKey] = useState<RangeKey>('24h');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rangeKey = rangeKeyFromParam(searchParams.get('days'));
   const [visibleRows, setVisibleRows] = useState(INITIAL_VISIBLE_ROWS);
   const isCompactViewport = useMediaQuery(COMPACT_VIEWPORT_QUERY);
 
@@ -187,8 +205,7 @@ export function HistoryPage() {
   // không bị mất khi đồng hồ chạy tiếp.
   const [rangeAnchor, setRangeAnchor] = useState(() => Date.now());
 
-  const rangeOption =
-    RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
+  const rangeOption = RANGE_OPTIONS.find((option) => option.key === rangeKey) ?? RANGE_OPTIONS[0]!;
   const historyDays = activeSubject?.permissions.historyDays ?? 1;
   // Link cũ thiếu `canViewMeasurements` được hiểu là `true` (server đã chuẩn hóa).
   const canViewMeasurements = activeSubject
@@ -212,10 +229,21 @@ export function HistoryPage() {
     [rangeAnchor, clampedHours, historyDays, sharedFromMs],
   );
 
-  // Đổi khoảng (đã xử lý ở selectRange) hoặc đổi hồ sơ thì quay về cửa sổ 20 dòng đầu.
+  // Đổi khoảng bằng back/forward (URL) hoặc đổi hồ sơ thì quay về 10 dòng đầu và
+  // lấy mốc "bây giờ" mới. Bỏ qua lần chạy đầu để không đổi from/to ngay sau mount.
+  const skipFirstRangeEffect = useRef(true);
+  useEffect(() => {
+    if (skipFirstRangeEffect.current) {
+      skipFirstRangeEffect.current = false;
+      return;
+    }
+    setRangeAnchor(Date.now());
+    setVisibleRows(INITIAL_VISIBLE_ROWS);
+  }, [rangeKey]);
+
   useEffect(() => {
     setVisibleRows(INITIAL_VISIBLE_ROWS);
-  }, [rangeKey, activeSubject?.id]);
+  }, [activeSubject?.id]);
 
   const measurements = useInfiniteQuery({
     queryKey: activeSubject
@@ -239,9 +267,13 @@ export function HistoryPage() {
   });
 
   const selectRange = (key: RangeKey) => {
-    setRangeKey(key);
+    const option = RANGE_OPTIONS.find((item) => item.key === key) ?? RANGE_OPTIONS[0]!;
     setRangeAnchor(Date.now());
     setVisibleRows(INITIAL_VISIBLE_ROWS);
+    // push (không replace) để nút Back của trình duyệt trả lại khoảng đã xem trước đó.
+    const next = new URLSearchParams(searchParams);
+    next.set('days', String(option.days));
+    setSearchParams(next);
   };
 
   const refreshWindow = () => {
@@ -301,100 +333,132 @@ export function HistoryPage() {
     : measurements.isFetchingNextPage
       ? 'Đang tải…'
       : 'Tải thêm từ máy chủ';
-  const measurementsForbidden =
-    measurements.isError && isForbiddenError(measurements.error);
+  const measurementsForbidden = measurements.isError && isForbiddenError(measurements.error);
+  const historyDisabled = RANGE_OPTIONS.filter((option) => option.hours > maxHours);
 
-  if (!activeSubject && !subjects.isPending && !subjects.isError) {
+  const breadcrumb = (
+    <Link to="/app/overview" className="button button--subtle button--sm health-back">
+      ← Sức khỏe
+    </Link>
+  );
+
+  if (subjects.isPending) {
     return (
-      <EmptyState
-        title="Chưa có hồ sơ để xem lịch sử"
-        description="Tạo hồ sơ cho người cần theo dõi hoặc chọn hồ sơ ở đầu trang."
-        action={<ButtonLink to="/app/subjects">Tạo hồ sơ</ButtonLink>}
-      />
+      <div className="stack health-page">
+        <PageHeader title="Lịch sử đo" breadcrumb={breadcrumb} />
+        <PageLoader label="Đang tải hồ sơ…" />
+      </div>
+    );
+  }
+
+  if (subjects.isError) {
+    return (
+      <div className="stack health-page">
+        <PageHeader title="Lịch sử đo" breadcrumb={breadcrumb} />
+        <ErrorState
+          title="Không tải được danh sách hồ sơ"
+          message={getApiErrorMessage(subjects.error)}
+          onRetry={() => void subjects.refetch()}
+          headingLevel={2}
+        />
+      </div>
+    );
+  }
+
+  if (!activeSubject) {
+    return (
+      <div className="stack health-page">
+        <PageHeader title="Lịch sử đo" breadcrumb={breadcrumb} />
+        <EmptyState
+          title="Chưa có hồ sơ để xem lịch sử"
+          description="Tạo hồ sơ cho người cần theo dõi hoặc chọn hồ sơ ở đầu trang."
+          action={<ButtonLink to="/app/subjects">Tạo hồ sơ</ButtonLink>}
+        />
+      </div>
     );
   }
 
   if (activeSubject && !canViewMeasurements) {
     return (
-      <div className="stack">
-        <nav aria-label="Đường dẫn">
-          <Link to="/app/overview" className="breadcrumb">
-            ← Sức khỏe
-          </Link>
-        </nav>
-        <header>
-          <h1 className="page-title">Lịch sử đo</h1>
-        </header>
+      <div className="stack health-page">
+        <PageHeader title="Lịch sử đo" breadcrumb={breadcrumb} />
         <MeasurementsNotShared />
       </div>
     );
   }
 
   return (
-    <div className="stack">
-      <nav aria-label="Đường dẫn">
-        <Link to="/app/overview" className="breadcrumb">
-          ← Sức khỏe
-        </Link>
-      </nav>
-      <header>
-        <h1 className="page-title">Lịch sử đo</h1>
-      </header>
+    <div className="stack health-page">
+      <PageHeader title="Lịch sử đo" breadcrumb={breadcrumb} />
 
       {measurementsForbidden ? null : (
-        <div className="history-toolbar">
-          <div className="segmented" role="group" aria-label="Chọn khoảng thời gian">
-            {RANGE_OPTIONS.map((option) => {
-              const allowedByHistory = option.hours <= maxHours;
-              // Khoảng đầy đủ bắt đầu trước mốc chia sẻ thì không xem được trọn vẹn:
-              // disable kèm giải thích thay vì để người dùng gặp lỗi 403.
-              const allowedByShare =
-                sharedFromMs === null || now - option.hours * 3600 * 1000 >= sharedFromMs;
-              const allowed = allowedByHistory && allowedByShare;
-              const disabledReason = !allowedByHistory
-                ? `Quyền chỉ cho xem ${historyDays} ngày`
-                : `Chỉ xem được dữ liệu từ ${activeSubject?.sharedFrom ? formatDateTime(activeSubject.sharedFrom) : 'mốc chia sẻ quyền'} — khoảng ${option.label} bắt đầu trước mốc này`;
-              return (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`segmented__item${rangeKey === option.key ? ' is-active' : ''}`}
-                  aria-pressed={rangeKey === option.key}
-                  disabled={!allowed}
-                  title={allowed ? undefined : disabledReason}
-                  onClick={() => selectRange(option.key)}
+        <>
+          <div className="history-toolbar">
+            <div className="history-range" role="group" aria-label="Chọn khoảng thời gian">
+              {RANGE_OPTIONS.map((option) => {
+                const allowedByHistory = option.hours <= maxHours;
+                // Khoảng đầy đủ bắt đầu trước mốc chia sẻ thì không xem được trọn vẹn:
+                // disable kèm giải thích thay vì để người dùng gặp lỗi 403.
+                const allowedByShare =
+                  sharedFromMs === null || now - option.hours * 3600 * 1000 >= sharedFromMs;
+                const allowed = allowedByHistory && allowedByShare;
+                const isSelected = rangeKey === option.key;
+                const disabledReason = !allowedByHistory
+                  ? `Quyền chỉ cho xem ${historyDays} ngày`
+                  : `Chỉ xem được dữ liệu từ ${activeSubject?.sharedFrom ? formatDateTime(activeSubject.sharedFrom) : 'mốc chia sẻ quyền'} — khoảng ${option.label} bắt đầu trước mốc này`;
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    className={`history-range__item${isSelected ? ' is-active' : ''}`}
+                    aria-pressed={isSelected}
+                    disabled={!allowed && !isSelected}
+                    title={allowed ? undefined : disabledReason}
+                    onClick={() => selectRange(option.key)}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="history-actions">
+              <Button variant="secondary" size="sm" onClick={refreshWindow}>
+                Cập nhật khoảng
+              </Button>
+              {activeSubject ? (
+                <a
+                  className="button button--secondary button--sm"
+                  href={exportCsvUrl(activeSubject.id, from, to)}
+                  download
                 >
-                  {option.label}
-                </button>
-              );
-            })}
+                  Tải CSV
+                </a>
+              ) : null}
+            </div>
           </div>
-          <Button variant="subtle" size="sm" onClick={refreshWindow}>
-            Cập nhật khoảng
-          </Button>
-          {activeSubject ? (
-            <a
-              className="button button--secondary button--sm"
-              href={exportCsvUrl(activeSubject.id, from, to)}
-              download
-            >
-              Tải CSV
-            </a>
-          ) : null}
-        </div>
+
+          <p className="history-sim">Dữ liệu hiển thị là dữ liệu mô phỏng.</p>
+        </>
       )}
 
-      {isClamped ? (
-        <p className="field__hint">
-          Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của
-          bạn.
+      {isClamped && !measurementsForbidden ? (
+        <p className="history-limit">
+          Khoảng hiển thị được rút ngắn còn {clampedHours / 24} ngày theo quyền chia sẻ của bạn.
         </p>
       ) : null}
 
-      {isShareClamped && activeSubject?.sharedFrom ? (
-        <p className="field__hint">
-          Dữ liệu chỉ bắt đầu từ {formatDateTime(activeSubject.sharedFrom)} — thời điểm bạn
-          được chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.
+      {isShareClamped && activeSubject?.sharedFrom && !measurementsForbidden ? (
+        <p className="history-limit">
+          Dữ liệu chỉ bắt đầu từ {formatDateTime(activeSubject.sharedFrom)} — thời điểm bạn được
+          chia sẻ quyền, nên khoảng đang xem ngắn hơn lựa chọn.
+        </p>
+      ) : null}
+
+      {historyDisabled.length > 0 && !measurementsForbidden ? (
+        <p className="history-limit">
+          Quyền chia sẻ chỉ cho xem {historyDays} ngày gần nhất nên{' '}
+          {historyDisabled.map((option) => option.label).join(', ')} không chọn được.
         </p>
       ) : null}
 
@@ -408,6 +472,7 @@ export function HistoryPage() {
             title="Không tải được dữ liệu đo"
             message={getApiErrorMessage(measurements.error)}
             onRetry={() => void measurements.refetch()}
+            headingLevel={2}
           />
         )
       ) : items.length === 0 ? (
@@ -422,38 +487,47 @@ export function HistoryPage() {
         />
       ) : (
         <>
-          <p className="chart-hint-mobile">Vuốt ngang biểu đồ để xem đủ khoảng thời gian.</p>
           <MeasurementChart points={chartPoints} gaps={gaps} range={chartRange} />
 
-          <details className="history-tech">
-            <summary>Chi tiết kỹ thuật</summary>
-            {coverage ? (
-              <p className="metric-line">
-                Độ phủ: {coverage.percent}% · {coverage.observedCount} mẫu đã nhận ·{' '}
-                {gaps.length} khoảng thiếu ·
-                {unsynced > 0
-                  ? ` ${unsynced} mẫu đồng hồ chưa đồng bộ bị loại khỏi trục thời gian`
-                  : ' không có mẫu lệch đồng hồ'}
-              </p>
-            ) : null}
-
+          <section className="history-coverage" aria-labelledby="history-coverage-heading">
+            <h2 id="history-coverage-heading" className="history-h2">
+              Độ phủ và khoảng thiếu
+            </h2>
+            <dl className="history-kv">
+              <div>
+                <dt>Độ phủ</dt>
+                <dd>{coverage ? `${coverage.percent}%` : 'chưa rõ'}</dd>
+              </div>
+              <div>
+                <dt>Mẫu đã nhận</dt>
+                <dd>{coverage ? `${coverage.observedCount} mẫu` : 'chưa rõ'}</dd>
+              </div>
+              <div>
+                <dt>Khoảng thiếu</dt>
+                <dd>{gaps.length} khoảng</dd>
+              </div>
+              <div>
+                <dt>Đồng hồ chưa đồng bộ</dt>
+                <dd>
+                  {unsynced > 0 ? `${unsynced} mẫu bị loại khỏi trục thời gian` : 'không có mẫu lệch'}
+                </dd>
+              </div>
+            </dl>
             {gaps.length > 0 ? (
-              <div className="gap-list" role="list" aria-label="Các khoảng thiếu dữ liệu">
-                <p className="gap-list__title">Khoảng thiếu dữ liệu:</p>
+              <ul className="history-gaps">
                 {gaps.map((gap) => (
-                  <p key={`${gap.from}-${gap.to}`} role="listitem">
+                  <li key={`${gap.from}-${gap.to}`}>
                     {formatDateTime(gap.from)} → {formatDateTime(gap.to)} ·{' '}
                     {GAP_REASON_LABELS[gap.reason]}
-                  </p>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : null}
-          </details>
+          </section>
 
-          {/* Chỉ render một biến thể theo breakpoint: trước đây cả bảng và thẻ cùng
-              render rồi CSS ẩn một bên, gấp đôi số DOM node và công render. */}
+          {/* Chỉ render một biến thể theo breakpoint: không giữ hai cây DOM cùng chạy. */}
           {isCompactViewport ? (
-            <ul className="measurement-cards" aria-label="Dữ liệu đo trong khoảng đã chọn">
+            <ul className="history-cards" aria-label="Dữ liệu đo trong khoảng đã chọn">
               {visibleItems.map((item, index) => (
                 <MeasurementCardItem
                   key={`card-${item.measuredAt ?? item.receivedAt}-${item.stepsSinceBoot}-${index}`}
@@ -463,12 +537,12 @@ export function HistoryPage() {
             </ul>
           ) : (
             <div
-              className="table-wrap table-wrap--history"
+              className="history-table-wrap"
               role="region"
               aria-label="Bảng dữ liệu đo"
               tabIndex={0}
             >
-              <table className="data-table">
+              <table className="history-table">
                 <caption>
                   Bảng dữ liệu đo. Đang hiển thị {visibleItems.length}/{items.length} dòng.
                   {items.length > MAX_VISIBLE_ROWS
@@ -510,15 +584,13 @@ export function HistoryPage() {
           ) : null}
 
           {items.length > MAX_VISIBLE_ROWS ? (
-            <p className="field__hint">
+            <p className="history-limit">
               {isCappedByWindow
                 ? `Đã hiện tối đa ${MAX_VISIBLE_ROWS}/${items.length} dòng để trang phản hồi nhanh. `
                 : `Trang chỉ hiện tối đa ${MAX_VISIBLE_ROWS} dòng mỗi lần. `}
               Dùng nút “Tải CSV” ở trên để xem toàn bộ {items.length} dòng đã tải.
             </p>
           ) : null}
-
-          <p className="field__hint">Dữ liệu hiển thị là dữ liệu mô phỏng.</p>
         </>
       )}
     </div>

@@ -1,20 +1,110 @@
-/*
-  Vùng cuộn riêng của biểu đồ nhịp tim.
-  - Có thể nhận focus bằng Tab (tabindex="0" trong MeasurementChart.tsx) để
-    người dùng bàn phím cuộn ngang bằng phím mũi tên ở mọi trình duyệt.
-  - `scroll-margin-bottom` + `scroll-padding-bottom` toàn cục (tokens.css)
-    giữ phần cuối biểu đồ không bị thanh nav dưới (position: fixed) che khi
-    trình duyệt cuộn phần tử được focus vào khung nhìn.
-*/
+/* ============================================================
+   v7 lane H — biểu đồ nhịp tim (component riêng, không dùng
+   selector `.chart` legacy trong layout.css).
+   - Khung cuộn cục bộ: trang không tràn ngang, chữ trục đọc được
+     ở 360px và chế độ chữ lớn.
+   - Không gradient/trang trí; lưới và vùng thiếu dữ liệu dùng
+     token trung tính.
+   ============================================================ */
 
-.chart__scroll {
-  overflow-x: auto;
-  scroll-padding-bottom: 6rem;
-  scroll-margin-bottom: 6rem;
-  border-radius: var(--radius-s);
+.measure-chart {
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
 }
 
-.chart__scroll:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
+.measure-chart__scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+/* Desktop: biểu đồ co theo khung, không sinh cuộn ngang không cần thiết.
+   Mobile: giữ bề rộng 45rem để chữ trục đúng cỡ đọc được; phần dư cuộn trong
+   khung. Chữ lớn (root 20px) nở theo rem. */
+.measure-chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.measure-chart__grid {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.measure-chart__tick,
+.measure-chart__axis {
+  fill: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+
+.measure-chart__line {
+  stroke: var(--action);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.measure-chart__area {
+  fill: var(--action);
+  opacity: 0.08;
+}
+
+.measure-chart__dot {
+  fill: var(--action);
+  stroke: var(--bg-surface);
+  stroke-width: 1;
+}
+
+/* Khoảng thiếu dữ liệu: nền cảnh báo nhạt + luôn có chú giải bằng chữ. */
+.measure-chart__gap {
+  fill: var(--warning-soft);
+  opacity: 1;
+}
+
+.measure-chart__empty {
+  fill: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+.measure-chart__caption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.measure-chart__empty-note {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+/* Gợi ý cuộn chỉ hữu ích khi khung hẹp hơn biểu đồ. */
+.measure-chart__hint {
+  display: none;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 767px) {
+  .measure-chart {
+    padding: var(--space-3);
+  }
+
+  .measure-chart__svg {
+    min-width: 45rem;
+  }
+
+  .measure-chart__hint {
+    display: block;
+  }
 }

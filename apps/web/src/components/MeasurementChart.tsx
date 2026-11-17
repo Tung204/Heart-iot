@@ -156,14 +156,19 @@ export const MeasurementChart = memo(function MeasurementChart({
       : 'Biểu đồ nhịp tim: chưa có mẫu hợp lệ để vẽ. Chi tiết ở bảng/danh sách dữ liệu bên dưới.';
 
   return (
-    <figure className="chart">
+    <figure className="measure-chart">
       <div
-        className="chart__scroll"
+        className="measure-chart__scroll"
         tabIndex={0}
         role="group"
         aria-label="Biểu đồ nhịp tim có thể cuộn ngang. Dùng phím mũi tên trái/phải để xem các mốc thời gian; bảng dữ liệu bên dưới liệt kê từng lần đo."
       >
-        <svg className="chart__svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={ariaLabel}>
+        <svg
+          className="measure-chart__svg"
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          role="img"
+          aria-label={ariaLabel}
+        >
           {/* Khoảng thiếu dữ liệu */}
           {gapRects.map((rect) => (
             <rect
@@ -172,7 +177,7 @@ export const MeasurementChart = memo(function MeasurementChart({
               y={MARGIN.top}
               width={rect.width}
               height={plotHeight}
-              className="chart__gap"
+              className="measure-chart__gap"
             />
           ))}
 
@@ -184,9 +189,14 @@ export const MeasurementChart = memo(function MeasurementChart({
                 x2={WIDTH - MARGIN.right}
                 y1={yFor(tick)}
                 y2={yFor(tick)}
-                className="chart__grid"
+                className="measure-chart__grid"
               />
-              <text x={MARGIN.left - 8} y={yFor(tick) + 4} textAnchor="end" className="chart__tick">
+              <text
+                x={MARGIN.left - 8}
+                y={yFor(tick) + 4}
+                textAnchor="end"
+                className="measure-chart__tick"
+              >
                 {tick}
               </text>
             </g>
@@ -195,7 +205,7 @@ export const MeasurementChart = memo(function MeasurementChart({
             x={12}
             y={MARGIN.top + plotHeight / 2}
             textAnchor="middle"
-            className="chart__axis-label"
+            className="measure-chart__axis"
             transform={`rotate(-90 12 ${MARGIN.top + plotHeight / 2})`}
           >
             nhịp/phút
@@ -208,16 +218,16 @@ export const MeasurementChart = memo(function MeasurementChart({
               x={xFor(tick.iso)}
               y={HEIGHT - 8}
               textAnchor={tick.anchor}
-              className="chart__tick"
+              className="measure-chart__tick"
             >
               {showDateOnAxis ? formatCompactDateTime(tick.iso) : formatTime(tick.iso)}
             </text>
           ))}
 
           {/* Đường + điểm dữ liệu */}
-          {areaPoints ? <polygon points={areaPoints} className="chart__area" /> : null}
+          {areaPoints ? <polygon points={areaPoints} className="measure-chart__area" /> : null}
           {drawnPoints.length > 1 ? (
-            <polyline points={linePoints} fill="none" className="chart__line" />
+            <polyline points={linePoints} fill="none" className="measure-chart__line" />
           ) : null}
           {drawnPoints.length <= 40
             ? drawnPoints.map((point) => (
@@ -226,7 +236,7 @@ export const MeasurementChart = memo(function MeasurementChart({
                   cx={xFor(point.measuredAt)}
                   cy={yFor(point.heartRateBpm)}
                   r={3}
-                  className="chart__dot"
+                  className="measure-chart__dot"
                 >
                   <title>
                     {formatCompactDateTime(point.measuredAt)}: {point.heartRateBpm} nhịp/phút
@@ -236,20 +246,34 @@ export const MeasurementChart = memo(function MeasurementChart({
             : null}
 
           {points.length === 0 ? (
-            <text x={WIDTH / 2} y={HEIGHT / 2} textAnchor="middle" className="chart__empty">
+            <text
+              x={WIDTH / 2}
+              y={HEIGHT / 2}
+              textAnchor="middle"
+              className="measure-chart__empty"
+            >
               Chưa có mẫu hợp lệ để vẽ biểu đồ
             </text>
           ) : null}
         </svg>
       </div>
-      <figcaption className="chart__caption">
+      <figcaption className="measure-chart__caption">
+        {points.length === 0 ? (
+          <p className="measure-chart__empty-note">
+            Chưa có mẫu nhịp tim hợp lệ trong khoảng này nên biểu đồ không có đường. Không có
+            điểm nào được nội suy.
+          </p>
+        ) : null}
         <span>
           {formatDate(range.from)} – {formatDate(range.to)}
           {gaps.length > 0
-            ? ` · ${gaps.length} khoảng thiếu dữ liệu (ô nền tô đậm)`
+            ? ` · ${gaps.length} khoảng thiếu dữ liệu (ô nền vàng nhạt)`
             : ''}
           . Bảng/danh sách dữ liệu bên dưới liệt kê từng lần đo.
         </span>
+        <p className="measure-chart__hint">
+          Biểu đồ rộng hơn màn hình: vuốt/scroll ngang trong khung để xem đủ khoảng thời gian.
+        </p>
       </figcaption>
     </figure>
   );
