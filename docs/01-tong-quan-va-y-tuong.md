@@ -12,7 +12,7 @@ Người thân cần biết người cao tuổi có đang đeo thiết bị, d�
 
 Đề cương gốc yêu cầu IoT, nhịp tim, bước chân/mức vận động, phát hiện té ngã, web/app có tài khoản, chia sẻ người thân, admin và trợ lý AI. Bản này bổ sung đề xuất: trạng thái dữ liệu cũ, quyền chia sẻ có thể thu hồi, xác nhận xử lý cảnh báo, chống gửi trùng, simulator và phép đo đánh giá.
 
-Không tự bổ sung SpO₂, huyết áp, ECG, GPS, gọi cấp cứu tự động hoặc ứng dụng native vào MVP. Nếu cần thêm, phải xem tác động đến cảm biến, nguồn, dữ liệu và thời gian.
+Không tự bổ sung SpO₂, huyết áp, ECG, gọi cấp cứu tự động, loa phát giọng nói trên thiết bị đeo hoặc ứng dụng native vào MVP ban đầu tại nhà. Thiết bị đeo giữ thiết kế tối giản để tránh to và cồng kềnh; mọi xử lý trợ lý AI đặt ở phía server/web. Nếu cần thêm phần cứng mới, phải xem tác động đến cảm biến, kích thước, nguồn, dữ liệu và thời gian. Riêng **các hạng mục mở rộng người dùng bổ sung ngày 18/11/2026 (`FR-15`–`FR-23`)** — gồm tiện ích chăm sóc tại nhà, 4 nâng cấp trợ lý AI trên web và nhánh theo dõi ngoài nhà GPS + SIM 4G — được xếp vào giai đoạn phát triển tiếp theo trong [yêu cầu](02-yeu-cau-va-pham-vi.md), hiện chưa triển khai.
 
 ## So sánh hướng sản phẩm
 

@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) ngày **18/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -287,7 +287,7 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 - **Backend v1** (`reports/qa/review-backend-2026-11-14.md`): 0 P0; 2 P1 đã được lead sửa và reviewer tái kiểm đóng (SSE kiểm `canReceiveAlerts`; dedupe incident theo `(device_id, message_id)`). P2 còn: `requireHistory` với caregiver mới, unique index invitation pending, PGlite đơn tiến trình, ghi chú vận hành.
 - **Frontend v1** (`reports/qa/review-frontend-2026-11-14.md`): 0 P0/P1; 5 P2, lead đã sửa P2-1/P2-3/P2-5; P2-2 dùng `role="group"` + `aria-pressed` (không gọi là ARIA tabs); P2-4 code-split đã xong. Một lỗi 404 nhất thời trang lời mời không tái hiện, chưa kết luận.
 - **Tài liệu/hợp đồng v2** (`reports/qa/v2-docs-consistency.md`): 0 P0, 5 P1, 8 P2 về tài liệu lệch HEAD; đã sửa trong `fix-docs-truth` và tiếp tục cập nhật ở task tài liệu cuối. Bản HTML phải được sinh lại; không sửa tay.
-- **Sản phẩm/UX v2** (`reports/qa/v2-product-gaps.md`, `v2-owner-journey.md`, `v2-caregiver-journey.md`, `v2-ux-visual.md`): các P1 chính đã có fix và test cục bộ — vòng đời suspected/unconfirmed, liên hệ khẩn cấp, cảnh báo toàn tài khoản, admin thiết bị, archive/deletion-request, cửa sổ caregiver. Chưa tái kiểm độc lập toàn bộ; các đề xuất PDF, chia sẻ read-only cho bác sĩ, task tự động, kênh thông báo ngoài, chế độ người cao tuổi vẫn ngoài phạm vi.
+- **Sản phẩm/UX v2** (`reports/qa/v2-product-gaps.md`, `v2-owner-journey.md`, `v2-caregiver-journey.md`, `v2-ux-visual.md`): các P1 chính đã có fix và test cục bộ — vòng đời suspected/unconfirmed, liên hệ khẩn cấp, cảnh báo toàn tài khoản, admin thiết bị, archive/deletion-request, cửa sổ caregiver. Tại thời điểm review v2 các mục PDF, chia sẻ read-only cho bác sĩ, task tự động, kênh thông báo ngoài, chế độ người cao tuổi nằm ngoài phạm vi; đến ngày 18/11/2026 phần xuất PDF đi khám và các tiện ích chăm sóc/AI `FR-15`–`FR-23` đã được đưa vào mục 13 (trạng thái chưa triển khai). Chưa tái kiểm độc lập toàn bộ phần sửa v2.
 - **Quyền riêng tư/đạo đức** (`reports/qa/v2-privacy-ethics.md`): quyền xem số đo, copy đồng ý, archive/deletion-request đã bổ sung; **còn mở** quy trình đồng ý/đại diện cho người cao tuổi, retention/xóa thật, đánh giá pháp lý. Không tuyên bố tuân thủ luật.
 - **Bảo mật/phân quyền** (`reports/qa/v2-rev-security.md`, `v2-security-authz.md`): các P1 đã có fix/test cục bộ — event ingest theo assignment, MQTT surface/ACL mẫu, quyền số đo tách cảnh báo, SSE thu hồi, notification boundary. **Còn mở** P0-2 MQTT event/ACK và các P2 như lockout DoS, enumeration, cursor alerts, security headers, admin task không cần care link, giới hạn export/SSE.
 - **Toàn vẹn dữ liệu** (`reports/qa/v2-data-integrity.md`): quarantine/assignment, notification boundary, last telemetry, status boundary đã có fix/test; chưa có UI xem vùng cách ly, chưa kiểm PostgreSQL thật.
@@ -296,3 +296,19 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 - **Hiệu năng** (`reports/qa/v2-hieu-nang-va-on-dinh-tai-trang.md`): code-split/font/lịch sử đã tối ưu; số đo p95 trước đó là trên PGlite cục bộ, không đại diện mạng thật và chưa chạy lại sau v2.
 
 **Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: MQTT P0-2 mở, chưa có xóa/retention thật, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.
+
+## 13. Kế hoạch mở rộng tiếp theo (bổ sung 18/11/2026 — chưa triển khai)
+
+Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng ngày 18/11/2026**, hiện ở trạng thái **chưa triển khai** (chưa có contract/API/UI/firmware trong repo). **Ràng buộc thiết bị gọn nhẹ:** giữ thiết bị đeo tối giản, không gắn loa phát giọng nói lên thiết bị; toàn bộ nâng cấp trợ lý AI (`FR-20`–`FR-23`) xử lý ở backend và web:
+
+| Mã | Tính năng | Hướng thiết kế phần mềm & ràng buộc |
+| --- | --- | --- |
+| `FR-16` | Xuất phiếu theo dõi PDF 1 trang đi khám | Dùng lại dữ liệu tổng hợp đã kiểm quyền (`canViewMeasurements`, cửa sổ `sharedFrom`/`historyDays`); hiển thị rõ độ phủ, khoảng thiếu, số sự cố ngã và nhãn dữ liệu mô phỏng (nếu có); không tự chẩn đoán y khoa |
+| `FR-17` | Nhắc khi sinh hoạt bất thường | Cấu hình khung giờ sinh hoạt linh hoạt theo từng hồ sơ (Dynamic / Configurable, không đóng cứng giờ chung); chỉ xét khi thiết bị đang đeo và có kết nối nhưng thiếu vận động; tách khỏi luồng incident khẩn cấp và chống gửi lặp |
+| `FR-15` | Nhắc uống thuốc & sinh hoạt hai chiều | Bổ sung lịch nhắc theo múi giờ hồ sơ, đồng bộ xuống thiết bị qua hàng đợi lệnh có xác thực thiết bị (`downlink command`) và nhận sự kiện *"đã thực hiện"* gửi ngược từ thiết bị; không gợi ý liều hay kê thuốc |
+| `FR-18` | Đế sạc kèm còi tìm thiết bị & nhắc quên đeo | Nút *"Tìm thiết bị"* trên web gửi lệnh xác thực xuống thiết bị/đế sạc có giới hạn thời lượng và tần suất kêu; kết hợp trạng thái `not_worn` + đứng yên kéo dài ban ngày theo khung giờ cấu hình để gửi nhắc nhẹ quên đeo |
+| `FR-19` | Định vị GPS + SIM 4G khi ra ngoài nhà | Mở rộng trường vị trí tùy chọn trên sự kiện cảnh báo (ngã/SOS) khi triển khai phần cứng ngoài nhà (xét tách phiên bản ngoài nhà để tránh làm cồng kềnh thiết bị đeo trong nhà); kiểm soát chặt quyền xem vị trí theo hồ sơ và không thu thập quỹ đạo liên tục mặc định |
+| `FR-20` | Bản tin tóm tắt cuối ngày/cuối tuần tự động | Job nền tổng hợp theo lịch cấu hình từ aggregate đã kiểm `canViewMeasurements` + `canViewAi`, đẩy bản tin gọn vào hộp thông báo (có fallback theo mẫu, chống trùng theo kỳ) |
+| `FR-21` | Nhờ AI tạo lịch nhắc/công việc có bước Xem trước – Xác nhận | Dùng tool/preview phía server để dựng bản nháp lịch nhắc (`FR-15`), việc bảo trì hoặc xuất phiếu (`FR-16`); chỉ áp dụng sau khi người dùng xác nhận rõ ràng, giữ audit đầy đủ |
+| `FR-22` | Điểm chú ý chuẩn bị đi khám trên phiếu theo dõi | Bổ sung 3–5 điểm thay đổi số liệu/sự cố nổi bật kèm mốc ngày và khoảng thiếu vào phiếu PDF `FR-16`; có hậu kiểm cấm kết luận chẩn đoán |
+| `FR-23` | Hỏi đáp hướng dẫn chăm sóc có trích nguồn đã duyệt | Truy xuất có kiểm soát trên tập tài liệu chăm sóc chính thống đã duyệt trước khi sinh câu trả lời, bắt buộc trích nguồn và từ chối khi vượt ngoài phạm vi nguồn |
