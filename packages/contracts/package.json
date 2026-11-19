@@ -69,6 +69,14 @@
     "./contacts": {
       "types": "./dist/contacts.d.ts",
       "default": "./dist/contacts.js"
+    },
+    "./reminders": {
+      "types": "./dist/reminders.d.ts",
+      "default": "./dist/reminders.js"
+    },
+    "./reports": {
+      "types": "./dist/reports.d.ts",
+      "default": "./dist/reports.js"
     }
   },
   "scripts": {

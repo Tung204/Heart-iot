@@ -1,7 +1,17 @@
 import { count, eq } from 'drizzle-orm';
 import { createTestApp, TEST_ORIGIN, type TestContext } from './test-app';
 import { DEMO, seedDemo } from '../src/database/seed';
-import { emergencyContacts, incidents, maintenanceTasks, notificationOutbox, subjects, telemetry, users } from '../src/database/schema';
+import {
+  careReminderCompletions,
+  careReminders,
+  emergencyContacts,
+  incidents,
+  maintenanceTasks,
+  notificationOutbox,
+  subjects,
+  telemetry,
+  users,
+} from '../src/database/schema';
 import request from 'supertest';
 
 describe('Seed demo tổng hợp', () => {
@@ -28,6 +38,8 @@ describe('Seed demo tổng hợp', () => {
     const [taskCount] = await ctx.db.select({ value: count() }).from(maintenanceTasks);
     const [outboxCount] = await ctx.db.select({ value: count() }).from(notificationOutbox);
     const [contactCount] = await ctx.db.select({ value: count() }).from(emergencyContacts);
+    const [reminderCount] = await ctx.db.select({ value: count() }).from(careReminders);
+    const [completionCount] = await ctx.db.select({ value: count() }).from(careReminderCompletions);
 
     expect(userCount?.value).toBe(3);
     expect(subjectCount?.value).toBe(2);
@@ -36,6 +48,9 @@ describe('Seed demo tổng hợp', () => {
     expect(taskCount?.value).toBe(2);
     expect(outboxCount?.value).toBe(2);
     expect(contactCount?.value).toBe(1);
+    // Lịch nhắc demo idempotent và KHÔNG seed đánh dấu hoàn thành.
+    expect(reminderCount?.value).toBe(2);
+    expect(completionCount?.value).toBe(0);
   });
 
   it('tài khoản demo đăng nhập được và thấy hồ sơ được chia sẻ', async () => {
@@ -65,5 +80,60 @@ describe('Seed demo tổng hợp', () => {
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.some((row) => row.metrics.heart_rate_bpm === null)).toBe(true);
     expect(rows.some((row) => row.metrics.heart_rate_bpm !== null)).toBe(true);
+  });
+
+  it('seed có 2 lịch nhắc demo đúng nội dung và phiếu đi khám đánh dấu dữ liệu mô phỏng', async () => {
+    const reminders = await ctx.db.select().from(careReminders);
+    expect(reminders).toHaveLength(2);
+
+    const medication = reminders.find((row) => row.id === DEMO.medicationReminderId);
+    expect(medication).toMatchObject({
+      subjectId: DEMO.subjectAn.id,
+      kind: 'medication',
+      title: 'Uống thuốc huyết áp',
+      times: ['08:00'],
+      weekdays: [1, 2, 3, 4, 5, 6, 7],
+      endsOn: null,
+      active: true,
+    });
+    expect(medication?.note).toContain('không phải chỉ định của hệ thống');
+
+    const walk = reminders.find((row) => row.id === DEMO.walkReminderId);
+    expect(walk).toMatchObject({
+      subjectId: DEMO.subjectAn.id,
+      kind: 'activity',
+      title: 'Đi bộ nhẹ buổi chiều',
+      times: ['16:00'],
+      weekdays: [1, 2, 3, 4, 5],
+      active: true,
+    });
+
+    const owner = request.agent(ctx.app.getHttpServer());
+    const login = await owner
+      .post('/api/v1/auth/login')
+      .set('Origin', TEST_ORIGIN)
+      .send({ email: DEMO.owner.email, password: DEMO.password });
+    expect(login.status).toBe(200);
+
+    // Hôm nay chưa có đánh dấu nào → mọi occurrence đều "pending".
+    const today = await owner
+      .get(`/api/v1/subjects/${DEMO.subjectAn.id}/reminders/today`)
+      .set('Origin', TEST_ORIGIN);
+    expect(today.status).toBe(200);
+    expect(today.body.items.length).toBeGreaterThan(0);
+    for (const item of today.body.items as Array<{ status: string; completion: unknown }>) {
+      expect(item.status).toBe('pending');
+      expect(item.completion).toBeNull();
+    }
+
+    // Phiếu đi khám của dữ liệu seed phải mang nhãn mô phỏng.
+    const report = await owner
+      .get(`/api/v1/subjects/${DEMO.subjectAn.id}/visit-report`)
+      .set('Origin', TEST_ORIGIN);
+    expect(report.status).toBe(200);
+    expect(report.body.simulated).toBe(true);
+    expect(report.body.summary.measurementCount).toBeGreaterThan(0);
+    expect(report.body.summary.daysWithData).toBeGreaterThan(0);
+    expect(report.body.disclaimer).toContain('không thay thế việc khám');
   });
 });

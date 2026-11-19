@@ -3,6 +3,8 @@ import {
   bigint,
   bigserial,
   boolean,
+  check,
+  date,
   index,
   integer,
   jsonb,
@@ -590,6 +592,79 @@ export const maintenanceTasks = pgTable(
   ],
 );
 
+/**
+ * Lịch nhắc chăm sóc (FR-15 phần web). Giờ nhắc là giờ địa phương theo
+ * `subjects.timezone`; KHÔNG có trường liều lượng hay nội dung y khoa tự sinh.
+ * `starts_on`/`ends_on` là ngày địa phương dạng YYYY-MM-DD (kiểu date, không
+ * phải timestamp) để so sánh ngày không lệ thuộc múi giờ máy chủ.
+ */
+export const careReminders = pgTable(
+  'care_reminders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    note: text('note'),
+    /** Mảng `HH:MM` tăng dần, 1..6 phần tử — contract `reminderTimesSchema`. */
+    times: jsonb('times').$type<string[]>().notNull(),
+    /** Mảng ISO weekday 1..7 tăng dần — contract `reminderWeekdaysSchema`. */
+    weekdays: jsonb('weekdays').$type<number[]>().notNull(),
+    startsOn: date('starts_on', { mode: 'string' }).notNull(),
+    endsOn: date('ends_on', { mode: 'string' }),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [index('care_reminders_subject_idx').on(table.subjectId, table.startsOn)],
+);
+
+/**
+ * Đánh dấu đã thực hiện/bỏ qua một occurrence của lịch nhắc.
+ * Khoá nghiệp vụ `(reminder_id, occurrence_date, scheduled_time)` là unique để
+ * API ghi đè idempotent; xoá lịch nhắc xoá luôn đánh dấu (cascade).
+ */
+export const careReminderCompletions = pgTable(
+  'care_reminder_completions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reminderId: uuid('reminder_id')
+      .notNull()
+      .references(() => careReminders.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    occurrenceDate: date('occurrence_date', { mode: 'string' }).notNull(),
+    scheduledTime: text('scheduled_time').notNull(),
+    /** `done` | `skipped` — chặn thêm bởi CHECK trong migration. */
+    status: text('status').notNull(),
+    /** Người bấm đánh dấu; tài khoản bị xoá thì null (không suy đoán người khác). */
+    completedByUserId: uuid('completed_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    completedAt: timestamp('completed_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex('care_reminder_completions_key_uq').on(
+      table.reminderId,
+      table.occurrenceDate,
+      table.scheduledTime,
+    ),
+    index('care_reminder_completions_reminder_idx').on(table.reminderId, table.occurrenceDate),
+    check(
+      'care_reminder_completions_status_chk',
+      sql`${table.status} in ('done', 'skipped')`,
+    ),
+    check(
+      'care_reminder_completions_time_chk',
+      sql`${table.scheduledTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`,
+    ),
+  ],
+);
+
 export type WorkspaceViewConfig = {
   version: 1;
   layout: 'stack' | 'grid';
@@ -678,6 +753,8 @@ export type DeviceRow = typeof devices.$inferSelect;
 export type AssignmentRow = typeof deviceAssignments.$inferSelect;
 export type TelemetryRow = typeof telemetry.$inferSelect;
 export type IncidentRow = typeof incidents.$inferSelect;
+export type CareReminderRow = typeof careReminders.$inferSelect;
+export type CareReminderCompletionRow = typeof careReminderCompletions.$inferSelect;
 export type AgentRunRow = typeof agentRuns.$inferSelect;
 export type WorkspaceViewRow = typeof workspaceViews.$inferSelect;
 export type DeviceStatusView = DeviceStatus;
