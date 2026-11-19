@@ -14,6 +14,7 @@ import { fetchOpenAlerts, fetchSubjectStatus } from '../dashboard/api';
 import { ALERT_TYPE_LABELS } from '../alerts/labels';
 import { toTelHref } from '../contacts/phone';
 import { useEmergencyContacts } from '../contacts/useEmergencyContacts';
+import { TodayRemindersCard } from '../care/TodayRemindersCard';
 import { useMe } from '../auth/useAuth';
 import { useActiveSubject } from '../subjects/selection';
 import { useSubjects } from '../subjects/useSubjects';
@@ -470,6 +471,10 @@ export function AssistantPage() {
             ) : null}
             {statusCard.action ? <div>{statusCard.action}</div> : null}
           </section>
+
+          {/* Nhắc việc tự đặt: chỉ hiện khi có occurrence hôm nay; không phải
+              nav mới và không phụ thuộc lời trả lời của trợ lý. */}
+          <TodayRemindersCard subject={activeSubject} />
 
           <section className="today-ask" aria-labelledby="today-ask-heading">
             <h2 id="today-ask-heading" className="today-ask__title">

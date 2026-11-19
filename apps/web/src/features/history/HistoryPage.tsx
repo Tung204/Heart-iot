@@ -10,7 +10,7 @@ import { MeasurementChart, type ChartPoint } from '../../components/MeasurementC
 import { PageHeader } from '../../components/PageHeader';
 import { PageLoader } from '../../components/PageLoader';
 import { StatusPill } from '../../components/StatusPill';
-import { clampRangeToHistoryDays, formatCompactDateTime, formatDateTime } from '../../lib/format';
+import { clampRangeToHistoryDays, formatCompactDateTime, formatDateTime, todayInTimeZone } from '../../lib/format';
 import { getApiErrorMessage, isApiError } from '../../lib/api';
 import { queryKeys } from '../../lib/query';
 import { useActiveSubject } from '../subjects/selection';
@@ -434,6 +434,17 @@ export function HistoryPage() {
                 >
                   Tải CSV
                 </a>
+              ) : null}
+              {activeSubject ? (
+                <Link
+                  className="button button--secondary button--sm"
+                  to={`/app/history/report?${new URLSearchParams({
+                    from: todayInTimeZone(activeSubject.timezone, new Date(from)),
+                    to: todayInTimeZone(activeSubject.timezone, new Date(to)),
+                  }).toString()}`}
+                >
+                  Phiếu đi khám
+                </Link>
               ) : null}
             </div>
           </div>

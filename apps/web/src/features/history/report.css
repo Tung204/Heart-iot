@@ -1,0 +1,377 @@
+/* ============================================================
+   Phiếu theo dõi sức khỏe — /app/history/report
+   Màn đọc trên web + bản in A4 1 trang. Không dùng thư viện PDF.
+   ============================================================ */
+
+.report-page {
+  max-width: 60rem;
+}
+
+.report-back {
+  align-self: flex-start;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.report-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 210mm;
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  min-width: 0;
+}
+@media (min-width: 720px) {
+  .report-sheet {
+    padding: var(--space-6);
+  }
+}
+
+.report-sheet__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--text-primary);
+}
+@media (min-width: 720px) {
+  .report-sheet__head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.report-sheet__label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.report-sheet__subject {
+  margin: 0.15rem 0 0;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-title);
+  overflow-wrap: anywhere;
+}
+
+.report-sheet__facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.report-sheet__facts div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.report-sheet__facts dt {
+  color: var(--text-secondary);
+}
+.report-sheet__facts dd {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.report-simulated {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-chip);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.report-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.report-section__title {
+  margin: 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.01em;
+}
+
+.report-metrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+@media (min-width: 720px) {
+  .report-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.report-metric {
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  background: var(--bg-subtle);
+}
+.report-metric dt {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+.report-metric dd {
+  margin: 0.1rem 0 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.report-metric__note {
+  margin: 0.15rem 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.report-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 720px) {
+  .report-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.report-list {
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.report-facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+.report-facts div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+.report-facts dt {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+.report-facts dd {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.report-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.report-note--emphasis {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.report-attention {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.report-attention li {
+  break-inside: avoid;
+}
+.report-attention__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.report-attention__detail {
+  margin: 0.1rem 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.report-sheet__foot {
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.report-sheet__foot p {
+  margin: 0;
+}
+.report-sheet__stamp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- In: A4 dọc, 1 trang, ẩn toàn bộ khung ứng dụng ---------- */
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Chỉ tác động khi trang phiếu đang mở; các trang khác in bình thường. */
+  body:has(.report-page) .shell__sidebar,
+  body:has(.report-page) .shell__topbar,
+  body:has(.report-page) .shell__bottomnav,
+  body:has(.report-page) .shell__banner,
+  body:has(.report-page) .skip-link,
+  body:has(.report-page) .subject-context {
+    display: none !important;
+  }
+
+  body:has(.report-page) .shell,
+  body:has(.report-page) .shell__body,
+  body:has(.report-page) .shell__main,
+  body:has(.report-page) .shell__content {
+    background: #fff !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+
+  body:has(.report-page) .shell__route--enter {
+    animation: none !important;
+  }
+
+  .report-page {
+    max-width: none;
+    gap: 0;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+
+  .report-back,
+  .report-actions,
+  .report-no-print {
+    display: none !important;
+  }
+
+  .page-header {
+    display: block;
+    margin-bottom: 5mm;
+  }
+  .page-header__actions {
+    display: none !important;
+  }
+  .page-header__heading {
+    font-size: 18pt;
+    color: #000 !important;
+  }
+
+  .report-sheet {
+    max-width: none;
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: #fff !important;
+    color: #000 !important;
+    gap: 4mm;
+  }
+
+  .report-sheet__head,
+  .report-section,
+  .report-sheet__foot,
+  .report-metric,
+  .report-attention li {
+    break-inside: avoid;
+  }
+
+  .report-sheet__head {
+    border-bottom-color: #000;
+    gap: 2mm;
+  }
+  .report-sheet__subject {
+    font-size: 15pt;
+  }
+  .report-sheet__label,
+  .report-note,
+  .report-metric__note,
+  .report-metric dt,
+  .report-sheet__facts dt,
+  .report-attention__detail {
+    color: #333 !important;
+  }
+
+  .report-metric {
+    background: #f2f2f2 !important;
+    border-color: #999 !important;
+  }
+  .report-metric dd {
+    font-size: 13pt;
+  }
+
+  .report-simulated {
+    background: #fff !important;
+    border-color: #000 !important;
+    color: #000 !important;
+  }
+
+  .report-section__title {
+    border-bottom-color: #666;
+    font-size: 11pt;
+  }
+
+  .report-sheet__foot {
+    border-top-color: #666;
+  }
+
+  .report-sheet__foot p,
+  .report-sheet__stamp {
+    color: #333 !important;
+    font-size: 8.5pt;
+  }
+}

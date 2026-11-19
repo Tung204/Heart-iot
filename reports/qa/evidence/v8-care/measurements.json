@@ -1,0 +1,82 @@
+{
+  "base": "http://127.0.0.1:4365",
+  "api": "http://127.0.0.1:3018/api/v1",
+  "results": [
+    {
+      "screenshot": "care-owner-1280.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "care-form-create-1280.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "today-reminders-1280.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "visit-report-1280.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "visit-report-print-794.png",
+      "print": {
+        "sidebar": "none",
+        "topbar": "none",
+        "bottomnav": "none",
+        "actions": "none",
+        "bodyBackground": "rgb(255, 255, 255)",
+        "overflow": 0,
+        "h1": 1,
+        "disclaimerVisible": true
+      }
+    },
+    {
+      "screenshot": "care-owner-390.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "visit-report-390.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "care-caregiver-1280.png",
+      "forbiddenEditButtons": 0
+    },
+    {
+      "screenshot": "care-caregiver-1280.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "screenshot": "care-caregiver-390.png",
+      "h1": 1,
+      "overflow": 0,
+      "bodyOverflow": 0,
+      "smallTargets": []
+    },
+    {
+      "pdfPages": 1
+    }
+  ]
+}
