@@ -15,6 +15,8 @@
 
 Tên linh kiện chỉ là ứng viên. Không suy ra module bất kỳ tương thích 3,3 V/5 V từ tên chip; phải đọc datasheet và sơ đồ module được mua. Chưa đưa pin/charger vào thiết kế chi tiết trước khi xác định yêu cầu nguồn.
 
+**Ràng buộc gọn nhẹ cho thiết bị đeo (xác nhận 18/11/2026):** thiết bị ưu tiên kích thước nhỏ gọn, ít linh kiện để người cao tuổi đeo thoải mái hằng ngày. Thân đeo chỉ giữ cảm biến cốt lõi, nút bấm và bộ rung/còi bíp mini báo trạng thái; **không gắn loa phát giọng nói, micro đàm thoại hay màn hình lớn** trên thiết bị. Toàn bộ tính năng trợ lý AI (như đọc/tóm tắt/hỏi đáp) xử lý ở phía server và trình duyệt web.
+
 ## Trình tự khảo sát vị trí đeo
 
 1. Trên bàn: đọc định danh cảm biến, kiểm nguồn và dữ liệu thô ổn định; ghi cấu hình và phiên bản driver.
@@ -39,8 +41,9 @@ Bắt đầu bằng rule-based baseline và ghi version/tham số. Chỉ cân nh
 | `sensors` | Driver, timestamp, chất lượng, lỗi bus |
 | `signal_processing` | Lọc, suy BPM, bước chân, đặc trưng IMU |
 | `fall_detection` | State machine nghi ngã, tham số, version thuật toán |
-| `interaction` | Nút, chống dội, LED/rung/còi; hủy/SOS |
-| `connectivity` | Provisioning mạng, TLS/MQTT, backoff kết nối |
+| `interaction` | Nút, chống dội, LED/rung/còi; hủy/SOS, xác nhận nhắc việc và còi tìm thiết bị |
+| `connectivity` | Provisioning mạng, TLS/MQTT/HTTP, backoff kết nối (mở rộng di động 4G ở giai đoạn sau) |
+| `commands` | Nhận lệnh tìm thiết bị và đồng bộ lịch nhắc đã xác thực, giới hạn tần suất/thời lượng phát còi-rung |
 | `buffer` | Hàng đợi hữu hạn, ưu tiên incident, phục hồi khi boot |
 | `telemetry` | Envelope, sequence, application ACK và số mẫu mất |
 | `config` | Phiên bản cấu hình, thông tin board, secret provisioned ngoài source |
@@ -58,3 +61,11 @@ Hàng đợi có dung lượng/tuổi tối đa được cấu hình và đo. Kh
 ## BOM và hồ sơ phần cứng
 
 Mỗi linh kiện được chọn phải có: mã cụ thể, số lượng, đường dẫn datasheet/module, nhà cung cấp, giá tại ngày kiểm, tổng tiền, tình trạng sẵn có và lý do chọn. Hồ sơ lưu ở [hardware](../hardware/README.md). Giá để chưa xác minh cho đến khi đọc được nguồn; không đặt số 0 thay cho chưa biết.
+
+## Hạng mục phần cứng và firmware mở rộng (bổ sung 18/11/2026)
+
+**Trạng thái:** kế hoạch mở rộng do người dùng bổ sung ngày 18/11/2026; **chưa làm**, chưa chọn mã linh kiện cụ thể, chưa có giá mua, sơ đồ chân hoặc số liệu đo dòng/thời lượng pin.
+
+1. **Nhắc uống thuốc & sinh hoạt hai chiều (`FR-15`):** Lưu lịch nhắc cục bộ trên thiết bị để rung/bíp nhẹ đúng giờ ngay cả khi Wi-Fi chập chờn; kiểu rung và âm báo nhắc việc phải tách biệt rõ với còi báo ngã/SOS; nút bấm xác nhận gửi bản tin *"đã thực hiện"* có chống trùng về backend.
+2. **Đế sạc kèm còi tìm thiết bị & nhắc quên đeo (`FR-18`):** Khảo sát đế sạc đặt cố định trên bàn dễ thao tác cho người cao tuổi (tiếp điểm/nam châm hoặc cổng sạc thuận tiện) để **không làm tăng kích thước hay khối lượng vòng đeo**; trên thân đeo chỉ dùng bộ rung/còi bíp nhỏ sẵn có để phát tiếng bíp ngắn khi nhận lệnh tìm máy đã xác thực từ web (tự tắt nhanh để tránh cạn pin) và kết hợp trạng thái `not_worn` với cảm biến đứng yên để nhắc khi bỏ quên thiết bị ban ngày quá lâu.
+3. **Định vị GPS + SIM 4G ngoài nhà (`FR-19` — giai đoạn nâng cao):** Khảo sát module GNSS, mạng di động (4G LTE Cat-1/NB-IoT), dòng đỉnh khi phát sóng, anten và kích thước vỏ/pin. Do linh kiện định vị và SIM 4G làm thiết bị to và nặng hơn đáng kể, **không nhồi cứng vào bản đeo nhỏ gọn trong nhà**, mà chỉ khảo sát như phiên bản/thiết bị mang riêng khi đi ra ngoài ở giai đoạn nâng cao sau khi bản Wi-Fi cơ bản chạy ổn định và giải quyết được bài toán kích thước/nguồn.

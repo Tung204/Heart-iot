@@ -62,3 +62,14 @@ Chuẩn bị bộ tình huống tổng hợp với đáp án/tiêu chí trước
 Chấm riêng tính đúng số liệu, đúng người/khoảng dữ liệu, khả năng nhận biết thiếu dữ liệu, độ đúng của dẫn nguồn, mức suy diễn vượt bằng chứng, độ trễ và chi phí mỗi lượt. Không chỉ chấm “nghe hợp lý”. Một số lỗi như lộ dữ liệu hồ sơ khác hoặc bịa số đo là lỗi chặn sử dụng, dù điểm trung bình cao.
 
 Kết quả lưu model/version, prompt/config version, tập tình huống và điều kiện; **chưa có kết quả với provider thật** ở thời điểm này. Test hiện có dùng adapter giả/mock, kiểm fallback, quyền, dữ liệu thiếu và từ chối chẩn đoán; chưa có test prompt injection, chưa đo chi phí/độ trễ. Xem [kiểm thử và đánh giá](08-kiem-thu-va-danh-gia.md).
+
+## Kế hoạch mở rộng trợ lý AI (bổ sung 18/11/2026 — chưa triển khai)
+
+**Nguyên tắc phần cứng và an toàn:** toàn bộ tính năng trợ lý AI dưới đây chạy ở phía server và giao diện web, **không đưa phát giọng nói hay xử lý AI xuống thiết bị đeo** nhằm giữ thiết bị nhỏ gọn cho người cao tuổi. Mọi chức năng mới vẫn tuân thủ kiểm quyền theo hồ sơ (`canViewMeasurements` + `canViewAi`), không tự chẩn đoán/kê đơn và không can thiệp đường cảnh báo té ngã/SOS.
+
+| Mã | Tính năng mở rộng | Mô tả và ranh giới đề xuất |
+| --- | --- | --- |
+| `FR-20` | Bản tin tóm tắt cuối ngày/cuối tuần tự động | Tự động tổng hợp ngắn gọn tình hình đeo máy, mức vận động, pin, nhắc việc và khoảng thiếu dữ liệu theo lịch gửi vào hộp thông báo cho người có quyền; giữ fallback theo mẫu khi chưa cấu hình provider |
+| `FR-21` | Nhờ AI tạo lịch nhắc/công việc có bước Xem trước – Xác nhận | Người dùng gõ yêu cầu tự nhiên để AI dựng bản nháp lịch nhắc uống thuốc (`FR-15`), công việc bảo trì hoặc xuất phiếu PDF (`FR-16`); bắt buộc xem trước và bấm xác nhận mới lưu, không tự đóng cảnh báo khẩn |
+| `FR-22` | Điểm chú ý chuẩn bị đi khám trên phiếu theo dõi | Tổng hợp 3–5 thay đổi số liệu hoặc sự cố đáng chú ý kèm mốc thời gian và độ phủ dữ liệu để đính kèm phiếu PDF 1 trang (`FR-16`); chỉ nêu số liệu thực tế, không kết luận bệnh |
+| `FR-23` | Hỏi đáp hướng dẫn chăm sóc có trích nguồn đã duyệt | Chỉ trả lời kiến thức chăm sóc/phòng ngã chung từ danh mục tài liệu chính thống đã kiểm duyệt và trích rõ tên nguồn; từ chối câu hỏi ngoài nguồn hoặc hỏi chẩn đoán cá nhân |
