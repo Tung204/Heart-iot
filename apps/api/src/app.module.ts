@@ -19,8 +19,10 @@ import { MeasurementsModule } from './measurements/measurements.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PolicyModule } from './policy/policy.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { RemindersModule } from './reminders/reminders.module';
 import { StudioModule } from './studio/studio.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { VisitReportModule } from './visit-reports/visit-report.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { SubjectsModule } from './subjects/subjects.module';
     StudioModule,
     AssistantModule,
     MaintenanceModule,
+    RemindersModule,
+    VisitReportModule,
     AdminModule,
   ],
   providers: [

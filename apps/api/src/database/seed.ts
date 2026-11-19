@@ -2,9 +2,11 @@ import { createHash } from 'node:crypto';
 import { and, count, eq, sql } from 'drizzle-orm';
 import { hashPassword } from '../auth/password';
 import { computePolicyDigest } from '../policy/policy.service';
+import { localDateKey } from '../measurements/insights';
 import type { AppDb } from './database';
 import {
   careLinks,
+  careReminders,
   deviceAssignments,
   devices,
   emergencyContacts,
@@ -61,6 +63,9 @@ export const DEMO = {
   openIncidentId: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
   cancelledIncidentId: 'f1111111-1111-4111-8111-111111111111',
   resolvedIncidentId: 'f2222222-2222-4222-8222-222222222222',
+  // Lịch nhắc demo cho bà An — id cố định để seed idempotent.
+  medicationReminderId: 'a1111111-1111-4111-8111-111111111111',
+  walkReminderId: 'a2222222-2222-4222-8222-222222222222',
 } as const;
 
 function sha256(value: string): string {
@@ -77,6 +82,7 @@ type SeedSummary = {
   incidents: number;
   tasks: number;
   outbox: number;
+  reminders: number;
 };
 
 export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary> {
@@ -193,6 +199,7 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
   const incidentsInserted = await seedIncidents(db, now);
   const tasksInserted = await seedTasks(db, now);
   const outboxInserted = await seedNotifications(db, now);
+  const remindersInserted = await seedReminders(db, now);
 
   const [telemetryCount] = await db
     .select({ value: count() })
@@ -209,6 +216,7 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
     incidents: incidentsInserted,
     tasks: tasksInserted,
     outbox: outboxInserted,
+    reminders: remindersInserted,
   };
 }
 
@@ -525,6 +533,47 @@ async function seedTasks(db: AppDb, now: Date): Promise<number> {
     },
   ]);
   return 2;
+}
+
+/**
+ * Lịch nhắc demo cho bà An (FR-15 phần web). Không seed đánh dấu hoàn thành —
+ * trạng thái hôm nay phải là "chưa đánh dấu" khi mới seed.
+ * Idempotent nhờ id cố định + `onConflictDoNothing` (chạy lại không nhân bản).
+ */
+async function seedReminders(db: AppDb, now: Date): Promise<number> {
+  const startsOn = localDateKey(now, DEMO.subjectAn.timezone);
+  const inserted = await db
+    .insert(careReminders)
+    .values([
+      {
+        id: DEMO.medicationReminderId,
+        subjectId: DEMO.subjectAn.id,
+        kind: 'medication',
+        title: 'Uống thuốc huyết áp',
+        // Gia đình tự đặt — không phải chỉ định do hệ thống sinh ra.
+        note: 'Thuốc do gia đình tự đặt, không phải chỉ định của hệ thống',
+        times: ['08:00'],
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+        startsOn,
+        endsOn: null,
+        active: true,
+      },
+      {
+        id: DEMO.walkReminderId,
+        subjectId: DEMO.subjectAn.id,
+        kind: 'activity',
+        title: 'Đi bộ nhẹ buổi chiều',
+        note: null,
+        times: ['16:00'],
+        weekdays: [1, 2, 3, 4, 5],
+        startsOn,
+        endsOn: null,
+        active: true,
+      },
+    ])
+    .onConflictDoNothing()
+    .returning({ id: careReminders.id });
+  return inserted.length;
 }
 
 async function seedNotifications(db: AppDb, now: Date): Promise<number> {
