@@ -11,6 +11,8 @@ Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ
 - **Tài khoản và phiên:** đăng ký/đăng nhập/đăng xuất bằng cookie HttpOnly + bảng `sessions`; đổi tên hiển thị, đổi mật khẩu (giữ phiên hiện tại, thu hồi phiên khác), xem và thu hồi từng phiên; admin khóa tài khoản sẽ thu hồi phiên.
 - **Hồ sơ và chia sẻ:** tạo/sửa hồ sơ, mời người thân, chấp nhận/thu hồi quyền, giới hạn số ngày lịch sử. `/app` là Hôm nay; `/app/overview` là Sức khỏe chi tiết; nav chính chỉ 4 mục, mọi trang khác đi vào từ đúng ngữ cảnh hồ sơ (Thiết bị, Chia sẻ và liên hệ, Công việc) hoặc từ menu tài khoản. Quyền `canViewMeasurements` tách khỏi quyền nhận cảnh báo: người thân có thể nhận cảnh báo mà không xem nhịp tim/bước chân/lịch sử/CSV.
 - **Dữ liệu đo:** ingest telemetry HTTP, chống trùng, gán theo assignment tại `measured_at`, cách ly mẫu lệch giờ/ngoài assignment; tổng hợp ngày, lịch sử có khoảng thiếu/độ phủ, CSV, xu hướng 7/14/30 ngày.
+- **Nhắc chăm sóc (FR-15 phần web):** `/app/care` cho chủ hồ sơ tạo lịch nhắc uống thuốc/sinh hoạt theo múi giờ hồ sơ (1–6 giờ, thứ, khoảng ngày, bật/tắt); người thân có `canViewMeasurements` xem và đánh dấu Đã thực hiện/Bỏ qua/Hoàn tác; thẻ “Nhắc hôm nay” trên Hôm nay. Không gợi ý liều/kê thuốc.
+- **Phiếu đi khám (FR-16/22):** `/app/history/report` in 1 trang A4/lưu PDF, gồm độ phủ, khoảng thiếu, nhịp tim, bước chân, cảnh báo ngã/SOS và 3–5 điểm chú ý từ dữ liệu; tôn trọng quyền đo/cửa sổ chia sẻ và nhãn dữ liệu mô phỏng, không kết luận chẩn đoán.
 - **Cảnh báo:** vòng đời `suspected → unconfirmed/open → acknowledged → resolved/cancelled`, ack/resolve compare-and-set, outbox trong ứng dụng + SSE. Nav Cảnh báo mang badge **số cảnh báo đang mở** của hồ sơ đang xem (tối đa 20, `20+` khi còn trang sau); hộp thông báo toàn tài khoản ở `/app/alerts?view=notifications` và banner “Có thông báo mới” dẫn đúng incident; stream bị thu hồi khi mất quyền, khóa tài khoản hoặc phiên hết hạn.
 - **Liên hệ khẩn cấp:** tối đa 5 liên hệ/hồ sơ, một liên hệ chính, số điện thoại có `tel:` trong chi tiết cảnh báo; chỉ chủ hồ sơ ghi, người thân có quyền nhận cảnh báo được đọc.
 - **Việc bảo trì:** xem/đóng việc theo quyền hồ sơ; chủ hồ sơ tạo việc cho thiết bị đang gắn (kiểm thiết bị, hạn xử lý, lý do đóng).
@@ -85,8 +87,8 @@ Kết quả chạy ngày **18/11/2026** trên worktree này (sau khi hợp nhấ
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`pnpm --filter @heart-iot/api test`) | **20 suite / 219 test pass**, 59,4 s |
-| Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **38 file / 346 test pass**, 112,0 s |
+| API (`pnpm --filter @heart-iot/api test`) | **22 suite / 245 test pass**, 65,2 s |
+| Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
 | Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; 354 liên kết/275 ID |
@@ -129,10 +131,11 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Độ chính xác té ngã:** chưa có phép đo precision/recall/F1; cửa sổ hủy 20 giây chỉ là tham số demo đề xuất.
 - **MQTT:** chỉ là profile thử nghiệm; adapter chỉ subscribe telemetry, chưa có ingest `fall.*`/`sos.*`/`status`, chưa publish ACK, chưa kiểm ACL/TLS với broker thật. HTTP là đường chính thức.
 - **Thông báo:** chỉ giao trong ứng dụng; chưa có Web Push/email/SMS, chưa có thông báo khi đóng trình duyệt.
+- **Nhắc chăm sóc trên thiết bị:** FR-15 mới có phần web; chưa có hàng đợi lệnh xuống thiết bị, rung/nút xác nhận trên firmware hay sự kiện gửi ngược.
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** unit/integration API 219 test, web 346 test, E2E 26/26 và simulator 23 test đã qua trên máy dev ngày 18/11/2026; lượt đó chưa chạy lại randomized, build production, seed hay typecheck. Chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** unit/integration API 245 test, web 377 test, E2E 26/26 và simulator 23 test đã qua trên máy dev ngày 19/11/2026 (lượt v8); chưa chạy lại randomized, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp

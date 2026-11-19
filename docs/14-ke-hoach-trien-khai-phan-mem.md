@@ -297,9 +297,17 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 
 **Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: MQTT P0-2 mở, chưa có xóa/retention thật, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.
 
-## 13. Kế hoạch mở rộng tiếp theo (bổ sung 18/11/2026 — chưa triển khai)
+## 13. Kế hoạch mở rộng tiếp theo (bổ sung 18/11/2026 — đang triển khai từng phần)
 
-Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng ngày 18/11/2026**, hiện ở trạng thái **chưa triển khai** (chưa có contract/API/UI/firmware trong repo). **Ràng buộc thiết bị gọn nhẹ:** giữ thiết bị đeo tối giản, không gắn loa phát giọng nói lên thiết bị; toàn bộ nâng cấp trợ lý AI (`FR-20`–`FR-23`) xử lý ở backend và web:
+Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng ngày 18/11/2026**. **Trạng thái 19/11/2026:** `FR-15` (phần web), `FR-16` và `FR-22` đã có mã chạy được và test; các mục `FR-17`, `FR-18`, `FR-19`, `FR-20`, `FR-21`, `FR-23` cùng phần thiết bị của `FR-15` **chưa triển khai**. Bằng chứng: API **245 test**, web **43 file/377 test**, E2E **26/26**; ảnh trong `reports/qa/evidence/v8-care/`. **Ràng buộc thiết bị gọn nhẹ:** giữ thiết bị đeo tối giản, không gắn loa phát giọng nói lên thiết bị; toàn bộ nâng cấp trợ lý AI (`FR-20`–`FR-23`) xử lý ở backend và web:
+
+| Mã | Trạng thái 19/11/2026 |
+| --- | --- |
+| `FR-15` | **Một phần**: web có lịch nhắc + đánh dấu; chưa có downlink/nút trên firmware |
+| `FR-16` | **Đã có bản in** `/app/history/report`; chưa có file PDF tải trực tiếp |
+| `FR-22` | **Đã có** 3–5 điểm chú ý trên phiếu |
+
+**Hạng mục và hướng thiết kế:**
 
 | Mã | Tính năng | Hướng thiết kế phần mềm & ràng buộc |
 | --- | --- | --- |

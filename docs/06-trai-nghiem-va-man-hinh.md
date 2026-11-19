@@ -95,11 +95,23 @@
 - Bảng trên máy tính, thẻ trên điện thoại; “Hiện thêm” 50 dòng mỗi bước, dừng ở trần 400 dòng và chỉ dẫn CSV cho phần còn lại; không có nút “hiện tất cả” gây treo main thread.
 - Dòng “Dữ liệu hiển thị là dữ liệu mô phỏng.” Nút CSV chỉ có khi có `canViewMeasurements`; thiếu quyền thì trang không gọi API số đo.
 
+### Phiếu đi khám — `/app/history/report`
+
+- Vào từ nút **Phiếu đi khám** ở header Lịch sử, giữ nguyên khoảng `from`/`to` đang xem. Phiếu 1 trang A4: hồ sơ, kỳ báo cáo, số mẫu, độ phủ, nhịp tim TB/thấp/cao, tổng bước, khoảng thiếu, số lần ngã/SOS và 3–5 **điểm chú ý** kèm ngày.
+- Chỉ nêu số liệu, có câu “không phải kết luận y khoa”; dữ liệu tổng hợp mang nhãn **Dữ liệu mô phỏng**. Nút **In / Lưu PDF** dùng hộp thoại in của trình duyệt; khi in ẩn rail/topbar/nút, nền trắng, không cắt nội dung.
+- Quyền và cửa sổ chia sẻ do server chốt (`canViewMeasurements`, `sharedFrom`/`historyDays`); thiếu quyền hiện thông báo nghiệp vụ và không gọi dữ liệu.
+
 ### Người thân — `/app/subjects`
 
 - H1 “Người thân”. Danh sách hồ sơ người xem có quyền, ghi rõ vai trò (Chủ hồ sơ/Người thân xem hộ) và quyền bằng chữ (“xem số đo N ngày”, “nhận cảnh báo”, …).
 - Mỗi hàng có đường sang **Xem sức khỏe**, **Thiết bị**, và **Chia sẻ và liên hệ** (chỉ chủ hồ sơ). Trang cũng là nơi tạo/sửa hồ sơ và có link sang **Công việc**.
 - **Vùng nguy hiểm:** “Lưu trữ hồ sơ” và “Yêu cầu xóa dữ liệu”, cả hai yêu cầu nhập lại tên hồ sơ. Lưu trữ nói rõ thu hồi chia sẻ nhưng **không xóa** số đo/cảnh báo; yêu cầu xóa trả trạng thái “đã ghi nhận”, không hứa xóa ngay.
+
+### Nhắc chăm sóc — `/app/care`
+
+- Vào từ link **Nhắc chăm sóc** ở header Người thân hoặc thẻ **Nhắc hôm nay** trên Hôm nay (tối đa 3 việc chưa đánh dấu, có nút Đã thực hiện tại chỗ). Không thêm mục vào nav chính.
+- Chủ hồ sơ tạo/sửa/xoá lịch: loại (Thuốc/Sinh hoạt/Đo chỉ số/Khác), tiêu đề, ghi chú, 1–6 giờ, thứ trong tuần, khoảng ngày, bật/tắt. Người thân có `canViewMeasurements` xem và đánh dấu **Đã thực hiện/Bỏ qua/Hoàn tác**, không sửa lịch.
+- Thẻ nhắc trên Hôm nay và trang Nhắc chăm sóc đều ghi “Chỉ là nhắc việc bạn tự đặt, không thay tư vấn y tế.”; không có gợi ý liều hay nội dung chẩn đoán. Đây là phần web của FR-15; thiết bị chưa rung/kêu và chưa gửi xác nhận ngược.
 
 ### Chia sẻ và liên hệ — `/app/subjects/:id/share`
 
