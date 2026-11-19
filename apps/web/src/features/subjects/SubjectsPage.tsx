@@ -358,6 +358,9 @@ export function SubjectsPage() {
             <Link className="people-textlink" to="/app/tasks">
               Công việc bảo trì
             </Link>
+            <Link className="people-textlink" to="/app/care">
+              Nhắc chăm sóc
+            </Link>
           </div>
         }
       />

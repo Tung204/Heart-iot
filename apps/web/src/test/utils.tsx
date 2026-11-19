@@ -154,3 +154,194 @@ export function renderPage(ui: ReactElement, handler?: FetchHandler) {
   );
   return { ...utils, queryClient };
 }
+
+// ---------------------------------------------------------------------------
+// v8 — lịch nhắc chăm sóc + phiếu đi khám (hợp đồng reminders/reports)
+// ---------------------------------------------------------------------------
+
+/** Lịch nhắc mẫu đúng `reminderSchema`; mọi ngày trong tuần, bắt đầu trước hôm nay. */
+export const REMINDER = {
+  id: 'a1a1a1a1-1111-4111-8111-111111111111',
+  subjectId: SUBJECT.id,
+  kind: 'medication' as const,
+  title: 'Uống thuốc huyết áp',
+  note: 'Thuốc do gia đình tự đặt, không phải chỉ định của hệ thống',
+  times: ['08:00'],
+  weekdays: [1, 2, 3, 4, 5, 6, 7],
+  startsOn: '2026-11-01',
+  endsOn: null,
+  active: true,
+  createdAt: '2026-11-01T00:00:00.000Z',
+  updatedAt: '2026-11-01T00:00:00.000Z',
+};
+
+export const ACTIVITY_REMINDER = {
+  ...REMINDER,
+  id: 'a2a2a2a2-2222-4222-8222-222222222222',
+  kind: 'activity' as const,
+  title: 'Đi bộ nhẹ buổi chiều',
+  note: null,
+  times: ['16:00'],
+  weekdays: [1, 2, 3, 4, 5],
+};
+
+/** GET /subjects/:id/reminders/today — hai occurrence còn chưa đánh dấu. */
+export const REMINDER_DAY = {
+  date: '2026-11-19',
+  timezone: 'Asia/Ho_Chi_Minh',
+  items: [
+    { reminder: REMINDER, time: '08:00', status: 'pending' as const, completion: null },
+    {
+      reminder: ACTIVITY_REMINDER,
+      time: '16:00',
+      status: 'pending' as const,
+      completion: null,
+    },
+  ],
+};
+
+/** Kết quả đánh dấu mẫu — dùng cho handler mặc định của completion. */
+export function reminderCompletionResult(
+  reminderId: string,
+  time = '08:00',
+  date = '2026-11-19',
+  status: 'done' | 'skipped' = 'done',
+) {
+  return {
+    reminderId,
+    date,
+    time,
+    status,
+    completedAt: '2026-11-19T01:00:00.000Z',
+    completedBy: { userId: USER.id, displayName: USER.displayName },
+  };
+}
+
+/** Phiếu đi khám mẫu đúng `visitReportSchema` (dữ liệu tổng hợp, simulated). */
+export const VISIT_REPORT = {
+  subject: {
+    id: SUBJECT.id,
+    displayName: SUBJECT.displayName,
+    timezone: SUBJECT.timezone,
+  },
+  period: { from: '2026-10-21', to: '2026-11-19', days: 30 },
+  generatedAt: '2026-11-19T05:01:32.789Z',
+  summary: {
+    measurementCount: 1681,
+    daysWithData: 7,
+    coveragePercent: 23.3,
+    heartRate: { avg: 68.3, min: 59, max: 77 },
+    steps: { total: 5056, avgPerDay: 168.5 },
+    gaps: [
+      {
+        from: '2026-10-20T17:00:00.000Z',
+        to: '2026-11-13T05:01:07.930Z',
+        hours: 564,
+      },
+    ],
+  },
+  incidents: {
+    total: 3,
+    falls: 3,
+    sos: 0,
+    open: 1,
+    items: [
+      {
+        id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+        type: 'fall' as const,
+        state: 'open' as const,
+        detectedAt: '2026-11-19T04:36:07.930Z',
+      },
+      {
+        id: 'f2222222-2222-4222-8222-222222222222',
+        type: 'fall' as const,
+        state: 'resolved' as const,
+        detectedAt: '2026-11-17T05:01:07.930Z',
+      },
+    ],
+  },
+  attentionPoints: [
+    {
+      date: '2026-11-19',
+      label: 'Sự kiện ngã',
+      detail: 'Ghi nhận 3 lần ngã trong kỳ; lần gần nhất ngày 19/11/2026.',
+    },
+    {
+      date: '2026-10-21',
+      label: 'Khoảng thiếu dữ liệu dài nhất',
+      detail: 'Thiếu mẫu đo 564 giờ, từ 2026-10-21 00:00 đến 2026-11-13 12:01.',
+    },
+    {
+      date: '2026-11-14',
+      label: 'Nhịp tim thấp nhất theo ngày',
+      detail: 'Ngày 14/11/2026 ghi nhận nhịp tim thấp nhất 59 bpm trong các mẫu hợp lệ.',
+    },
+  ],
+  simulated: true,
+  disclaimer:
+    'Phiếu chỉ tổng hợp số liệu tham khảo từ dữ liệu thiết bị, không thay thế việc khám hoặc chẩn đoán của bác sĩ.',
+};
+
+export interface CareApiOptions {
+  reminders?: unknown;
+  day?: unknown;
+  report?: unknown;
+  /** Ghi đè phản hồi khi tạo lịch nhắc (mặc định trả REMINDER). */
+  onCreate?: (init?: RequestInit) => Response | Promise<Response>;
+  /** Ghi đè phản hồi khi sửa/xoá/đánh dấu. */
+  onUpdate?: (init?: RequestInit) => Response | Promise<Response>;
+  onDelete?: (init?: RequestInit) => Response | Promise<Response>;
+  onCompletion?: (url: string, init?: RequestInit) => Response | Promise<Response>;
+}
+
+/**
+ * Handler mẫu cho 3 nhóm API của v8, không thay đổi hành vi handler cũ:
+ * danh sách nhắc, occurrence hôm nay, completion và phiếu đi khám.
+ * `onCreate`/`onCompletion`... cho phép test ghi lại body hoặc trả lỗi 422/500.
+ */
+export function careApiHandler(options: CareApiOptions = {}): FetchHandler {
+  return (url, init) => {
+    const u = String(url);
+    const method = init?.method ?? 'GET';
+    if (u.includes('/visit-report')) {
+      return mockResponse(options.report ?? VISIT_REPORT);
+    }
+    if (u.includes('/completions')) {
+      if (options.onCompletion) return options.onCompletion(u, init);
+      if (method === 'DELETE') return mockResponse(undefined, 204);
+      const body = JSON.parse(String(init?.body ?? '{}')) as {
+        date?: string;
+        time?: string;
+        status?: 'done' | 'skipped';
+      };
+      const match = /\/reminders\/([^/]+)\/completions/.exec(u);
+      return mockResponse(
+        reminderCompletionResult(
+          match?.[1] ?? REMINDER.id,
+          body.time ?? '08:00',
+          body.date ?? REMINDER_DAY.date,
+          body.status ?? 'done',
+        ),
+      );
+    }
+    if (u.endsWith('/reminders/today')) {
+      return mockResponse(options.day ?? REMINDER_DAY);
+    }
+    if (u.endsWith('/reminders') && method === 'GET') {
+      return mockResponse(options.reminders ?? { items: [REMINDER, ACTIVITY_REMINDER] });
+    }
+    if (u.endsWith('/reminders') && method === 'POST') {
+      if (options.onCreate) return options.onCreate(init);
+      return mockResponse(REMINDER, 201);
+    }
+    if (u.includes('/reminders/') && (method === 'PATCH' || method === 'DELETE')) {
+      if (method === 'PATCH' && options.onUpdate) return options.onUpdate(init);
+      if (method === 'DELETE') {
+        if (options.onDelete) return options.onDelete(init);
+        return mockResponse(undefined, 204);
+      }
+      return mockResponse(REMINDER);
+    }
+    return mockResponse(errorEnvelope('Không tìm thấy.', 'NOT_FOUND'), 404);
+  };
+}

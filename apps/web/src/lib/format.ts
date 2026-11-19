@@ -61,6 +61,15 @@ export function formatDate(iso: string): string {
   return DATE_FORMAT.format(date);
 }
 
+/**
+ * Ngày địa phương dạng `YYYY-MM-DD` (không phải ISO datetime) → `DD/MM/YYYY`.
+ * Dùng cho lịch nhắc và phiếu đi khám — nơi hợp đồng đã dùng ngày dạng chuỗi.
+ */
+export function formatDayKey(day: string): string {
+  const [year, month, date] = day.split('-');
+  return year && month && date ? `${date}/${month}/${year}` : day;
+}
+
 export function formatTime(iso: string): string {
   const date = toDate(iso);
   if (!date) return iso;

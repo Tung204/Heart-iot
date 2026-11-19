@@ -21,6 +21,13 @@ export const queryKeys = {
   invitation: (token: string) => ['invitations', token] as const,
   subjectInvitations: (id: string) => ['subjects', id, 'invitations'] as const,
   subjectCareLinks: (id: string) => ['subjects', id, 'care-links'] as const,
+  /** Lịch nhắc chăm sóc của một hồ sơ (danh sách đầy đủ). */
+  reminders: (id: string) => ['subjects', id, 'reminders'] as const,
+  /** Occurrence "hôm nay" theo timezone hồ sơ — cùng cache với thẻ trên Hôm nay. */
+  remindersToday: (id: string) => ['subjects', id, 'reminders', 'today'] as const,
+  /** Phiếu đi khám theo khoảng ngày địa phương (YYYY-MM-DD). */
+  visitReport: (id: string, params: { from?: string; to?: string }) =>
+    ['subjects', id, 'visit-report', params.from ?? '', params.to ?? ''] as const,
 };
 
 /**

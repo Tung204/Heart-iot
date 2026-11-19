@@ -36,6 +36,12 @@ const DevicesPage = lazy(() =>
 const HistoryPage = lazy(() =>
   import('../features/history/HistoryPage').then((m) => ({ default: m.HistoryPage })),
 );
+const VisitReportPage = lazy(() =>
+  import('../features/history/VisitReportPage').then((m) => ({ default: m.VisitReportPage })),
+);
+const CarePage = lazy(() =>
+  import('../features/care/CarePage').then((m) => ({ default: m.CarePage })),
+);
 const SharePage = lazy(() =>
   import('../features/share/SharePage').then((m) => ({ default: m.SharePage })),
 );
@@ -64,8 +70,9 @@ function page(element: ReactNode): ReactNode {
  * Sơ đồ route:
  * - Công khai: / (landing), /login, /register, /invite/:token, * (404).
  * - Bảo vệ (/app): `/app` mở không gian trợ lý (trung tâm), tổng quan chi tiết
- *   ở `/app/overview`; sau đó là lịch sử, cảnh báo (+chi tiết), hồ sơ, chia sẻ,
- *   thiết bị, trợ lý (giữ đường dẫn cũ), công việc, cài đặt, Studio, quản trị.
+ *   ở `/app/overview`; sau đó là lịch sử (+phiếu đi khám), cảnh báo (+chi tiết),
+ *   hồ sơ, nhắc chăm sóc, chia sẻ, thiết bị, trợ lý (giữ đường dẫn cũ), công việc,
+ *   cài đặt, Studio, quản trị.
  *   `/app/notifications` chuyển sang `/app/alerts?view=notifications` (inbox thật
  *   của NotificationsPage, không chỉ về danh sách cảnh báo).
  *   Route lạ → 404 trong khung.
@@ -85,6 +92,8 @@ export const appRoutes: RouteObject[] = [
           { index: true, element: page(<AssistantPage />) },
           { path: 'overview', element: page(<DashboardPage />) },
           { path: 'history', element: page(<HistoryPage />) },
+          { path: 'history/report', element: page(<VisitReportPage />) },
+          { path: 'care', element: page(<CarePage />) },
           { path: 'alerts', element: page(<AlertsPage />) },
           { path: 'alerts/:id', element: page(<AlertDetailPage />) },
           { path: 'subjects', element: page(<SubjectsPage />) },

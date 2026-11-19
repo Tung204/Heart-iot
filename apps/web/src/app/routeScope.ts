@@ -10,7 +10,7 @@
 export type NavSection = 'today' | 'alerts' | 'health' | 'people' | 'admin' | 'none';
 
 /**
- * - `selected`: shell render dòng chọn hồ sơ (5 loại trang subject-scoped).
+ * - `selected`: shell render dòng chọn hồ sơ (các trang subject-scoped).
  * - `pinned`: trang ghim đối tượng từ URL/API và tự render dòng nhận diện.
  * - `collection`: danh sách nhiều hồ sơ ("Các hồ sơ bạn có quyền xem").
  * - `none`: không có ngữ cảnh hồ sơ trên trang.
@@ -27,7 +27,7 @@ export interface RouteScope {
 }
 
 const TODAY_PATHS = new Set(['/app', '/app/assistant']);
-const HEALTH_PATHS = new Set(['/app/overview', '/app/history']);
+const HEALTH_PATHS = new Set(['/app/overview', '/app/history', '/app/history/report']);
 
 export function resolveRouteScope(pathname: string, search = ''): RouteScope {
   const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
@@ -52,6 +52,12 @@ export function resolveRouteScope(pathname: string, search = ''): RouteScope {
   }
 
   if (pathname === '/app/devices') {
+    return { section: 'people', context: 'selected', inbox: false, today: false };
+  }
+
+  // Nhắc chăm sóc là việc của người/hồ sơ, không phải mục Sức khỏe: giữ nav
+  // Người thân và dòng ngữ cảnh hồ sơ đang chọn. Không thêm mục nav thứ năm.
+  if (pathname === '/app/care' || pathname === '/app/care/') {
     return { section: 'people', context: 'selected', inbox: false, today: false };
   }
 
