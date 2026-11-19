@@ -59,6 +59,10 @@ describe('VisitReportPage — phiếu đi khám', () => {
     expect(sheet.getByText('Sự kiện ngã')).toBeInTheDocument();
     expect(sheet.getByText('Khoảng thiếu dữ liệu dài nhất')).toBeInTheDocument();
     expect(sheet.getByText('Nhịp tim thấp nhất theo ngày')).toBeInTheDocument();
+    expect(
+      sheet.getByText(/từ 21\/10\/2026 00:00 đến 13\/11\/2026 12:01/),
+    ).toBeInTheDocument();
+    expect(sheet.queryByText(/2026-\d{2}-\d{2}/)).not.toBeInTheDocument();
     expect(sheet.getByText(VISIT_REPORT.disclaimer)).toBeInTheDocument();
   });
 

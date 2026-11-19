@@ -24,6 +24,16 @@ function isValidationError(error: unknown): boolean {
 /** Số nguyên có dấu phân cách nhóm theo vi-VN — chỉ để đọc, không đổi giá trị. */
 const NUMBER_FORMAT = new Intl.NumberFormat('vi-VN');
 const DECIMAL_FORMAT = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 });
+const ISO_DAY_IN_TEXT = /\b(\d{4}-\d{2}-\d{2})\b/g;
+
+/**
+ * Điểm chú ý do API trả về có thể trộn ngày `YYYY-MM-DD` trong câu (ví dụ
+ * khoảng thiếu dữ liệu) với ngày đã định dạng ở tiêu đề. Đưa mọi ngày trong
+ * câu về cùng `DD/MM/YYYY` để phiếu không trộn hai định dạng.
+ */
+function formatDaysInText(text: string): string {
+  return text.replace(ISO_DAY_IN_TEXT, (day) => formatDayKey(day));
+}
 
 /**
  * `/app/history/report` — phiếu theo dõi sức khỏe 1 trang A4 (FR-16 + FR-22).
@@ -295,7 +305,7 @@ export function VisitReportPage() {
                   <p className="report-attention__title">
                     <strong>{point.label}</strong> · {formatDayKey(point.date)}
                   </p>
-                  <p className="report-attention__detail">{point.detail}</p>
+                  <p className="report-attention__detail">{formatDaysInText(point.detail)}</p>
                 </li>
               ))}
             </ol>

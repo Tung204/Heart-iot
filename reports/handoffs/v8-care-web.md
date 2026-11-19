@@ -1,7 +1,7 @@
 # Handoff — v8-care-WEB (Nhắc chăm sóc + phiếu đi khám)
 
 - **Thời điểm:** 2026-11-19 (Asia/Ho_Chi_Minh)
-- **Branch:** `v8-care-web`, tạo từ `master` @ `d33d6d6` (đã gồm backend v8 `ba2dcc3`); **chưa merge/push**
+- **Branch:** `v8-care-web`, tạo từ `master` @ `d33d6d6` (đã gồm backend v8 `ba2dcc3`); commit gốc `7441c7b`, commit sửa P2/P3 ở lượt QA ảnh nằm sau đó trên cùng nhánh; **chưa merge/push**
 - **Phạm vi:** chỉ `apps/web` + test/QA. Không sửa `apps/api`, `packages/contracts`.
 - **Provider/model:** `moxuna` / `deepseek-v4.1-flash`
 
@@ -101,7 +101,7 @@ $ VITE_API_BASE_URL=http://127.0.0.1:3018/api/v1 pnpm --filter @heart-iot/web ex
 
 ## 4. Bằng chứng QA
 
-Thư mục: `reports/qa/evidence/v8-care/` (9 ảnh + 1 PDF + `measurements.json`).
+Thư mục: `reports/qa/evidence/v8-care/` (10 ảnh + 1 PDF + `measurements.json`).
 
 | Ảnh | Nội dung |
 | --- | --- |
@@ -110,18 +110,28 @@ Thư mục: `reports/qa/evidence/v8-care/` (9 ảnh + 1 PDF + `measurements.json
 | `care-form-create-1280.png` | Form tạo lịch nhắc |
 | `today-reminders-1280.png` | Thẻ “Nhắc hôm nay” trên Hôm nay |
 | `visit-report-1280.png` / `visit-report-390.png` | Phiếu trên màn hình |
-| `visit-report-print-794.png` + `visit-report-print.pdf` | `emulateMedia('print')` PDF-like |
+| `visit-report-print-794.png` + `visit-report-print-1123.png` + `visit-report-print.pdf` | `emulateMedia('print')` ở 794×1123 và 1123×1123; PDF A4 |
 
 Đo tự động (Chromium, `measurements.json`):
 
-- 0 tràn ngang (`documentElement` và `body`) ở 1280/390 cho care + report; 0 ở bản in.
+- 0 tràn ngang (`documentElement` và `body`) ở 1280/390 cho care + report; 0 ở bản in 794 và 1123.
+- H1 thẳng trái với nội dung: `h1Left - contentLeft = 0` trên care/report ở 1280 và 390 (`headerDisplay: grid`).
 - Mọi `a/button/input/select/textarea/summary` hiển thị có target ≥44px (`smallTargets: []`; checkbox tính theo label).
 - 1 H1 trên care, form, Hôm nay, report; bản in cũng 1 H1.
 - Bản in: `.shell__sidebar/.shell__topbar/.shell__bottomnav/.report-actions` đều `display:none`,
-  body nền trắng, disclaimer còn hiển thị; PDF **1 trang** (đếm `/Type /Page`).
+  body nền trắng, disclaimer còn hiển thị; header meta không cắt ở 794/1123; PDF **1 trang**
+  (Ghostscript render 1 PNG; `pdftotext` thấy đủ “30 ngày” và “21/10/2026 … 13/11/2026”).
 - Caregiver: `forbiddenEditButtons = 0`.
 
-## 5. Chưa kiểm / giới hạn
+## 5. Vòng sửa P2/P3 sau QA ảnh (cùng nhánh)
+
+- **P2 — H1 desktop bị căn giữa:** `PageHeader` mặc định là flex row 3 phần tử, chỉ `.health-page` được override grid. Đã thêm grid 2 cột cho `.care-page .page-header` và `.report-page .page-header`: breadcrumb span `1 / -1`, H1 cột 1, action cột 2; bản in report override `display: block`. Đo lại `h1Left - contentLeft = 0` ở 1280 và 390 cho cả hai trang.
+- **P2 — bản in cắt bên phải:** header meta có thể tràn khi vùng in hẹp; print CSS nay xếp header thành cột, thêm `min-width: 0` + wrap cho facts. Đồng thời sửa lỗi shell ở print khi viewport ≥1024: rail bị ẩn nhưng track grid vẫn còn 216px làm body rơi vào cột hẹp; print đặt `body:has(.report-page) .shell { display: block !important }`. Đo 794 và 1123: `textOverflow` lần lượt **-74,8** và **-84,7**, `elementOverflow = 0`; PDF vẫn **1 trang**, có đủ “30 ngày” và “21/10/2026 … 13/11/2026”.
+- **P3 — trộn định dạng ngày trong “Điểm chú ý”:** thêm `formatDaysInText()` đổi mọi token `YYYY-MM-DD` trong `attentionPoints[].detail` sang `DD/MM/YYYY`; test khẳng định phiếu không còn chuỗi `2026-…` và có “từ 21/10/2026 00:00 đến 13/11/2026 12:01”.
+- File sửa ở vòng này: `apps/web/src/features/care/care.css`, `apps/web/src/features/history/report.css`, `apps/web/src/features/history/VisitReportPage.tsx`, `apps/web/src/features/history/VisitReportPage.test.tsx`; ảnh/measurements trong `reports/qa/evidence/v8-care/` được chụp lại.
+- Cổng chạy lại: web typecheck, **43 file/377 test**, web build, **E2E 26/26**.
+
+## 6. Chưa kiểm / giới hạn
 
 - **Firefox/Safari**: print CSS dùng `body:has(.report-page)` cho Chrome/Chromium; chưa kiểm hai trình duyệt còn lại và chưa kiểm máy in thật/khổ giấy thực. PDF chỉ mới đo bằng Chromium headless.
 - **FR-15 phần thiết bị** (downlink, rung/nút xác nhận trên firmware, nhận sự kiện “đã thực hiện” từ thiết bị) **chưa có** — đúng phạm vi lát cắt v8 đã chốt.

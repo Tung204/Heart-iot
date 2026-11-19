@@ -1,82 +1,197 @@
 {
-  "base": "http://127.0.0.1:4365",
-  "api": "http://127.0.0.1:3018/api/v1",
-  "results": [
-    {
-      "screenshot": "care-owner-1280.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
+  "care": {
+    "owner1280": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Nhắc chăm sóc",
+      "contentLeft": 248,
+      "h1Left": 248,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
       "smallTargets": []
     },
-    {
-      "screenshot": "care-form-create-1280.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
+    "owner390": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Nhắc chăm sóc",
+      "contentLeft": 16,
+      "h1Left": 16,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
       "smallTargets": []
     },
-    {
-      "screenshot": "today-reminders-1280.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
+    "todayCard": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Hôm nay",
+      "contentLeft": 248,
+      "h1Left": 248,
+      "h1Delta": 0,
+      "headerDisplay": null,
       "smallTargets": []
-    },
-    {
-      "screenshot": "visit-report-1280.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
-      "smallTargets": []
-    },
-    {
-      "screenshot": "visit-report-print-794.png",
-      "print": {
-        "sidebar": "none",
-        "topbar": "none",
-        "bottomnav": "none",
-        "actions": "none",
-        "bodyBackground": "rgb(255, 255, 255)",
-        "overflow": 0,
-        "h1": 1,
-        "disclaimerVisible": true
-      }
-    },
-    {
-      "screenshot": "care-owner-390.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
-      "smallTargets": []
-    },
-    {
-      "screenshot": "visit-report-390.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
-      "smallTargets": []
-    },
-    {
-      "screenshot": "care-caregiver-1280.png",
-      "forbiddenEditButtons": 0
-    },
-    {
-      "screenshot": "care-caregiver-1280.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
-      "smallTargets": []
-    },
-    {
-      "screenshot": "care-caregiver-390.png",
-      "h1": 1,
-      "overflow": 0,
-      "bodyOverflow": 0,
-      "smallTargets": []
-    },
-    {
-      "pdfPages": 1
     }
+  },
+  "report": {
+    "desktop": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Phiếu theo dõi sức khỏe",
+      "contentLeft": 248,
+      "h1Left": 248,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
+      "smallTargets": []
+    },
+    "mobile": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Phiếu theo dõi sức khỏe",
+      "contentLeft": 16,
+      "h1Left": 16,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
+      "smallTargets": []
+    }
+  },
+  "print": {
+    "794": {
+      "viewport": {
+        "width": 794,
+        "height": 1123
+      },
+      "documentOverflowX": 0,
+      "bodyOverflowX": 0,
+      "maxTextRight": 719.2,
+      "textOverflow": -74.8,
+      "maxText": "Tổng bước chân",
+      "maxElementRight": 794,
+      "elementOverflow": 0,
+      "hiddenShell": [
+        {
+          "sel": ".shell__sidebar",
+          "display": "none"
+        },
+        {
+          "sel": ".shell__topbar",
+          "display": "none"
+        },
+        {
+          "sel": ".shell__bottomnav",
+          "display": "none"
+        },
+        {
+          "sel": ".report-actions",
+          "display": "none"
+        }
+      ],
+      "sheetHeight": 784.40625,
+      "pageHeight": 833.296875
+    },
+    "1123": {
+      "viewport": {
+        "width": 1123,
+        "height": 1123
+      },
+      "documentOverflowX": 0,
+      "bodyOverflowX": 0,
+      "maxTextRight": 1038.3,
+      "textOverflow": -84.7,
+      "maxText": "Trung bình 168,5 bước/ngày",
+      "maxElementRight": 1123,
+      "elementOverflow": 0,
+      "hiddenShell": [
+        {
+          "sel": ".shell__sidebar",
+          "display": "none"
+        },
+        {
+          "sel": ".shell__topbar",
+          "display": "none"
+        },
+        {
+          "sel": ".shell__bottomnav",
+          "display": "none"
+        },
+        {
+          "sel": ".report-actions",
+          "display": "none"
+        }
+      ],
+      "sheetHeight": 766.21875,
+      "pageHeight": 815.109375
+    }
+  },
+  "caregiver": {
+    "desktop": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Nhắc chăm sóc",
+      "contentLeft": 248,
+      "h1Left": 248,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
+      "smallTargets": []
+    },
+    "editButtons": 0,
+    "mobile": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflowX": 0,
+      "bodyOverflowX": 0,
+      "h1Count": 1,
+      "h1Text": "Nhắc chăm sóc",
+      "contentLeft": 16,
+      "h1Left": 16,
+      "h1Delta": 0,
+      "headerDisplay": "grid",
+      "smallTargets": []
+    }
+  },
+  "notes": [
+    {
+      "consoleErrors": []
+    }
+  ],
+  "pdf": {
+    "file": "visit-report-print.pdf",
+    "pages": 1,
+    "pageSize": "A4",
+    "verifiedWith": "Ghostscript 10.05.1 @120dpi → 1 PNG; pdftotext có “30 ngày” và “21/10/2026 … 13/11/2026”"
+  },
+  "printWidthsChecked": [
+    794,
+    1123
   ]
 }
