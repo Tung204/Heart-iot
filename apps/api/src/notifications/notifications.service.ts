@@ -1,6 +1,11 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { and, asc, desc, eq, isNull, lte } from 'drizzle-orm';
-import { notificationListSchema, type NotificationList } from '@heart-iot/contracts/notifications';
+import {
+  notificationListSchema,
+  type NotificationKind,
+  type NotificationList,
+} from '@heart-iot/contracts/notifications';
+import { canViewMeasurements as permissionAllowsMeasurements } from '@heart-iot/contracts';
 import { DB, type AppDb } from '../database/database';
 import {
   careLinks,
@@ -12,13 +17,23 @@ import {
 import { AppError } from '../common/app-error';
 import { AccessService } from '../access/access.service';
 import type { DbExecutor } from '../incidents/incidents.service';
-import { outboxKind } from '../incidents/incidents.service';
 
 export type ProcessPendingResult = {
   processed: number;
   sent: number;
   superseded: number;
   failed: number;
+};
+
+/** Thông báo cảnh báo dùng quyền nhận cảnh báo; care_* dùng quyền xem số đo (D3 còn mở). */
+function requiresAlertPermission(kind: NotificationKind): boolean {
+  return kind === 'alert' || kind === 'update' || kind === 'escalation';
+}
+
+type SubjectVisibility = {
+  window: Date | null;
+  canReceiveAlerts: boolean;
+  canViewMeasurements: boolean;
 };
 
 /** Backoff demo: 1s → 5s → 30s (từ lần thử thứ 3), tối đa 5 lần rồi failed. */
@@ -77,17 +92,54 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         let superseded = 0;
         let failed = 0;
         for (const row of rows) {
-          const incidentRows = await tx
-            .select({ id: incidents.id, subjectId: incidents.subjectId, state: incidents.state })
-            .from(incidents)
-            .where(eq(incidents.id, row.incidentId))
-            .limit(1);
-          const incident = incidentRows[0];
-          if (!incident) continue; // không thể xảy ra (FK cascade), phòng thủ
+          const incidentRows = row.incidentId
+            ? await tx
+                .select({ id: incidents.id, subjectId: incidents.subjectId, state: incidents.state })
+                .from(incidents)
+                .where(eq(incidents.id, row.incidentId))
+                .limit(1)
+            : [];
+          const incident = incidentRows[0] ?? null;
+          const kind = row.kind as NotificationKind;
 
-          const kind = outboxKind(row.dedupeKey);
-          const terminal = incident.state === 'resolved' || incident.state === 'cancelled';
-          const allowed = await this.recipientAllowed(tx, row.recipientUserId, incident.subjectId);
+          // Alert/update bắt buộc có incident; care_* thì không.
+          if (requiresAlertPermission(kind) && !incident) {
+            await tx
+              .update(notificationOutbox)
+              .set({
+                status: 'failed',
+                attempts: row.attempts + 1,
+                lastError: 'Không tìm thấy cảnh báo gắn với thông báo.',
+                updatedAt: now,
+              })
+              .where(eq(notificationOutbox.id, row.id));
+            failed += 1;
+            continue;
+          }
+
+          const subjectId = row.subjectId ?? incident?.subjectId ?? null;
+          if (!subjectId) {
+            await tx
+              .update(notificationOutbox)
+              .set({
+                status: 'failed',
+                attempts: row.attempts + 1,
+                lastError: 'Thông báo thiếu hồ sơ.',
+                updatedAt: now,
+              })
+              .where(eq(notificationOutbox.id, row.id));
+            failed += 1;
+            continue;
+          }
+
+          const terminal =
+            incident?.state === 'resolved' || incident?.state === 'cancelled';
+          const allowed = await this.recipientAllowed(
+            tx,
+            row.recipientUserId,
+            subjectId,
+            kind,
+          );
 
           // R-01: mất quyền hoặc incident đã đóng mà cảnh báo mở chưa gửi → superseded.
           if (!allowed || (terminal && kind === 'alert')) {
@@ -106,10 +158,10 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
               .set({ status: 'sent', sentAt: now, updatedAt: now })
               .where(eq(notificationOutbox.id, row.id));
             await tx.insert(realtimeEvents).values({
-              subjectId: incident.subjectId,
+              subjectId,
               type: 'notification.sent',
-              entityId: incident.id,
-              payload: { id: row.id, incidentId: incident.id },
+              entityId: incident?.id ?? row.id,
+              payload: { id: row.id, incidentId: incident?.id ?? null, kind },
             });
             sent += 1;
           } catch (error) {
@@ -142,11 +194,16 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  /** Kiểm tra lại quyền ngay trước khi gửi (chủ hồ sơ hoặc link active + canReceiveAlerts). */
+  /**
+   * Kiểm tra lại quyền ngay trước khi gửi:
+   * - alert/update/escalation: link active + `canReceiveAlerts`;
+   * - care_*: link active + `canViewMeasurements` (D3 chưa chốt `canViewCare`).
+   */
   private async recipientAllowed(
     tx: DbExecutor,
     recipientUserId: string,
     subjectId: string,
+    kind: NotificationKind,
   ): Promise<boolean> {
     const subjectRows = await tx
       .select({ ownerUserId: subjects.ownerUserId })
@@ -168,7 +225,11 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
         ),
       )
       .limit(1);
-    return linkRows[0]?.permissions.canReceiveAlerts ?? false;
+    const permissions = linkRows[0]?.permissions;
+    if (!permissions) return false;
+    return requiresAlertPermission(kind)
+      ? permissions.canReceiveAlerts
+      : permissionAllowsMeasurements(permissions);
   }
 
   /**
@@ -186,77 +247,104 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Cửa sổ chia sẻ **hiện tại** của user cho từng hồ sơ (NFR-01).
+   * Cửa sổ chia sẻ + quyền theo loại thông báo của user cho từng hồ sơ (NFR-01).
    * - Không có key: không còn quyền xem thông báo của hồ sơ đó.
-   * - `null`: chủ hồ sơ, không giới hạn lịch sử.
+   * - `window = null`: chủ hồ sơ, không giới hạn lịch sử.
    * - `Date`: mốc sớm nhất được xem, cùng công thức với measurements/daily-summary
    *   (`max(now - historyDays, sharedFrom)`) nhờ AccessService.requireHistory.
    */
-  private async visibleWindows(
+  private async subjectVisibility(
     userId: string,
     subjectIds: Iterable<string>,
-  ): Promise<Map<string, Date | null>> {
-    const windows = new Map<string, Date | null>();
+  ): Promise<Map<string, SubjectVisibility>> {
+    const result = new Map<string, SubjectVisibility>();
     for (const subjectId of subjectIds) {
-      if (windows.has(subjectId)) continue;
+      if (result.has(subjectId)) continue;
       try {
         const { access, effectiveFrom } = await this.access.requireHistory(userId, subjectId, null);
-        // Thông báo là kênh cảnh báo: người thân phải còn quyền nhận cảnh báo.
-        if (access.role !== 'owner' && !access.permissions.canReceiveAlerts) continue;
-        windows.set(subjectId, access.role === 'owner' ? null : effectiveFrom);
+        const owner = access.role === 'owner';
+        const canReceiveAlerts = owner || access.permissions.canReceiveAlerts;
+        const canViewMeasurements = owner || permissionAllowsMeasurements(access.permissions);
+        if (!canReceiveAlerts && !canViewMeasurements) continue;
+        result.set(subjectId, {
+          window: owner ? null : effectiveFrom,
+          canReceiveAlerts,
+          canViewMeasurements,
+        });
       } catch (error) {
         // Không có link active / hồ sơ đã lưu trữ: coi như không thấy, không lộ sự tồn tại.
         if (error instanceof AppError && error.status === 404) continue;
         throw error;
       }
     }
-    return windows;
+    return result;
   }
 
-  /** Incident xảy ra trước mốc chia sẻ hoặc ngoài historyDays thì không được trả/đánh dấu đọc. */
-  private isVisibleInWindow(window: Date | null | undefined, detectedAt: Date): boolean {
+  private kindAllowed(visibility: SubjectVisibility, kind: NotificationKind): boolean {
+    return requiresAlertPermission(kind)
+      ? visibility.canReceiveAlerts
+      : visibility.canViewMeasurements;
+  }
+
+  /** Sự kiện xảy ra trước mốc chia sẻ hoặc ngoài historyDays thì không được trả/đánh dấu đọc. */
+  private isVisibleInWindow(window: Date | null | undefined, occurredAt: Date): boolean {
     if (window === undefined) return false;
     if (window === null) return true;
-    return detectedAt.getTime() >= window.getTime();
+    return occurredAt.getTime() >= window.getTime();
   }
 
   async listNotifications(userId: string): Promise<NotificationList> {
     const rows = await this.db
       .select({
         outbox: notificationOutbox,
-        incidentId: incidents.id,
-        subjectId: incidents.subjectId,
-        detectedAt: incidents.detectedAt,
+        incidentDetectedAt: incidents.detectedAt,
         incidentType: incidents.type,
-        state: incidents.state,
+        incidentState: incidents.state,
         subjectName: subjects.displayName,
       })
       .from(notificationOutbox)
-      .innerJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
-      .innerJoin(subjects, eq(subjects.id, incidents.subjectId))
+      .leftJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
+      .innerJoin(subjects, eq(subjects.id, notificationOutbox.subjectId))
       .where(and(eq(notificationOutbox.recipientUserId, userId), eq(notificationOutbox.status, 'sent')))
       .orderBy(desc(notificationOutbox.createdAt));
 
     // Lọc quyền trước khi đếm/chặn 200: unreadCount phải khớp đúng tập người dùng thấy được.
-    const windows = await this.visibleWindows(
+    const visibility = await this.subjectVisibility(
       userId,
-      new Set(rows.map((row) => row.subjectId)),
+      new Set(
+        rows
+          .map((row) => row.outbox.subjectId)
+          .filter((subjectId): subjectId is string => subjectId !== null),
+      ),
     );
-    const visibleRows = rows.filter((row) =>
-      this.isVisibleInWindow(windows.get(row.subjectId), row.detectedAt),
-    );
+    const visibleRows = rows.filter((row) => {
+      const subjectId = row.outbox.subjectId;
+      if (!subjectId) return false;
+      const subject = visibility.get(subjectId);
+      if (!subject) return false;
+      const kind = row.outbox.kind as NotificationKind;
+      return (
+        this.kindAllowed(subject, kind) &&
+        this.isVisibleInWindow(
+          subject.window,
+          row.incidentDetectedAt ?? row.outbox.createdAt,
+        )
+      );
+    });
     const unreadCount = visibleRows.filter((row) => row.outbox.readAt === null).length;
 
     return notificationListSchema.parse({
       items: visibleRows.slice(0, 200).map((row) => ({
         id: row.outbox.id,
-        incidentId: row.incidentId,
-        subjectId: row.subjectId,
+        incidentId: row.outbox.incidentId,
+        subjectId: row.outbox.subjectId!,
         subjectName: row.subjectName,
         incidentType: row.incidentType,
-        state: row.state,
+        state: row.incidentState,
         revision: row.outbox.revision,
-        kind: outboxKind(row.outbox.dedupeKey),
+        kind: row.outbox.kind,
+        title: row.outbox.title,
+        body: row.outbox.body,
         sentAt: row.outbox.sentAt?.toISOString() ?? null,
         readAt: row.outbox.readAt?.toISOString() ?? null,
         createdAt: row.outbox.createdAt.toISOString(),
@@ -269,12 +357,14 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
     const rows = await this.db
       .select({
         id: notificationOutbox.id,
-        subjectId: incidents.subjectId,
-        detectedAt: incidents.detectedAt,
+        subjectId: notificationOutbox.subjectId,
+        kind: notificationOutbox.kind,
+        createdAt: notificationOutbox.createdAt,
+        incidentDetectedAt: incidents.detectedAt,
         readAt: notificationOutbox.readAt,
       })
       .from(notificationOutbox)
-      .innerJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
+      .leftJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
       .where(
         and(
           eq(notificationOutbox.id, notificationId),
@@ -284,11 +374,17 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       )
       .limit(1);
     const row = rows[0];
-    if (!row) throw AppError.notFound('Không tìm thấy thông báo.');
+    if (!row || !row.subjectId) throw AppError.notFound('Không tìm thấy thông báo.');
 
     // Kiểm lại quyền + ranh giới chia sẻ tại thời điểm đọc; mọi trường hợp đều 404.
-    const windows = await this.visibleWindows(userId, [row.subjectId]);
-    if (!this.isVisibleInWindow(windows.get(row.subjectId), row.detectedAt)) {
+    const visibility = await this.subjectVisibility(userId, [row.subjectId]);
+    const subject = visibility.get(row.subjectId);
+    const kind = row.kind as NotificationKind;
+    if (
+      !subject ||
+      !this.kindAllowed(subject, kind) ||
+      !this.isVisibleInWindow(subject.window, row.incidentDetectedAt ?? row.createdAt)
+    ) {
       throw AppError.notFound('Không tìm thấy thông báo.');
     }
 

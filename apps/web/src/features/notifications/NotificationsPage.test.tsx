@@ -41,6 +41,22 @@ const READ: NotificationItem = {
   createdAt: '2026-11-14T08:01:00.000Z',
 };
 
+const CARE: NotificationItem = {
+  id: '6f7d8a9b-0c1d-4e2f-9a3b-4c5d6e7f8a9b',
+  incidentId: null,
+  subjectId: SUBJECT_ID,
+  subjectName: 'Bà Năm',
+  incidentType: null,
+  state: null,
+  revision: null,
+  kind: 'care_digest',
+  title: 'Bản tin chăm sóc cuối ngày',
+  body: 'Hôm nay có 2 việc đã làm và 1 việc chưa ghi nhận.',
+  sentAt: CREATED_AT,
+  readAt: null,
+  createdAt: CREATED_AT,
+};
+
 type Server = { items: NotificationItem[]; unreadCount: number };
 
 /** Server giả có trạng thái đọc thật: reload sau khi đánh dấu vẫn thấy "Đã đọc". */
@@ -214,5 +230,29 @@ describe('NotificationsPage — hộp thông báo toàn tài khoản', () => {
     expect(await screen.findByText('Không tải được thông báo')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument();
     expect(screen.queryByText('Bạn đã đọc hết thông báo.')).not.toBeInTheDocument();
+  });
+});
+
+describe('NotificationsPage — thông báo chăm sóc (V9.2a)', () => {
+  it('hiện title/body, không có link cảnh báo, đánh dấu đọc được', async () => {
+    const user = userEvent.setup();
+    renderPage(<NotificationsPage now={NOW} />, notificationsHandler({
+      items: [{ ...CARE }],
+      unreadCount: 1,
+    }));
+
+    expect(await screen.findByText('Bản tin chăm sóc cuối ngày')).toBeInTheDocument();
+    expect(
+      screen.getByText('Hôm nay có 2 việc đã làm và 1 việc chưa ghi nhận.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Xem cảnh báo/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Bản tin chăm sóc · Bà Năm')).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Đánh dấu đã đọc Bản tin chăm sóc của Bà Năm',
+      }),
+    );
+    expect(await screen.findByText('Đã đọc', { selector: '.pill' })).toBeInTheDocument();
   });
 });

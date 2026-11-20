@@ -394,13 +394,18 @@ export const notificationOutbox = pgTable(
   'notification_outbox',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    incidentId: uuid('incident_id')
-      .notNull()
-      .references(() => incidents.id, { onDelete: 'cascade' }),
-    revision: integer('revision').notNull(),
+    /** Hồ sơ của thông báo; alert/update suy từ incident, care kind ghi trực tiếp. */
+    subjectId: uuid('subject_id').references(() => subjects.id, { onDelete: 'cascade' }),
+    incidentId: uuid('incident_id').references(() => incidents.id, { onDelete: 'cascade' }),
+    revision: integer('revision'),
     recipientUserId: uuid('recipient_user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    /** Loại thông báo; alert/update giữ hành vi v8, care_* không cần incident. */
+    kind: text('kind').notNull().default('alert'),
+    /** Snapshot nội dung cho care_*; alert/update để NULL và UI suy từ incident. */
+    title: text('title'),
+    body: text('body'),
     channel: text('channel').notNull().default('in_app'),
     status: outboxStatusEnum('status').notNull().default('pending'),
     attempts: integer('attempts').notNull().default(0),
@@ -417,6 +422,11 @@ export const notificationOutbox = pgTable(
     uniqueIndex('notification_outbox_dedupe_uq').on(table.dedupeKey),
     index('notification_outbox_due_idx').on(table.status, table.nextAttemptAt),
     index('notification_outbox_recipient_idx').on(table.recipientUserId, table.createdAt),
+    index('notification_outbox_subject_kind_idx').on(table.subjectId, table.kind),
+    check(
+      'notification_outbox_kind_chk',
+      sql`${table.kind} in ('alert', 'update', 'escalation', 'care_digest', 'care_rule')`,
+    ),
   ],
 );
 

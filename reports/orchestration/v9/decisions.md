@@ -28,6 +28,11 @@ Ngày 20/11/2026. Tiếp sau v8 (lịch nhắc + phiếu đi khám). Phạm vi l
 - **V9.1-7 — Backfill:** migration tạo khoảng cho reminder cũ bằng xấp xỉ `active_from = starts_on`, `active_to = null` nếu đang active, ngược lại `= greatest(starts_on, updated_at::date)`. Ngày dùng UTC của DB, chỉ là xấp xỉ một lần; ghi chú trong handoff.
 - **V9.1-8 — Seed:** thêm completion mẫu cho 3 ngày gần nhất (chỉ ngày lịch có hiệu lực và đúng thứ), idempotent theo unique key; không seed dữ liệu sức khỏe thật. Cập nhật test seed idempotent.
 - **V9.1-9 — Không suy diễn y khoa:** không thêm câu “quên”, “không tuân thủ”, “nguy cơ”; UI dùng “chưa ghi nhận”. Không thêm trường liều lượng.
+- **V9.2a-1 — Mô hình outbox:** thêm `subject_id`, `kind`, `title`, `body`; `incident_id`/`revision` nullable. Không tạo incident giả cho thông báo chăm sóc. Alert/update cũ vẫn có incident.
+- **V9.2a-2 — Backfill kind:** migration suy `kind='update'` một lần từ đuôi `dedupe_key`; sau đó service chỉ đọc cột `kind`, không cắt chuỗi.
+- **V9.2a-3 — Quyền care tạm:** dùng `canViewMeasurements` cho `care_digest`/`care_rule` đến khi D3 chốt `canViewCare`; owner luôn qua. Không mở quyền mới trong lát cắt này.
+- **V9.2a-4 — Hàng thiếu subject:** list bỏ qua; worker care đánh `failed` thay vì retry vô hạn. `subject_id` để nullable vì dữ liệu cũ/test cũ.
+- **V9.2a-5 — Cửa sổ thời gian:** care dùng `createdAt` của outbox; alert/update dùng `incident.detectedAt` như cũ. `historyDays/sharedFrom` áp cho cả hai.
 
 ## Không được báo là đã làm
 
@@ -41,3 +46,4 @@ Ngày 20/11/2026. Tiếp sau v8 (lịch nhắc + phiếu đi khám). Phạm vi l
 1. Backend theo `specs/backend-adherence.md`.
 2. Web theo `specs/web-adherence.md` (sau khi backend hợp nhất).
 3. Review độc lập phần quyền/ngày giờ; chốt D3 trước V9.2.
+4. V9.2 còn lại: scheduler, `subject_rules`, `job_runs`, quy tắc/bản tin; chưa mở.

@@ -684,9 +684,11 @@ async function seedNotifications(db: AppDb, now: Date): Promise<number> {
   const sentAt = new Date(now.getTime() - 24 * 60 * 1000);
   await db.insert(notificationOutbox).values([
     {
+      subjectId: DEMO.subjectAn.id,
       incidentId: DEMO.openIncidentId,
       revision: 2,
       recipientUserId: DEMO.owner.id,
+      kind: 'alert',
       channel: 'in_app',
       status: 'sent',
       attempts: 1,
@@ -694,9 +696,11 @@ async function seedNotifications(db: AppDb, now: Date): Promise<number> {
       dedupeKey: 'seed-open-alert-owner',
     },
     {
+      subjectId: DEMO.subjectAn.id,
       incidentId: DEMO.openIncidentId,
       revision: 2,
       recipientUserId: DEMO.caregiver.id,
+      kind: 'alert',
       channel: 'in_app',
       status: 'sent',
       attempts: 1,

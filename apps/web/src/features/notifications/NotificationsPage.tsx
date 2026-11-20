@@ -122,7 +122,7 @@ export function NotificationsPage({ headingLevel = 1, now }: NotificationsPagePr
         <EmptyState
           title="Chưa có thông báo"
           headingLevel={headingLevel === 1 ? 2 : 3}
-          description="Khi có cảnh báo mới liên quan tới hồ sơ bạn theo dõi, thông báo sẽ xuất hiện tại đây."
+          description="Khi có cảnh báo hoặc nhắc chăm sóc mới liên quan tới hồ sơ bạn theo dõi, thông báo sẽ xuất hiện tại đây."
         />
       ) : (
         <>
@@ -150,6 +150,17 @@ export function NotificationsPage({ headingLevel = 1, now }: NotificationsPagePr
               const relative = formatRelativeTime(receivedAt, now);
               const absolute = formatDateTime(receivedAt);
               const pendingThis = markRead.isPending && markRead.variables === item.id;
+              const care = item.kind === 'care_digest' || item.kind === 'care_rule';
+              const careLabel =
+                item.kind === 'care_digest' ? 'Bản tin chăm sóc' : 'Nhắc chăm sóc';
+              const alertType = item.incidentType
+                ? ALERT_TYPE_LABELS[item.incidentType]
+                : null;
+              const stateLabel = item.state ? ALERT_STATE_LABELS[item.state] : null;
+              const title = care
+                ? (item.title ?? careLabel)
+                : `${alertType ?? 'Cảnh báo'} — ${item.subjectName}`;
+              const canOpenAlert = item.incidentId !== null && alertType !== null;
               return (
                 <li
                   key={item.id}
@@ -163,10 +174,11 @@ export function NotificationsPage({ headingLevel = 1, now }: NotificationsPagePr
                           <span className="visually-hidden">Chưa đọc</span>
                         </>
                       ) : null}
-                      <span>
-                        {ALERT_TYPE_LABELS[item.incidentType]} — {item.subjectName}
-                      </span>
+                      <span>{title}</span>
                     </p>
+                    {care && item.body ? (
+                      <p className="inbox-item__body">{item.body}</p>
+                    ) : null}
                     <p className="inbox-item__meta">
                       <time className="inbox-item__time" dateTime={receivedAt}>
                         {relative ?? absolute}
@@ -174,28 +186,35 @@ export function NotificationsPage({ headingLevel = 1, now }: NotificationsPagePr
                       <span className="inbox-item__abs">({absolute})</span>
                       <span aria-hidden="true">·</span>
                       <span>
-                        trạng thái {ALERT_STATE_LABELS[item.state]}
-                        {item.kind === 'update' ? ' · cập nhật' : ''}
+                        {care
+                          ? `${careLabel} · ${item.subjectName}`
+                          : `trạng thái ${stateLabel ?? 'không xác định'}${
+                              item.kind === 'update' ? ' · cập nhật' : ''
+                            }`}
                       </span>
                     </p>
                   </div>
                   <div className="inbox-item__actions">
-                    <Link
-                      className="inbox-item__link"
-                      to={`/app/alerts/${item.incidentId}`}
-                      // Giữ ngữ cảnh để nút quay lại ở trang chi tiết về đúng tab hộp thư.
-                      state={{ alertsView: 'notifications' }}
-                      aria-label={`Xem cảnh báo ${ALERT_TYPE_LABELS[item.incidentType]} của ${item.subjectName}`}
-                    >
-                      Xem cảnh báo
-                    </Link>
+                    {canOpenAlert ? (
+                      <Link
+                        className="inbox-item__link"
+                        to={`/app/alerts/${item.incidentId}`}
+                        // Giữ ngữ cảnh để nút quay lại ở trang chi tiết về đúng tab hộp thư.
+                        state={{ alertsView: 'notifications' }}
+                        aria-label={`Xem cảnh báo ${alertType} của ${item.subjectName}`}
+                      >
+                        Xem cảnh báo
+                      </Link>
+                    ) : null}
                     {unread ? (
                       <Button
                         variant="secondary"
                         size="sm"
                         disabled={pendingThis}
                         onClick={() => markRead.mutate(item.id)}
-                        aria-label={`Đánh dấu đã đọc thông báo về ${ALERT_TYPE_LABELS[item.incidentType]} của ${item.subjectName}`}
+                        aria-label={`Đánh dấu đã đọc ${
+                          care ? careLabel : `cảnh báo ${alertType ?? ''}`
+                        } của ${item.subjectName}`}
                       >
                         {pendingThis ? 'Đang lưu…' : 'Đánh dấu đã đọc'}
                       </Button>

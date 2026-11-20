@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
-import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 import {
   LATE_EVENT_MINUTES,
   alertUpdatedEventSchema,
@@ -177,12 +177,6 @@ function storedEventFingerprint(row: {
       }),
     ),
   );
-}
-
-export function outboxKind(dedupeKey: string): 'alert' | 'update' {
-  const parts = dedupeKey.split(':');
-  const last = parts[parts.length - 1];
-  return last === 'update' ? 'update' : 'alert';
 }
 
 @Injectable()
@@ -782,9 +776,11 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       await tx
         .insert(notificationOutbox)
         .values({
+          subjectId,
           incidentId,
           revision,
           recipientUserId: recipient.userId,
+          kind,
           channel: 'in_app',
           status: 'pending',
           attempts: 0,
@@ -819,9 +815,11 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       await tx
         .insert(notificationOutbox)
         .values({
+          subjectId,
           incidentId,
           revision,
           recipientUserId: recipientId,
+          kind: 'update',
           channel: 'in_app',
           status: 'pending',
           attempts: 0,
@@ -850,7 +848,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
           eq(notificationOutbox.incidentId, incidentId),
           eq(notificationOutbox.status, 'pending'),
           or(
-            sql`${notificationOutbox.dedupeKey} like '%:alert'`,
+            eq(notificationOutbox.kind, 'alert'),
             lt(notificationOutbox.revision, currentRevision),
           ),
         ),

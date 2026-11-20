@@ -81,6 +81,14 @@
   background: var(--action);
 }
 
+.inbox-item__body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  max-width: var(--measure-text);
+  overflow-wrap: anywhere;
+}
+
 .inbox-item__meta {
   display: flex;
   flex-wrap: wrap;

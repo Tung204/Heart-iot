@@ -1,6 +1,6 @@
 # Handoff V9.1 web — tổng hợp tuân thủ trên `/app/care`
 
-Ngày: 20/11/2026. Nhánh: `v9-adherence-web`, tách từ master sau backend `2879ef4`. **Chưa hợp nhất, chưa push, chờ người dùng chấp nhận preview.** Phạm vi chỉ `apps/web` + ảnh/handoff; không sửa API/contracts.
+Ngày: 20/11/2026. Nhánh: `v9-adherence-web`, tách từ master sau backend `2879ef4`. **Đã được người dùng chấp nhận và hợp nhất master tại `b412398` (20/11/2026).** Phạm vi chỉ `apps/web` + ảnh/handoff; không sửa API/contracts.
 
 ## Đã làm
 
@@ -63,13 +63,11 @@ Nguồn dữ liệu ảnh: owner/caregiver demo; một lịch “Đo huyết áp
 
 - Chưa chạy Firefox/WebKit; chỉ Chromium.
 - Chưa kiểm trình đọc màn hình thật (chỉ cấu trúc heading/region/aria-pressed/aria-busy).
-- Chưa chấp nhận preview; **chưa merge/push**.
 - Chưa kiểm với dữ liệu thật/PostgreSQL; ảnh dùng DB seed PGlite.
 - Chưa có review độc lập cho quyền/ngày giờ (phần backend cũng đang chờ).
 - Chưa chạy E2E có đăng nhập thật (không có harness).
 
 ## Việc tiếp theo
 
-1. Người dùng xem 9 ảnh + thử `/app/care` trên nhánh; chấp nhận hoặc yêu cầu chỉnh.
-2. Nếu chấp nhận: merge `v9-adherence-web` vào master, cập nhật docs trạng thái “đã hợp nhất”, push.
-3. Sau đó chốt D3 trước V9.2 (quy tắc nhắc chủ động/bản tin).
+1. Đã hợp nhất `b412398`; docs trạng thái cập nhật.
+2. Chốt D3 trước V9.2 (quy tắc nhắc chủ động/bản tin).

@@ -1,6 +1,6 @@
 # v9.1-WEB — tổng hợp tuân thủ trên trang Nhắc chăm sóc
 
-> **Trạng thái 20/11/2026:** đã triển khai bản preview trên nhánh `v9-adherence-web` (chưa hợp nhất); bằng chứng ở `reports/handoffs/v9-adherence-web.md`. Backend đã hợp nhất master tại `2879ef4`.
+> **Trạng thái 20/11/2026:** đã triển khai và hợp nhất master tại `b412398`; bằng chứng ở `reports/handoffs/v9-adherence-web.md`. Backend đã hợp nhất master tại `2879ef4`.
 
 Bạn là worker **frontend** (React 19 + Vite + TanStack Query). Backend v9.1 đã có contract/endpoint (xem `reports/orchestration/v9/backend-handoff.md`). Chỉ sửa `apps/web`; không sửa API/contracts.
 
