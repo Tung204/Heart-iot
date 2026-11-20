@@ -158,6 +158,7 @@ describe('CarePage — danh sách và quyền', () => {
     expect(screen.queryByRole('button', { name: /Sửa lịch nhắc/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Xoá lịch nhắc/ })).not.toBeInTheDocument();
     expect((await todayRegion()).getAllByRole('button', { name: 'Đã thực hiện' })).toHaveLength(2);
+    expect(screen.queryByRole('heading', { level: 2, name: 'Nhắc chủ động' })).not.toBeInTheDocument();
     const adherence = await adherenceRegion();
     expect(adherence.getByText('Đã làm 8 · Bỏ qua 1 · Chưa ghi nhận 3')).toBeInTheDocument();
   });

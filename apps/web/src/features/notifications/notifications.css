@@ -87,6 +87,7 @@
   font-size: var(--text-sm);
   max-width: var(--measure-text);
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .inbox-item__meta {

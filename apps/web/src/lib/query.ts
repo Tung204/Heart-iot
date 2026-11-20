@@ -30,6 +30,11 @@ export const queryKeys = {
     ['subjects', id, 'care', 'adherence', days] as const,
   /** Tiền tố để invalidate mọi khoảng sau khi đánh dấu/sửa lịch. */
   careAdherenceAll: (id: string) => ['subjects', id, 'care', 'adherence'] as const,
+  /** Quy tắc chăm sóc chủ động theo loại (V9.2). */
+  careRule: (id: string, kind: 'inactivity' | 'care_digest') =>
+    ['subjects', id, 'care-rules', kind] as const,
+  /** Tiền tố để invalidate cả hai quy tắc sau khi lưu. */
+  careRulesAll: (id: string) => ['subjects', id, 'care-rules'] as const,
   /** Phiếu đi khám theo khoảng ngày địa phương (YYYY-MM-DD). */
   visitReport: (id: string, params: { from?: string; to?: string }) =>
     ['subjects', id, 'visit-report', params.from ?? '', params.to ?? ''] as const,

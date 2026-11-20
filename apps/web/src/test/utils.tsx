@@ -390,6 +390,46 @@ export const VISIT_REPORT = {
     'Phiếu chỉ tổng hợp số liệu tham khảo từ dữ liệu thiết bị, không thay thế việc khám hoặc chẩn đoán của bác sĩ.',
 };
 
+export const CARE_RULE_INACTIVITY = {
+  kind: 'inactivity' as const,
+  subjectId: SUBJECT.id,
+  version: 0,
+  source: 'default' as const,
+  updatedAt: null,
+  config: {
+    enabled: false,
+    weekdays: [1, 2, 3, 4, 5, 6, 7],
+    windowStart: '09:00',
+    windowEnd: '18:00',
+    minSteps: 50,
+    graceMinutes: 30,
+  },
+};
+
+export const CARE_RULE_DIGEST = {
+  kind: 'care_digest' as const,
+  subjectId: SUBJECT.id,
+  version: 0,
+  source: 'default' as const,
+  updatedAt: null,
+  config: { enabled: false, time: '20:00' },
+};
+
+export function careRulePreview(kind: 'inactivity' | 'care_digest', time: string) {
+  return {
+    kind,
+    generatedAt: '2026-11-20T11:10:00.000Z',
+    days: Array.from({ length: 7 }, (_, index) => ({
+      date: `2026-11-${String(20 + index).padStart(2, '0')}`,
+      time,
+      applies: true,
+      note: 'Sẽ kiểm tra theo cấu hình đã lưu.',
+    })),
+    disclaimer:
+      'Đây chỉ là lịch kiểm tra theo cài đặt của bạn; không phải dự đoán sức khỏe hay cảnh báo khẩn.',
+  };
+}
+
 export interface CareApiOptions {
   reminders?: unknown;
   day?: unknown;
@@ -403,6 +443,8 @@ export interface CareApiOptions {
   onAdherence?: (url: string, init?: RequestInit) => Response | Promise<Response>;
   onDelete?: (init?: RequestInit) => Response | Promise<Response>;
   onCompletion?: (url: string, init?: RequestInit) => Response | Promise<Response>;
+  /** Ghi đè quy tắc chăm sóc (V9.2); mặc định trả fixture tắt. */
+  onCareRule?: (url: string, init?: RequestInit) => Response | Promise<Response>;
 }
 
 /**
@@ -414,6 +456,24 @@ export function careApiHandler(options: CareApiOptions = {}): FetchHandler {
   return (url, init) => {
     const u = String(url);
     const method = init?.method ?? 'GET';
+    if (u.includes('/care-rules/')) {
+      if (options.onCareRule) return options.onCareRule(u, init);
+      const kind = u.includes('/inactivity') ? ('inactivity' as const) : ('care_digest' as const);
+      const base = kind === 'inactivity' ? CARE_RULE_INACTIVITY : CARE_RULE_DIGEST;
+      if (u.endsWith('/previews')) {
+        return mockResponse(careRulePreview(kind, kind === 'inactivity' ? '18:00' : '20:00'));
+      }
+      if (method === 'PUT') {
+        return mockResponse({
+          ...base,
+          version: base.version + 1,
+          source: 'database',
+          updatedAt: '2026-11-20T11:10:00.000Z',
+          config: JSON.parse(String(init?.body ?? '{}')),
+        });
+      }
+      return mockResponse(base);
+    }
     if (u.includes('/care/adherence')) {
       if (options.onAdherence) return options.onAdherence(u, init);
       const days = new URL(u, 'http://localhost').searchParams.get('days') === '30' ? 30 : 7;

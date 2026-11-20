@@ -14,6 +14,14 @@ import {
   type ReminderCompletionWrite,
   type UpdateReminderInput,
 } from '@heart-iot/contracts/reminders';
+import {
+  careRulePreviewSchema,
+  careRuleViewSchema,
+  type CareRuleConfig,
+  type CareRuleKind,
+  type CareRulePreview,
+  type CareRuleView,
+} from '@heart-iot/contracts/care-rules';
 import { apiRequest, parseResponse } from '../../lib/api';
 
 /**
@@ -122,3 +130,39 @@ export const REMINDER_STATUS_LABELS: Record<
   done: 'Đã thực hiện',
   skipped: 'Đã bỏ qua',
 };
+
+
+/** GET /subjects/:id/care-rules/:kind — chỉ chủ hồ sơ (V9.2). */
+export async function fetchCareRule(
+  subjectId: string,
+  kind: CareRuleKind,
+  signal?: AbortSignal,
+): Promise<CareRuleView> {
+  const data = await apiRequest<unknown>(`/subjects/${subjectId}/care-rules/${kind}`, { signal });
+  return parseResponse(careRuleViewSchema, data);
+}
+
+/** PUT /subjects/:id/care-rules/:kind — tạo version mới, chỉ chủ hồ sơ. */
+export async function updateCareRule(
+  subjectId: string,
+  kind: CareRuleKind,
+  config: CareRuleConfig,
+): Promise<CareRuleView> {
+  const data = await apiRequest<unknown>(`/subjects/${subjectId}/care-rules/${kind}`, {
+    method: 'PUT',
+    body: config,
+  });
+  return parseResponse(careRuleViewSchema, data);
+}
+
+/** POST /subjects/:id/care-rules/:kind/previews — lịch 7 ngày, không ghi. */
+export async function previewCareRule(
+  subjectId: string,
+  kind: CareRuleKind,
+): Promise<CareRulePreview> {
+  const data = await apiRequest<unknown>(
+    `/subjects/${subjectId}/care-rules/${kind}/previews`,
+    { method: 'POST' },
+  );
+  return parseResponse(careRulePreviewSchema, data);
+}

@@ -1,0 +1,602 @@
+[
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-care-rules\\care-rules-default-1280.png",
+    "label": "default-1280",
+    "url": "http://localhost:4368/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "sectionVisible": true,
+    "sectionHeight": 809,
+    "interactive": [
+      {
+        "tag": "label",
+        "label": "Bật nhắc vận động",
+        "width": 183,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T2",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T3",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T4",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T5",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T6",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T7",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "CN",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      },
+      {
+        "tag": "label",
+        "label": "Bật bản tin cuối ngày",
+        "width": 199,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-care-rules\\care-rules-default-390.png",
+    "label": "default-390",
+    "url": "http://localhost:4368/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "sectionVisible": true,
+    "sectionHeight": 1471,
+    "interactive": [
+      {
+        "tag": "label",
+        "label": "Bật nhắc vận động",
+        "width": 183,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T2",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T3",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T4",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T5",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T6",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T7",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "CN",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      },
+      {
+        "tag": "label",
+        "label": "Bật bản tin cuối ngày",
+        "width": 199,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-care-rules\\care-rules-preview-1280.png",
+    "label": "preview-1280",
+    "url": "http://localhost:4368/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "sectionVisible": true,
+    "sectionHeight": 1280,
+    "interactive": [
+      {
+        "tag": "label",
+        "label": "Bật nhắc vận động",
+        "width": 183,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T2",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T3",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T4",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T5",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T6",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T7",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "CN",
+        "width": 67,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      },
+      {
+        "tag": "label",
+        "label": "Bật bản tin cuối ngày",
+        "width": 199,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 214,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-care-rules\\care-rules-preview-390.png",
+    "label": "preview-390",
+    "url": "http://localhost:4368/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "sectionVisible": true,
+    "sectionHeight": 1930,
+    "interactive": [
+      {
+        "tag": "label",
+        "label": "Bật nhắc vận động",
+        "width": 183,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T2",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T3",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T4",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T5",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T6",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T7",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "CN",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      },
+      {
+        "tag": "label",
+        "label": "Bật bản tin cuối ngày",
+        "width": 199,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-care-rules\\care-rules-digest-390.png",
+    "label": "digest-390",
+    "url": "http://localhost:4368/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "sectionVisible": true,
+    "sectionHeight": 1930,
+    "interactive": [
+      {
+        "tag": "label",
+        "label": "Bật nhắc vận động",
+        "width": 183,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T2",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T3",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T4",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T5",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T6",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "T7",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "label",
+        "label": "CN",
+        "width": 75,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      },
+      {
+        "tag": "label",
+        "label": "Bật bản tin cuối ngày",
+        "width": 199,
+        "height": 44
+      },
+      {
+        "tag": "input",
+        "label": "",
+        "width": 324,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Lưu cấu hình",
+        "width": 133,
+        "height": 48
+      },
+      {
+        "tag": "button",
+        "label": "Xem trước 7 ngày",
+        "width": 173,
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  }
+]

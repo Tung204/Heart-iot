@@ -37,6 +37,7 @@ import {
   type ReminderFormErrors,
 } from './ReminderForm';
 import { CareAdherenceSection } from './CareAdherenceSection';
+import { CareRulesSection } from './CareRulesSection';
 import { useReminderCompletion } from './useReminderCompletion';
 import '../../styles/people.css';
 import './care.css';
@@ -435,6 +436,8 @@ export function CarePage() {
             isOwner={isOwner}
             onCreate={openCreate}
           />
+
+          {isOwner ? <CareRulesSection subjectId={activeSubject.id} /> : null}
 
           <section className="care-section" aria-labelledby="care-list-heading">
             <div className="care-section__head">
