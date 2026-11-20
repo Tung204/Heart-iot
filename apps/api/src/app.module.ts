@@ -7,6 +7,7 @@ import { AssistantModule } from './assistant/assistant.module';
 import { AuthModule } from './auth/auth.module';
 import { SessionGuard } from './auth/session.guard';
 import { CareModule } from './care/care.module';
+import { CareRulesModule } from './care-rules/care-rules.module';
 import { ApiExceptionFilter } from './common/api-exception.filter';
 import { DatabaseModule } from './database/database.module';
 import { DevicesModule } from './devices/devices.module';
@@ -45,6 +46,7 @@ import { VisitReportModule } from './visit-reports/visit-report.module';
     AssistantModule,
     MaintenanceModule,
     RemindersModule,
+    CareRulesModule,
     VisitReportModule,
     AdminModule,
   ],

@@ -77,6 +77,10 @@
     "./reports": {
       "types": "./dist/reports.d.ts",
       "default": "./dist/reports.js"
+    },
+    "./care-rules": {
+      "types": "./dist/care-rules.d.ts",
+      "default": "./dist/care-rules.js"
     }
   },
   "scripts": {

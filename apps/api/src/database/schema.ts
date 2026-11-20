@@ -16,6 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import type { CarePermissions } from '@heart-iot/contracts';
+import type { CareRuleConfig } from '@heart-iot/contracts/care-rules';
 import type { DeviceStatus } from '@heart-iot/contracts/telemetry';
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
@@ -603,6 +604,66 @@ export const maintenanceTasks = pgTable(
 );
 
 /**
+ * Cấu hình quy tắc chăm sóc chủ động (V9.2). Mỗi lần lưu tạo một version mới;
+ * chỉ một bản `active` cho mỗi `(subject_id, kind)` nhờ unique index có điều kiện.
+ * `config` đã được zod validate ở biên API; DB chỉ lưu JSON để giữ lịch sử.
+ */
+export const subjectRules = pgTable(
+  'subject_rules',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    version: integer('version').notNull(),
+    config: jsonb('config').$type<CareRuleConfig>().notNull(),
+    active: boolean('active').notNull().default(true),
+    createdByUserId: uuid('created_by_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex('subject_rules_version_uq').on(table.subjectId, table.kind, table.version),
+    uniqueIndex('subject_rules_active_uq')
+      .on(table.subjectId, table.kind)
+      .where(sql`active`),
+    index('subject_rules_kind_idx').on(table.kind, table.active),
+    check(
+      'subject_rules_kind_chk',
+      sql`${table.kind} in ('inactivity', 'care_digest')`,
+    ),
+  ],
+);
+
+/**
+ * Dấu vết một lần chạy scheduler. `run_key` duy nhất theo job để chạy lại cùng
+ * phút không xử lý lần hai; counters chỉ chứa số đếm kỹ thuật, không chứa nội
+ * dung sức khỏe.
+ */
+export const jobRuns = pgTable(
+  'job_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    jobKey: text('job_key').notNull(),
+    runKey: text('run_key').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    outcome: text('outcome').notNull().default('running'),
+    counters: jsonb('counters').$type<Record<string, number>>().notNull().default({}),
+  },
+  (table) => [
+    uniqueIndex('job_runs_key_uq').on(table.jobKey, table.runKey),
+    index('job_runs_started_idx').on(table.jobKey, table.startedAt),
+    check(
+      'job_runs_outcome_chk',
+      sql`${table.outcome} in ('running', 'succeeded', 'failed', 'skipped')`,
+    ),
+  ],
+);
+
+/**
  * Lịch nhắc chăm sóc (FR-15 phần web). Giờ nhắc là giờ địa phương theo
  * `subjects.timezone`; KHÔNG có trường liều lượng hay nội dung y khoa tự sinh.
  * `starts_on`/`ends_on` là ngày địa phương dạng YYYY-MM-DD (kiểu date, không
@@ -798,6 +859,8 @@ export type AssignmentRow = typeof deviceAssignments.$inferSelect;
 export type TelemetryRow = typeof telemetry.$inferSelect;
 export type IncidentRow = typeof incidents.$inferSelect;
 export type CareReminderRow = typeof careReminders.$inferSelect;
+export type SubjectRuleRow = typeof subjectRules.$inferSelect;
+export type JobRunRow = typeof jobRuns.$inferSelect;
 export type CareReminderPeriodRow = typeof careReminderPeriods.$inferSelect;
 export type CareReminderCompletionRow = typeof careReminderCompletions.$inferSelect;
 export type AgentRunRow = typeof agentRuns.$inferSelect;

@@ -163,13 +163,18 @@ export class MeasurementsService {
   // GET /subjects/:id/daily-summary
   // ---------------------------------------------------------------------------
 
-  async dailySummary(userId: string, subjectId: string, date: string): Promise<DailySummary> {
+  async dailySummary(
+    userId: string,
+    subjectId: string,
+    date: string,
+    /** Cho scheduler/test: mốc "hiện tại" cố định thay vì đồng hồ hệ thống. */
+    now: Date = new Date(),
+  ): Promise<DailySummary> {
     const { access, effectiveFrom } = await this.access.requireMeasurementsHistory(
       userId,
       subjectId,
       undefined,
     );
-    const now = new Date();
     const { from, to } = zonedDayToUtcRange(date, access.subject.timezone);
     if (from.getTime() > now.getTime()) {
       throw AppError.validation('Ngày yêu cầu nằm trong tương lai.');

@@ -229,7 +229,18 @@ export class RemindersService {
    */
   async day(user: UserSummary, subjectId: string, dateRaw?: string): Promise<ReminderDay> {
     const access = await this.access.requireMeasurements(user.id, subjectId);
-    const timezone = access.subject.timezone;
+    return this.dayForSubject(subjectId, access.subject.timezone, dateRaw);
+  }
+
+  /**
+   * Bản ngày không kiểm quyền người dùng — chỉ dùng cho scheduler đã xác định
+   * chủ hồ sơ. Giữ một đường tính occurrence duy nhất với API `day`.
+   */
+  async dayForSubject(
+    subjectId: string,
+    timezone: string,
+    dateRaw?: string,
+  ): Promise<ReminderDay> {
     const date = dateRaw ?? localDateKey(new Date(), timezone);
     const weekday = isoWeekday(date);
 
