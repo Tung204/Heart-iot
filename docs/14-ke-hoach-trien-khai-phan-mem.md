@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**; bổ sung đề xuất cải thiện v9–v12 ngày **20/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -320,3 +320,153 @@ Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng 
 | `FR-21` | Nhờ AI tạo lịch nhắc/công việc có bước Xem trước – Xác nhận | Dùng tool/preview phía server để dựng bản nháp lịch nhắc (`FR-15`), việc bảo trì hoặc xuất phiếu (`FR-16`); chỉ áp dụng sau khi người dùng xác nhận rõ ràng, giữ audit đầy đủ |
 | `FR-22` | Điểm chú ý chuẩn bị đi khám trên phiếu theo dõi | Bổ sung 3–5 điểm thay đổi số liệu/sự cố nổi bật kèm mốc ngày và khoảng thiếu vào phiếu PDF `FR-16`; có hậu kiểm cấm kết luận chẩn đoán |
 | `FR-23` | Hỏi đáp hướng dẫn chăm sóc có trích nguồn đã duyệt | Truy xuất có kiểm soát trên tập tài liệu chăm sóc chính thống đã duyệt trước khi sinh câu trả lời, bắt buộc trích nguồn và từ chối khi vượt ngoài phạm vi nguồn |
+
+## 14. Đề xuất cải thiện hệ thống sau v8 (soạn 20/11/2026 — chưa triển khai)
+
+Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu và chưa có mã nguồn. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
+
+### 14.1 Khoảng trống có bằng chứng
+
+| # | Khoảng trống | Bằng chứng trong code/tài liệu | Hệ quả |
+| --- | --- | --- | --- |
+| K1 | Vòng chăm sóc chỉ có “hôm nay” | `GET /subjects/:id/reminders/today`; bảng `care_reminder_completions` chỉ đọc theo một occurrence; chưa có endpoint tổng hợp tuần/tháng | Người thân không biết lịch nhắc có được thực hiện đều không; tính năng dễ bị bỏ sau vài ngày |
+| K2 | Chưa có hạ tầng job theo lịch | API chỉ có hai `setInterval` nội bộ: quét `suspected → unconfirmed` (`apps/api/src/incidents/incidents.service.ts`) và gửi outbox (`apps/api/src/notifications/notifications.service.ts`); không có bảng ghi lần chạy/khóa chống chạy trùng | Không thêm được quy tắc chủ động (`FR-17`, `FR-18`, `FR-20`) nếu không có chống gửi lặp và chạy lại an toàn |
+| K3 | Cảnh báo chỉ trong ứng dụng | `notification_outbox.channel` luôn `in_app`; `incident_id` là **NOT NULL** và service gửi/lọc qua incident; không có escalation, không có transport ngoài. Chi tiết cảnh báo có danh sách `recipients` nhưng chỉ suy từ outbox, chưa có kênh/thời điểm/trạng thái gửi (pending/sent/failed) | Người thân không mở web thì không biết cảnh báo; đây là rủi ro lớn nhất của sản phẩm cảnh báo té ngã |
+| K4 | Trợ lý chỉ đọc | Chỉ có `GET /subjects/:id/assistant/summary` và `POST /subjects/:id/assistant/ask`; không có draft/confirm (`FR-21`), không có nguồn (`FR-23`), không có bản tin (`FR-20`) | “Trợ lý là trung tâm” hiện mới là ô hỏi đáp; chưa có hành động có kiểm soát hoặc tri thức có nguồn |
+| K5 | Chưa sẵn sàng dữ liệu thật | Yêu cầu xóa chỉ ghi audit; không có retention; MQTT P0-2 mở; chưa có OpenAPI/CI; chưa test PostgreSQL thật | Demo chạy nhưng chưa thể nói “dùng được với người thật”, chưa đóng được P1 privacy |
+| K6 | Thiếu công cụ vận hành | Chưa có UI tạo thiết bị; chưa có API/UI đọc vùng cách ly (chỉ có ACK `QUARANTINED`); chưa có cấu hình kênh thông báo | Admin phải gọi API; lỗi ingest khó điều tra |
+
+### 14.2 Nguyên tắc chọn lát cắt
+
+- Một lát cắt là **một kết quả người dùng thấy được** kèm lớp dữ liệu/quyền mới, không phải danh sách màn hình rời.
+- Phần web/server không phụ thuộc firmware; phần cần thiết bị ghi rõ **hoãn**, không mô phỏng là đã có.
+- Mọi quy tắc mới có schema + version + validation ở server; giờ/ngưỡng không hard-code trong component.
+- Giữ bất biến: cảnh báo không phụ thuộc AI; kiểm quyền ở server; preview không ghi; thông báo chăm sóc không tạo incident.
+- Mỗi lát cắt có cổng ra riêng (14.7) và không nới assertion để làm xanh.
+
+### 14.3 Tổng quan lát cắt đề xuất
+
+| Lát cắt | Kết quả người dùng thấy | Yêu cầu | Phụ thuộc | Cỡ đề xuất |
+| --- | --- | --- | --- | --- |
+| **V9** — Vòng chăm sóc nhìn thấy được | Xem 7/30 ngày đã làm/bỏ qua/chưa ghi nhận; đặt quy tắc nhắc nhẹ khi chưa vận động; nhận bản tin chăm sóc cuối ngày trong hộp thông báo | `FR-15` (phần web), `FR-17`, một phần `FR-20` | v8 reminders; khái quát hóa notification; scheduler | V9.1 M, V9.2 M–L |
+| **V10** — Cảnh báo không bị bỏ lỡ | Cảnh báo leo thang theo thời gian, biết ai đã được thông báo và khi nào; tuỳ chọn nhận Web Push | `FR-07`, `FR-12` | V9.2 notification/scheduler; quyền hồ sơ | L |
+| **V11** — Trợ lý có hành động và nguồn | Gõ yêu cầu → phiếu nháp xem trước → xác nhận mới lưu; bản tin ngày/tuần; hỏi chăm sóc có trích nguồn | `FR-20`, `FR-21`, `FR-23` | V9–V10; contract AI; bộ tài liệu nguồn | L (tách V11a/V11b) |
+| **V12** — Sẵn sàng dữ liệu thật | Xóa/retention có trạng thái và bằng chứng; đồng thuận/đại diện; quyết định MQTT; OpenAPI/CI/PostgreSQL | `FR-14`, `FR-13`, `NFR-05/06`, P0-2 | D2, D5, D6 | L (chia nhiều PR) |
+
+Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trước mắt là an toàn khi demo cảnh báo, đổi V9/V10 (quyết định D1). Các quyết định của V12 (retention, MQTT, đồng thuận) nên chốt sớm dù triển khai sau, vì chúng ảnh hưởng schema và lời hứa với người dùng.
+
+### 14.4 Chi tiết từng lát cắt
+
+#### V9 — Vòng chăm sóc nhìn thấy được
+
+**V9.1 — Tổng hợp tuân thủ (đọc + migration nhỏ giữ lịch sử).**
+
+- Kết quả: trang `/app/care` có dải 7 ngày và bảng theo từng lịch nhắc; người có quyền xem thấy số việc đã làm, bỏ qua và **chưa ghi nhận** (không gọi là “quên”).
+- Định nghĩa: occurrence = `times × weekdays` trong `[startsOn, endsOn]`, tính theo `subject.timezone`, chỉ tính mốc **đã qua**. `done`/`skipped` lấy từ `care_reminder_completions`; mốc đã qua không có bản ghi là `pending`. Hiển thị **hai tỉ lệ tách biệt**: `tỉ lệ ghi nhận = (done + skipped) / tổng occurrence đã qua` và `tỉ lệ hoàn thành = done / (done + skipped)`; không gộp “chưa ghi nhận” vào “không làm”, không suy diễn sức khỏe.
+- API đề xuất: `GET /subjects/:id/care/adherence?days=7|30` (mặc định 7, tối đa 30) trả chuỗi ngày + tổng theo lịch nhắc; dùng lại `requireMeasurements`/`requireSubject`. Nếu D3 chốt thêm `canViewCare`, endpoint và UI đổi sang quyền đó (xem mục 14.6).
+- UI: dải 7 ô có nhãn chữ (không chỉ màu), chú giải “chưa ghi nhận”, link từ thẻ Hôm nay; người thân chỉ đọc.
+- Khoảng hiệu lực: chỉ có cờ `active` hiện tại **không đủ** để tính lịch sử đúng (tắt rồi bật lại sẽ mất mốc). Đề xuất bảng `care_reminder_periods` (`reminder_id`, `active_from`, `active_to` nullable), ghi khi tạo/bật/tắt; occurrence chỉ sinh trong giao của `[startsOn, endsOn]` với các khoảng hiệu lực. Xoá lịch hiện cascade mất completion; đề xuất **lưu trữ mềm** (`archived_at`) để giữ lịch sử, chỉ xoá cứng trong luồng xoá dữ liệu (V12) — chốt D9.
+- Kiểm: logic ngày/thứ/khoảng ngày có test thuần; múi giờ khác Việt Nam (gồm một vùng có DST) để chứng minh không lệch ngày; quyền 403/404; occurrence tương lai không bị tính; tắt/bật lại tạo khoảng mới và không tính ngày đã tắt; lưu trữ mềm giữ completion.
+- Ngoài phạm vi: nhắc chủ động, thiết bị, AI, thống kê y khoa.
+
+**V9.2 — Nhắc chủ động (quy tắc + bản tin trong ứng dụng).**
+
+- Điều kiện tiên quyết (làm trong cùng lát cắt): **khái quát hóa notification**. Hiện `notification_outbox.incident_id` là NOT NULL và `notifications.service.ts` joins `incidents`; thông báo chăm sóc không có incident. Đề xuất: thêm `subject_id`, cho `incident_id` nullable, thêm cột `kind` (`alert`/`update`/`escalation`/`care_digest`/`care_rule`), giữ `dedupe_key` unique; dispatcher rẽ nhánh theo `kind`; API/UI hộp thư nhận thông báo không có incident và dẫn về `/app/care`. Không suy ra kind bằng cách cắt chuỗi `dedupe_key` như `outboxKind` hiện tại.
+- Bảng mới: `subject_rules` (`subject_id`, `kind`, `version`, `config jsonb`, `active`, `created_by`, `created_at`, unique `(subject_id, kind, version)` và index bảo đảm **một bản active** cho mỗi `(subject_id, kind)`) và `job_runs` (`job_key`, `run_key`, `started_at`, `finished_at`, `outcome`, `counters`, unique `(job_key, run_key)`). Migration chỉ thêm bảng/cột, có backfill `subject_id` cho outbox cũ theo incident.
+- `SchedulerService` một tick 60 giây, clock inject để test tất định; ghi `job_runs` trước/sau; giả định **một tiến trình** cho demo (nếu chạy nhiều instance phải thêm advisory lock — ghi rõ).
+- Quy tắc sinh hoạt `kind=inactivity`, config v1 (ví dụ, không phải ngưỡng y khoa): `{enabled, weekdays:[1..7], windowStart:'09:00', windowEnd:'18:00', minSteps:50, graceMinutes:30}`; mặc định **tắt**, chủ hồ sơ bật, validate bằng zod, lưu version.
+- Điều kiện gửi: hồ sơ không lưu trữ; thiết bị đang gắn; `lastSeenAt` trong ngưỡng `device_runtime`; có ít nhất một mẫu trong khung giờ; chất lượng mẫu gần nhất không phải `not_worn`; tổng bước trong khung < `minSteps`; đang trong `[windowEnd, windowEnd + grace]`; chưa gửi trong ngày. Không có dữ liệu thì **không nhắc** và ghi audit `skipped:no_data`.
+- Chống lặp: `dedupe_key` cố định `care:{subjectId}:{localDate}:{recipientId}:in_app:care_rule`; chạy lại job trong ngày không tạo bản ghi thứ hai. Không tạo incident, không phát SSE cảnh báo, không vào badge cảnh báo.
+- Bản tin cuối ngày `kind=care_digest`, config v1 `{enabled, time:'20:00'}` theo múi giờ hồ sơ: tổng hợp việc đã làm/chưa ghi nhận, bước chân, cảnh báo đang mở, khoảng thiếu; **template xác định**, chưa dùng AI (AI ở V11). Người nhận phải còn `canViewMeasurements` (và `canViewCare` nếu D3 chốt) tại thời điểm gửi; mất quyền thì supersede như incident.
+- API: `GET/PUT /subjects/:id/care-rules/:kind` (chỉ chủ hồ sơ), `POST /subjects/:id/care-rules/:kind/previews` (trả lịch kiểm tra 7 ngày tới + giải thích, **không ghi**), `GET /subjects/:id/care/settings` nếu cần gộp.
+- UI: thẻ quy tắc trong `/app/care` với bật/tắt, khung giờ, ngưỡng bước, giờ bản tin, xem trước, câu “chỉ là nhắc nhẹ theo cài đặt của bạn, không phải cảnh báo khẩn”; bản tin trong hộp thông báo, không trộn với cảnh báo.
+- Kiểm: clock cố định; chạy job hai lần → một thông báo; offline/`not_worn`/không mẫu → không gửi; hồ sơ lưu trữ → không gửi; thu hồi quyền giữa lúc chờ → supersede; ma trận quyền; E2E đặt quy tắc → nhận bản tin; không có bản ghi incident mới.
+- Ngoài phạm vi: rung/nút trên thiết bị (`FR-15` phần cứng), Web Push (V10), nội dung do AI sinh (V11).
+
+#### V10 — Cảnh báo không bị bỏ lỡ
+
+- Kết quả: khi cảnh báo `open` chưa được xác nhận, hệ thống thông báo lại theo bậc; chi tiết cảnh báo mở rộng danh sách người nhận hiện có thành ai/kênh/thời điểm/trạng thái gửi; người dùng bật/tắt kênh ngoài ứng dụng.
+- Cấu hình leo thang: `subject_rules` kind `alert_escalation`, version hoá, chủ hồ sơ sửa, mặc định an toàn (ví dụ 10/20/30 phút, tối đa 3 bậc — **giá trị đề xuất, cần chốt**); preview bắt buộc trước khi lưu. Không áp dụng “giờ yên tĩnh” cho cảnh báo khẩn; chỉ nhắc chăm sóc mới có giờ yên tĩnh.
+- Chỉ leo thang incident ở trạng thái cần người xử lý (`open`); `suspected` giữ hành vi hiện tại trừ khi chốt D8. Dừng khi `acknowledged`/`resolved`/`cancelled` hoặc quyền bị thu hồi; mọi bản ghi chờ cũ chuyển `superseded`.
+- Người nhận: chủ hồ sơ + care link active có `canReceiveAlerts`, kiểm lại từng lần gửi; bỏ qua tài khoản bị khóa; nếu không còn ai thì audit `no_recipient`, không giả vờ đã gửi.
+- Kênh: `in_app` luôn bật; Web Push là tuỳ chọn sau cờ `WEB_PUSH_ENABLED`, cần service worker, VAPID, HTTPS (trừ localhost), lưu subscription, xoá khi 410, hiển thị trạng thái “bị từ chối/chưa bật”. Không hứa hoạt động khi trình duyệt đóng trên mọi nền tảng.
+- Gửi lỗi: dùng `attempts`/`nextAttemptAt`/`lastError` sẵn có, backoff hữu hạn, hiển thị trạng thái gửi cho người có quyền; không retry vô hạn.
+- API: `GET/PUT /subjects/:id/alert-policy`, `POST .../previews`; `GET/PUT /me/notification-preferences`; `POST/DELETE /me/push-subscriptions`; chi tiết cảnh báo giữ `recipients` hiện có và thêm kênh/thời điểm/trạng thái gửi (chỉ người có quyền).
+- Kiểm: fake clock cho từng bậc; ack đồng thời; thu hồi quyền giữa chuỗi; trạng thái kết thúc; 410/không có subscription; cấm gửi trùng; E2E hai tài khoản; ghi rõ trình duyệt đã kiểm thật.
+- Ngoài phạm vi: SMS/email/cuộc gọi tự động, tích hợp nhà cung cấp viễn thông, push trên iOS chưa kiểm.
+
+#### V11 — Trợ lý có hành động và nguồn
+
+**V11a — `FR-20` + `FR-21`.**
+
+- `FR-21`: bảng `assistant_drafts` (`id`, `actor_user_id`, `subject_id`, `capability_id`, `payload jsonb`, `preview_digest`, `status draft|confirmed|cancelled|expired`, `expires_at`, `confirmed_by`, `run_id`); API `POST /subjects/:id/assistant/drafts`, `POST /assistant/drafts/:id/confirm`, `POST /assistant/drafts/:id/cancel`. Confirm kiểm lại quyền, phiên bản tài nguyên, digest và hạn; sai/đổi → 409, không ghi. Idempotency theo `request_key`; audit cả bước tạo và xác nhận.
+- Capability cho phép ở lát cắt này: `create_care_reminder`, `create_maintenance_task`, mở phiếu đi khám; **không** đóng/xác nhận cảnh báo, không đổi quyền, không xoá dữ liệu. Không có nút xác nhận thì không có lệnh ghi.
+- Dựng nháp: parser xác định cho câu lệnh phổ biến (ví dụ “nhắc uống thuốc 8h sáng mỗi ngày”) + provider tuỳ chọn; fallback template khi chưa cấu hình provider; không gợi ý liều/kê thuốc.
+- `FR-20`: job bản tin ngày/tuần dùng lại scheduler + notification đã làm ở V9.2; nội dung từ aggregate đã kiểm quyền, có `dataQuality`, `sourceRefs`, fallback template; chống trùng theo kỳ; người nhận cần `canViewMeasurements` + `canViewAi`.
+- UI: thẻ nháp trong hội thoại với “Xác nhận”/“Huỷ”, hiển thị hết hạn; bản tin trong hộp thông báo; không tự cuộn/không tự gửi.
+- Kiểm: tạo/xem nháp **không ghi** dữ liệu nghiệp vụ (0 reminder/task mới); confirm một lần; đổi quyền giữa nháp → 409/403; nháp hết hạn; prompt injection vào câu người dùng; mock provider + template; không có từ chẩn đoán.
+
+**V11b — `FR-23` (tách được nếu thời gian).**
+
+- Danh mục nguồn: `care_documents` (tiêu đề, nhà xuất bản, URL, giấy phép, phiên bản, người duyệt, ngày duyệt, hash nội dung) + chunk; chỉ tài liệu đã duyệt mới được truy xuất.
+- Trả lời có trích dẫn bắt buộc; từ chối câu hỏi ngoài phạm vi, câu hỏi chẩn đoán/liều; fallback trích nguyên văn khi không có provider.
+- Bộ đánh giá 15–20 câu: câu trả lời đúng nguồn, câu phải từ chối, câu có từ cấm; chạy tự động và ghi kết quả.
+- Ngoài phạm vi: tư vấn y khoa, chẩn đoán, kê đơn, dữ liệu người thật; không tuyên bố “đã kiểm chứng y khoa”.
+
+#### V12 — Sẵn sàng dữ liệu thật
+
+- **Retention/xóa:** chính sách theo lớp dữ liệu (telemetry, AI summary, notification, audit) có version + preview + publish CAS như policy hiện có; job xoá theo lô, ghi audit đếm; `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5); xoá kèm AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
+- **Đồng thuận/đại diện:** bảng `consents` (subject, phiên bản văn bản, phạm vi, người cấp, thời điểm, thu hồi); luồng người cao tuổi không có tài khoản do người đại diện quản lý; thu hồi → thu hồi care link và dừng thông báo; không tự cho người thân quyền sở hữu.
+- **MQTT (P0-2):** hai lựa chọn — (a) hoàn thiện event ingest + xác thực thiết bị + ACK; (b) chốt HTTP-only cho MVP, gỡ/gate adapter MQTT sau cờ tắt mặc định, cập nhật tài liệu và finding. Khuyến nghị (b) nếu firmware chưa cần MQTT; đóng finding bằng quyết định phạm vi + mã không còn đường gây hiểu nhầm, không bằng cách im lặng.
+- **Cổng kỹ thuật:** OpenAPI sinh từ zod (một nguồn, không viết tay), CI chạy typecheck/test/build/docs, test tích hợp PostgreSQL thật, Playwright thêm Firefox/WebKit, axe cho màn hình chính.
+- **Vận hành nhỏ:** form tạo thiết bị admin, màn hình vùng cách ly, cấu hình kênh thông báo.
+- Kiểm: migration từ DB rỗng; job chạy hai lần không xoá quá; dữ liệu ngoài phạm vi còn; audit; E2E xoá; CI xanh có log.
+- Ngoài phạm vi: backup/restore production, tuân thủ pháp lý, đo p95 trên mạng thật.
+
+### 14.5 Bản đồ ảnh hưởng khi đổi mô hình thông báo
+
+Thay đổi notification là **luật dùng chung**, không chỉ một màn hình. Khi triển khai V9.2/V10 phải rà các đường sau:
+
+| Đường | Ảnh hưởng |
+| --- | --- |
+| Schema/outbox | `subject_id`, `incident_id` nullable, cột `kind`, backfill, index theo `(subject_id, created_at)`, unique `dedupe_key` |
+| Dispatcher | Rẽ nhánh theo `kind`; thông báo care không kiểm trạng thái incident; quyền kiểm theo subject; supersede khi mất quyền |
+| REST hộp thư | `GET /notifications` trả `subjectId`, `kind`, `incidentId?`; cursor/read giữ nguyên |
+| Chi tiết cảnh báo | `recipients` hiện dựa trên outbox incident; khi thêm `kind`/kênh phải giữ danh sách và thêm trạng thái, thời điểm, không lộ người nhận ngoài quyền |
+| SSE | Payload `notification.sent` có subject/kind; stream vẫn thu hồi khi mất quyền |
+| UI | `NotificationsPage` render được thông báo không có incident, dẫn `/app/care`; badge cảnh báo nav **không đổi nghĩa** (vẫn đếm cảnh báo mở) |
+| AI | Digest/ask có thể đọc care summary; vẫn phải kiểm `canViewMeasurements` + `canViewAi` (+ `canViewCare` nếu D3 chốt); không đưa nội dung thông báo vào prompt mặc định |
+| Export/Studio | Không tự mở thêm dữ liệu care; nếu phiếu đi khám dùng adherence thì phải ghi rõ nguồn và quyền |
+| Test/seed | Ma trận quyền, dedupe, supersede, unread count, SSE; seed thêm rule mẫu tắt và vài completion để UI có dữ liệu |
+| Docs | `docs/02`, `docs/06`, `docs/07`, `docs/14`, README và HTML phải cập nhật cùng PR |
+
+### 14.6 Quyết định cần chốt trước khi mở nhánh
+
+| Mã | Câu hỏi | Lựa chọn | Khuyến nghị |
+| --- | --- | --- | --- |
+| D1 | Làm V9 hay V10 trước? | V9 trước để có vòng chăm sóc; V10 trước để giảm rủi ro cảnh báo | V9.1 → V9.2 → V10; đổi nếu ưu tiên an toàn demo |
+| D2 | Web Push có nằm trong đồ án? | Chỉ in-app + leo thang; hoặc thêm push sau cờ | Làm leo thang in-app trước; push là pha riêng, chỉ nhận “đã kiểm trên Chromium” |
+| D3 | Quyền xem chăm sóc | Dùng lại `canViewMeasurements`; hoặc thêm `canViewCare` | Thêm `canViewCare`, backfill từ `canViewMeasurements` cho link cũ, mặc định tắt cho lời mời mới |
+| D4 | Mặc định quy tắc sinh hoạt | Khung giờ/ngưỡng bước/grace | Đề xuất 09:00–18:00, 50 bước, 30 phút; **tắt mặc định**, chủ hồ sơ sửa |
+| D5 | Retention/xóa | Chỉ ghi nhận; xóa mềm; xóa cứng + retention | Làm retention + xóa cứng trong V12 trước dữ liệu thật; nêu rõ backup chưa xử lý |
+| D6 | MQTT | Hoàn thiện P0-2; hoặc HTTP-only | HTTP-only cho MVP, MQTT là thử nghiệm sau cờ tắt; ghi quyết định vào docs |
+| D7 | Nguồn cho `FR-23` | Bộ tài liệu nào, giấy phép, người duyệt | Chốt danh mục + giấy phép trước khi viết retrieval |
+| D8 | Leo thang cho `suspected`? | Chỉ `open`; hoặc cả `suspected` | Chỉ `open` để không biến nghi ngờ thành khẩn cấp |
+| D9 | Xoá lịch nhắc | Xoá cứng (mất completion) hoặc lưu trữ mềm | Lưu trữ mềm (`archived_at`), xoá cứng chỉ trong luồng xoá dữ liệu V12 |
+
+### 14.7 Cổng ra và cách ghi bằng chứng
+
+- Mỗi lát cắt: `pnpm -r typecheck`, test đúng lớp sở hữu, build, E2E luồng chính, ảnh 1280/390, `python tools/docs/build.py --check`.
+- Số test/ thời gian chỉ ghi kèm **ngày chạy thật**; không dùng số của lát cắt trước cho lát cắt mới.
+- Handoff + worklog ghi rõ phần chưa kiểm (thiết bị, trình duyệt, provider, PostgreSQL) và không đóng finding khi chưa có bằng chứng.
+- Review độc lập cho thay đổi quyền/thông báo; nếu chưa có, ghi “chưa tái kiểm độc lập”.
+- Docs nguồn + HTML + README cập nhật trong cùng PR; không sửa tay HTML.
+
+### 14.8 Không được báo là đã làm
+
+- Rung/nút “đã thực hiện” trên thiết bị, downlink, còi tìm thiết bị, nhắc quên đeo — chưa có firmware.
+- Web Push hoạt động khi đóng trình duyệt trên mọi nền tảng; chỉ nói đúng trình duyệt đã kiểm.
+- Đã xoá backup, đã có retention/xoá cứng production, đã đánh giá tuân thủ pháp lý hoặc đã có quy trình đồng thuận được duyệt.
+- AI chẩn đoán/kê thuốc, “đã kiểm chứng y khoa”, hoặc trợ lý tự xác nhận/đóng cảnh báo.
+- Leo thang bảo đảm có người nhận; hệ thống chỉ bảo đảm đã thử gửi và ghi trạng thái.
+- Độ chính xác phát hiện té ngã, thời lượng pin, p95 trên mạng thật.
