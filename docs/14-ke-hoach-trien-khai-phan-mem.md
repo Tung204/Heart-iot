@@ -361,6 +361,8 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 **V9.1 — Tổng hợp tuân thủ (đọc + migration nhỏ giữ lịch sử).**
 
+Spec đã soạn ngày 20/11/2026 (chưa có mã): `reports/orchestration/v9/decisions.md`, `reports/orchestration/v9/specs/backend-adherence.md`, `reports/orchestration/v9/specs/web-adherence.md`. Lát cắt này giữ nguyên quyền `canViewMeasurements`; D3 để V9.2.
+
 - Kết quả: trang `/app/care` có dải 7 ngày và bảng theo từng lịch nhắc; người có quyền xem thấy số việc đã làm, bỏ qua và **chưa ghi nhận** (không gọi là “quên”).
 - Định nghĩa: occurrence = `times × weekdays` trong `[startsOn, endsOn]`, tính theo `subject.timezone`, chỉ tính mốc **đã qua**. `done`/`skipped` lấy từ `care_reminder_completions`; mốc đã qua không có bản ghi là `pending`. Hiển thị **hai tỉ lệ tách biệt**: `tỉ lệ ghi nhận = (done + skipped) / tổng occurrence đã qua` và `tỉ lệ hoàn thành = done / (done + skipped)`; không gộp “chưa ghi nhận” vào “không làm”, không suy diễn sức khỏe.
 - API đề xuất: `GET /subjects/:id/care/adherence?days=7|30` (mặc định 7, tối đa 30) trả chuỗi ngày + tổng theo lịch nhắc; dùng lại `requireMeasurements`/`requireSubject`. Nếu D3 chốt thêm `canViewCare`, endpoint và UI đổi sang quyền đó (xem mục 14.6).
