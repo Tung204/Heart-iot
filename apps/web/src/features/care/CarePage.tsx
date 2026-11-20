@@ -36,6 +36,7 @@ import {
   ReminderForm,
   type ReminderFormErrors,
 } from './ReminderForm';
+import { CareAdherenceSection } from './CareAdherenceSection';
 import { useReminderCompletion } from './useReminderCompletion';
 import '../../styles/people.css';
 import './care.css';
@@ -230,6 +231,9 @@ export function CarePage() {
   const invalidate = () => {
     if (!subjectId) return;
     void queryClient.invalidateQueries({ queryKey: queryKeys.reminders(subjectId) });
+    // Sửa lịch/đổi trạng thái làm đổi occurrence hôm nay và tổng hợp lịch sử.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.remindersToday(subjectId) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.careAdherenceAll(subjectId) });
   };
 
   const create = useMutation({
@@ -425,6 +429,12 @@ export function CarePage() {
               items={todayItems}
             />
           ) : null}
+
+          <CareAdherenceSection
+            subjectId={activeSubject.id}
+            isOwner={isOwner}
+            onCreate={openCreate}
+          />
 
           <section className="care-section" aria-labelledby="care-list-heading">
             <div className="care-section__head">

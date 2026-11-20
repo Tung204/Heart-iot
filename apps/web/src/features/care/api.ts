@@ -1,8 +1,10 @@
 import {
+  careAdherenceSchema,
   reminderCompletionResultSchema,
   reminderDaySchema,
   reminderListSchema,
   reminderSchema,
+  type CareAdherence,
   type CreateReminderInput,
   type ReminderDay,
   type ReminderList,
@@ -38,6 +40,19 @@ export async function fetchTodayReminders(
 ): Promise<ReminderDay> {
   const data = await apiRequest<unknown>(`/subjects/${subjectId}/reminders/today`, { signal });
   return parseResponse(reminderDaySchema, data);
+}
+
+/** GET /subjects/:id/care/adherence?days=7|30 — tổng hợp tuân thủ (V9.1). */
+export async function fetchCareAdherence(
+  subjectId: string,
+  days: 7 | 30,
+  signal?: AbortSignal,
+): Promise<CareAdherence> {
+  const data = await apiRequest<unknown>(
+    `/subjects/${subjectId}/care/adherence?days=${days}`,
+    { signal },
+  );
+  return parseResponse(careAdherenceSchema, data);
 }
 
 /** POST /subjects/:id/reminders — chỉ chủ hồ sơ. */

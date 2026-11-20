@@ -83,6 +83,9 @@ export function useReminderCompletion(subjectId: string | null) {
     },
     onSettled: () => {
       if (key) void queryClient.invalidateQueries({ queryKey: key });
+      if (subjectId) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.careAdherenceAll(subjectId) });
+      }
     },
   });
 
@@ -113,6 +116,9 @@ export function useReminderCompletion(subjectId: string | null) {
     },
     onSettled: () => {
       if (key) void queryClient.invalidateQueries({ queryKey: key });
+      if (subjectId) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.careAdherenceAll(subjectId) });
+      }
     },
   });
 

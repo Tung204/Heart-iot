@@ -44,7 +44,7 @@ tạo lịch 18/11, đánh dấu 19/11 done, DELETE → 204
 → GET /reminders không còn lịch; adherence vẫn có row archived=true, scheduled=3, done=1
 ```
 
-Ảnh hưởng UI: **chưa có**; trang `/app/care` chưa gọi endpoint này.
+Ảnh hưởng UI: bản preview web đã có trên nhánh `v9-adherence-web` (xem `reports/handoffs/v9-adherence-web.md`), chưa hợp nhất; master chưa gọi endpoint này.
 
 ## Sai lệch so với spec / quyết định
 

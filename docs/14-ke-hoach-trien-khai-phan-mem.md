@@ -323,13 +323,13 @@ Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng 
 
 ## 14. Đề xuất cải thiện hệ thống sau v8 (soạn 20/11/2026 — đang triển khai từng phần)
 
-Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 phần backend đã có mã ngày 20/11/2026; các lát còn lại chưa có mã. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
+Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 backend đã hợp nhất và web đã có bản preview ngày 20/11/2026; các lát còn lại chưa có mã. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
 
 ### 14.1 Khoảng trống có bằng chứng
 
 | # | Khoảng trống | Bằng chứng trong code/tài liệu | Hệ quả |
 | --- | --- | --- | --- |
-| K1 | Vòng chăm sóc chỉ có “hôm nay” | `GET /subjects/:id/reminders/today`; bảng `care_reminder_completions` chỉ đọc theo một occurrence. **Đã xử lý phần đọc** bằng `GET /subjects/:id/care/adherence` (V9.1 backend, 20/11/2026); UI chưa có | Người thân chưa thấy được tổng hợp trên web; tính năng dễ bị bỏ sau vài ngày |
+| K1 | Vòng chăm sóc chỉ có “hôm nay” | `GET /subjects/:id/reminders/today`; bảng `care_reminder_completions` chỉ đọc theo một occurrence. **Đã xử lý phần đọc** bằng `GET /subjects/:id/care/adherence` (V9.1 backend, 20/11/2026). **UI đã có trên nhánh preview `v9-adherence-web`** (20/11/2026), chưa hợp nhất/chấp nhận | Trên master người thân chưa thấy tổng hợp; tính năng dễ bị bỏ sau vài ngày |
 | K2 | Chưa có hạ tầng job theo lịch | API chỉ có hai `setInterval` nội bộ: quét `suspected → unconfirmed` (`apps/api/src/incidents/incidents.service.ts`) và gửi outbox (`apps/api/src/notifications/notifications.service.ts`); không có bảng ghi lần chạy/khóa chống chạy trùng | Không thêm được quy tắc chủ động (`FR-17`, `FR-18`, `FR-20`) nếu không có chống gửi lặp và chạy lại an toàn |
 | K3 | Cảnh báo chỉ trong ứng dụng | `notification_outbox.channel` luôn `in_app`; `incident_id` là **NOT NULL** và service gửi/lọc qua incident; không có escalation, không có transport ngoài. Chi tiết cảnh báo có danh sách `recipients` nhưng chỉ suy từ outbox, chưa có kênh/thời điểm/trạng thái gửi (pending/sent/failed) | Người thân không mở web thì không biết cảnh báo; đây là rủi ro lớn nhất của sản phẩm cảnh báo té ngã |
 | K4 | Trợ lý chỉ đọc | Chỉ có `GET /subjects/:id/assistant/summary` và `POST /subjects/:id/assistant/ask`; không có draft/confirm (`FR-21`), không có nguồn (`FR-23`), không có bản tin (`FR-20`) | “Trợ lý là trung tâm” hiện mới là ô hỏi đáp; chưa có hành động có kiểm soát hoặc tri thức có nguồn |
@@ -361,7 +361,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 **V9.1 — Tổng hợp tuân thủ (đọc + migration nhỏ giữ lịch sử).**
 
-**Backend đã triển khai ngày 20/11/2026** trên nhánh `v9-adherence-be`: migration `apps/api/drizzle/0003_loving_justin_hammer.sql`, endpoint `GET /subjects/:id/care/adherence`, hàm thuần `apps/api/src/reminders/care-adherence.ts`, seed completion mẫu; API **256 test/23 suite** chạy lại ngày 20/11/2026. **Web chưa làm** theo `reports/orchestration/v9/specs/web-adherence.md`. Lát cắt này giữ nguyên quyền `canViewMeasurements`; D3 để V9.2. Spec/quyết định: `reports/orchestration/v9/`.
+**Backend đã hợp nhất ngày 20/11/2026** (commit `2879ef4`): migration `apps/api/drizzle/0003_loving_justin_hammer.sql`, endpoint `GET /subjects/:id/care/adherence`, hàm thuần `apps/api/src/reminders/care-adherence.ts`, seed completion mẫu; API **256 test/23 suite**. **Web đã có bản preview trên nhánh `v9-adherence-web`** (chưa hợp nhất): section giữa “Hôm nay” và danh sách lịch, chọn 7/30 ngày, thẻ từng lịch, pill lưu trữ; web **43 file/385 test**, E2E **26/26**, build pass, 9 ảnh 1280/390 tại `reports/qa/evidence/v9-adherence/` (0 tràn ngang, 1 H1, target ≥44). Bản preview chờ người dùng chấp nhận trước khi hợp nhất. Lát cắt này giữ nguyên quyền `canViewMeasurements`; D3 để V9.2. Spec/quyết định/handoff: `reports/orchestration/v9/` và `reports/handoffs/v9-adherence-web.md`.
 
 - Kết quả: trang `/app/care` có dải 7 ngày và bảng theo từng lịch nhắc; người có quyền xem thấy số việc đã làm, bỏ qua và **chưa ghi nhận** (không gọi là “quên”).
 - Định nghĩa: occurrence = `times × weekdays` trong `[startsOn, endsOn]`, tính theo `subject.timezone`, chỉ tính mốc **đã qua**. `done`/`skipped` lấy từ `care_reminder_completions`; mốc đã qua không có bản ghi là `pending`. Hiển thị **hai tỉ lệ tách biệt**: `tỉ lệ ghi nhận = (done + skipped) / tổng occurrence đã qua` và `tỉ lệ hoàn thành = done / (done + skipped)`; không gộp “chưa ghi nhận” vào “không làm”, không suy diễn sức khỏe.
@@ -469,7 +469,7 @@ Thay đổi notification là **luật dùng chung**, không chỉ một màn hì
 - Rung/nút “đã thực hiện” trên thiết bị, downlink, còi tìm thiết bị, nhắc quên đeo — chưa có firmware.
 - Web Push hoạt động khi đóng trình duyệt trên mọi nền tảng; chỉ nói đúng trình duyệt đã kiểm.
 - Đã xoá backup, đã có retention/xoá cứng production, đã đánh giá tuân thủ pháp lý hoặc đã có quy trình đồng thuận được duyệt.
-- UI tổng hợp tuân thủ 7/30 ngày — mới có API backend; trang `/app/care` chưa hiển thị dải ngày/bảng tỉ lệ.
+- UI tổng hợp tuân thủ 7/30 ngày — đã có trên nhánh preview `v9-adherence-web`, **chưa hợp nhất và chưa được chấp nhận**; master chỉ có API backend.
 - AI chẩn đoán/kê thuốc, “đã kiểm chứng y khoa”, hoặc trợ lý tự xác nhận/đóng cảnh báo.
 - Leo thang bảo đảm có người nhận; hệ thống chỉ bảo đảm đã thử gửi và ghi trạng thái.
 - Độ chính xác phát hiện té ngã, thời lượng pin, p95 trên mạng thật.

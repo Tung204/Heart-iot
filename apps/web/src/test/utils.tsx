@@ -185,6 +185,114 @@ export const ACTIVITY_REMINDER = {
   weekdays: [1, 2, 3, 4, 5],
 };
 
+/** Tổng hợp tuân thủ 7 ngày mẫu — hai lịch, đủ done/skipped/pending. */
+export const CARE_ADHERENCE_7 = {
+  subjectId: SUBJECT.id,
+  timezone: 'Asia/Ho_Chi_Minh',
+  from: '2026-11-13',
+  to: '2026-11-19',
+  days: 7,
+  totals: {
+    scheduled: 12,
+    done: 8,
+    skipped: 1,
+    pending: 3,
+    recordedPercent: 75,
+    completionPercent: 89,
+  },
+  series: [
+    { date: '2026-11-13', scheduled: 2, done: 2, skipped: 0, pending: 0 },
+    { date: '2026-11-14', scheduled: 1, done: 1, skipped: 0, pending: 0 },
+    { date: '2026-11-15', scheduled: 1, done: 1, skipped: 0, pending: 0 },
+    { date: '2026-11-16', scheduled: 2, done: 1, skipped: 1, pending: 0 },
+    { date: '2026-11-17', scheduled: 2, done: 2, skipped: 0, pending: 0 },
+    { date: '2026-11-18', scheduled: 2, done: 1, skipped: 0, pending: 1 },
+    { date: '2026-11-19', scheduled: 2, done: 0, skipped: 0, pending: 2 },
+  ],
+  reminders: [
+    {
+      reminderId: REMINDER.id,
+      title: REMINDER.title,
+      kind: 'medication' as const,
+      active: true,
+      archived: false,
+      scheduled: 7,
+      done: 5,
+      skipped: 1,
+      pending: 1,
+      recordedPercent: 86,
+      completionPercent: 83,
+    },
+    {
+      reminderId: ACTIVITY_REMINDER.id,
+      title: ACTIVITY_REMINDER.title,
+      kind: 'activity' as const,
+      active: true,
+      archived: false,
+      scheduled: 5,
+      done: 3,
+      skipped: 0,
+      pending: 2,
+      recordedPercent: 60,
+      completionPercent: 100,
+    },
+  ],
+};
+
+/** Tổng hợp 30 ngày cho test đổi range; chuỗi đúng 30 ngày cũ → mới. */
+export function careAdherenceForDays(days: 7 | 30) {
+  if (days === 7) return CARE_ADHERENCE_7;
+  const end = Date.UTC(2026, 10, 19);
+  const series = Array.from({ length: days }, (_, index) => {
+    const date = new Date(end - (days - 1 - index) * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const skipped = index % 10 === 0 ? 1 : 0;
+    return {
+      date,
+      scheduled: 2,
+      done: 1,
+      skipped,
+      pending: 1 - skipped,
+    };
+  });
+  const totals = series.reduce(
+    (sum, day) => ({
+      scheduled: sum.scheduled + day.scheduled,
+      done: sum.done + day.done,
+      skipped: sum.skipped + day.skipped,
+      pending: sum.pending + day.pending,
+    }),
+    { scheduled: 0, done: 0, skipped: 0, pending: 0 },
+  );
+  const recorded = totals.done + totals.skipped;
+  return {
+    subjectId: SUBJECT.id,
+    timezone: 'Asia/Ho_Chi_Minh',
+    from: series[0]!.date,
+    to: series[series.length - 1]!.date,
+    days,
+    totals: {
+      ...totals,
+      recordedPercent: Math.round((100 * recorded) / totals.scheduled),
+      completionPercent: Math.round((100 * totals.done) / recorded),
+    },
+    series,
+    reminders: [
+      {
+        reminderId: REMINDER.id,
+        title: REMINDER.title,
+        kind: 'medication' as const,
+        active: true,
+        archived: false,
+        ...totals,
+        recordedPercent: Math.round((100 * recorded) / totals.scheduled),
+        completionPercent: Math.round((100 * totals.done) / recorded),
+      },
+    ],
+  };
+}
+
 /** GET /subjects/:id/reminders/today — hai occurrence còn chưa đánh dấu. */
 export const REMINDER_DAY = {
   date: '2026-11-19',
@@ -285,11 +393,14 @@ export const VISIT_REPORT = {
 export interface CareApiOptions {
   reminders?: unknown;
   day?: unknown;
+  adherence?: unknown;
   report?: unknown;
   /** Ghi đè phản hồi khi tạo lịch nhắc (mặc định trả REMINDER). */
   onCreate?: (init?: RequestInit) => Response | Promise<Response>;
   /** Ghi đè phản hồi khi sửa/xoá/đánh dấu. */
   onUpdate?: (init?: RequestInit) => Response | Promise<Response>;
+  /** Ghi đè phản hồi tổng hợp tuân thủ (V9.1); mặc định trả fixture 7/30 ngày. */
+  onAdherence?: (url: string, init?: RequestInit) => Response | Promise<Response>;
   onDelete?: (init?: RequestInit) => Response | Promise<Response>;
   onCompletion?: (url: string, init?: RequestInit) => Response | Promise<Response>;
 }
@@ -303,6 +414,11 @@ export function careApiHandler(options: CareApiOptions = {}): FetchHandler {
   return (url, init) => {
     const u = String(url);
     const method = init?.method ?? 'GET';
+    if (u.includes('/care/adherence')) {
+      if (options.onAdherence) return options.onAdherence(u, init);
+      const days = new URL(u, 'http://localhost').searchParams.get('days') === '30' ? 30 : 7;
+      return mockResponse(options.adherence ?? careAdherenceForDays(days));
+    }
     if (u.includes('/visit-report')) {
       return mockResponse(options.report ?? VISIT_REPORT);
     }

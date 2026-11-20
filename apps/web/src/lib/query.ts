@@ -25,6 +25,11 @@ export const queryKeys = {
   reminders: (id: string) => ['subjects', id, 'reminders'] as const,
   /** Occurrence "hôm nay" theo timezone hồ sơ — cùng cache với thẻ trên Hôm nay. */
   remindersToday: (id: string) => ['subjects', id, 'reminders', 'today'] as const,
+  /** Tổng hợp tuân thủ theo khoảng 7/30 ngày. */
+  careAdherence: (id: string, days: 7 | 30) =>
+    ['subjects', id, 'care', 'adherence', days] as const,
+  /** Tiền tố để invalidate mọi khoảng sau khi đánh dấu/sửa lịch. */
+  careAdherenceAll: (id: string) => ['subjects', id, 'care', 'adherence'] as const,
   /** Phiếu đi khám theo khoảng ngày địa phương (YYYY-MM-DD). */
   visitReport: (id: string, params: { from?: string; to?: string }) =>
     ['subjects', id, 'visit-report', params.from ?? '', params.to ?? ''] as const,

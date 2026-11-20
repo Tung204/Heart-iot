@@ -4,11 +4,13 @@ import userEvent from '@testing-library/user-event';
 import { CarePage } from './CarePage';
 import {
   ACTIVITY_REMINDER,
+  CARE_ADHERENCE_7,
   REMINDER,
   REMINDER_DAY,
   SESSION,
   SUBJECT,
   USER,
+  careAdherenceForDays,
   careApiHandler,
   errorEnvelope,
   mockResponse,
@@ -42,6 +44,10 @@ async function todayRegion() {
   return within(await screen.findByRole('region', { name: 'Hôm nay' }));
 }
 
+async function adherenceRegion() {
+  return within(await screen.findByRole('region', { name: 'Tổng hợp chăm sóc' }));
+}
+
 describe('CarePage — danh sách và quyền', () => {
   it('render danh sách lịch + hôm nay, một H1 và câu giới hạn chỉ một lần', async () => {
     renderPage(<CarePage />, careHandler(SUBJECT));
@@ -69,6 +75,71 @@ describe('CarePage — danh sách và quyền', () => {
     expect(today.getAllByText('Chưa đánh dấu')).toHaveLength(2);
 
     expect(screen.getAllByText(DISCLAIMER)).toHaveLength(1);
+
+    const adherence = await adherenceRegion();
+    expect(adherence.getByText('Đã làm 8 · Bỏ qua 1 · Chưa ghi nhận 3')).toBeInTheDocument();
+    expect(adherence.getByText('Ghi nhận 75% · Hoàn thành 89%')).toBeInTheDocument();
+    expect(
+      adherence.getByText('Chưa ghi nhận nghĩa là chưa có ai đánh dấu, không phải chưa làm.'),
+    ).toBeInTheDocument();
+    const days = within(adherence.getByRole('list', { name: 'Từng ngày trong 7 ngày' }));
+    expect(days.getAllByRole('listitem')).toHaveLength(7);
+    expect(days.getByText('T2 16/11')).toBeInTheDocument();
+    expect(days.getAllByText('2/2 đã làm').length).toBeGreaterThan(0);
+  });
+
+  it('null tỉ lệ hiển thị —, không phải 0%', async () => {
+    const nullRates = {
+      ...CARE_ADHERENCE_7,
+      totals: {
+        ...CARE_ADHERENCE_7.totals,
+        recordedPercent: null,
+        completionPercent: null,
+      },
+    };
+    renderPage(<CarePage />, careHandler(SUBJECT, { adherence: nullRates }));
+
+    const adherence = await adherenceRegion();
+    expect(adherence.getByText('Ghi nhận — · Hoàn thành —')).toBeInTheDocument();
+    expect(adherence.queryByText('Ghi nhận 0% · Hoàn thành 0%')).not.toBeInTheDocument();
+  });
+
+  it('đổi 7 → 30 gọi days=30, hiện 5 nhóm tuần rồi đổi lại 7', async () => {
+    const user = userEvent.setup();
+    const requested: string[] = [];
+    renderPage(
+      <CarePage />,
+      careHandler(SUBJECT, {
+        onAdherence: (url) => {
+          requested.push(String(url));
+          const days = new URL(String(url), 'http://localhost').searchParams.get('days') === '30' ? 30 : 7;
+          return mockResponse(careAdherenceForDays(days));
+        },
+      }),
+    );
+
+    const adherence = await adherenceRegion();
+    const range = within(adherence.getByRole('group', { name: 'Khoảng thời gian tổng hợp' }));
+    await user.click(range.getByRole('button', { name: '30 ngày' }));
+
+    await waitFor(() => expect(requested.some((url) => url.includes('days=30'))).toBe(true));
+    const weeks = within(await adherence.findByRole('list', { name: 'Từng tuần trong 30 ngày' }));
+    expect(weeks.getAllByRole('listitem')).toHaveLength(5);
+    expect(adherence.getByText('30 ngày gần đây')).toBeInTheDocument();
+    expect(range.getByRole('button', { name: '30 ngày' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(adherence.queryByRole('list', { name: 'Từng ngày trong 7 ngày' })).not.toBeInTheDocument();
+
+    await user.click(range.getByRole('button', { name: '7 ngày' }));
+    expect(
+      await adherence.findByRole('list', { name: 'Từng ngày trong 7 ngày' }),
+    ).toBeInTheDocument();
+    expect(range.getByRole('button', { name: '7 ngày' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('chủ hồ sơ thấy nút tạo/sửa/xoá', async () => {
@@ -87,6 +158,8 @@ describe('CarePage — danh sách và quyền', () => {
     expect(screen.queryByRole('button', { name: /Sửa lịch nhắc/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Xoá lịch nhắc/ })).not.toBeInTheDocument();
     expect((await todayRegion()).getAllByRole('button', { name: 'Đã thực hiện' })).toHaveLength(2);
+    const adherence = await adherenceRegion();
+    expect(adherence.getByText('Đã làm 8 · Bỏ qua 1 · Chưa ghi nhận 3')).toBeInTheDocument();
   });
 
   it('người thân thiếu quyền xem số đo → không gọi API nhắc và không lộ nội dung', async () => {
@@ -99,7 +172,13 @@ describe('CarePage — danh sách và quyền', () => {
     renderPage(<CarePage />, (url, init) => {
       const u = String(url);
       if (u.endsWith('/subjects')) return mockResponse({ items: [caregiverNoAccess] });
-      if (u.includes('/reminders') || u.includes('/visit-report')) calls.push(u);
+      if (
+        u.includes('/reminders') ||
+        u.includes('/care/adherence') ||
+        u.includes('/visit-report')
+      ) {
+        calls.push(u);
+      }
       return api(url, init);
     });
 
@@ -315,5 +394,159 @@ describe('CarePage — hôm nay optimistic', () => {
     );
     expect(deletedUrl.searchParams.get('date')).toBe('2026-11-19');
     expect(deletedUrl.searchParams.get('time')).toBe('16:00');
+  });
+});
+
+describe('CarePage — tổng hợp tuân thủ', () => {
+  it('đánh dấu hôm nay làm mới tổng hợp', async () => {
+    const user = userEvent.setup();
+    let adherenceCalls = 0;
+    renderPage(
+      <CarePage />,
+      careHandler(SUBJECT, {
+        onAdherence: () => {
+          adherenceCalls += 1;
+          return mockResponse(CARE_ADHERENCE_7);
+        },
+      }),
+    );
+
+    await adherenceRegion();
+    const before = adherenceCalls;
+    const today = await todayRegion();
+    await user.click((await today.findAllByRole('button', { name: 'Đã thực hiện' }))[0]!);
+    await waitFor(() => expect(adherenceCalls).toBeGreaterThan(before));
+  });
+
+  it('lịch đã lưu trữ có pill, vẫn hiện số liệu và không có nút sửa/xoá', async () => {
+    const archived = {
+      ...CARE_ADHERENCE_7,
+      reminders: [
+        {
+          ...CARE_ADHERENCE_7.reminders[0],
+          reminderId: 'a3a3a3a3-3333-4333-8333-333333333333',
+          title: 'Lịch đã lưu trữ',
+          active: false,
+          archived: true,
+          scheduled: 3,
+          done: 2,
+          skipped: 0,
+          pending: 1,
+          recordedPercent: 67,
+          completionPercent: 100,
+        },
+      ],
+    };
+    renderPage(<CarePage />, careHandler(SUBJECT, { adherence: archived }));
+
+    const adherence = await adherenceRegion();
+    const title = adherence.getByRole('heading', { level: 3, name: 'Lịch đã lưu trữ' });
+    const card = title.closest('li');
+    expect(card).not.toBeNull();
+    expect(within(card!).getByText('Đã lưu trữ')).toBeInTheDocument();
+    expect(within(card!).getByText('Đã làm 2 · Bỏ qua 0 · Chưa ghi nhận 1')).toBeInTheDocument();
+    expect(within(card!).queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('403 hiện câu quyền, không có nút Thử lại và không gọi lại', async () => {
+    let calls = 0;
+    renderPage(
+      <CarePage />,
+      careHandler(SUBJECT, {
+        onAdherence: () => {
+          calls += 1;
+          return mockResponse(errorEnvelope('Không có quyền xem.', 'FORBIDDEN'), 403);
+        },
+      }),
+    );
+
+    const adherence = await adherenceRegion();
+    expect(
+      await adherence.findByText('Chủ hồ sơ không chia sẻ tổng hợp chăm sóc'),
+    ).toBeInTheDocument();
+    expect(adherence.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument();
+    expect(calls).toBe(1);
+  });
+
+  it('500 hiện ErrorState và Thử lại gọi lại', async () => {
+    const user = userEvent.setup();
+    let calls = 0;
+    renderPage(
+      <CarePage />,
+      careHandler(SUBJECT, {
+        onAdherence: () => {
+          calls += 1;
+          if (calls === 1) {
+            return mockResponse(errorEnvelope('Máy chủ lỗi.', 'INTERNAL'), 500);
+          }
+          return mockResponse(CARE_ADHERENCE_7);
+        },
+      }),
+    );
+
+    const adherence = await adherenceRegion();
+    expect(
+      await adherence.findByText('Không tải được tổng hợp chăm sóc'),
+    ).toBeInTheDocument();
+    await user.click(adherence.getByRole('button', { name: 'Thử lại' }));
+    expect(await adherence.findByText('Đã làm 8 · Bỏ qua 1 · Chưa ghi nhận 3')).toBeInTheDocument();
+    expect(calls).toBe(2);
+  });
+
+  it('empty state cho owner có nút tạo mở form, không hiện bảng 0', async () => {
+    const user = userEvent.setup();
+    const empty = {
+      ...CARE_ADHERENCE_7,
+      totals: {
+        scheduled: 0,
+        done: 0,
+        skipped: 0,
+        pending: 0,
+        recordedPercent: null,
+        completionPercent: null,
+      },
+      series: CARE_ADHERENCE_7.series.map((day) => ({
+        ...day,
+        scheduled: 0,
+        done: 0,
+        skipped: 0,
+        pending: 0,
+      })),
+      reminders: [],
+    };
+    renderPage(<CarePage />, careHandler(SUBJECT, { adherence: empty }));
+
+    const adherence = await adherenceRegion();
+    expect(
+      await adherence.findByText('Chưa có lịch nhắc trong 7 ngày'),
+    ).toBeInTheDocument();
+    expect(adherence.queryByText('Đã làm 0 · Bỏ qua 0 · Chưa ghi nhận 0')).not.toBeInTheDocument();
+
+    await user.click(adherence.getByRole('button', { name: 'Tạo lịch nhắc' }));
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Tạo lịch nhắc' }),
+    ).toBeInTheDocument();
+  });
+
+  it('loading có aria-busy và skeleton, sau đó hiện số liệu', async () => {
+    let resolveAdherence!: (response: Response) => void;
+    const gate = new Promise<Response>((resolve) => {
+      resolveAdherence = resolve;
+    });
+    renderPage(
+      <CarePage />,
+      careHandler(SUBJECT, { onAdherence: () => gate }),
+    );
+
+    const section = await screen.findByRole('region', { name: 'Tổng hợp chăm sóc' });
+    expect(section).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByText('Đang tải tổng hợp chăm sóc…')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveAdherence(mockResponse(CARE_ADHERENCE_7));
+      await gate;
+    });
+    expect(await screen.findByText('Đã làm 8 · Bỏ qua 1 · Chưa ghi nhận 3')).toBeInTheDocument();
+    await waitFor(() => expect(section).toHaveAttribute('aria-busy', 'false'));
   });
 });

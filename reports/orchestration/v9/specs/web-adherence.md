@@ -1,6 +1,8 @@
 # v9.1-WEB — tổng hợp tuân thủ trên trang Nhắc chăm sóc
 
-Bạn là worker **frontend** (React 19 + Vite + TanStack Query). Backend v9.1 đã có contract/endpoint (xem `reports/handoffs/v9-adherence-be.md` sau khi hợp nhất). Chỉ sửa `apps/web`; không sửa API/contracts.
+> **Trạng thái 20/11/2026:** đã triển khai bản preview trên nhánh `v9-adherence-web` (chưa hợp nhất); bằng chứng ở `reports/handoffs/v9-adherence-web.md`. Backend đã hợp nhất master tại `2879ef4`.
+
+Bạn là worker **frontend** (React 19 + Vite + TanStack Query). Backend v9.1 đã có contract/endpoint (xem `reports/orchestration/v9/backend-handoff.md`). Chỉ sửa `apps/web`; không sửa API/contracts.
 
 Đọc: `reports/orchestration/v9/decisions.md`, `docs/14` mục 14 (V9.1), `apps/web/src/features/care/*`, `apps/web/src/features/care/CarePage.test.tsx`, `apps/web/src/lib/query.ts`, `apps/web/src/lib/format.ts`, `apps/web/src/components/primitives.css`, `apps/web/src/app/routeScope.ts`, ảnh `reports/qa/evidence/v8-care/`.
 

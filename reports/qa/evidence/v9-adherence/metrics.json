@@ -1,0 +1,204 @@
+[
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-owner-1280.png",
+    "label": "owner-1280",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": null,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-owner-30d-1280.png",
+    "label": "owner-30d-1280",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": null,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-owner-390.png",
+    "label": "owner-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-owner-30d-390.png",
+    "label": "owner-30d-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-caregiver-1280.png",
+    "label": "caregiver-1280",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": null,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-caregiver-390.png",
+    "label": "caregiver-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-empty-390.png",
+    "label": "empty-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 164,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      },
+      {
+        "label": "Tạo lịch nhắc",
+        "height": 48
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-forbidden-390.png",
+    "label": "forbidden-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 111,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  },
+  {
+    "file": "C:\\MyFolder\\Hoc_Tap\\project\\DATN\\reports\\qa\\evidence\\v9-adherence\\care-adherence-loading-390.png",
+    "label": "loading-390",
+    "url": "http://localhost:4366/app/care",
+    "h1": 1,
+    "overflow": 0,
+    "bodyOverflow": 0,
+    "sectionVisible": true,
+    "sectionTop": 76,
+    "navTop": 779,
+    "targets": [
+      {
+        "label": "7 ngày",
+        "height": 44
+      },
+      {
+        "label": "30 ngày",
+        "height": 44
+      }
+    ],
+    "smallTargets": []
+  }
+]
