@@ -1,5 +1,7 @@
 # v9.1-BE — tổng hợp tuân thủ chăm sóc (backend)
 
+> **Trạng thái 20/11/2026:** đã triển khai trên nhánh `v9-adherence-be`; bằng chứng và sai lệch so với spec ở `reports/orchestration/v9/backend-handoff.md`. Phần web vẫn theo `web-adherence.md`.
+
 Bạn là worker **backend** (NestJS 11 + Drizzle + PGlite). Chỉ backend + contracts + migration + seed + test API. **Không sửa `apps/web`.**
 
 Đọc trước: `reports/orchestration/v9/decisions.md`, `docs/14` mục 14 (V9.1), `docs/02` (FR-15), `apps/api/src/reminders/*`, `apps/api/src/database/schema.ts` (bảng `care_reminders`, `care_reminder_completions`), `apps/api/src/measurements/time-utils.ts`, `apps/api/src/common/local-date.ts`, `apps/api/src/access/access.service.ts`, `apps/api/src/database/seed.ts`, `apps/api/test/reminders.spec.ts`, `apps/api/test/seed.spec.ts`.
@@ -87,9 +89,9 @@ Migration mới (`drizzle-kit generate`, tên `0003_*`):
    ```sql
    INSERT INTO care_reminder_periods (reminder_id, active_from, active_to)
    SELECT id,
-          GREATEST(starts_on, created_at::date),
+          starts_on,
           CASE WHEN active THEN NULL
-               ELSE GREATEST(GREATEST(starts_on, created_at::date), updated_at::date)
+               ELSE GREATEST(starts_on, updated_at::date)
           END
    FROM care_reminders;
    ```
@@ -103,7 +105,7 @@ Tạo helper trong `apps/api/src/reminders/reminder-periods.ts` (hoặc trong se
 
 - `localToday(now, timezone)` dùng `localDateKey`.
 - Khi **tạo**:
-  - nếu `active=true`: mở khoảng `active_from = max(startsOn, localToday)`; `active_to=null`.
+  - nếu `active=true`: mở khoảng `active_from = startsOn`; `active_to=null` (người dùng backdate thì lịch sử trước hôm nay cũng thuộc lịch).
   - nếu `active=false`: không tạo khoảng.
 - Khi **PATCH đổi `active`**:
   - `true → false`: đóng khoảng đang mở (nếu có) bằng `active_to = localToday` (ngày tắt vẫn tính).

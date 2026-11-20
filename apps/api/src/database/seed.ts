@@ -1,11 +1,14 @@
 import { createHash } from 'node:crypto';
-import { and, count, eq, sql } from 'drizzle-orm';
+import { and, count, eq, inArray, sql } from 'drizzle-orm';
 import { hashPassword } from '../auth/password';
 import { computePolicyDigest } from '../policy/policy.service';
+import { addDays, isoWeekday } from '../common/local-date';
 import { localDateKey } from '../measurements/insights';
 import type { AppDb } from './database';
 import {
   careLinks,
+  careReminderCompletions,
+  careReminderPeriods,
   careReminders,
   deviceAssignments,
   devices,
@@ -83,6 +86,7 @@ type SeedSummary = {
   tasks: number;
   outbox: number;
   reminders: number;
+  reminderCompletions: number;
 };
 
 export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary> {
@@ -200,6 +204,8 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
   const tasksInserted = await seedTasks(db, now);
   const outboxInserted = await seedNotifications(db, now);
   const remindersInserted = await seedReminders(db, now);
+  await seedReminderPeriods(db, now);
+  const reminderCompletionsInserted = await seedReminderCompletions(db, now);
 
   const [telemetryCount] = await db
     .select({ value: count() })
@@ -217,6 +223,7 @@ export async function seedDemo(db: AppDb, now = new Date()): Promise<SeedSummary
     tasks: tasksInserted,
     outbox: outboxInserted,
     reminders: remindersInserted,
+    reminderCompletions: reminderCompletionsInserted,
   };
 }
 
@@ -536,12 +543,13 @@ async function seedTasks(db: AppDb, now: Date): Promise<number> {
 }
 
 /**
- * Lịch nhắc demo cho bà An (FR-15 phần web). Không seed đánh dấu hoàn thành —
- * trạng thái hôm nay phải là "chưa đánh dấu" khi mới seed.
+ * Lịch nhắc demo cho bà An (FR-15 phần web). `startsOn` lùi 7 ngày để có
+ * lịch sử cho tổng hợp tuân thủ; completion mẫu do `seedReminderCompletions`
+ * thêm cho 3 ngày gần nhất, không đánh dấu hôm nay.
  * Idempotent nhờ id cố định + `onConflictDoNothing` (chạy lại không nhân bản).
  */
 async function seedReminders(db: AppDb, now: Date): Promise<number> {
-  const startsOn = localDateKey(now, DEMO.subjectAn.timezone);
+  const startsOn = addDays(localDateKey(now, DEMO.subjectAn.timezone), -7);
   const inserted = await db
     .insert(careReminders)
     .values([
@@ -573,6 +581,96 @@ async function seedReminders(db: AppDb, now: Date): Promise<number> {
     ])
     .onConflictDoNothing()
     .returning({ id: careReminders.id });
+  return inserted.length;
+}
+
+/** Khoảng hiệu lực cho hai lịch demo; bỏ qua nếu đã có (kể cả migration backfill). */
+async function seedReminderPeriods(db: AppDb, now: Date): Promise<void> {
+  const startsOn = addDays(localDateKey(now, DEMO.subjectAn.timezone), -7);
+  const existing = await db
+    .select({ id: careReminderPeriods.id })
+    .from(careReminderPeriods)
+    .where(
+      inArray(careReminderPeriods.reminderId, [
+        DEMO.medicationReminderId,
+        DEMO.walkReminderId,
+      ]),
+    )
+    .limit(1);
+  if (existing.length > 0) return;
+  await db.insert(careReminderPeriods).values([
+    { reminderId: DEMO.medicationReminderId, activeFrom: startsOn, activeTo: null },
+    { reminderId: DEMO.walkReminderId, activeFrom: startsOn, activeTo: null },
+  ]);
+}
+
+/**
+ * Đánh dấu mẫu cho 3 ngày gần nhất. Chỉ ngày đúng thứ của lịch; hôm nay để
+ * trống để trạng thái “hôm nay” vẫn là chưa đánh dấu khi mới seed.
+ */
+async function seedReminderCompletions(db: AppDb, now: Date): Promise<number> {
+  const timezone = DEMO.subjectAn.timezone;
+  const today = localDateKey(now, timezone);
+  const existing = await db
+    .select({
+      id: careReminders.id,
+      startsOn: careReminders.startsOn,
+      endsOn: careReminders.endsOn,
+    })
+    .from(careReminders)
+    .where(
+      inArray(careReminders.id, [DEMO.medicationReminderId, DEMO.walkReminderId]),
+    );
+  const byId = new Map(existing.map((reminder) => [reminder.id, reminder]));
+  const rows: Array<typeof careReminderCompletions.$inferInsert> = [];
+  const medicationStatus = ['done', 'done', 'skipped'] as const;
+
+  const covers = (reminderId: string, date: string): boolean => {
+    const reminder = byId.get(reminderId);
+    if (!reminder || date < reminder.startsOn) return false;
+    return reminder.endsOn === null || date <= reminder.endsOn;
+  };
+
+  for (let offset = 1; offset <= 3; offset += 1) {
+    const occurrenceDate = addDays(today, -offset);
+    if (!covers(DEMO.medicationReminderId, occurrenceDate)) continue;
+    const completedAt = new Date(now.getTime() - offset * 24 * 60 * 60 * 1000);
+    rows.push({
+      reminderId: DEMO.medicationReminderId,
+      subjectId: DEMO.subjectAn.id,
+      occurrenceDate,
+      scheduledTime: '08:00',
+      status: medicationStatus[offset - 1] ?? 'done',
+      completedByUserId: DEMO.owner.id,
+      completedAt,
+    });
+
+    const weekday = isoWeekday(occurrenceDate);
+    if (weekday >= 1 && weekday <= 5 && offset === 1 && covers(DEMO.walkReminderId, occurrenceDate)) {
+      rows.push({
+        reminderId: DEMO.walkReminderId,
+        subjectId: DEMO.subjectAn.id,
+        occurrenceDate,
+        scheduledTime: '16:00',
+        status: 'done',
+        completedByUserId: DEMO.owner.id,
+        completedAt,
+      });
+    }
+  }
+
+  if (rows.length === 0) return 0;
+  const inserted = await db
+    .insert(careReminderCompletions)
+    .values(rows)
+    .onConflictDoNothing({
+      target: [
+        careReminderCompletions.reminderId,
+        careReminderCompletions.occurrenceDate,
+        careReminderCompletions.scheduledTime,
+      ],
+    })
+    .returning({ id: careReminderCompletions.id });
   return inserted.length;
 }
 

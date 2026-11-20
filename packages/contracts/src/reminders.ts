@@ -205,3 +205,69 @@ export const reminderCompletionResultSchema = z.object({
     .nullable(),
 });
 export type ReminderCompletionResult = z.infer<typeof reminderCompletionResultSchema>;
+
+// ---------------------------------------------------------------------------
+// Tổng hợp tuân thủ (V9.1) — chỉ đọc, không tạo dữ liệu nghiệp vụ
+// ---------------------------------------------------------------------------
+
+/** `days` 1..30; UI mặc định 7 và có 30. Giá trị lạ → 422 qua zod. */
+export const careAdherenceQuerySchema = z
+  .object({
+    days: z.coerce.number().int().min(1).max(30).default(7),
+  })
+  .strict();
+export type CareAdherenceQuery = z.infer<typeof careAdherenceQuerySchema>;
+
+/** Số nguyên 0..100; `null` khi mẫu số bằng 0 (không có occurrence). */
+export const adherencePercentSchema = z.number().int().min(0).max(100).nullable();
+export type AdherencePercent = z.infer<typeof adherencePercentSchema>;
+
+export const careAdherenceTotalsSchema = z.object({
+  scheduled: z.number().int().min(0),
+  done: z.number().int().min(0),
+  skipped: z.number().int().min(0),
+  pending: z.number().int().min(0),
+  /** `(done + skipped) / scheduled` — mức có ghi nhận, không phải mức hoàn thành. */
+  recordedPercent: adherencePercentSchema,
+  /** `done / (done + skipped)` — bỏ qua không tính là hoàn thành. */
+  completionPercent: adherencePercentSchema,
+});
+export type CareAdherenceTotals = z.infer<typeof careAdherenceTotalsSchema>;
+
+export const careAdherenceDaySchema = z.object({
+  date: isoDateSchema,
+  scheduled: z.number().int().min(0),
+  done: z.number().int().min(0),
+  skipped: z.number().int().min(0),
+  pending: z.number().int().min(0),
+});
+export type CareAdherenceDay = z.infer<typeof careAdherenceDaySchema>;
+
+export const careAdherenceReminderSchema = z.object({
+  reminderId: idSchema,
+  title: z.string().min(2).max(120),
+  kind: reminderKindSchema,
+  active: z.boolean(),
+  /** Lịch đã lưu trữ vẫn hiện lịch sử trong kỳ. */
+  archived: z.boolean(),
+  scheduled: z.number().int().min(0),
+  done: z.number().int().min(0),
+  skipped: z.number().int().min(0),
+  pending: z.number().int().min(0),
+  recordedPercent: adherencePercentSchema,
+  completionPercent: adherencePercentSchema,
+});
+export type CareAdherenceReminder = z.infer<typeof careAdherenceReminderSchema>;
+
+export const careAdherenceSchema = z.object({
+  subjectId: idSchema,
+  timezone: z.string().min(1),
+  from: isoDateSchema,
+  to: isoDateSchema,
+  days: z.number().int().min(1).max(30),
+  totals: careAdherenceTotalsSchema,
+  /** Đúng `days` phần tử, cũ → mới; ngày không có occurrence có số 0. */
+  series: z.array(careAdherenceDaySchema),
+  reminders: z.array(careAdherenceReminderSchema),
+});
+export type CareAdherence = z.infer<typeof careAdherenceSchema>;

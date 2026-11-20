@@ -615,10 +615,44 @@ export const careReminders = pgTable(
     startsOn: date('starts_on', { mode: 'string' }).notNull(),
     endsOn: date('ends_on', { mode: 'string' }),
     active: boolean('active').notNull().default(true),
+    /** Lưu trữ mềm: ẩn khỏi danh sách/hôm nay nhưng giữ lịch sử đánh dấu. */
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (table) => [index('care_reminders_subject_idx').on(table.subjectId, table.startsOn)],
+  (table) => [
+    index('care_reminders_subject_idx').on(table.subjectId, table.startsOn),
+    index('care_reminders_subject_archived_idx').on(table.subjectId, table.archivedAt),
+  ],
+);
+
+/**
+ * Khoảng lịch có hiệu lực của một lịch nhắc.
+ *
+ * Cờ `active` chỉ là trạng thái hiện tại; để tính lịch sử đúng khi người dùng
+ * tắt rồi bật lại, mỗi lần bật tạo một khoảng `[active_from, active_to]`
+ * (`active_to = null` nghĩa là đang mở). `starts_on`/`ends_on` vẫn là biên
+ * toàn cục; occurrence phải nằm trong cả hai.
+ */
+export const careReminderPeriods = pgTable(
+  'care_reminder_periods',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    reminderId: uuid('reminder_id')
+      .notNull()
+      .references(() => careReminders.id, { onDelete: 'cascade' }),
+    activeFrom: date('active_from', { mode: 'string' }).notNull(),
+    activeTo: date('active_to', { mode: 'string' }),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex('care_reminder_periods_start_uq').on(table.reminderId, table.activeFrom),
+    index('care_reminder_periods_reminder_idx').on(table.reminderId, table.activeFrom),
+    check(
+      'care_reminder_periods_range_chk',
+      sql`${table.activeTo} is null or ${table.activeTo} >= ${table.activeFrom}`,
+    ),
+  ],
 );
 
 /**
@@ -754,6 +788,7 @@ export type AssignmentRow = typeof deviceAssignments.$inferSelect;
 export type TelemetryRow = typeof telemetry.$inferSelect;
 export type IncidentRow = typeof incidents.$inferSelect;
 export type CareReminderRow = typeof careReminders.$inferSelect;
+export type CareReminderPeriodRow = typeof careReminderPeriods.$inferSelect;
 export type CareReminderCompletionRow = typeof careReminderCompletions.$inferSelect;
 export type AgentRunRow = typeof agentRuns.$inferSelect;
 export type WorkspaceViewRow = typeof workspaceViews.$inferSelect;

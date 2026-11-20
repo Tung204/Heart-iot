@@ -3,6 +3,7 @@ import { createTestApp, TEST_ORIGIN, type TestContext } from './test-app';
 import { DEMO, seedDemo } from '../src/database/seed';
 import {
   careReminderCompletions,
+  careReminderPeriods,
   careReminders,
   emergencyContacts,
   incidents,
@@ -40,6 +41,7 @@ describe('Seed demo tổng hợp', () => {
     const [contactCount] = await ctx.db.select({ value: count() }).from(emergencyContacts);
     const [reminderCount] = await ctx.db.select({ value: count() }).from(careReminders);
     const [completionCount] = await ctx.db.select({ value: count() }).from(careReminderCompletions);
+    const [periodCount] = await ctx.db.select({ value: count() }).from(careReminderPeriods);
 
     expect(userCount?.value).toBe(3);
     expect(subjectCount?.value).toBe(2);
@@ -48,9 +50,10 @@ describe('Seed demo tổng hợp', () => {
     expect(taskCount?.value).toBe(2);
     expect(outboxCount?.value).toBe(2);
     expect(contactCount?.value).toBe(1);
-    // Lịch nhắc demo idempotent và KHÔNG seed đánh dấu hoàn thành.
+    // Lịch nhắc + khoảng hiệu lực + completion mẫu đều idempotent.
     expect(reminderCount?.value).toBe(2);
-    expect(completionCount?.value).toBe(0);
+    expect(periodCount?.value).toBe(2);
+    expect(completionCount?.value).toBeGreaterThan(0);
   });
 
   it('tài khoản demo đăng nhập được và thấy hồ sơ được chia sẻ', async () => {

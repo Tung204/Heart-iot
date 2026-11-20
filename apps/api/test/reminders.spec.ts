@@ -660,7 +660,7 @@ describe('Nhắc chăm sóc — lịch nhắc + đánh dấu thực hiện (FR-1
     await deleteReminder(owner, subjectId, reminder.id);
   });
 
-  it('xoá lịch nhắc xoá luôn đánh dấu (cascade)', async () => {
+  it('lưu trữ lịch nhắc giữ đánh dấu và ẩn khỏi danh sách', async () => {
     const reminder = await createReminderAsOwner({ times: ['08:00'], weekdays: [1] });
     expect(
       (
@@ -674,11 +674,17 @@ describe('Nhắc chăm sóc — lịch nhắc + đánh dấu thực hiện (FR-1
     expect(await completionRowCount(reminder.id)).toBe(1);
 
     expect((await deleteReminder(owner, subjectId, reminder.id)).status).toBe(204);
-    expect(await completionRowCount(reminder.id)).toBe(0);
-    const remaining = await ctx.db
-      .select({ id: careReminderCompletions.id })
-      .from(careReminderCompletions)
-      .where(and(eq(careReminderCompletions.subjectId, subjectId)));
-    expect(remaining).toHaveLength(0);
+    // Lưu trữ mềm: row + completion còn, nhưng không còn trong danh sách.
+    expect(await completionRowCount(reminder.id)).toBe(1);
+    const [archived] = await ctx.db
+      .select()
+      .from(careReminders)
+      .where(eq(careReminders.id, reminder.id));
+    expect(archived?.archivedAt).not.toBeNull();
+    expect(archived?.active).toBe(false);
+    const list = await getReminders(owner, subjectId);
+    expect(list.body.items.map((item: ReminderSummary) => item.id)).not.toContain(reminder.id);
+    // Gọi lưu trữ lần hai → 404, không giả vờ xoá lần nữa.
+    expect((await deleteReminder(owner, subjectId, reminder.id)).status).toBe(404);
   });
 });

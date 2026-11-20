@@ -1,13 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lte, or } from 'drizzle-orm';
 import type { SubjectAccess } from '../access/access.service';
 import type { UserSummary } from '@heart-iot/contracts';
 import {
+  careAdherenceSchema,
   reminderCompletionResultSchema,
   reminderCompletionSchema,
   reminderDaySchema,
   reminderListSchema,
   reminderSchema,
+  type CareAdherence,
   type CreateReminderInput,
   type ReminderCompletion,
   type ReminderCompletionResult,
@@ -20,15 +22,20 @@ import {
 import { DB, type AppDb } from '../database/database';
 import {
   careReminderCompletions,
+  careReminderPeriods,
   careReminders,
   users,
+  type CareReminderPeriodRow,
   type CareReminderRow,
 } from '../database/schema';
 import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
-import { isoWeekday } from '../common/local-date';
+import { addDays, isoWeekday } from '../common/local-date';
 import { localDateKey } from '../measurements/insights';
+import { buildCareAdherence } from './care-adherence';
+
+type Tx = Parameters<Parameters<AppDb['transaction']>[0]>[0];
 
 /**
  * Lịch nhắc chăm sóc (FR-15 phần web).
@@ -59,11 +66,11 @@ export class RemindersService {
   // ---------------------------------------------------------------------------
 
   async list(user: UserSummary, subjectId: string): Promise<ReminderList> {
-    const access = await this.access.requireMeasurements(user.id, subjectId);
+    await this.access.requireMeasurements(user.id, subjectId);
     const rows = await this.db
       .select()
       .from(careReminders)
-      .where(eq(careReminders.subjectId, subjectId))
+      .where(and(eq(careReminders.subjectId, subjectId), isNull(careReminders.archivedAt)))
       .orderBy(asc(careReminders.createdAt), asc(careReminders.id));
     return reminderListSchema.parse({ items: rows.map(toReminder) });
   }
@@ -76,31 +83,46 @@ export class RemindersService {
   ): Promise<ReminderSummary> {
     const access = await this.access.requireSubject(user.id, subjectId);
     this.assertOwner(access, 'tạo lịch nhắc cho hồ sơ này');
-    const rows = await this.db
-      .insert(careReminders)
-      .values({
-        subjectId,
-        kind: input.kind,
-        title: input.title,
-        note: input.note ? input.note : null,
-        times: input.times,
-        weekdays: input.weekdays,
-        startsOn: input.startsOn,
-        endsOn: input.endsOn ?? null,
-        active: input.active,
-      })
-      .returning();
-    const row = rows[0];
-    if (!row) throw new Error('Không tạo được lịch nhắc.');
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'care_reminder.create',
-      targetType: 'care_reminder',
-      targetId: row.id,
-      outcome: 'success',
-      // Chỉ metadata kỹ thuật: tiêu đề/ghi chú là nội dung người dùng tự nhập.
-      metadata: { subjectId, kind: row.kind, active: row.active },
+    const row = await this.db.transaction(async (tx) => {
+      const rows = await tx
+        .insert(careReminders)
+        .values({
+          subjectId,
+          kind: input.kind,
+          title: input.title,
+          note: input.note ? input.note : null,
+          times: input.times,
+          weekdays: input.weekdays,
+          startsOn: input.startsOn,
+          endsOn: input.endsOn ?? null,
+          active: input.active,
+        })
+        .returning();
+      const created = rows[0];
+      if (!created) throw new Error('Không tạo được lịch nhắc.');
+      if (created.active) {
+        // Khoảng đầu tiên bắt đầu từ startsOn người dùng chọn; nếu họ chủ động
+        // backdate thì lịch sử trước hôm nay cũng thuộc lịch (có thể chưa có
+        // đánh dấu). Tắt/bật lại sau đó mới tạo khoảng mới theo ngày thao tác.
+        await tx.insert(careReminderPeriods).values({
+          reminderId: created.id,
+          activeFrom: created.startsOn,
+        });
+      }
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'care_reminder.create',
+          targetType: 'care_reminder',
+          targetId: created.id,
+          outcome: 'success',
+          // Chỉ metadata kỹ thuật: tiêu đề/ghi chú là nội dung người dùng tự nhập.
+          metadata: { subjectId, kind: created.kind, active: created.active },
+        },
+        tx,
+      );
+      return created;
     });
     return toReminder(row);
   }
@@ -134,40 +156,65 @@ export class RemindersService {
     if (input.endsOn !== undefined) patch.endsOn = input.endsOn;
     if (input.active !== undefined) patch.active = input.active;
 
-    const rows = await this.db
-      .update(careReminders)
-      .set(patch)
-      .where(and(eq(careReminders.id, reminderId), eq(careReminders.subjectId, subjectId)))
-      .returning();
-    const row = rows[0];
-    if (!row) throw AppError.notFound('Không tìm thấy lịch nhắc.');
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'care_reminder.update',
-      targetType: 'care_reminder',
-      targetId: row.id,
-      outcome: 'success',
-      metadata: { subjectId, kind: row.kind, active: row.active },
+    const today = localDateKey(new Date(), access.subject.timezone);
+    const activeChanged = input.active !== undefined && input.active !== existing.active;
+    const row = await this.db.transaction(async (tx) => {
+      const rows = await tx
+        .update(careReminders)
+        .set(patch)
+        .where(and(eq(careReminders.id, reminderId), eq(careReminders.subjectId, subjectId)))
+        .returning();
+      const updated = rows[0];
+      if (!updated) throw AppError.notFound('Không tìm thấy lịch nhắc.');
+      if (activeChanged) {
+        if (updated.active) await this.reopenPeriods(tx, updated, today);
+        else await this.closePeriods(tx, reminderId, today);
+      }
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'care_reminder.update',
+          targetType: 'care_reminder',
+          targetId: updated.id,
+          outcome: 'success',
+          metadata: { subjectId, kind: updated.kind, active: updated.active },
+        },
+        tx,
+      );
+      return updated;
     });
     return toReminder(row);
   }
 
+  /**
+   * Lưu trữ mềm: ẩn khỏi danh sách/hôm nay nhưng giữ completion để tổng hợp
+   * lịch sử vẫn đúng. Xoá cứng chỉ nằm trong luồng xoá dữ liệu (V12).
+   */
   async remove(user: UserSummary, subjectId: string, reminderId: string): Promise<void> {
     const access = await this.access.requireSubject(user.id, subjectId);
-    this.assertOwner(access, 'xoá lịch nhắc của hồ sơ này');
+    this.assertOwner(access, 'lưu trữ lịch nhắc của hồ sơ này');
     await this.requireReminder(subjectId, reminderId);
-    await this.db
-      .delete(careReminders)
-      .where(and(eq(careReminders.id, reminderId), eq(careReminders.subjectId, subjectId)));
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'care_reminder.delete',
-      targetType: 'care_reminder',
-      targetId: reminderId,
-      outcome: 'success',
-      metadata: { subjectId },
+    const today = localDateKey(new Date(), access.subject.timezone);
+    const now = new Date();
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(careReminders)
+        .set({ archivedAt: now, active: false, updatedAt: now })
+        .where(and(eq(careReminders.id, reminderId), eq(careReminders.subjectId, subjectId)));
+      await this.closePeriods(tx, reminderId, today);
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'care_reminder.archive',
+          targetType: 'care_reminder',
+          targetId: reminderId,
+          outcome: 'success',
+          metadata: { subjectId },
+        },
+        tx,
+      );
     });
   }
 
@@ -193,6 +240,7 @@ export class RemindersService {
         and(
           eq(careReminders.subjectId, subjectId),
           eq(careReminders.active, true),
+          isNull(careReminders.archivedAt),
           lte(careReminders.startsOn, date),
           or(isNull(careReminders.endsOn), gte(careReminders.endsOn, date)),
         ),
@@ -231,6 +279,62 @@ export class RemindersService {
   }
 
   // ---------------------------------------------------------------------------
+  // Tổng hợp tuân thủ (V9.1)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Tổng hợp `days` ngày gần nhất (kết thúc hôm nay theo timezone hồ sơ).
+   * Chỉ đọc: không tạo notification/incident, không audit.
+   */
+  async adherence(
+    user: UserSummary,
+    subjectId: string,
+    days: number,
+  ): Promise<CareAdherence> {
+    const access = await this.access.requireMeasurements(user.id, subjectId);
+    const timezone = access.subject.timezone;
+    const now = new Date();
+    const from = addDays(localDateKey(now, timezone), -(days - 1));
+    const to = localDateKey(now, timezone);
+
+    const reminders = await this.db
+      .select()
+      .from(careReminders)
+      .where(eq(careReminders.subjectId, subjectId))
+      .orderBy(asc(careReminders.createdAt), asc(careReminders.id));
+    const reminderIds = reminders.map((row) => row.id);
+
+    const periods = reminderIds.length
+      ? await this.db
+          .select()
+          .from(careReminderPeriods)
+          .where(inArray(careReminderPeriods.reminderId, reminderIds))
+      : [];
+
+    const completions = reminderIds.length
+      ? await this.db
+          .select({
+            reminderId: careReminderCompletions.reminderId,
+            occurrenceDate: careReminderCompletions.occurrenceDate,
+            scheduledTime: careReminderCompletions.scheduledTime,
+            status: careReminderCompletions.status,
+          })
+          .from(careReminderCompletions)
+          .where(
+            and(
+              eq(careReminderCompletions.subjectId, subjectId),
+              gte(careReminderCompletions.occurrenceDate, from),
+              lte(careReminderCompletions.occurrenceDate, to),
+            ),
+          )
+      : [];
+
+    return careAdherenceSchema.parse(
+      buildCareAdherence({ subjectId, timezone, days, now, reminders, periods, completions }),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Đánh dấu đã thực hiện / bỏ đánh dấu
   // ---------------------------------------------------------------------------
 
@@ -244,6 +348,7 @@ export class RemindersService {
     await this.access.requireMeasurements(user.id, subjectId);
     const reminder = await this.requireReminder(subjectId, reminderId);
     assertScheduledOccurrence(reminder, input.date, input.time);
+    await this.assertActiveOnDate(reminder, input.date);
 
     const now = new Date();
     const rows = await this.db
@@ -339,7 +444,7 @@ export class RemindersService {
     }
   }
 
-  /** Lịch nhắc phải thuộc đúng hồ sơ; khác hồ sơ/không tồn tại → 404. */
+  /** Lịch nhắc phải thuộc đúng hồ sơ và chưa lưu trữ; khác/không tồn tại → 404. */
   private async requireReminder(
     subjectId: string,
     reminderId: string,
@@ -347,11 +452,109 @@ export class RemindersService {
     const rows = await this.db
       .select()
       .from(careReminders)
-      .where(and(eq(careReminders.id, reminderId), eq(careReminders.subjectId, subjectId)))
+      .where(
+        and(
+          eq(careReminders.id, reminderId),
+          eq(careReminders.subjectId, subjectId),
+          isNull(careReminders.archivedAt),
+        ),
+      )
       .limit(1);
     const row = rows[0];
     if (!row) throw AppError.notFound('Không tìm thấy lịch nhắc.');
     return row;
+  }
+
+  private async loadPeriods(reminderId: string): Promise<CareReminderPeriodRow[]> {
+    return this.db
+      .select()
+      .from(careReminderPeriods)
+      .where(eq(careReminderPeriods.reminderId, reminderId))
+      .orderBy(asc(careReminderPeriods.activeFrom));
+  }
+
+  /**
+   * Đóng khoảng hiệu lực khi tắt/lưu trữ:
+   * - khoảng bắt đầu sau hôm nay bị xoá (chưa từng có hiệu lực);
+   * - khoảng đang mở bắt đầu ≤ hôm nay đóng tại hôm nay (ngày thao tác vẫn tính).
+   */
+  private async closePeriods(tx: Tx, reminderId: string, today: string): Promise<void> {
+    await tx
+      .delete(careReminderPeriods)
+      .where(
+        and(
+          eq(careReminderPeriods.reminderId, reminderId),
+          gt(careReminderPeriods.activeFrom, today),
+        ),
+      );
+    await tx
+      .update(careReminderPeriods)
+      .set({ activeTo: today })
+      .where(
+        and(
+          eq(careReminderPeriods.reminderId, reminderId),
+          isNull(careReminderPeriods.activeTo),
+          lte(careReminderPeriods.activeFrom, today),
+        ),
+      );
+  }
+
+  /** Bật lại: mở khoảng gần nhất nếu nó vừa đóng hôm nay, nếu không tạo khoảng mới. */
+  private async reopenPeriods(tx: Tx, reminder: CareReminderRow, today: string): Promise<void> {
+    const open = await tx
+      .select({ id: careReminderPeriods.id })
+      .from(careReminderPeriods)
+      .where(
+        and(
+          eq(careReminderPeriods.reminderId, reminder.id),
+          isNull(careReminderPeriods.activeTo),
+        ),
+      )
+      .limit(1);
+    if (open[0]) return;
+
+    const last = await tx
+      .select()
+      .from(careReminderPeriods)
+      .where(eq(careReminderPeriods.reminderId, reminder.id))
+      .orderBy(desc(careReminderPeriods.activeFrom))
+      .limit(1);
+    if (last[0]?.activeTo && last[0].activeTo >= today) {
+      await tx
+        .update(careReminderPeriods)
+        .set({ activeTo: null })
+        .where(eq(careReminderPeriods.id, last[0].id));
+      return;
+    }
+
+    const activeFrom = reminder.startsOn > today ? reminder.startsOn : today;
+    await tx
+      .insert(careReminderPeriods)
+      .values({ reminderId: reminder.id, activeFrom })
+      .onConflictDoUpdate({
+        target: [careReminderPeriods.reminderId, careReminderPeriods.activeFrom],
+        set: { activeTo: null },
+      });
+  }
+
+  /** Ngày đánh dấu phải nằm trong một khoảng hiệu lực; dữ liệu cũ chưa có khoảng thì fallback. */
+  private async assertActiveOnDate(reminder: CareReminderRow, date: string): Promise<void> {
+    const periods = await this.loadPeriods(reminder.id);
+    if (periods.length === 0) {
+      if (!reminder.active) {
+        throw AppError.validation('Lịch nhắc không còn hiệu lực vào ngày này.', {
+          field: 'date',
+        });
+      }
+      return;
+    }
+    const covered = periods.some(
+      (period) =>
+        period.activeFrom <= date && (period.activeTo === null || date <= period.activeTo),
+    );
+    if (!covered) {
+      throw AppError.validation('Lịch nhắc không hiệu lực vào ngày này.', { field: 'date' });
+    }
   }
 
   private async loadCompletions(

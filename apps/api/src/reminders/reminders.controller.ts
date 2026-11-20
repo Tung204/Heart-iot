@@ -12,11 +12,14 @@ import {
 } from '@nestjs/common';
 import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
+  careAdherenceQuerySchema,
   createReminderSchema,
   reminderCompletionQuerySchema,
   reminderCompletionWriteSchema,
   reminderTodayQuerySchema,
   updateReminderSchema,
+  type CareAdherence,
+  type CareAdherenceQuery,
   type CreateReminderInput,
   type ReminderCompletionQuery,
   type ReminderCompletionResult,
@@ -39,7 +42,8 @@ const idPipe = new ZodValidationPipe(idSchema);
  *
  * - Xem danh sách + occurrence hôm nay: chủ hồ sơ hoặc người thân có
  *   `canViewMeasurements` (thiếu quyền → 403, admin/người ngoài → 404).
- * - Tạo/sửa/xoá: chỉ chủ hồ sơ (204 cho DELETE).
+ * - Tạo/sửa/lưu trữ: chỉ chủ hồ sơ (204 cho DELETE; DELETE là lưu trữ mềm,
+ *   giữ completion để tổng hợp lịch sử vẫn đúng).
  * - Đánh dấu đã thực hiện/bỏ qua + hoàn tác: như quyền xem, idempotent theo
  *   khoá `(reminderId, date, time)`.
  */
@@ -47,6 +51,15 @@ const idPipe = new ZodValidationPipe(idSchema);
 @UseGuards(SessionGuard)
 export class RemindersController {
   constructor(private readonly reminders: RemindersService) {}
+
+  @Get('subjects/:id/care/adherence')
+  adherence(
+    @CurrentUser() user: UserSummary,
+    @Param('id', idPipe) subjectId: string,
+    @Query(new ZodValidationPipe(careAdherenceQuerySchema)) query: CareAdherenceQuery,
+  ): Promise<CareAdherence> {
+    return this.reminders.adherence(user, subjectId, query.days);
+  }
 
   @Get('subjects/:id/reminders')
   list(
