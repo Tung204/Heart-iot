@@ -50,8 +50,9 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 - Kiểm quyền theo **hồ sơ** tập trung ở `AccessService`; không dựa vào role admin để đọc dữ liệu sức khỏe.
 - Quyền xem số đo (`canViewMeasurements`) tách khỏi quyền nhận cảnh báo. Người thân có thể nhận cảnh báo
   mà không xem nhịp tim/bước chân/lịch sử/CSV; trợ lý AI cần cả quyền số đo và `canViewAi`.
-- Ingest thiết bị xác thực bằng header thiết bị; không dùng cookie người dùng. HTTP là đường đang hỗ trợ;
-  adapter MQTT chỉ subscribe telemetry và chỉ bật khi có `MQTT_URL`, không thay đường ingest chính thức.
+- Ingest thiết bị xác thực bằng header thiết bị; không dùng cookie người dùng. HTTP là đường ingest chính thức;
+  adapter MQTT subscribe telemetry/events, publish ACK sự kiện và chỉ bật khi có `MQTT_URL` — profile thử nghiệm,
+  không thay đường ingest chính thức.
 - Telemetry/sự kiện được gán theo **assignment tại `measured_at`**; mẫu lệch giờ/ngoài assignment bị cách ly.
   Telemetry cách ly trả 202 `accepted` + `code=QUARANTINED`; sự kiện cách ly trả 202 `rejected` +
   `code=QUARANTINED` và không tạo incident/outbox/SSE.
@@ -65,14 +66,14 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 - Công việc bảo trì: xem/đóng theo quyền; chủ hồ sơ tạo cho thiết bị đang gắn.
 - Studio publish dùng CAS `baseRevision + digest`; rollback tạo bản công bố mới; dữ liệu tôn trọng mốc chia sẻ.
 - AI không nằm trên đường cảnh báo; không cấu hình provider vẫn có tóm tắt theo mẫu; response có `dataQuality`.
-- Outbox hiện chỉ giao **trong ứng dụng**; chưa có Web Push/email/SMS.
+- Outbox giao **trong ứng dụng**; Web Push có backend sau cờ `WEB_PUSH_ENABLED` (chưa có service worker/UI); chưa có email/SMS.
 
 ## Giới hạn đã biết
 
 - PGlite chỉ an toàn với một tiến trình trên một data dir; dừng API trước khi seed/migrate.
 - Chưa benchmark PostgreSQL thật, nhiều instance, MQTT broker/ACL/ACK hay tải đồng thời.
-- MQTT chưa có ingest `events`/`status`, chưa publish ACK, chưa xác thực khóa thiết bị ở tầng ứng dụng;
-  finding P0-2 vẫn mở. Không dùng MQTT cho demo cảnh báo.
+- MQTT đã có ingest `events` + ACK trong mã/test (P0-2), nhưng chưa có ingest `status`, chưa xác thực khóa thiết bị
+  ở tầng ứng dụng (P0-1) và chưa kiểm broker/ACL/TLS thật. Không dùng MQTT cho demo cảnh báo.
 - Chưa có firmware/đo thật; dữ liệu demo là tổng hợp và có nhãn.
 - Chưa có xóa cứng, retention, backup/restore, TLS/secret rotation production.
 - AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai.

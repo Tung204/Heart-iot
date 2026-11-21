@@ -8,7 +8,7 @@ Package `@heart-iot/contracts` giữ **zod schema + type** dùng cho API, web v�
 - Các miền v2 (`insights`, `contacts`, phần mở rộng `auth`/`tasks`/`subjects`) **đã có endpoint/UI dùng thật** ở HEAD hiện tại: xu hướng 7–30 ngày, liên hệ khẩn cấp, cài đặt tài khoản/phiên, tạo việc, lưu trữ/yêu cầu xóa. Không còn là “nền hợp đồng chưa giao”.
 - Năm payload trong `examples/` được kiểm parse bằng schema tương ứng: `pnpm build:contracts && node tools/docs/check-examples.mjs`. Script fail nếu thêm file mẫu mà chưa khai báo schema, nên mẫu lỗi không lọt qua.
 - **Chưa có OpenAPI máy sinh.** Khi bổ sung phải sinh từ schema/service hoặc một nguồn duy nhất; không viết tay bản thứ hai rồi để lệch.
-- `ingestAckSchema` là response HTTP của ingest. ACK có thể là `accepted`/`duplicate`/`rejected`; khi cách ly, `code=QUARANTINED` và `incidentId`/`acceptedRevision` có thể null. Adapter MQTT hiện chỉ subscribe telemetry nên **chưa publish ACK**; contract MQTT đầy đủ vẫn là thiết kế trong `docs/04`.
+- `ingestAckSchema` là response HTTP của ingest và payload ACK sự kiện publish qua MQTT. ACK có thể là `accepted`/`duplicate`/`rejected`; khi cách ly, `code=QUARANTINED` và `incidentId`/`acceptedRevision` có thể null. Adapter MQTT publish ACK sự kiện qua `v1/devices/{id}/acks`; hợp đồng topic/trạng thái thử nghiệm ở `docs/04`.
 
 ## Dùng trong code
 

@@ -4,7 +4,7 @@
 
 Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ, web responsive cho người dùng/người thân/quản trị, simulator thiết bị và bộ dữ liệu demo tổng hợp. Thiết kế gốc nằm trong `docs/`; kế hoạch và trạng thái triển khai ở [docs/14](docs/14-ke-hoach-trien-khai-phan-mem.md).
 
-> **Trạng thái 18/11/2026 — v7 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **v7 xây lại toàn bộ lớp trình bày** (token/primitive dùng chung, shell mới, CSS tách theo feature) mà không đổi nghiệp vụ hay API: **`/app` là Hôm nay** (một câu trạng thái, hành động chính, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính **4 mục Hôm nay/Cảnh báo/Sức khỏe/Người thân**, không còn menu “Thêm”. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, Web Push mới có backend sau cờ (chưa service worker/kiểm trình duyệt), chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm; HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
+> **Trạng thái 18/11/2026 — v7 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **v7 xây lại toàn bộ lớp trình bày** (token/primitive dùng chung, shell mới, CSS tách theo feature) mà không đổi nghiệp vụ hay API: **`/app` là Hôm nay** (một câu trạng thái, hành động chính, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính **4 mục Hôm nay/Cảnh báo/Sức khỏe/Người thân**, không còn menu “Thêm”. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, Web Push mới có backend sau cờ (chưa service worker/kiểm trình duyệt), chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm (đã có ingest sự kiện + ACK trong mã, chưa kiểm broker/ACL thật); HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
 
 ## Tính năng hiện có
 
@@ -66,7 +66,7 @@ Docker không bắt buộc cho demo. Chạy mặc định chỉ dựng PostgreSQ
 docker compose -f infra/compose.yaml up -d
 ```
 
-`docker compose` mặc định **không** dựng MQTT: service `mosquitto` nằm sau profile `mqtt-experimental`, chỉ bind `127.0.0.1` và bắt buộc `password_file` + ACL theo `device_id`. Adapter MQTT hiện chỉ subscribe telemetry — chưa có ingest fall/SOS/status, chưa xác thực khóa thiết bị ở tầng ứng dụng và chưa publish ACK — nên **không** dùng MQTT cho demo cảnh báo. `POST /api/v1/ingest/*` là đường duy nhất đang hỗ trợ. Cách tạo credential cục bộ, cách bật profile và giới hạn của broker: [`infra/README.md`](infra/README.md).
+`docker compose` mặc định **không** dựng MQTT: service `mosquitto` nằm sau profile `mqtt-experimental`, chỉ bind `127.0.0.1` và bắt buộc `password_file` + ACL theo `device_id`. Adapter MQTT đã subscribe telemetry/events và publish ACK sự kiện, nhưng vẫn chưa xác thực khóa thiết bị ở tầng ứng dụng, chưa có ingest `status`, chưa kiểm broker/ACL/TLS thật — nên **không** dùng MQTT cho demo cảnh báo. `POST /api/v1/ingest/*` là đường ingest chính thức; MQTT vẫn là thử nghiệm. Cách tạo credential cục bộ, cách bật profile và giới hạn của broker: [`infra/README.md`](infra/README.md).
 
 ## Kiểm thử
 
@@ -87,13 +87,13 @@ Kết quả API chạy ngày **21/11/2026** (V10a + V10b backend); các số web
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`pnpm --filter @heart-iot/api test`) | **31 suite / 295 test pass** (gồm 14 test V10a + 8 test V10b) |
+| API (`pnpm --filter @heart-iot/api test`) | **31 suite / 296 test pass** (gồm 14 test V10a + 8 test V10b + 1 test MQTT events/ACK) |
 | Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
-| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **363 liên kết/294 ID** (21/11/2026) |
+| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **362 liên kết/294 ID** (21/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
-| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **31 suite / 295 test pass** ngày 21/11/2026 |
+| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **31 suite / 296 test pass** ngày 21/11/2026 |
 | Typecheck, web production build, seed, MQTT exposure | **không chạy lại** trong lượt này |
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; ảnh và số đo giao diện v7 ở `reports/qa/evidence/v7-*/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
@@ -131,13 +131,13 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 
 - **Phần cứng/firmware:** chưa có firmware ESP32, BOM, sơ đồ chân, thời lượng pin hoặc số liệu đo thật.
 - **Độ chính xác té ngã:** chưa có phép đo precision/recall/F1; cửa sổ hủy 20 giây chỉ là tham số demo đề xuất.
-- **MQTT:** chỉ là profile thử nghiệm; adapter chỉ subscribe telemetry, chưa có ingest `fall.*`/`sos.*`/`status`, chưa publish ACK, chưa kiểm ACL/TLS với broker thật. HTTP là đường chính thức.
+- **MQTT:** chỉ là profile thử nghiệm; adapter subscribe telemetry/events, ingest fall/SOS dùng chung state machine và publish ACK, nhưng chưa có ingest `status`, chưa xác thực khóa thiết bị ở tầng ứng dụng, chưa kiểm ACL/TLS với broker thật. HTTP là đường chính thức.
 - **Thông báo:** in-app là kênh chính; backend Web Push đã có sau cờ (preference, subscription, outbox `web_push`, xoá 410) nhưng **chưa có service worker/UI** và chưa kiểm gửi thật trên trình duyệt; email/SMS và thông báo khi đóng trình duyệt chưa có.
 - **Nhắc chăm sóc trên thiết bị:** FR-15 mới có phần web; chưa có hàng đợi lệnh xuống thiết bị, rung/nút xác nhận trên firmware hay sự kiện gửi ngược.
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** API **295 test/31 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **295/295** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** API **296 test/31 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **296/296** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp

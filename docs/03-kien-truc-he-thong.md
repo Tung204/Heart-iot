@@ -11,21 +11,21 @@
 ```mermaid
 flowchart LR
     Sensors["PPG / IMU / nút bấm"] --> Device["Firmware: lọc tín hiệu, nghi ngã, hủy, buffer"]
-    Device -->|"HTTPS: POST /api/v1/ingest/* — đường duy nhất đang hỗ trợ"| Ingest["Tiếp nhận, xác thực, chống trùng, cách ly"]
-    Device -->|"MQTT thử nghiệm: chỉ telemetry, chưa có ingest sự kiện"| Broker["MQTT broker (profile mqtt-experimental, tắt mặc định)"]
-    Broker -->|"adapter chỉ subscribe telemetry, chưa kiểm với broker thật"| Ingest
+    Device -->|"HTTPS: POST /api/v1/ingest/* — đường ingest chính thức"| Ingest["Tiếp nhận, xác thực, chống trùng, cách ly"]
+    Device -->|"MQTT thử nghiệm: telemetry + sự kiện, ACK sau commit"| Broker["MQTT broker (profile mqtt-experimental, tắt mặc định)"]
+    Broker -->|"adapter subscribe telemetry/events, chưa kiểm với broker thật"| Ingest
     Ingest --> Backend["Backend: hồ sơ, quyền, dữ liệu, cảnh báo"]
     Backend --> DB[("PostgreSQL")]
     Backend --> Delivery["Outbox và tác vụ gửi thông báo"]
     Delivery -->|"Sự kiện trong ứng dụng"| Web["Web responsive"]
     Web -->|"HTTPS / API"| Backend
-    Backend -->|"Application ACK sau commit — chưa hiện thực"| Broker
-    Broker -->|"Chưa publish ACK (P0-2 mở)"| Device
+    Backend -->|"Application ACK sau commit (thử nghiệm)"| Broker
+    Broker -->|"ACK sự kiện sau commit (thử nghiệm)"| Device
     Backend -->|"Dữ liệu tối thiểu đã kiểm quyền"| AI["Trợ lý AI tùy chọn"]
     AI --> Backend
 ```
 
-> **Trạng thái truyền dữ liệu thiết bị (15/11/2026):** HTTP `POST /api/v1/ingest/*` với header `x-device-id`/`x-device-key` là **đường duy nhất đang được hỗ trợ và đã chạy**. Adapter MQTT trong backend chỉ subscribe telemetry khi đặt `MQTT_URL`; chưa có ingest `fall.*`/`sos.*`/`status`, chưa publish ACK, nên publish sự kiện lên broker **không tạo incident và không có ACK** (finding P0-2 vẫn mở). Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental`, tắt khi `docker compose up` mặc định, chỉ bind loopback và bắt buộc `password_file` + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md). Đây là **giảm bề mặt tấn công và ghi đúng thực tế**, không phải đã triển khai MQTT hay đã xác thực thiết bị trên MQTT.
+> **Trạng thái truyền dữ liệu thiết bị (21/11/2026):** HTTP `POST /api/v1/ingest/*` với header `x-device-id`/`x-device-key` vẫn là **đường ingest chính thức**. Adapter MQTT trong backend subscribe `telemetry` + `events`, gọi chung service nghiệp vụ và publish ACK sự kiện sau commit; phần P0-2 đã có mã/test cục bộ. Tuy vậy đây vẫn là profile **thử nghiệm**: chưa kiểm broker/ACL/TLS thật, chưa có xác thực khóa thiết bị ở tầng ứng dụng (P0-1 mở), nên **không dùng MQTT cho demo cảnh báo**. Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental`, tắt khi `docker compose up` mặc định, chỉ bind loopback và bắt buộc `password_file` + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md).
 
 
 Các module ingest, cảnh báo, thông báo và AI nằm trong một backend triển khai chung ở bản đầu. Có thể chạy worker riêng cùng codebase khi cần khôi phục tác vụ; chưa có lý do để chia microservices hoặc thêm Kubernetes.
@@ -57,7 +57,7 @@ Không có màn hình quản trị vùng cách ly; hiện chỉ kiểm qua DB/au
 | API | NestJS + TypeScript | Tổ chức module theo nghiệp vụ; API, ingest và tác vụ dùng chung domain |
 | Lưu trữ | PostgreSQL | Quan hệ hồ sơ/chia sẻ, transaction và unique constraint; chưa cần database chuỗi thời gian riêng |
 | Thiết bị | ESP32, ESP-IDF, ESP-MQTT | Wi-Fi và MQTT/TLS; chọn board/version sau khảo sát thư viện cảm biến và bộ nhớ |
-| MQTT broker | Mosquitto hoặc broker tương thích | **Chưa dùng trên đường ingest**; adapter chỉ subscribe telemetry. Cấu hình mẫu đã bỏ anonymous, bind loopback và nằm sau profile thử nghiệm; ACL/TLS/hosting/persistence phải thử trước khi dùng |
+| MQTT broker | Mosquitto hoặc broker tương thích | **Chưa dùng trên đường ingest production**; adapter subscribe telemetry/events và publish ACK sự kiện, nhưng chưa kiểm broker/ACL/TLS thật và P0-1 còn mở. Cấu hình mẫu đã bỏ anonymous, bind loopback và nằm sau profile thử nghiệm |
 | Realtime web | SSE hoặc WebSocket, chốt sau thử phiên đăng nhập | Server đẩy dữ liệu/cảnh báo; client reconnect phải lấy lại trạng thái từ API |
 | AI | Adapter phía server | Đổi provider/model mà không đổi luồng cảnh báo; chưa chọn provider |
 | Local demo | Compose khi đã có ứng dụng | Hiện chỉ dựng PostgreSQL (mặc định) và Mosquitto sau profile `mqtt-experimental`; API/web chạy `pnpm dev`, chưa có image |
@@ -114,7 +114,7 @@ Một confirmed đến trễ hơn 5 phút hoặc không xác định được gi
 
 ## Ranh giới quyền và vận hành
 
-Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. Adapter MQTT hiện chỉ subscribe `v1/devices/+/telemetry`, **không** subscribe sự kiện/status và **không** publish ACK; publish `fall.*`/`sos.*` lên broker không tạo incident. HTTP là đường ingest chính thức.
+Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. Adapter MQTT subscribe `v1/devices/+/telemetry` và `v1/devices/+/events`, publish ACK sự kiện; chỉ là profile thử nghiệm, chưa kiểm broker/ACL/TLS thật và chưa xác thực khóa thiết bị ở tầng ứng dụng. HTTP là đường ingest chính thức.
 
 API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Từ v2, quyền xem số đo (`canViewMeasurements`) là cổng riêng, không dùng chung với quyền nhận cảnh báo; trợ lý AI cần cả quyền xem số đo và `canViewAi`. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
 

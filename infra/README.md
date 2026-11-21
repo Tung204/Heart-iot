@@ -7,19 +7,18 @@ Nơi đặt cấu hình chạy local/demo. **Chưa có image, môi trường đ�
 | Thành phần | Trạng thái | Ghi chú |
 | --- | --- | --- |
 | PostgreSQL 17 | Có service trong compose, **chưa chạy trong các lượt kiểm tài liệu** | Mặc định `docker compose up` chỉ dựng service này; cổng publish chỉ bind `127.0.0.1`. Ứng dụng vẫn mặc định dùng PGlite, không cần Docker. |
-| MQTT broker (Mosquitto) | **Profile thử nghiệm `mqtt-experimental`, tắt mặc định** | Chưa phải đường ingest được hỗ trợ. Xem mục dưới. |
+| MQTT broker (Mosquitto) | **Profile thử nghiệm `mqtt-experimental`, tắt mặc định** | Adapter đã có telemetry + events/ACK trong mã; chưa phải đường ingest production. Xem mục dưới. |
 | API/worker/web trong compose | Chưa có image | Chạy bằng `pnpm dev` theo [README gốc](../README.md). |
 
 Secret không commit. Khi thêm `.env.example`, chỉ ghi tên biến và giá trị demo vô hại, không sao chép `.env` thật. Không mở broker/DB công khai để tiện demo.
 
 ## MQTT là thử nghiệm, không phải đường ingest được hỗ trợ
 
-Tính đến 15/11/2026:
+Tính đến 21/11/2026:
 
-- **HTTP là đường duy nhất đang chạy cho thiết bị:** `POST /api/v1/ingest/telemetry` và `POST /api/v1/ingest/events` với header `x-device-id`/`x-device-key`. Đây là đường simulator và test dùng.
-- Adapter MQTT trong `apps/api` **chỉ** subscribe `v1/devices/+/telemetry` khi đặt `MQTT_URL`. Nó **không** subscribe `v1/devices/{id}/events`, **không** publish ACK và chưa xác thực khóa thiết bị trên tầng ứng dụng.
-- Vì vậy publish `fall.*`/`sos.*` lên broker **không tạo incident, không có ACK** và có thể bị bỏ im lặng. Đây là finding **P0-2 trong [`reports/qa/v2-iot-protocol.md`](../reports/qa/v2-iot-protocol.md)** và **vẫn mở**; thay đổi cấu hình trong `infra/` chỉ giảm bề mặt tấn công, không hiện thực MQTT.
-- Không dùng MQTT cho demo cảnh báo, không tuyên bố firmware đã hỗ trợ MQTT.
+- **HTTP là đường ingest chính thức:** `POST /api/v1/ingest/telemetry` và `POST /api/v1/ingest/events` với header `x-device-id`/`x-device-key`. Đây là đường simulator và test dùng.
+- Adapter MQTT trong `backend` subscribe `v1/devices/+/telemetry` và `v1/devices/+/events` khi đặt `MQTT_URL`; sự kiện dùng chung `IncidentsService` và được ACK qua `v1/devices/{id}/acks` sau commit. Phần mã/test của **P0-2** đã có.
+- Tuy vậy **chưa xác thực khóa thiết bị ở tầng ứng dụng** (P0-1 vẫn mở), chưa kiểm broker/ACL/TLS thật và chưa kiểm tải/độ bền ACK trên broker thật. Không dùng MQTT cho demo cảnh báo, không tuyên bố firmware đã hỗ trợ MQTT production.
 
 ### Vì sao broker bị hạ xuống profile
 
@@ -28,7 +27,7 @@ Bản trước mở `listener 1883 0.0.0.0` với `allow_anonymous true` và com
 - Service `mosquitto` có `profiles: ["mqtt-experimental"]` → `docker compose up` mặc định **không** dựng và không mở cổng 1883.
 - Cổng publish chỉ bind loopback host: `127.0.0.1:${MQTT_EXPERIMENTAL_PORT:-1883}:1883`.
 - `infra/mosquitto/mosquitto.conf`: `allow_anonymous false`, `password_file`, `acl_file`, listener `127.0.0.1`.
-- `infra/mosquitto/acl`: username thiết bị **phải** là `device_id` (UUID); `pattern` chỉ cho publish `v1/devices/%u/telemetry` và đọc `v1/devices/%u/acks`. Backend dùng user riêng, chỉ đọc telemetry.
+- `infra/mosquitto/acl`: username thiết bị **phải** là `device_id` (UUID); `pattern` cho publish `v1/devices/%u/telemetry`, `v1/devices/%u/events` và đọc `v1/devices/%u/acks`. Backend dùng user riêng, đọc telemetry/events và chỉ publish ACK.
 - File mật khẩu tạo cục bộ, **đã gitignore** (`infra/mosquitto/passwd`). Thiếu file này broker dừng (fail closed), không quay lại anonymous.
 
 ### Chạy thử profile (tùy chọn, không bắt buộc cho demo)
@@ -57,11 +56,11 @@ Backend chỉ kết nối broker khi đặt `MQTT_URL` (ví dụ `mqtt://127.0.0
 ### Chưa làm (không được suy diễn là đã có)
 
 - Chưa dựng hay kiểm broker, kết nối TLS/mTLS, ACL thực thi, luồng ACK trên broker thật.
-- Chưa có ingest MQTT cho `events`/`status`/`acks`; chưa có xác thực khóa thiết bị ở tầng ứng dụng cho MQTT.
+- Đã có ingest MQTT cho `events` + ACK; **chưa có** ingest `status` và chưa xác thực khóa thiết bị ở tầng ứng dụng cho MQTT.
 - Chưa có provisioning/rotation credential thiết bị cho MQTT (khóa HTTP hiện có endpoint admin rotate; xem P1-2).
 - Chưa có persistence, backup/restore hay giám sát cho broker.
 
-Trước khi dùng ngoài máy local phải có: TLS bắt buộc, mTLS hoặc user riêng từng thiết bị kèm rotation, ACL kiểm bằng test, và quyết định ingest sự kiện qua MQTT hay chỉ HTTPS.
+Trước khi dùng ngoài máy local phải có: TLS bắt buộc, mTLS hoặc user riêng từng thiết bị kèm rotation, ACL kiểm bằng test, xác thực thiết bị ở tầng ứng dụng và quyết định production cho MQTT hay chỉ HTTPS.
 
 ## Kiểm cấu hình tĩnh
 
