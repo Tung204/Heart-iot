@@ -18,7 +18,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
 | API toàn bộ | `pnpm --filter @heart-iot/api test` | **29/29 suite, 287/287 test pass** |
-| Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview, version/validation |
+| Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview có người nhận/cảnh báo, version/validation |
 | Chi tiết cảnh báo | `incidents.spec.ts` | thêm 1 test `recipients[].deliveries` (kênh/trạng thái/thời điểm) |
 | Leo thang | `alert-escalation.spec.ts` | 9 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack |
 | API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **29/29 suite, 287/287 test pass** |
