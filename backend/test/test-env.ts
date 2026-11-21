@@ -47,6 +47,11 @@ export function prepareHermeticTestEnv(): void {
     'WEB_PUSH_VAPID_PUBLIC_KEY',
     'WEB_PUSH_VAPID_PRIVATE_KEY',
     'WEB_PUSH_TTL_SECONDS',
+    'RETENTION_ENABLED',
+    'RETENTION_TELEMETRY_DAYS',
+    'RETENTION_NOTIFICATION_DAYS',
+    'RETENTION_REALTIME_DAYS',
+    'RETENTION_AI_SUMMARY_DAYS',
   ];
   for (const key of forbidden) delete process.env[key];
 }

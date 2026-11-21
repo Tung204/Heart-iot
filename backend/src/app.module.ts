@@ -21,6 +21,7 @@ import { MeasurementsModule } from './measurements/measurements.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PolicyModule } from './policy/policy.module';
 import { RealtimeModule } from './realtime/realtime.module';
+import { RetentionModule } from './retention/retention.module';
 import { RemindersModule } from './reminders/reminders.module';
 import { StudioModule } from './studio/studio.module';
 import { SubjectsModule } from './subjects/subjects.module';
@@ -43,6 +44,7 @@ import { VisitReportModule } from './visit-reports/visit-report.module';
     IncidentsModule,
     NotificationsModule,
     RealtimeModule,
+    RetentionModule,
     StudioModule,
     AssistantModule,
     MaintenanceModule,

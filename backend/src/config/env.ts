@@ -40,7 +40,34 @@ const envSchema = z.object({
   WEB_PUSH_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
   WEB_PUSH_VAPID_PRIVATE_KEY: z.string().min(1).optional(),
   WEB_PUSH_TTL_SECONDS: z.coerce.number().int().min(60).max(86400).default(3600),
+  /**
+   * Retention thủ công: mặc định TẮT. Bật phải cấu hình ít nhất một lớp dữ liệu;
+   * không có giá trị ngày mặc định để tránh tự xóa dữ liệu khi người dùng chưa chốt.
+   */
+  RETENTION_ENABLED: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true' || value === '1'),
+  RETENTION_TELEMETRY_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
+  RETENTION_NOTIFICATION_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
+  RETENTION_REALTIME_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
+  RETENTION_AI_SUMMARY_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
 }).superRefine((value, ctx) => {
+  if (value.RETENTION_ENABLED) {
+    const configured = [
+      value.RETENTION_TELEMETRY_DAYS,
+      value.RETENTION_NOTIFICATION_DAYS,
+      value.RETENTION_REALTIME_DAYS,
+      value.RETENTION_AI_SUMMARY_DAYS,
+    ].some((days) => days !== undefined);
+    if (!configured) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['RETENTION_ENABLED'],
+        message: 'Bật retention phải đặt ít nhất một RETENTION_*_DAYS.',
+      });
+    }
+  }
   if (!value.WEB_PUSH_ENABLED) return;
   for (const key of [
     'WEB_PUSH_VAPID_SUBJECT',

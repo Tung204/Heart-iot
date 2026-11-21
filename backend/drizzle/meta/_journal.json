@@ -57,6 +57,13 @@
       "when": 1795266888161,
       "tag": "0007_fine_gambit",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795274712839,
+      "tag": "0008_smart_wrecker",
+      "breakpoints": true
     }
   ]
 }

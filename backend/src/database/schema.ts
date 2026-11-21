@@ -425,6 +425,7 @@ export const notificationOutbox = pgTable(
     index('notification_outbox_due_idx').on(table.status, table.nextAttemptAt),
     index('notification_outbox_recipient_idx').on(table.recipientUserId, table.createdAt),
     index('notification_outbox_subject_kind_idx').on(table.subjectId, table.kind),
+    index('notification_outbox_retention_idx').on(table.status, table.createdAt),
     check(
       'notification_outbox_kind_chk',
       sql`${table.kind} in ('alert', 'update', 'escalation', 'care_digest', 'care_rule')`,
@@ -480,7 +481,10 @@ export const realtimeEvents = pgTable(
     payload: jsonb('payload').notNull().default({}),
     createdAt: createdAt(),
   },
-  (table) => [index('realtime_subject_idx').on(table.subjectId, table.id)],
+  (table) => [
+    index('realtime_subject_idx').on(table.subjectId, table.id),
+    index('realtime_events_created_idx').on(table.createdAt),
+  ],
 );
 
 export const auditLogs = pgTable(
@@ -610,7 +614,10 @@ export const aiSummaries = pgTable(
     sourceRefs: jsonb('source_refs').notNull().default([]),
     createdAt: createdAt(),
   },
-  (table) => [index('ai_summaries_subject_idx').on(table.subjectId, table.periodEnd)],
+  (table) => [
+    index('ai_summaries_subject_idx').on(table.subjectId, table.periodEnd),
+    index('ai_summaries_created_idx').on(table.createdAt),
+  ],
 );
 
 export const maintenanceTasks = pgTable(
