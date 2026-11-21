@@ -25,6 +25,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
 | Migration | `drizzle/0006_yielding_gargoyle.sql` | đổi check constraint `subject_rules.kind`; PGlite test migrate từ DB rỗng |
 | Docs HTML | `build.py --check` | khớp nguồn, **363 liên kết/294 ID/22 mục** |
+| API thật | DB `.data/v10a`, API cổng 3023 | health/login 200; `POST /subjects/:id/alert-policy/previews` 200, chính sách bật 2 bậc, `recipientCount=2` (chủ hồ sơ + người thân), không cảnh báo |
 
 **Giới hạn:** chưa có UI cấu hình, Web Push, E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
 
