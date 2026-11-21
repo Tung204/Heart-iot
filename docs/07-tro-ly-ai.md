@@ -36,7 +36,7 @@ MVP vẫn có thành phần AI, nhưng bắt đầu bằng việc tóm tắt có
 
 Đầu ra hiện tại gồm `headline`, `sections`, `sources`, `degradedReason` và **`dataQuality`**. `dataQuality` có `coveragePercent`, `observedCount`, `expectedCount`, `gaps {count, reasons}`, `lastSeenAt`, `synthetic`, `limitations`; chỉ chứa số đếm/phần trăm/thời điểm/mã lý do, không chứa BPM/bước/pin thô. `sources` chỉ dùng các tài liệu đã tra được. Dẫn nguồn không tự chứng minh nội dung suy luận đúng.
 
-**Hành vi đã kiểm:** template và prompt provider buộc nêu coverage/gaps/synthetic; hậu kiểm thay cụm “bình thường/ổn định” bằng “chưa đủ dữ liệu để kết luận” khi thiếu dữ liệu. Câu hỏi ngoài phạm vi bị từ chối; câu hỏi chẩn đoán không được trả lời như kết luận y khoa. Test API ở `apps/api/test/assistant.spec.ts`; test web ở `AssistantPage.test.tsx` (hội thoại nhiều lượt, 403, 429, đổi hồ sơ, không auto-ack). Lượt v4: API 20 suite/219 test; web 35 file/250 test; E2E 26/26 trên Chromium headless. Chưa kiểm provider thật, Firefox/WebKit hay chất lượng câu trả lời ngoài bộ mock/template.
+**Hành vi đã kiểm:** template và prompt provider buộc nêu coverage/gaps/synthetic; hậu kiểm thay cụm “bình thường/ổn định” bằng “chưa đủ dữ liệu để kết luận” khi thiếu dữ liệu. Câu hỏi ngoài phạm vi bị từ chối; câu hỏi chẩn đoán không được trả lời như kết luận y khoa. Test API ở `backend/test/assistant.spec.ts`; test web ở `AssistantPage.test.tsx` (hội thoại nhiều lượt, 403, 429, đổi hồ sơ, không auto-ack). Lượt v4: API 20 suite/219 test; web 35 file/250 test; E2E 26/26 trên Chromium headless. Chưa kiểm provider thật, Firefox/WebKit hay chất lượng câu trả lời ngoài bộ mock/template.
 
 ## Quy tắc nội dung
 

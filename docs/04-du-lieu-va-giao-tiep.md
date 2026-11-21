@@ -62,7 +62,7 @@ Tổng bước theo ngày được tính từ delta trong từng boot và gán v
 
 ## Topic và giao nhận MQTT (thiết kế, chưa dùng trên đường ingest)
 
-**Trạng thái 15/11/2026 — HTTP là đường duy nhất đang hỗ trợ.** `POST /api/v1/ingest/telemetry` và `POST /api/v1/ingest/events` (header `x-device-id`, `x-device-key`) là đường simulator, web và test đang dùng. Adapter MQTT trong `apps/api` chỉ subscribe `v1/devices/+/telemetry` khi đặt `MQTT_URL`; nó **không** subscribe `events`/`status`, **không** publish ACK, nên publish `fall.*`/`sos.*` lên broker **không tạo incident, không có ACK** và có thể bị bỏ im lặng — finding **P0-2** trong [`reports/qa/v2-iot-protocol.md`](../reports/qa/v2-iot-protocol.md) **vẫn mở**. Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental` (tắt khi `docker compose up` mặc định), chỉ bind loopback, bắt buộc user/password + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md). Thay đổi cấu hình đó là **giảm bề mặt tấn công**, không phải đã triển khai MQTT.
+**Trạng thái 15/11/2026 — HTTP là đường duy nhất đang hỗ trợ.** `POST /api/v1/ingest/telemetry` và `POST /api/v1/ingest/events` (header `x-device-id`, `x-device-key`) là đường simulator, web và test đang dùng. Adapter MQTT trong `backend` chỉ subscribe `v1/devices/+/telemetry` khi đặt `MQTT_URL`; nó **không** subscribe `events`/`status`, **không** publish ACK, nên publish `fall.*`/`sos.*` lên broker **không tạo incident, không có ACK** và có thể bị bỏ im lặng — finding **P0-2** trong [`reports/qa/v2-iot-protocol.md`](../reports/qa/v2-iot-protocol.md) **vẫn mở**. Broker trong `infra/compose.yaml` nằm sau profile `mqtt-experimental` (tắt khi `docker compose up` mặc định), chỉ bind loopback, bắt buộc user/password + ACL theo `device_id`; xem [`infra/README.md`](../infra/README.md). Thay đổi cấu hình đó là **giảm bề mặt tấn công**, không phải đã triển khai MQTT.
 
 Bảng dưới là **hợp đồng thiết kế** cho khi hiện thực; cột trạng thái cho biết phần nào đã có trong code.
 
@@ -93,7 +93,7 @@ Nếu revision mới tới trước revision cũ, server lưu lịch sử và á
 
 ## API v1
 
-Prefix `/api/v1`. Phần lớn endpoint dưới đây **đã chạy** trong `apps/api` (NestJS) và được web/simulator dùng; chỉ dòng ghi rõ "chưa triển khai" là thiết kế. Bảng rút gọn theo nhóm — danh sách đầy đủ lấy từ controller trong `apps/api/src/*/*.controller.ts`, request/response chi tiết ở `packages/contracts`.
+Prefix `/api/v1`. Phần lớn endpoint dưới đây **đã chạy** trong `backend` (NestJS) và được web/simulator dùng; chỉ dòng ghi rõ "chưa triển khai" là thiết kế. Bảng rút gọn theo nhóm — danh sách đầy đủ lấy từ controller trong `backend/src/*/*.controller.ts`, request/response chi tiết ở `packages/contracts`.
 
 | Nhóm | Endpoint | Trạng thái / kiểm quyền |
 | --- | --- | --- |

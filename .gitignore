@@ -43,8 +43,8 @@ Thumbs.db
 .pi/
 
 # Playwright artifacts
-apps/web/test-results/
-apps/web/playwright-report/
+frontend/test-results/
+frontend/playwright-report/
 
 # Playwright MCP session logs (công cụ, không phải mã dự án)
 .playwright-mcp/

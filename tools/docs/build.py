@@ -42,8 +42,8 @@ CHAPTERS = [
     ("A4", "quyet-dinh-giao-dien-v4", "docs/decisions/0004-giao-dien-don-gian-v4.md", "Quyết định giao diện đơn giản v4"),
 ]
 MODULES = [
-    ("web", "apps/web/README.md", "apps/web — Giao diện web"),
-    ("api", "apps/api/README.md", "apps/api — Backend"),
+    ("web", "frontend/README.md", "frontend — Giao diện web"),
+    ("api", "backend/README.md", "backend — Backend"),
     ("firmware", "firmware/README.md", "firmware — Chương trình thiết bị"),
     ("hardware", "hardware/README.md", "hardware — Hồ sơ phần cứng"),
     ("infra", "infra/README.md", "infra — Hạ tầng"),

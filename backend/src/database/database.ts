@@ -22,7 +22,7 @@ export type DatabaseHandle = {
 };
 
 /**
- * Thư mục migration nằm ở `apps/api/drizzle` cả khi chạy tsx (src/database)
+ * Thư mục migration nằm ở `backend/drizzle` cả khi chạy tsx (src/database)
  * lẫn khi chạy build (dist/src/database). Tìm theo cả hai độ sâu.
  */
 function resolveMigrationsFolder(): string {

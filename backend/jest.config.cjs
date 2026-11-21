@@ -21,8 +21,8 @@ module.exports = {
   moduleNameMapper: {
     // Test không đọc .env thật, kể cả khi repo có file .env của môi trường dev.
     '^dotenv$': '<rootDir>/test/stubs/dotenv.cjs',
-    '^@heart-iot/contracts$': '<rootDir>/../../packages/contracts/src/core.ts',
-    '^@heart-iot/contracts/(.*)$': '<rootDir>/../../packages/contracts/src/$1.ts',
+    '^@heart-iot/contracts$': '<rootDir>/../packages/contracts/src/core.ts',
+    '^@heart-iot/contracts/(.*)$': '<rootDir>/../packages/contracts/src/$1.ts',
   },
   testTimeout: 30000,
   verbose: true,

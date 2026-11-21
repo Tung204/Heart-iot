@@ -31,13 +31,13 @@ pnpm install
 pnpm build:contracts
 
 # 2) Tạo DB demo + dữ liệu tổng hợp (chạy khi API đang tắt)
-cd apps/api && pnpm seed && cd ../..
+cd backend && pnpm seed && cd ../..
 
 # 3) API (cổng 3000)
-cd apps/api && pnpm dev
+cd backend && pnpm dev
 
 # 4) Web (cổng 5173) — mở terminal khác
-cd apps/web && pnpm dev
+cd frontend && pnpm dev
 ```
 
 Mở http://localhost:5173. Tài khoản demo **chỉ dùng khi chạy seed local, không hiện trong UI**: gõ tay email/mật khẩu ở trang đăng nhập. Giao diện công khai không còn khối tự điền tài khoản, và các chuỗi này không có trong bundle web gửi tới trình duyệt.
@@ -73,11 +73,11 @@ docker compose -f infra/compose.yaml up -d
 ```bash
 pnpm -r typecheck
 
-cd apps/api && pnpm test                  # Jest, PGlite in-memory
-cd apps/web && pnpm test                  # Vitest + Testing Library
-cd apps/web && pnpm build                 # typecheck + Vite production build
+cd backend && pnpm test                  # Jest, PGlite in-memory
+cd frontend && pnpm test                  # Vitest + Testing Library
+cd frontend && pnpm build                 # typecheck + Vite production build
 cd tools/simulator && npm test            # node:test (cần pnpm build:contracts trước)
-cd apps/web && pnpm test:e2e              # Playwright 26 test; cần API + web server
+cd frontend && pnpm test:e2e              # Playwright 26 test; cần API + web server
 python tools/docs/build.py --check        # HTML khớp nguồn Markdown/JSON
 node tools/docs/check-examples.mjs        # mọi payload mẫu parse bằng schema (cần pnpm build:contracts)
 node infra/check-mqtt-exposure.mjs        # broker không anonymous, 1883 không mở ra ngoài loopback
@@ -100,15 +100,16 @@ Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`,
 ## Thành phần
 
 ```text
-apps/
-  api/                  NestJS 11, Drizzle, PGlite/PostgreSQL, Jest
-  web/                  React 19, Vite, TanStack Query, Vitest, Playwright
+frontend/               React 19, Vite, TanStack Query, Vitest, Playwright
+backend/                NestJS 11, Drizzle, PGlite/PostgreSQL, Jest
 packages/contracts/     Schema zod dùng chung cho API/web/simulator
 tools/simulator/        CLI giả lập thiết bị (telemetry, fall, queue retry)
 infra/                  compose PostgreSQL (mặc định) + Mosquitto sau profile thử nghiệm
 docs/                   Thiết kế, yêu cầu, quyết định, HTML sinh từ Markdown
 reports/                Handoff, worklog, journal điều phối, báo cáo review
 ```
+
+`frontend/` và `backend/` là hai package độc lập: frontend chỉ gọi API qua HTTP, không import mã backend; backend không phụ thuộc frontend. `packages/contracts` giữ schema zod dùng chung để hai bên không lệch hợp đồng. Chạy API và web ở hai tiến trình/port riêng.
 
 Backend là modular monolith: `auth`, `access`, `subjects`, `care`, `emergency-contacts`, `devices`, `ingest`, `measurements`, `incidents`, `notifications`, `realtime`, `studio`, `assistant`, `maintenance`, `admin`, `policy`, `health`. UI và trợ lý dùng chung service nghiệp vụ; AI không nằm trên đường cảnh báo.
 

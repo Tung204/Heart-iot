@@ -11,10 +11,10 @@ NestJS 11 (CJS) + Drizzle ORM, chạy mặc định trên **PGlite** và có th�
 pnpm install && pnpm build:contracts
 
 # Tạo DB demo + dữ liệu tổng hợp (API phải tắt vì PGlite độc quyền file)
-cd apps/api && pnpm seed
+cd backend && pnpm seed
 
 # Dev (cổng 3000)
-cd apps/api && pnpm dev
+cd backend && pnpm dev
 
 # Hoặc build rồi chạy
 pnpm build && node dist/src/main.js
@@ -28,7 +28,7 @@ demo cho cách ly/lifecycle cảnh báo, chưa phải ngưỡng y khoa đã ch�
 ## Kiểm
 
 ```bash
-cd apps/api
+cd backend
 pnpm typecheck
 pnpm test        # Jest + PGlite in-memory; không cần API đang chạy
 pnpm test:random --seed=1288443891  # kiểm phụ thuộc thứ tự test
@@ -78,5 +78,5 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 - AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai.
 - OpenAPI máy sinh chưa làm; hợp đồng nguồn nằm ở `packages/contracts`.
 
-Nguồn thiết kế: [kiến trúc](../../docs/03-kien-truc-he-thong.md), [dữ liệu/API](../../docs/04-du-lieu-va-giao-tiep.md),
-[kế hoạch + trạng thái](../../docs/14-ke-hoach-trien-khai-phan-mem.md).
+Nguồn thiết kế: [kiến trúc](../docs/03-kien-truc-he-thong.md), [dữ liệu/API](../docs/04-du-lieu-va-giao-tiep.md),
+[kế hoạch + trạng thái](../docs/14-ke-hoach-trien-khai-phan-mem.md).

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { configDefaults, defineConfig } from 'vitest/config';
 
 /** Dev dùng source contracts (tránh interop CJS/ESM); build vẫn dùng package exports. */
-const contractsSource = fileURLToPath(new URL('../../packages/contracts/src/', import.meta.url));
+const contractsSource = fileURLToPath(new URL('../packages/contracts/src/', import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
