@@ -973,6 +973,39 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
     expect(conflictAudit.length).toBeGreaterThan(0);
   });
 
+  it('V10: chi tiết cảnh báo trả lịch sử gửi của từng người nhận (kênh/trạng thái/thời điểm)', async () => {
+    const fx = await createAlertFixture(ctx);
+    const { incidentId } = await openIncident(ctx, fx, 'incident-v10-recipients');
+
+    const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+    expect(detail.status).toBe(200);
+    expect(detail.body.recipients).toHaveLength(2);
+    const caregiverRecipient = detail.body.recipients.find(
+      (recipient: { userId: string }) => recipient.userId === fx.caregiverId,
+    );
+    expect(caregiverRecipient).toMatchObject({
+      displayName: expect.any(String),
+      permissions: expect.objectContaining({ canReceiveAlerts: true }),
+    });
+    expect(caregiverRecipient.deliveries).toHaveLength(1);
+    expect(caregiverRecipient.deliveries[0]).toMatchObject({
+      kind: 'alert',
+      channel: 'in_app',
+      status: 'pending',
+      attempts: 0,
+      sentAt: null,
+      readAt: null,
+    });
+    expect(caregiverRecipient.deliveries[0].createdAt).toEqual(expect.any(String));
+
+    // Người thân không có canReceiveAlerts không nằm trong danh sách người nhận.
+    expect(
+      detail.body.recipients.some(
+        (recipient: { userId: string }) => recipient.userId === fx.limitedId,
+      ),
+    ).toBe(false);
+  });
+
   it('T10: user.cancel_requested sau confirmed đóng incident với lý do hủy, không xóa lịch sử; sau terminal không mở lại (FR-06, R-01)', async () => {
     const fx = await createAlertFixture(ctx);
     const localId = 'incident-t10';

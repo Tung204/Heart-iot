@@ -7,6 +7,7 @@ import {
   incidentListSchema,
   type AcknowledgeAlert,
   type AlertsQuery,
+  type IncidentDelivery,
   type IncidentDetail,
   type IncidentList,
   type ResolveAlert,
@@ -46,6 +47,12 @@ import { listAlertRecipients } from './alert-recipients';
 
 /** Kiểu executor giao dịch: chấp nhận cả DB chính lẫn transaction. */
 export type DbExecutor = Parameters<Parameters<AppDb['transaction']>[0]>[0];
+
+const INCIDENT_DELIVERY_KINDS = new Set<IncidentDelivery['kind']>([
+  'alert',
+  'update',
+  'escalation',
+]);
 
 export const CANCEL_REQUESTED_REASON = 'Thiết bị yêu cầu hủy sau khi đã xác nhận';
 export const CANCEL_REQUESTED_OUTCOME = 'cancelled_by_user';
@@ -1207,7 +1214,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         .where(eq(alertActions.incidentId, incident.id))
         .orderBy(asc(alertActions.createdAt)),
       this.db
-        .select({ recipientUserId: notificationOutbox.recipientUserId })
+        .select()
         .from(notificationOutbox)
         .where(eq(notificationOutbox.incidentId, incident.id)),
     ]);
@@ -1221,7 +1228,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       : null;
 
     const recipientIds = [...new Set(outboxRows.map((row) => row.recipientUserId))];
-    const recipients = await this.buildRecipients(incident.subjectId, recipientIds);
+    const recipients = await this.buildRecipients(incident.subjectId, recipientIds, outboxRows);
 
     const summary = this.toSummary(incident, device, acknowledgedBy, startedBeforeShare);
     return incidentDetailSchema.parse({
@@ -1251,7 +1258,15 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
   private async buildRecipients(
     subjectId: string,
     userIds: string[],
-  ): Promise<Array<{ userId: string; displayName: string; permissions: CarePermissions }>> {
+    outboxRows: Array<typeof notificationOutbox.$inferSelect>,
+  ): Promise<
+    Array<{
+      userId: string;
+      displayName: string;
+      permissions: CarePermissions;
+      deliveries: IncidentDelivery[];
+    }>
+  > {
     if (userIds.length === 0) return [];
     const subjectRows = await this.db
       .select({ ownerUserId: subjects.ownerUserId })
@@ -1276,17 +1291,51 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       .where(inArray(users.id, userIds));
     const userById = new Map(userRows.map((row) => [row.id, row]));
 
-    const result: Array<{ userId: string; displayName: string; permissions: CarePermissions }> = [];
+    const result: Array<{
+      userId: string;
+      displayName: string;
+      permissions: CarePermissions;
+      deliveries: IncidentDelivery[];
+    }> = [];
     for (const userId of userIds) {
       const user = userById.get(userId);
       if (!user) continue;
+      const deliveries = outboxRows
+        .filter((row) => row.recipientUserId === userId)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .map((row) => {
+          if (!INCIDENT_DELIVERY_KINDS.has(row.kind as IncidentDelivery['kind'])) return null;
+          return {
+            id: row.id,
+            kind: row.kind as IncidentDelivery['kind'],
+            channel: 'in_app' as const,
+            status: row.status,
+            attempts: row.attempts,
+            createdAt: row.createdAt.toISOString(),
+            nextAttemptAt: row.nextAttemptAt.toISOString(),
+            sentAt: row.sentAt?.toISOString() ?? null,
+            readAt: row.readAt?.toISOString() ?? null,
+            supersededAt: row.supersededAt?.toISOString() ?? null,
+          };
+        })
+        .filter((delivery): delivery is IncidentDelivery => delivery !== null);
       if (userId === ownerUserId) {
-        result.push({ userId, displayName: user.displayName, permissions: OWNER_PERMISSIONS });
+        result.push({
+          userId,
+          displayName: user.displayName,
+          permissions: OWNER_PERMISSIONS,
+          deliveries,
+        });
         continue;
       }
       const link = linkByUser.get(userId);
       if (!link) continue; // người từng nhận nhưng không còn link → không liệt kê quyền hiện tại
-      result.push({ userId, displayName: user.displayName, permissions: link.permissions });
+      result.push({
+        userId,
+        displayName: user.displayName,
+        permissions: link.permissions,
+        deliveries,
+      });
     }
     return result;
   }

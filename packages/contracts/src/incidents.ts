@@ -6,6 +6,7 @@ import {
   incidentTypeSchema,
 } from './core';
 import { incidentEventTypeSchema } from './telemetry';
+import { notificationKindSchema } from './notifications';
 
 // Re-export để API/web dùng một nguồn state machine duy nhất.
 export { incidentStateSchema, incidentTypeSchema, incidentEventTypeSchema };
@@ -92,6 +93,23 @@ export const alertActionViewSchema = z
   .strict();
 export type AlertActionView = z.infer<typeof alertActionViewSchema>;
 
+/** Một lần xếp hàng/gửi thông báo cho người nhận; chỉ hiển thị dữ liệu vận hành, không lộ nội dung sức khỏe. */
+export const incidentDeliverySchema = z
+  .object({
+    id: idSchema,
+    kind: notificationKindSchema,
+    channel: z.enum(['in_app']),
+    status: z.enum(['pending', 'sending', 'sent', 'failed', 'superseded']),
+    attempts: z.number().int().nonnegative(),
+    createdAt: isoDateTimeSchema,
+    nextAttemptAt: isoDateTimeSchema,
+    sentAt: isoDateTimeSchema.nullable(),
+    readAt: isoDateTimeSchema.nullable(),
+    supersededAt: isoDateTimeSchema.nullable(),
+  })
+  .strict();
+export type IncidentDelivery = z.infer<typeof incidentDeliverySchema>;
+
 export const incidentRecipientSchema = z
   .object({
     userId: idSchema,
@@ -110,6 +128,11 @@ export const incidentRecipientSchema = z
         canViewMeasurements: z.boolean().default(true),
       })
       .strict(),
+    /**
+     * Lịch sử gửi của người này cho incident. Optional để client cũ không vỡ;
+     * API mới luôn trả mảng (có thể rỗng).
+     */
+    deliveries: z.array(incidentDeliverySchema).optional(),
   })
   .strict();
 export type IncidentRecipient = z.infer<typeof incidentRecipientSchema>;
