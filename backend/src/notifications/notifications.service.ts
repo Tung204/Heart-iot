@@ -13,6 +13,7 @@ import {
   notificationOutbox,
   realtimeEvents,
   subjects,
+  users,
 } from '../database/schema';
 import { AppError } from '../common/app-error';
 import { AccessService } from '../access/access.service';
@@ -134,6 +135,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
           const terminal =
             incident?.state === 'resolved' || incident?.state === 'cancelled';
+          const escalationStale = kind === 'escalation' && incident?.state !== 'open';
           const allowed = await this.recipientAllowed(
             tx,
             row.recipientUserId,
@@ -141,8 +143,9 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
             kind,
           );
 
-          // R-01: mất quyền hoặc incident đã đóng mà cảnh báo mở chưa gửi → superseded.
-          if (!allowed || (terminal && kind === 'alert')) {
+          // R-01/V10: mất quyền, incident đã đóng hoặc đã được xác nhận thì
+          // không gửi cảnh báo/leo thang đang chờ.
+          if (!allowed || (terminal && kind === 'alert') || escalationStale) {
             await tx
               .update(notificationOutbox)
               .set({ status: 'superseded', supersededAt: now, updatedAt: now })
@@ -212,16 +215,25 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       .limit(1);
     const subjectRow = subjectRows[0];
     if (!subjectRow) return false;
-    if (subjectRow.ownerUserId === recipientUserId) return true;
+    if (subjectRow.ownerUserId === recipientUserId) {
+      const ownerRows = await tx
+        .select({ status: users.status })
+        .from(users)
+        .where(eq(users.id, recipientUserId))
+        .limit(1);
+      return ownerRows[0]?.status === 'active';
+    }
     const linkRows = await tx
       .select({ permissions: careLinks.permissions })
       .from(careLinks)
+      .innerJoin(users, eq(users.id, careLinks.caregiverUserId))
       .where(
         and(
           eq(careLinks.subjectId, subjectId),
           eq(careLinks.caregiverUserId, recipientUserId),
           eq(careLinks.status, 'active'),
           isNull(careLinks.revokedAt),
+          eq(users.status, 'active'),
         ),
       )
       .limit(1);

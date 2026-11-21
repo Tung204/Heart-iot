@@ -81,6 +81,10 @@
     "./care-rules": {
       "types": "./dist/care-rules.d.ts",
       "default": "./dist/care-rules.js"
+    },
+    "./alert-policy": {
+      "types": "./dist/alert-policy.d.ts",
+      "default": "./dist/alert-policy.js"
     }
   },
   "scripts": {

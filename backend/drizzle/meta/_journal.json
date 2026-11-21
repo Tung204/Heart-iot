@@ -43,6 +43,13 @@
       "when": 1795185633492,
       "tag": "0005_blue_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795255758375,
+      "tag": "0006_yielding_gargoyle",
+      "breakpoints": true
     }
   ]
 }

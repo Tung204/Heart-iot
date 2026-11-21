@@ -42,6 +42,7 @@ import { decodeCursor, encodeCursor } from '../common/pagination';
 import { currentRequestId } from '../common/request-context';
 import { ENV, type AppEnv } from '../config/env';
 import { resolveAssignmentForEventTime, type EventQuarantineReason } from './event-assignment';
+import { listAlertRecipients } from './alert-recipients';
 
 /** Kiểu executor giao dịch: chấp nhận cả DB chính lẫn transaction. */
 export type DbExecutor = Parameters<Parameters<AppDb['transaction']>[0]>[0];
@@ -721,49 +722,6 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private async listAlertRecipients(
-    tx: DbExecutor,
-    subjectId: string,
-  ): Promise<Array<{ userId: string; displayName: string }>> {
-    const subjectRows = await tx
-      .select({ ownerUserId: subjects.ownerUserId })
-      .from(subjects)
-      .where(eq(subjects.id, subjectId))
-      .limit(1);
-    const subjectRow = subjectRows[0];
-    if (!subjectRow) return [];
-
-    const result: Array<{ userId: string; displayName: string }> = [];
-    const ownerRows = await tx
-      .select({ id: users.id, displayName: users.displayName })
-      .from(users)
-      .where(eq(users.id, subjectRow.ownerUserId))
-      .limit(1);
-    if (ownerRows[0]) result.push({ userId: ownerRows[0].id, displayName: ownerRows[0].displayName });
-
-    const linkRows = await tx
-      .select({ caregiverUserId: careLinks.caregiverUserId, permissions: careLinks.permissions })
-      .from(careLinks)
-      .where(
-        and(
-          eq(careLinks.subjectId, subjectId),
-          eq(careLinks.status, 'active'),
-          isNull(careLinks.revokedAt),
-        ),
-      );
-    const caregiverIds = linkRows
-      .filter((link) => link.permissions.canReceiveAlerts)
-      .map((link) => link.caregiverUserId);
-    if (caregiverIds.length > 0) {
-      const userRows = await tx
-        .select({ id: users.id, displayName: users.displayName })
-        .from(users)
-        .where(inArray(users.id, caregiverIds));
-      for (const row of userRows) result.push({ userId: row.id, displayName: row.displayName });
-    }
-    return result;
-  }
-
   private async createOutboxRows(
     tx: DbExecutor,
     incidentId: string,
@@ -771,7 +729,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
     revision: number,
     kind: 'alert' | 'update',
   ): Promise<void> {
-    const recipients = await this.listAlertRecipients(tx, subjectId);
+    const recipients = await listAlertRecipients(tx, subjectId);
     for (const recipient of recipients) {
       await tx
         .insert(notificationOutbox)
@@ -809,7 +767,7 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
       .where(and(eq(notificationOutbox.incidentId, incidentId), eq(notificationOutbox.status, 'sent')));
     let recipientIds = [...new Set(sentRows.map((row) => row.recipientUserId))];
     if (recipientIds.length === 0) {
-      recipientIds = (await this.listAlertRecipients(tx, subjectId)).map((r) => r.userId);
+      recipientIds = (await listAlertRecipients(tx, subjectId)).map((r) => r.userId);
     }
     for (const recipientId of recipientIds) {
       await tx

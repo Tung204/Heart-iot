@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AccessModule } from './access/access.module';
+import { AlertPolicyModule } from './alert-policy/alert-policy.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditModule } from './access/audit.module';
 import { AssistantModule } from './assistant/assistant.module';
@@ -47,6 +48,7 @@ import { VisitReportModule } from './visit-reports/visit-report.module';
     MaintenanceModule,
     RemindersModule,
     CareRulesModule,
+    AlertPolicyModule,
     VisitReportModule,
     AdminModule,
   ],

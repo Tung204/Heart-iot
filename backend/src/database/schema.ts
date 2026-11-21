@@ -17,6 +17,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import type { CarePermissions } from '@heart-iot/contracts';
 import type { CareRuleConfig } from '@heart-iot/contracts/care-rules';
+import type { AlertEscalationConfig } from '@heart-iot/contracts/alert-policy';
 import type { DeviceStatus } from '@heart-iot/contracts/telemetry';
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
@@ -617,7 +618,7 @@ export const subjectRules = pgTable(
       .references(() => subjects.id, { onDelete: 'cascade' }),
     kind: text('kind').notNull(),
     version: integer('version').notNull(),
-    config: jsonb('config').$type<CareRuleConfig>().notNull(),
+    config: jsonb('config').$type<CareRuleConfig | AlertEscalationConfig>().notNull(),
     active: boolean('active').notNull().default(true),
     createdByUserId: uuid('created_by_user_id')
       .notNull()
@@ -632,7 +633,7 @@ export const subjectRules = pgTable(
     index('subject_rules_kind_idx').on(table.kind, table.active),
     check(
       'subject_rules_kind_chk',
-      sql`${table.kind} in ('inactivity', 'care_digest')`,
+      sql`${table.kind} in ('inactivity', 'care_digest', 'alert_escalation')`,
     ),
   ],
 );

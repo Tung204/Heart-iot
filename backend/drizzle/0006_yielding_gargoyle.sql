@@ -1,0 +1,2 @@
+ALTER TABLE "subject_rules" DROP CONSTRAINT "subject_rules_kind_chk";--> statement-breakpoint
+ALTER TABLE "subject_rules" ADD CONSTRAINT "subject_rules_kind_chk" CHECK ("subject_rules"."kind" in ('inactivity', 'care_digest', 'alert_escalation'));
