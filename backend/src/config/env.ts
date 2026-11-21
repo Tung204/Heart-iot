@@ -31,6 +31,40 @@ const envSchema = z.object({
    * Chính sách demo 10 phút — CHƯA CHỐT, phải đánh giá lại trước dữ liệu thật.
    */
   SUSPECTED_TIMEOUT_MINUTES: z.coerce.number().int().min(1).max(120).default(10),
+  /** Web Push tắt mặc định; bật phải có đủ VAPID và HTTPS ở phía trình duyệt. */
+  WEB_PUSH_ENABLED: z
+    .string()
+    .optional()
+    .transform((value) => value === 'true' || value === '1'),
+  WEB_PUSH_VAPID_SUBJECT: z.string().min(1).optional(),
+  WEB_PUSH_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+  WEB_PUSH_VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  WEB_PUSH_TTL_SECONDS: z.coerce.number().int().min(60).max(86400).default(3600),
+}).superRefine((value, ctx) => {
+  if (!value.WEB_PUSH_ENABLED) return;
+  for (const key of [
+    'WEB_PUSH_VAPID_SUBJECT',
+    'WEB_PUSH_VAPID_PUBLIC_KEY',
+    'WEB_PUSH_VAPID_PRIVATE_KEY',
+  ] as const) {
+    if (!value[key]) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [key],
+        message: 'Bắt buộc khi WEB_PUSH_ENABLED=true.',
+      });
+    }
+  }
+  if (
+    value.WEB_PUSH_VAPID_SUBJECT &&
+    !/^(mailto:|https:\/\/)/.test(value.WEB_PUSH_VAPID_SUBJECT)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['WEB_PUSH_VAPID_SUBJECT'],
+      message: 'Phải là mailto: hoặc https://.',
+    });
+  }
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

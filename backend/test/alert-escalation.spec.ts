@@ -8,6 +8,7 @@ import {
 import { NotificationsModule } from '../src/notifications/notifications.module';
 import { NotificationService } from '../src/notifications/notifications.service';
 import { DB, type AppDb } from '../src/database/database';
+import { ENV, type AppEnv } from '../src/config/env';
 import {
   auditLogs,
   careLinks,
@@ -16,6 +17,8 @@ import {
   incidents,
   jobRuns,
   notificationOutbox,
+  notificationPreferences,
+  pushSubscriptions,
   subjectRules,
   subjects,
   users,
@@ -304,6 +307,44 @@ describe('Leo thang cảnh báo trong ứng dụng (V10a)', () => {
     const result = await scheduler.runOnce(new Date('2026-11-21T11:00:00.000Z'));
     expect(result).toMatchObject({ policies: 0, incidents: 0, notifications: 0 });
     expect(await escalationRows()).toHaveLength(0);
+  });
+
+  it('người nhận bật Web Push + có subscription nhận thêm outbox web_push cho từng bậc', async () => {
+    await db.insert(notificationPreferences).values({
+      userId: owner.session.user.id,
+      webPushEnabled: true,
+    });
+    await db.insert(pushSubscriptions).values({
+      userId: owner.session.user.id,
+      endpoint: `https://push.example.test/send/${crypto.randomUUID()}`,
+      p256dh: 'BL7ELU24fJTAlH5Kyl8N6BDCac8u9li_U5PIwG963MOvdYs9s7LSzj8x_7v7RFdLZ9Eap50PiiyF5K0TDAis7t0',
+      auth: 'juarI8x__VnHvsOgfeAPHg',
+    });
+    const env = ctx.app.get<AppEnv>(ENV);
+    (env as { WEB_PUSH_ENABLED: boolean }).WEB_PUSH_ENABLED = true;
+    try {
+      await enablePolicy([10]);
+      const incidentId = await insertIncident(BASE);
+      const result = await scheduler.runOnce(new Date('2026-11-21T10:10:00.000Z'));
+      expect(result).toMatchObject({ policies: 1, incidents: 1, notifications: 3 });
+      const rows = await db
+        .select({
+          recipientUserId: notificationOutbox.recipientUserId,
+          channel: notificationOutbox.channel,
+          dedupeKey: notificationOutbox.dedupeKey,
+        })
+        .from(notificationOutbox)
+        .where(eq(notificationOutbox.incidentId, incidentId));
+      expect(rows.filter((row) => row.channel === 'web_push')).toEqual([
+        expect.objectContaining({
+          recipientUserId: owner.session.user.id,
+          dedupeKey: `${incidentId}:escalation:1:${owner.session.user.id}:web_push`,
+        }),
+      ]);
+      expect(rows.filter((row) => row.channel === 'in_app')).toHaveLength(2);
+    } finally {
+      (env as { WEB_PUSH_ENABLED: boolean }).WEB_PUSH_ENABLED = false;
+    }
   });
 
   it('tính bậc theo phút, không phụ thuộc giây lẻ', () => {

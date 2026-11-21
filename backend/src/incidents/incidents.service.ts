@@ -44,9 +44,12 @@ import { currentRequestId } from '../common/request-context';
 import { ENV, type AppEnv } from '../config/env';
 import { resolveAssignmentForEventTime, type EventQuarantineReason } from './event-assignment';
 import { listAlertRecipients } from './alert-recipients';
+import { listPushRecipientIds } from '../notifications/push-recipients';
 
 /** Kiểu executor giao dịch: chấp nhận cả DB chính lẫn transaction. */
 export type DbExecutor = Parameters<Parameters<AppDb['transaction']>[0]>[0];
+
+const INCIDENT_DELIVERY_CHANNELS = new Set<IncidentDelivery['channel']>(['in_app', 'web_push']);
 
 const INCIDENT_DELIVERY_KINDS = new Set<IncidentDelivery['kind']>([
   'alert',
@@ -737,6 +740,13 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
     kind: 'alert' | 'update',
   ): Promise<void> {
     const recipients = await listAlertRecipients(tx, subjectId);
+    const pushRecipients =
+      this.env.WEB_PUSH_ENABLED && kind === 'alert'
+        ? await listPushRecipientIds(
+            tx,
+            recipients.map((recipient) => recipient.userId),
+          )
+        : new Set<string>();
     for (const recipient of recipients) {
       await tx
         .insert(notificationOutbox)
@@ -753,6 +763,25 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
           dedupeKey: `${incidentId}:${revision}:${recipient.userId}:in_app:${kind}`,
         })
         .onConflictDoNothing({ target: notificationOutbox.dedupeKey });
+      if (pushRecipients.has(recipient.userId)) {
+        await tx
+          .insert(notificationOutbox)
+          .values({
+            subjectId,
+            incidentId,
+            revision,
+            recipientUserId: recipient.userId,
+            kind,
+            title: 'Cảnh báo mới',
+            body: 'Mở ứng dụng để xem và xác nhận cảnh báo.',
+            channel: 'web_push',
+            status: 'pending',
+            attempts: 0,
+            nextAttemptAt: new Date(),
+            dedupeKey: `${incidentId}:${revision}:${recipient.userId}:web_push:${kind}`,
+          })
+          .onConflictDoNothing({ target: notificationOutbox.dedupeKey });
+      }
     }
   }
 
@@ -1305,10 +1334,13 @@ export class IncidentsService implements OnModuleInit, OnModuleDestroy {
         .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
         .map((row) => {
           if (!INCIDENT_DELIVERY_KINDS.has(row.kind as IncidentDelivery['kind'])) return null;
+          if (!INCIDENT_DELIVERY_CHANNELS.has(row.channel as IncidentDelivery['channel'])) {
+            return null;
+          }
           return {
             id: row.id,
             kind: row.kind as IncidentDelivery['kind'],
-            channel: 'in_app' as const,
+            channel: row.channel as IncidentDelivery['channel'],
             status: row.status,
             attempts: row.attempts,
             createdAt: row.createdAt.toISOString(),

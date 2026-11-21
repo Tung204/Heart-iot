@@ -11,6 +11,8 @@ import {
   careLinks,
   incidents,
   notificationOutbox,
+  notificationPreferences,
+  pushSubscriptions,
   realtimeEvents,
   subjects,
   users,
@@ -18,6 +20,14 @@ import {
 import { AppError } from '../common/app-error';
 import { AccessService } from '../access/access.service';
 import type { DbExecutor } from '../incidents/incidents.service';
+import { ENV, loadEnv, type AppEnv } from '../config/env';
+import {
+  PUSH_TRANSPORT,
+  PushTransportError,
+  type PushPayload,
+  type PushTransport,
+  WebPushTransport,
+} from './push-transport';
 
 export type ProcessPendingResult = {
   processed: number;
@@ -53,7 +63,15 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(DB) private readonly db: AppDb,
     private readonly access: AccessService,
-  ) {}
+    @Inject(ENV) env: AppEnv = loadEnv(),
+    @Inject(PUSH_TRANSPORT) push: PushTransport = new WebPushTransport(env),
+  ) {
+    this.env = env;
+    this.push = push;
+  }
+
+  private readonly env: AppEnv;
+  private readonly push: PushTransport;
 
   onModuleInit(): void {
     if (process.env.NODE_ENV !== 'test') {
@@ -136,6 +154,10 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
           const terminal =
             incident?.state === 'resolved' || incident?.state === 'cancelled';
           const escalationStale = kind === 'escalation' && incident?.state !== 'open';
+          // Push cảnh báo ban đầu không được gửi sau khi đã ack/đóng; in-app giữ
+          // hành vi cũ để thông báo cập nhật vẫn đến người nhận.
+          const pushAlertStale =
+            row.channel === 'web_push' && kind === 'alert' && incident?.state !== 'open';
           const allowed = await this.recipientAllowed(
             tx,
             row.recipientUserId,
@@ -145,7 +167,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
           // R-01/V10: mất quyền, incident đã đóng hoặc đã được xác nhận thì
           // không gửi cảnh báo/leo thang đang chờ.
-          if (!allowed || (terminal && kind === 'alert') || escalationStale) {
+          if (!allowed || (terminal && kind === 'alert') || escalationStale || pushAlertStale) {
             await tx
               .update(notificationOutbox)
               .set({ status: 'superseded', supersededAt: now, updatedAt: now })
@@ -154,11 +176,34 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
             continue;
           }
 
+          if (row.channel === 'web_push') {
+            try {
+              const outcome = await this.deliverWebPush(tx, row, now);
+              if (outcome === 'sent') {
+                await tx
+                  .update(notificationOutbox)
+                  .set({ status: 'sent', sentAt: now, lastError: null, updatedAt: now })
+                  .where(eq(notificationOutbox.id, row.id));
+                sent += 1;
+              } else {
+                await tx
+                  .update(notificationOutbox)
+                  .set({ status: 'superseded', supersededAt: now, updatedAt: now })
+                  .where(eq(notificationOutbox.id, row.id));
+                superseded += 1;
+              }
+            } catch (error) {
+              await this.deferOrFail(tx, row, now, error);
+              failed += 1;
+            }
+            continue;
+          }
+
           try {
             await this.deliverInApp(row);
             await tx
               .update(notificationOutbox)
-              .set({ status: 'sent', sentAt: now, updatedAt: now })
+              .set({ status: 'sent', sentAt: now, lastError: null, updatedAt: now })
               .where(eq(notificationOutbox.id, row.id));
             await tx.insert(realtimeEvents).values({
               subjectId,
@@ -168,25 +213,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
             });
             sent += 1;
           } catch (error) {
-            const attempts = row.attempts + 1;
-            const lastError = this.filterError(error);
-            if (attempts >= 5) {
-              await tx
-                .update(notificationOutbox)
-                .set({ status: 'failed', attempts, lastError, updatedAt: now })
-                .where(eq(notificationOutbox.id, row.id));
-            } else {
-              await tx
-                .update(notificationOutbox)
-                .set({
-                  status: 'pending',
-                  attempts,
-                  nextAttemptAt: new Date(now.getTime() + backoffMs(attempts)),
-                  lastError,
-                  updatedAt: now,
-                })
-                .where(eq(notificationOutbox.id, row.id));
-            }
+            await this.deferOrFail(tx, row, now, error);
             failed += 1;
           }
         }
@@ -246,10 +273,102 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Kênh in_app không có transport ngoài: "gửi" là chính việc đánh dấu sent.
-   * Điểm mở rộng cho email/push ở wave sau. Nếu ném lỗi, worker sẽ retry.
+   * Nếu ném lỗi, worker sẽ retry.
    */
   private async deliverInApp(_row: typeof notificationOutbox.$inferSelect): Promise<void> {
     // Không có tác vụ mạng trong v1.
+  }
+
+  /**
+   * Gửi Web Push cho mọi subscription còn lại của người nhận.
+   * - Không bật cờ / tắt preference / không còn subscription → supersede, không lỗi.
+   * - 404/410 xoá subscription; lỗi tạm thời khác để worker backoff.
+   * - Chỉ cần một subscription nhận thành công là row sent.
+   */
+  private async deliverWebPush(
+    tx: DbExecutor,
+    row: typeof notificationOutbox.$inferSelect,
+    now: Date,
+  ): Promise<'sent' | 'superseded'> {
+    if (!this.env.WEB_PUSH_ENABLED) return 'superseded';
+    const preferenceRows = await tx
+      .select({ enabled: notificationPreferences.webPushEnabled })
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.userId, row.recipientUserId))
+      .limit(1);
+    if (!preferenceRows[0]?.enabled) return 'superseded';
+
+    const subscriptions = await tx
+      .select()
+      .from(pushSubscriptions)
+      .where(eq(pushSubscriptions.userId, row.recipientUserId));
+    if (subscriptions.length === 0) return 'superseded';
+
+    const payload: PushPayload = {
+      title: row.title ?? 'Cảnh báo mới',
+      body: row.body ?? 'Mở ứng dụng để xem và xác nhận cảnh báo.',
+      url: row.incidentId ? `/app/alerts/${row.incidentId}` : '/app/alerts',
+      tag: row.incidentId ? `alert:${row.incidentId}` : `notification:${row.id}`,
+    };
+
+    let success = 0;
+    let lastTransient: unknown = null;
+    for (const subscription of subscriptions) {
+      try {
+        await this.push.send(
+          {
+            id: subscription.id,
+            endpoint: subscription.endpoint,
+            p256dh: subscription.p256dh,
+            auth: subscription.auth,
+          },
+          payload,
+        );
+        success += 1;
+        await tx
+          .update(pushSubscriptions)
+          .set({ lastUsedAt: now, updatedAt: now })
+          .where(eq(pushSubscriptions.id, subscription.id));
+      } catch (error) {
+        const status = error instanceof PushTransportError ? error.statusCode : null;
+        if (status === 404 || status === 410) {
+          await tx.delete(pushSubscriptions).where(eq(pushSubscriptions.id, subscription.id));
+          continue;
+        }
+        lastTransient = error;
+      }
+    }
+    if (success > 0) return 'sent';
+    if (lastTransient) throw lastTransient;
+    return 'superseded';
+  }
+
+  /** Ghi nhận lỗi gửi theo backoff hữu hạn 5 lần; dùng chung cho in_app và push. */
+  private async deferOrFail(
+    tx: DbExecutor,
+    row: typeof notificationOutbox.$inferSelect,
+    now: Date,
+    error: unknown,
+  ): Promise<void> {
+    const attempts = row.attempts + 1;
+    const lastError = this.filterError(error);
+    if (attempts >= 5) {
+      await tx
+        .update(notificationOutbox)
+        .set({ status: 'failed', attempts, lastError, updatedAt: now })
+        .where(eq(notificationOutbox.id, row.id));
+    } else {
+      await tx
+        .update(notificationOutbox)
+        .set({
+          status: 'pending',
+          attempts,
+          nextAttemptAt: new Date(now.getTime() + backoffMs(attempts)),
+          lastError,
+          updatedAt: now,
+        })
+        .where(eq(notificationOutbox.id, row.id));
+    }
   }
 
   /** Lọc lỗi trước khi lưu: không ghi payload sức khỏe/credentials vào lastError. */
@@ -317,7 +436,13 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
       .from(notificationOutbox)
       .leftJoin(incidents, eq(incidents.id, notificationOutbox.incidentId))
       .innerJoin(subjects, eq(subjects.id, notificationOutbox.subjectId))
-      .where(and(eq(notificationOutbox.recipientUserId, userId), eq(notificationOutbox.status, 'sent')))
+      .where(
+        and(
+          eq(notificationOutbox.recipientUserId, userId),
+          eq(notificationOutbox.status, 'sent'),
+          eq(notificationOutbox.channel, 'in_app'),
+        ),
+      )
       .orderBy(desc(notificationOutbox.createdAt));
 
     // Lọc quyền trước khi đếm/chặn 200: unreadCount phải khớp đúng tập người dùng thấy được.
@@ -382,6 +507,7 @@ export class NotificationService implements OnModuleInit, OnModuleDestroy {
           eq(notificationOutbox.id, notificationId),
           eq(notificationOutbox.recipientUserId, userId),
           eq(notificationOutbox.status, 'sent'),
+          eq(notificationOutbox.channel, 'in_app'),
         ),
       )
       .limit(1);

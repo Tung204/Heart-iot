@@ -42,6 +42,11 @@ export function prepareHermeticTestEnv(): void {
     'SESSION_TTL_HOURS',
     'MAX_CLOCK_SKEW_SECONDS',
     'SUSPECTED_TIMEOUT_MINUTES',
+    'WEB_PUSH_ENABLED',
+    'WEB_PUSH_VAPID_SUBJECT',
+    'WEB_PUSH_VAPID_PUBLIC_KEY',
+    'WEB_PUSH_VAPID_PRIVATE_KEY',
+    'WEB_PUSH_TTL_SECONDS',
   ];
   for (const key of forbidden) delete process.env[key];
 }

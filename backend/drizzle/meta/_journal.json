@@ -50,6 +50,13 @@
       "when": 1795255758375,
       "tag": "0006_yielding_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795266888161,
+      "tag": "0007_fine_gambit",
+      "breakpoints": true
     }
   ]
 }

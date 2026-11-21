@@ -15,6 +15,8 @@ import {
 } from '../database/schema';
 import { AuditService } from '../access/audit.service';
 import { listAlertRecipients } from '../incidents/alert-recipients';
+import { listPushRecipientIds } from '../notifications/push-recipients';
+import { ENV, type AppEnv } from '../config/env';
 
 const JOB_KEY = 'alert_escalation';
 const TICK_MS = 60_000;
@@ -63,6 +65,7 @@ export class AlertEscalationScheduler implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(DB) private readonly db: AppDb,
+    @Inject(ENV) private readonly env: AppEnv,
     private readonly audit: AuditService,
   ) {}
 
@@ -246,29 +249,39 @@ export class AlertEscalationScheduler implements OnModuleInit, OnModuleDestroy {
         return 0;
       }
 
+      const pushRecipients = this.env.WEB_PUSH_ENABLED
+        ? await listPushRecipientIds(
+            tx,
+            recipients.map((recipient) => recipient.userId),
+          )
+        : new Set<string>();
       let created = 0;
       for (const recipient of recipients) {
-        const rows = await tx
-          .insert(notificationOutbox)
-          .values({
-            subjectId,
-            incidentId,
-            revision: incident.lastRevision,
-            recipientUserId: recipient.userId,
-            kind: 'escalation',
-            title: `Cảnh báo vẫn mở — nhắc lần ${level}`,
-            body: `Cảnh báo đã mở ${afterMinutes} phút mà chưa được xác nhận. Mở ứng dụng để kiểm tra hoặc nhờ người hỗ trợ.`,
-            channel: 'in_app',
-            status: 'pending',
-            attempts: 0,
-            nextAttemptAt: now,
-            dedupeKey: `${incidentId}:escalation:${level}:${recipient.userId}:in_app`,
-            createdAt: now,
-            updatedAt: now,
-          })
-          .onConflictDoNothing({ target: notificationOutbox.dedupeKey })
-          .returning({ id: notificationOutbox.id });
-        created += rows.length;
+        const channels: Array<'in_app' | 'web_push'> = ['in_app'];
+        if (pushRecipients.has(recipient.userId)) channels.push('web_push');
+        for (const channel of channels) {
+          const rows = await tx
+            .insert(notificationOutbox)
+            .values({
+              subjectId,
+              incidentId,
+              revision: incident.lastRevision,
+              recipientUserId: recipient.userId,
+              kind: 'escalation',
+              title: `Cảnh báo vẫn mở — nhắc lần ${level}`,
+              body: `Cảnh báo đã mở ${afterMinutes} phút mà chưa được xác nhận. Mở ứng dụng để kiểm tra hoặc nhờ người hỗ trợ.`,
+              channel,
+              status: 'pending',
+              attempts: 0,
+              nextAttemptAt: now,
+              dedupeKey: `${incidentId}:escalation:${level}:${recipient.userId}:${channel}`,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .onConflictDoNothing({ target: notificationOutbox.dedupeKey })
+            .returning({ id: notificationOutbox.id });
+          created += rows.length;
+        }
       }
 
       if (created > 0) {
@@ -279,7 +292,7 @@ export class AlertEscalationScheduler implements OnModuleInit, OnModuleDestroy {
             targetType: 'incident',
             targetId: incidentId,
             outcome: 'success',
-            metadata: { subjectId, level, afterMinutes, recipients: created },
+            metadata: { subjectId, level, afterMinutes, deliveries: created },
           },
           tx,
         );

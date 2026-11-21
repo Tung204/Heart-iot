@@ -11,6 +11,10 @@ export const notificationKindSchema = z.enum([
 ]);
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 
+/** in_app luôn bật; web_push chỉ có khi backend bật cờ và người dùng đăng ký thiết bị. */
+export const notificationChannelSchema = z.enum(['in_app', 'web_push']);
+export type NotificationChannel = z.infer<typeof notificationChannelSchema>;
+
 export const notificationItemSchema = z
   .object({
     id: idSchema,

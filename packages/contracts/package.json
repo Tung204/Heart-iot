@@ -85,6 +85,10 @@
     "./alert-policy": {
       "types": "./dist/alert-policy.d.ts",
       "default": "./dist/alert-policy.js"
+    },
+    "./notification-preferences": {
+      "types": "./dist/notification-preferences.d.ts",
+      "default": "./dist/notification-preferences.js"
     }
   },
   "scripts": {

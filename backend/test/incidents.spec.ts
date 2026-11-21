@@ -16,11 +16,13 @@ import {
   incidentEvents,
   incidents,
   notificationOutbox,
+  notificationPreferences,
+  pushSubscriptions,
   realtimeEvents,
   subjects,
 } from '../src/database/schema';
 import { sha256 } from '../src/auth/password';
-import { loadEnv, resetEnvCacheForTests } from '../src/config/env';
+import { ENV, loadEnv, resetEnvCacheForTests, type AppEnv } from '../src/config/env';
 import { DeviceAuthModule } from '../src/devices/device-auth.module';
 import { IncidentsModule } from '../src/incidents/incidents.module';
 import { IncidentsService } from '../src/incidents/incidents.service';
@@ -1004,6 +1006,52 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
         (recipient: { userId: string }) => recipient.userId === fx.limitedId,
       ),
     ).toBe(false);
+  });
+
+  it('V10b: incident alert tạo thêm outbox web_push cho người đã bật preference + có subscription', async () => {
+    const fx = await createAlertFixture(ctx);
+    const db = ctx.app.get<AppDb>(DB);
+    await db.insert(notificationPreferences).values({
+      userId: fx.ownerId,
+      webPushEnabled: true,
+    });
+    await db.insert(pushSubscriptions).values({
+      userId: fx.ownerId,
+      endpoint: `https://push.example.test/send/${crypto.randomUUID()}`,
+      p256dh: 'BL7ELU24fJTAlH5Kyl8N6BDCac8u9li_U5PIwG963MOvdYs9s7LSzj8x_7v7RFdLZ9Eap50PiiyF5K0TDAis7t0',
+      auth: 'juarI8x__VnHvsOgfeAPHg',
+    });
+    const env = ctx.app.get<AppEnv>(ENV);
+    (env as { WEB_PUSH_ENABLED: boolean }).WEB_PUSH_ENABLED = true;
+    try {
+      const { incidentId } = await openIncident(ctx, fx, 'incident-v10b-push');
+      const rows = await db
+        .select()
+        .from(notificationOutbox)
+        .where(eq(notificationOutbox.incidentId, incidentId));
+      const pushRows = rows.filter((row) => row.channel === 'web_push');
+      expect(pushRows).toHaveLength(1);
+      expect(pushRows[0]).toMatchObject({
+        recipientUserId: fx.ownerId,
+        kind: 'alert',
+        status: 'pending',
+        title: 'Cảnh báo mới',
+      });
+
+      const detail = await fx.owner.agent.get(`/api/v1/alerts/${incidentId}`);
+      expect(detail.status).toBe(200);
+      const ownerRecipient = detail.body.recipients.find(
+        (recipient: { userId: string }) => recipient.userId === fx.ownerId,
+      );
+      expect(ownerRecipient.deliveries).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: 'alert', channel: 'web_push', status: 'pending' }),
+          expect.objectContaining({ kind: 'alert', channel: 'in_app', status: 'pending' }),
+        ]),
+      );
+    } finally {
+      (env as { WEB_PUSH_ENABLED: boolean }).WEB_PUSH_ENABLED = false;
+    }
   });
 
   it('T10: user.cancel_requested sau confirmed đóng incident với lý do hủy, không xóa lịch sử; sau terminal không mở lại (FR-06, R-01)', async () => {

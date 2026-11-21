@@ -6,7 +6,7 @@ import {
   incidentTypeSchema,
 } from './core';
 import { incidentEventTypeSchema } from './telemetry';
-import { notificationKindSchema } from './notifications';
+import { notificationChannelSchema, notificationKindSchema } from './notifications';
 
 // Re-export để API/web dùng một nguồn state machine duy nhất.
 export { incidentStateSchema, incidentTypeSchema, incidentEventTypeSchema };
@@ -98,7 +98,7 @@ export const incidentDeliverySchema = z
   .object({
     id: idSchema,
     kind: notificationKindSchema,
-    channel: z.enum(['in_app']),
+    channel: notificationChannelSchema,
     status: z.enum(['pending', 'sending', 'sent', 'failed', 'superseded']),
     attempts: z.number().int().nonnegative(),
     createdAt: isoDateTimeSchema,

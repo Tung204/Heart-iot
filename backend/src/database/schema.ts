@@ -429,6 +429,42 @@ export const notificationOutbox = pgTable(
       'notification_outbox_kind_chk',
       sql`${table.kind} in ('alert', 'update', 'escalation', 'care_digest', 'care_rule')`,
     ),
+    check('notification_outbox_channel_chk', sql`${table.channel} in ('in_app', 'web_push')`),
+  ],
+);
+
+/** Tuỳ chọn kênh của tài khoản; không có dòng nghĩa là Web Push tắt. */
+export const notificationPreferences = pgTable('notification_preferences', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  webPushEnabled: boolean('web_push_enabled').notNull().default(false),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/**
+ * Subscription Web Push của trình duyệt. Endpoint là capability URL nên không
+ * trả lại qua API; khóa p256dh/auth chỉ dùng để mã hóa payload.
+ */
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    userAgent: text('user_agent'),
+    lastUsedAt: happenedAt('last_used_at'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    uniqueIndex('push_subscriptions_endpoint_uq').on(table.endpoint),
+    index('push_subscriptions_user_idx').on(table.userId, table.createdAt),
   ],
 );
 
