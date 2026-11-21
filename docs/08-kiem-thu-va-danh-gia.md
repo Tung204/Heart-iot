@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng); số API mới nhất **29 suite/287 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng) và nền tảng V10b (Web Push sau cờ); số API mới nhất **31 suite/295 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -11,23 +11,26 @@
 
 Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
 
-## Bằng chứng chạy ngày 21/11/2026 (backend V10a)
+## Bằng chứng chạy ngày 21/11/2026 (backend V10a + nền tảng V10b)
 
 Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy trên nhánh `v10-backend`. Chỉ chạy lại phần backend bị thay đổi; **không chạy lại web/E2E** vì không sửa UI.
 
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
-| API toàn bộ | `pnpm --filter @heart-iot/api test` | **29/29 suite, 287/287 test pass** |
+| API toàn bộ | `pnpm --filter @heart-iot/api test` | **31/31 suite, 295/295 test pass** |
 | Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview có người nhận/cảnh báo, version/validation |
 | Chi tiết cảnh báo | `incidents.spec.ts` | thêm 1 test `recipients[].deliveries` (kênh/trạng thái/thời điểm) |
-| Leo thang | `alert-escalation.spec.ts` | 9 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack |
-| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **29/29 suite, 287/287 test pass** |
+| Leo thang | `alert-escalation.spec.ts` | 10 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack, outbox push |
+| Tuỳ chọn nhận thông báo | `notification-settings.spec.ts` | 3 test: mặc định tắt, bật preference, subscription CRUD, chặn endpoint/khóa sai và endpoint IP/localhost |
+| Worker Web Push | `push-delivery.spec.ts` | 3 test: gửi thành công, 410 xoá subscription, lỗi tạm thời backoff, preference tắt |
+| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **31/31 suite, 295/295 test pass** |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
-| Migration | `drizzle/0006_yielding_gargoyle.sql` | đổi check constraint `subject_rules.kind`; PGlite test migrate từ DB rỗng |
+| Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql` | 0006 mở `subject_rules.kind`; 0007 tạo `notification_preferences`/`push_subscriptions` + check channel; PGlite test migrate từ DB rỗng |
 | Docs HTML | `build.py --check` | khớp nguồn, **363 liên kết/294 ID/22 mục** |
 | API thật | DB `.data/v10a`, API cổng 3023 | health/login 200; `POST /subjects/:id/alert-policy/previews` 200, chính sách bật 2 bậc, `recipientCount=2` (chủ hồ sơ + người thân), không cảnh báo |
+| API thật V10b | API cổng 3024, `WEB_PUSH_ENABLED=true` | health/login 200; `GET/PUT /me/notification-preferences` 200 (`webPushAvailable=true`); `POST /me/push-subscriptions` 201 trả id/host, không trả endpoint/khóa |
 
-**Giới hạn:** chưa có UI cấu hình, Web Push, E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
+**Giới hạn:** Web Push mới kiểm bằng transport giả và API thật với subscription giả; khóa subscription lưu trong DB dạng thô (chưa mã hóa at-rest); **chưa có service worker/UI**, chưa gửi tới push service thật/Chromium, chưa kiểm iOS. Chưa có E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
 
 ## Bằng chứng chạy ngày 18/11/2026 (giao diện v7)
 
@@ -87,7 +90,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 | T-10 SOS/hủy | `incidents.spec.ts` T11; simulator `sos` | Không có nút SOS/anti-mistap trên firmware |
 | T-11 AI thiếu dữ liệu/quyền | `assistant.spec.ts` (fallback, quyền, HR null, câu hỏi ngoài phạm vi), `dataQuality` test | Chưa test prompt injection; chưa provider thật; chưa RAG |
 | T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`; UI archive/deletion-request | Chưa có xóa cứng/retention/backup; chưa kiểm admin với dữ liệu thật |
-| T-13 Web Push | Không có service worker/Web Push | **Chưa làm**, ngoài phạm vi v2 |
+| T-13 Web Push | Backend push sau cờ; chưa có service worker/kiểm trình duyệt thật | **Một phần**: test transport giả + API subscription; chưa kiểm push service thật |
 | T-14 độ trễ p95 | Không có instrumentation p50/p95 | **Chưa đo**; NFR-07 vẫn là mục tiêu |
 
 ## Ma trận yêu cầu và bằng chứng
@@ -109,9 +112,9 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 | T-13 | FR-12 | Trình duyệt đóng/tắt quyền push/kênh lỗi | Chỉ công bố hỗ trợ ở nền tảng đã kiểm; trạng thái thất bại không bị coi đã nhận |
 | T-14 | NFR-07 | Đo chuỗi timestamp khi dashboard online | Báo p50/p95 và số mẫu; tách cửa sổ hủy, truyền mạng, xử lý, hiển thị |
 
-T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng vẫn là **mục tiêu**: một phần đã có test tự động ở lớp sở hữu hành vi (ví dụ `apps/api/test/incidents.spec.ts` cho state machine/dedupe/ack-resolve, `apps/api/test/measurements.spec.ts` cho coverage và quyền lịch sử, `apps/api/test/care.spec.ts` cho mời/thu hồi; số suite/test hiện tại ở `README.md` mục Kiểm thử), phần còn lại chưa có test hoặc chưa có kết quả đạt. Test của một module không chứng minh phép kiểm liên thành phần (phần cứng, Web Push, độ trễ mạng thật) đã đạt.
+T-13 chỉ chạy khi triển khai Web Push/P1. Các phép kiểm ở bảng vẫn là **mục tiêu**: một phần đã có test tự động ở lớp sở hữu hành vi (ví dụ `backend/test/incidents.spec.ts` cho state machine/dedupe/ack-resolve, `backend/test/measurements.spec.ts` cho coverage và quyền lịch sử, `backend/test/care.spec.ts` cho mời/thu hồi; số suite/test hiện tại ở `README.md` mục Kiểm thử), phần còn lại chưa có test hoặc chưa có kết quả đạt. Test của một module không chứng minh phép kiểm liên thành phần (phần cứng, Web Push, độ trễ mạng thật) đã đạt.
 
-**Phần chưa chạy trong lượt này:** PostgreSQL thật/nhiều instance, MQTT broker + ACL + ACK, AI provider thật, Web Push, backup/restore, retention/xóa thật, p50/p95, load/stress, kiểm khả dụng với người cao tuổi/người chăm sóc, kiểm TLS/secret rotation, CI. Không được dùng kết quả unit/integration thay cho các phép đo này.
+**Phần chưa chạy trong lượt này:** PostgreSQL thật/nhiều instance, MQTT broker + ACL + ACK, AI provider thật, Web Push thật trên trình duyệt/push service, backup/restore, retention/xóa thật, p50/p95, load/stress, kiểm khả dụng với người cao tuổi/người chăm sóc, kiểm TLS/secret rotation, CI. Không được dùng kết quả unit/integration thay cho các phép đo này.
 
 ## Bổ sung cho AI thực thi và cấu hình động
 

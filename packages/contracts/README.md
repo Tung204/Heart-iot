@@ -4,7 +4,7 @@ Package `@heart-iot/contracts` giữ **zod schema + type** dùng cho API, web v�
 
 ## Trạng thái
 
-- Đã có schema chạy được cho các miền nghiệp vụ (auth, subjects, care, devices, telemetry/incident envelope, measurements, insights, incidents API, notifications, alert-policy, assistant, tasks, studio, admin, policies, contacts) cộng lõi enum/lỗi/phân trang, và được `backend`, `frontend`, `tools/simulator` import qua subpath.
+- Đã có schema chạy được cho các miền nghiệp vụ (auth, subjects, care, devices, telemetry/incident envelope, measurements, insights, incidents API, notifications, notification-preferences, alert-policy, assistant, tasks, studio, admin, policies, contacts) cộng lõi enum/lỗi/phân trang, và được `backend`, `frontend`, `tools/simulator` import qua subpath.
 - Các miền v2 (`insights`, `contacts`, phần mở rộng `auth`/`tasks`/`subjects`) **đã có endpoint/UI dùng thật** ở HEAD hiện tại: xu hướng 7–30 ngày, liên hệ khẩn cấp, cài đặt tài khoản/phiên, tạo việc, lưu trữ/yêu cầu xóa. Không còn là “nền hợp đồng chưa giao”.
 - Năm payload trong `examples/` được kiểm parse bằng schema tương ứng: `pnpm build:contracts && node tools/docs/check-examples.mjs`. Script fail nếu thêm file mẫu mà chưa khai báo schema, nên mẫu lỗi không lọt qua.
 - **Chưa có OpenAPI máy sinh.** Khi bổ sung phải sinh từ schema/service hoặc một nguồn duy nhất; không viết tay bản thứ hai rồi để lệch.

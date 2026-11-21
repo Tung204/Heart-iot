@@ -261,7 +261,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 ### Chưa làm hoặc chưa đủ bằng chứng
 
 - **Firmware ESP32, BOM, độ chính xác phát hiện ngã, thời lượng pin** — ngoài phạm vi mã web/API; không có số liệu đo thật. `docs/05` vẫn là khảo sát ứng viên.
-- **Web Push, email/SMS** — outbox chỉ giao trong ứng dụng; chưa có service worker/transport ngoài.
+- **Web Push, email/SMS** — V10b backend đã có outbox `web_push`, preference/subscription và transport `web-push` sau cờ; **chưa có service worker/UI** và chưa kiểm gửi thật trên trình duyệt. Email/SMS chưa có.
 - **PostgreSQL thật, nhiều instance** — mới kiểm PGlite một tiến trình; rate limit, SSE, CAS chưa benchmark/kiểm đa kết nối thật.
 - **MQTT broker/ACL/ACK** — adapter chỉ subscribe telemetry; chưa có ingest `events`/`status`, chưa xác thực khóa thiết bị trên MQTT, chưa publish ACK. Finding P0-2 (publish sự kiện lên broker bị bỏ qua) **vẫn mở**.
 - **Xóa/retention** — archive và deletion-request đã có nhưng chỉ ẩn/ghi audit; chưa có job retention, xóa cứng, xóa export/AI cache/backup.
@@ -323,7 +323,7 @@ Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng 
 
 ## 14. Đề xuất cải thiện hệ thống sau v8 (soạn 20/11/2026 — đang triển khai từng phần)
 
-Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 backend và web đã hợp nhất ngày 20/11/2026; các lát còn lại chưa có mã. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
+Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 backend và web đã hợp nhất ngày 20/11/2026; V10a/V10b backend in-app + nền tảng push đã có trên nhánh riêng, chưa hợp nhất. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
 
 ### 14.1 Khoảng trống có bằng chứng
 
@@ -349,7 +349,7 @@ Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây
 | Lát cắt | Kết quả người dùng thấy | Yêu cầu | Phụ thuộc | Cỡ đề xuất |
 | --- | --- | --- | --- | --- |
 | **V9** — Vòng chăm sóc nhìn thấy được | Xem 7/30 ngày đã làm/bỏ qua/chưa ghi nhận; đặt quy tắc nhắc nhẹ khi chưa vận động; nhận bản tin chăm sóc cuối ngày trong hộp thông báo | `FR-15` (phần web), `FR-17`, một phần `FR-20` | v8 reminders; V9.2a notification (đã có); scheduler | V9.1 M, V9.2 M–L |
-| **V10** — Cảnh báo không bị bỏ lỡ | Cảnh báo leo thang theo thời gian, biết ai đã được thông báo và khi nào; tuỳ chọn nhận Web Push | `FR-07`, `FR-12` | **V10a backend in-app đã có** (chính sách version hoá, scheduler, outbox `escalation`); còn UI + Web Push | L |
+| **V10** — Cảnh báo không bị bỏ lỡ | Cảnh báo leo thang theo thời gian, biết ai đã được thông báo và khi nào; tuỳ chọn nhận Web Push | `FR-07`, `FR-12` | **V10a + V10b backend đã có** (chính sách, scheduler, outbox `escalation`/`web_push`, preference/subscription); còn service worker/UI + kiểm trình duyệt thật | L |
 | **V11** — Trợ lý có hành động và nguồn | Gõ yêu cầu → phiếu nháp xem trước → xác nhận mới lưu; bản tin ngày/tuần; hỏi chăm sóc có trích nguồn | `FR-20`, `FR-21`, `FR-23` | V9–V10; contract AI; bộ tài liệu nguồn | L (tách V11a/V11b) |
 | **V12** — Sẵn sàng dữ liệu thật | Xóa/retention có trạng thái và bằng chứng; đồng thuận/đại diện; quyết định MQTT; OpenAPI/CI/PostgreSQL | `FR-14`, `FR-13`, `NFR-05/06`, P0-2 | D2, D5, D6 | L (chia nhiều PR) |
 
@@ -389,13 +389,13 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 #### V10 — Cảnh báo không bị bỏ lỡ
 
-**Trạng thái 21/11/2026 — V10a backend đã có (nhánh `v10-backend`, chưa hợp nhất):** API `GET/PUT /subjects/:id/alert-policy` + preview; lưu vào `subject_rules` kind `alert_escalation` với version; mặc định **tắt** và các mốc 10/20/30 phút chỉ là đề xuất. Scheduler 60 giây chỉ xử lý incident `open`, chọn bậc cao nhất đã tới hạn, ghi outbox `kind='escalation'` cho chủ hồ sơ + care link active có `canReceiveAlerts`, bỏ tài khoản khóa; dedupe theo incident/bậc/người nhận; audit `no_recipient` một lần/bậc. Worker bỏ qua escalation đang chờ nếu incident đã ack/đóng hoặc mất quyền. Preview chính sách trả người nhận hiện tại (chủ hồ sơ + care link `canReceiveAlerts`, bỏ tài khoản khóa) và cảnh báo khi không có người nhận; chi tiết cảnh báo trả thêm `deliveries` cho từng người nhận (loại/kênh/trạng thái/số lần/thời điểm gửi/đọc) để biết ai đã được thông báo và khi nào. **Chưa có UI cấu hình, Web Push, SMS/gọi tự động, hay E2E hai tài khoản.** Test mới: `alert-policy.spec.ts` (4) và `alert-escalation.spec.ts` (9, fake clock) + chi tiết cảnh báo có `deliveries`; API **287 test/29 suite**.
+**Trạng thái 21/11/2026 — V10a + nền tảng V10b backend đã có (nhánh `v10-backend`, chưa hợp nhất):** API `GET/PUT /subjects/:id/alert-policy` + preview; lưu vào `subject_rules` kind `alert_escalation` với version; mặc định **tắt** và các mốc 10/20/30 phút chỉ là đề xuất. Scheduler 60 giây chỉ xử lý incident `open`, chọn bậc cao nhất đã tới hạn, ghi outbox `kind='escalation'` cho chủ hồ sơ + care link active có `canReceiveAlerts`, bỏ tài khoản khóa; dedupe theo incident/bậc/người nhận; audit `no_recipient` một lần/bậc. Worker bỏ qua escalation đang chờ nếu incident đã ack/đóng hoặc mất quyền. Preview chính sách trả người nhận hiện tại (chủ hồ sơ + care link `canReceiveAlerts`, bỏ tài khoản khóa) và cảnh báo khi không có người nhận; chi tiết cảnh báo trả thêm `deliveries` cho từng người nhận (loại/kênh/trạng thái/số lần/thời điểm gửi/đọc) để biết ai đã được thông báo và khi nào. **V10b backend**: preference (`GET/PUT /me/notification-preferences`, trả khóa công khai VAPID khi bật), subscription (`GET/POST/DELETE /me/push-subscriptions`, chặn endpoint IP/localhost), outbox `web_push` cho alert/escalation, worker xoá subscription khi 404/410 và backoff hữu hạn; mặc định tắt, cần `WEB_PUSH_ENABLED` + VAPID. **Chưa có service worker/UI cấu hình, chưa kiểm push thật trên trình duyệt, SMS/gọi tự động, hay E2E hai tài khoản.** Test mới: `alert-policy.spec.ts` (4), `alert-escalation.spec.ts` (10, fake clock), `notification-settings.spec.ts` (3), `push-delivery.spec.ts` (3) + 1 test chi tiết `deliveries`; API **295 test/31 suite**.
 
 - Kết quả: khi cảnh báo `open` chưa được xác nhận, hệ thống thông báo lại theo bậc; chi tiết cảnh báo mở rộng danh sách người nhận hiện có thành ai/kênh/thời điểm/trạng thái gửi; người dùng bật/tắt kênh ngoài ứng dụng.
 - Cấu hình leo thang: `subject_rules` kind `alert_escalation`, version hoá, chủ hồ sơ sửa, mặc định an toàn (ví dụ 10/20/30 phút, tối đa 3 bậc — **giá trị đề xuất, cần chốt**); preview bắt buộc trước khi lưu. Không áp dụng “giờ yên tĩnh” cho cảnh báo khẩn; chỉ nhắc chăm sóc mới có giờ yên tĩnh.
 - Chỉ leo thang incident ở trạng thái cần người xử lý (`open`); `suspected` giữ hành vi hiện tại trừ khi chốt D8. Dừng khi `acknowledged`/`resolved`/`cancelled` hoặc quyền bị thu hồi; mọi bản ghi chờ cũ chuyển `superseded`.
 - Người nhận: chủ hồ sơ + care link active có `canReceiveAlerts`, kiểm lại từng lần gửi; bỏ qua tài khoản bị khóa; nếu không còn ai thì audit `no_recipient`, không giả vờ đã gửi.
-- Kênh: `in_app` luôn bật; Web Push là tuỳ chọn sau cờ `WEB_PUSH_ENABLED`, cần service worker, VAPID, HTTPS (trừ localhost), lưu subscription, xoá khi 410, hiển thị trạng thái “bị từ chối/chưa bật”. Không hứa hoạt động khi trình duyệt đóng trên mọi nền tảng.
+- Kênh: `in_app` luôn bật; **backend Web Push đã có** sau cờ `WEB_PUSH_ENABLED`, cần VAPID/HTTPS, lưu subscription, xoá khi 404/410. Còn thiếu service worker/UI để đăng ký và hiển thị trạng thái “bị từ chối/chưa bật”. Không hứa hoạt động khi trình duyệt đóng trên mọi nền tảng.
 - Gửi lỗi: dùng `attempts`/`nextAttemptAt`/`lastError` sẵn có, backoff hữu hạn, hiển thị trạng thái gửi cho người có quyền; không retry vô hạn.
 - API: `GET/PUT /subjects/:id/alert-policy`, `POST .../previews`; `GET/PUT /me/notification-preferences`; `POST/DELETE /me/push-subscriptions`; chi tiết cảnh báo giữ `recipients` hiện có và thêm kênh/thời điểm/trạng thái gửi (chỉ người có quyền).
 - Kiểm: fake clock cho từng bậc; ack đồng thời; thu hồi quyền giữa chuỗi; trạng thái kết thúc; 410/không có subscription; cấm gửi trùng; E2E hai tài khoản; ghi rõ trình duyệt đã kiểm thật.
@@ -451,7 +451,7 @@ Thay đổi notification là **luật dùng chung**, không chỉ một màn hì
 | Mã | Câu hỏi | Lựa chọn | Khuyến nghị |
 | --- | --- | --- | --- |
 | D1 | Làm V9 hay V10 trước? | V9 trước để có vòng chăm sóc; V10 trước để giảm rủi ro cảnh báo | V9.1 → V9.2 → V10; đổi nếu ưu tiên an toàn demo |
-| D2 | Web Push có nằm trong đồ án? | Chỉ in-app + leo thang; hoặc thêm push sau cờ | Làm leo thang in-app trước; push là pha riêng, chỉ nhận “đã kiểm trên Chromium” |
+| D2 | Web Push có nằm trong đồ án? | Chỉ in-app + leo thang; hoặc thêm push sau cờ | Làm leo thang in-app trước; backend push sau cờ đã có, nhưng chỉ nhận “đã kiểm trên Chromium” khi có service worker/UI và kiểm thật |
 | D3 | Quyền xem chăm sóc | Dùng lại `canViewMeasurements`; hoặc thêm `canViewCare` | **Đã chốt cho V9: dùng lại `canViewMeasurements`**, không thêm quyền mới; lý do: v8 đã chia sẻ lịch nhắc dưới quyền này, giảm migration/UI và tránh mở rộng dữ liệu. Xem lại `canViewCare` nếu cần tách quyền xem lịch khỏi số đo sau này |
 | D4 | Mặc định quy tắc sinh hoạt | Khung giờ/ngưỡng bước/grace | Đề xuất 09:00–18:00, 50 bước, 30 phút; **tắt mặc định**, chủ hồ sơ sửa |
 | D5 | Retention/xóa | Chỉ ghi nhận; xóa mềm; xóa cứng + retention | Làm retention + xóa cứng trong V12 trước dữ liệu thật; nêu rõ backup chưa xử lý |
