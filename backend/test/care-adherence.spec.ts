@@ -16,6 +16,7 @@ import { localDateKey } from '../src/measurements/insights';
 import {
   careLinks,
   careReminderPeriods,
+  careReminders,
   subjects,
 } from '../src/database/schema';
 import { buildCareAdherence } from '../src/reminders/care-adherence';
@@ -69,6 +70,11 @@ describe('Tổng hợp tuân thủ chăm sóc (V9.1)', () => {
 
   afterAll(async () => {
     await ctx.close();
+  });
+
+  // Mỗi test tự tạo lịch riêng; xóa trước để chạy randomize không phụ thuộc thứ tự.
+  beforeEach(async () => {
+    await ctx.db.delete(careReminders).where(eq(careReminders.subjectId, subjectId));
   });
 
   async function newSubject(
