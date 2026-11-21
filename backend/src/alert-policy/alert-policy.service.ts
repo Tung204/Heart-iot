@@ -13,6 +13,7 @@ import { notificationOutbox, subjects, subjectRules } from '../database/schema';
 import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { AppError } from '../common/app-error';
+import { listAlertRecipients } from '../incidents/alert-recipients';
 
 const RULE_KIND = 'alert_escalation';
 
@@ -34,7 +35,15 @@ export function defaultAlertPolicyView(subjectId: string): AlertPolicyView {
 export function buildAlertPolicyPreview(
   config: AlertEscalationConfig,
   now: Date,
+  recipients: Array<{ userId: string; displayName: string }> = [],
 ): AlertPolicyPreview {
+  const warnings: string[] = [];
+  if (!config.enabled) {
+    warnings.push('Chính sách đang tắt; sẽ không gửi nhắc lại.');
+  }
+  if (recipients.length === 0) {
+    warnings.push('Hiện không có người nhận hợp lệ; bật chính sách cũng không gửi được nhắc nào.');
+  }
   return {
     generatedAt: now.toISOString(),
     enabled: config.enabled,
@@ -46,6 +55,9 @@ export function buildAlertPolicyPreview(
         ? `Nếu cảnh báo vẫn mở sau ${step.afterMinutes} phút, gửi nhắc lại lần ${index + 1} trong ứng dụng.`
         : 'Chính sách đang tắt; sẽ không gửi nhắc lại.',
     })),
+    recipients,
+    recipientCount: recipients.length,
+    warnings,
     disclaimer:
       'Chỉ gửi trong ứng dụng; không tự gọi cấp cứu, không gửi SMS và không thay thế cấp cứu.',
   };
@@ -152,7 +164,8 @@ export class AlertPolicyService {
 
   async preview(user: UserSummary, subjectId: string): Promise<AlertPolicyPreview> {
     const view = await this.get(user, subjectId);
-    return buildAlertPolicyPreview(view.config, new Date());
+    const recipients = await listAlertRecipients(this.db, subjectId);
+    return buildAlertPolicyPreview(view.config, new Date(), recipients);
   }
 
   /** Cho scheduler/test: chỉ đọc bản active, không cần user. */

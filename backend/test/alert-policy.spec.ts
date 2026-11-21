@@ -17,6 +17,7 @@ describe('Chính sách leo thang cảnh báo (V10)', () => {
   let db: AppDb;
   let owner: TestUser;
   let caregiver: TestUser;
+  let limited: TestUser;
   let outsider: TestUser;
   let subjectId: string;
 
@@ -25,20 +26,31 @@ describe('Chính sách leo thang cảnh báo (V10)', () => {
     db = ctx.app.get<AppDb>(DB);
     owner = await registerUser(ctx.app, { displayName: 'Chủ chính sách' });
     caregiver = await registerUser(ctx.app, { displayName: 'Người thân chính sách' });
+    limited = await registerUser(ctx.app, { displayName: 'Người thân không nhận cảnh báo' });
     outsider = await registerUser(ctx.app, { displayName: 'Người ngoài chính sách' });
     const rows = await db
       .insert(subjects)
       .values({ ownerUserId: owner.session.user.id, displayName: 'Bà chính sách' })
       .returning();
     subjectId = rows[0]!.id;
-    await db.insert(careLinks).values({
-      subjectId,
-      caregiverUserId: caregiver.session.user.id,
-      invitedByUserId: owner.session.user.id,
-      permissions: PERMISSIONS,
-      status: 'active',
-      acceptedAt: new Date(),
-    });
+    await db.insert(careLinks).values([
+      {
+        subjectId,
+        caregiverUserId: caregiver.session.user.id,
+        invitedByUserId: owner.session.user.id,
+        permissions: PERMISSIONS,
+        status: 'active',
+        acceptedAt: new Date(),
+      },
+      {
+        subjectId,
+        caregiverUserId: limited.session.user.id,
+        invitedByUserId: owner.session.user.id,
+        permissions: { ...PERMISSIONS, canReceiveAlerts: false },
+        status: 'active',
+        acceptedAt: new Date(),
+      },
+    ]);
   });
 
   afterAll(async () => {
@@ -73,6 +85,12 @@ describe('Chính sách leo thang cảnh báo (V10)', () => {
       channel: 'in_app',
     });
     expect(preview.body.disclaimer).toContain('không tự gọi cấp cứu');
+    expect(preview.body.recipientCount).toBe(2);
+    expect(preview.body.recipients.map((recipient: { userId: string }) => recipient.userId).sort()).toEqual(
+      [owner.session.user.id, caregiver.session.user.id].sort(),
+    );
+    expect(preview.body.recipients.some((recipient: { userId: string }) => recipient.userId === limited.session.user.id)).toBe(false);
+    expect(preview.body.warnings).toContain('Chính sách đang tắt; sẽ không gửi nhắc lại.');
   });
 
   it('lưu cấu hình bật và preview phản ánh bản đã lưu, không ghi thêm', async () => {
@@ -103,6 +121,8 @@ describe('Chính sách leo thang cảnh báo (V10)', () => {
       5, 15,
     ]);
     expect(preview.body.steps[0].note).toContain('sau 5 phút');
+    expect(preview.body.recipientCount).toBe(2);
+    expect(preview.body.warnings).toEqual([]);
 
     const after = await db
       .select({ id: subjectRules.id })

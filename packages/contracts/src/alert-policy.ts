@@ -75,11 +75,23 @@ export const alertPolicyPreviewStepSchema = z
   .strict();
 export type AlertPolicyPreviewStep = z.infer<typeof alertPolicyPreviewStepSchema>;
 
+export const alertPolicyPreviewRecipientSchema = z
+  .object({
+    userId: idSchema,
+    displayName: z.string().min(1).max(120),
+  })
+  .strict();
+export type AlertPolicyPreviewRecipient = z.infer<typeof alertPolicyPreviewRecipientSchema>;
+
 export const alertPolicyPreviewSchema = z
   .object({
     generatedAt: isoDateTimeSchema,
     enabled: z.boolean(),
     steps: z.array(alertPolicyPreviewStepSchema).max(3),
+    /** Người sẽ nhận tại thời điểm xem preview; scheduler còn kiểm lại quyền khi gửi. */
+    recipients: z.array(alertPolicyPreviewRecipientSchema).max(100),
+    recipientCount: z.int().nonnegative().max(100),
+    warnings: z.array(z.string().min(1).max(240)).max(3),
     disclaimer: z.string().min(1).max(240),
   })
   .strict();
