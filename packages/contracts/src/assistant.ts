@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { idSchema, isoDateTimeSchema } from './core';
 import { measurementGapReasonSchema } from './measurements';
+import { createReminderSchema } from './reminders';
 
 /**
  * Hợp đồng trợ lý AI — wave 2 be-ai.
@@ -112,3 +113,75 @@ export const assistantSummaryQuerySchema = z.object({
   to: isoDateTimeSchema.optional(),
 });
 export type AssistantSummaryQuery = z.infer<typeof assistantSummaryQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// Hành động có kiểm soát (FR-21) — trợ lý chỉ tạo nháp, người dùng xác nhận.
+// ---------------------------------------------------------------------------
+
+/** Nháp hết hạn sau 15 phút; xác nhận sau hạn trả 409 và không ghi nghiệp vụ. */
+export const ASSISTANT_DRAFT_TTL_MINUTES = 15;
+
+/**
+ * Capability trợ lý được phép đề xuất. Danh sách này cố ý hẹp: chỉ thao tác
+ * nghiệp vụ có preview/confirm, không phải quyền tự đóng cảnh báo hay chẩn đoán.
+ */
+export const assistantActionCapabilityIdSchema = z.enum(['care_reminder.create']);
+export type AssistantActionCapabilityId = z.infer<typeof assistantActionCapabilityIdSchema>;
+
+export const assistantActionCapabilitySchema = z.object({
+  id: assistantActionCapabilityIdSchema,
+  label: z.string().min(1).max(120),
+  description: z.string().min(1).max(400),
+  requiresConfirmation: z.literal(true),
+  /** `false` khi người xem không phải chủ hồ sơ; vẫn hiển thị để giải thích. */
+  available: z.boolean(),
+  unavailableReason: z.string().min(1).max(300).nullable(),
+});
+export type AssistantActionCapability = z.infer<typeof assistantActionCapabilitySchema>;
+
+export const assistantBlockedActionSchema = z.object({
+  id: z.string().min(1).max(80),
+  label: z.string().min(1).max(120),
+  reason: z.string().min(1).max(400),
+});
+export type AssistantBlockedAction = z.infer<typeof assistantBlockedActionSchema>;
+
+export const assistantCapabilitiesSchema = z.object({
+  subjectId: idSchema,
+  can: z.array(assistantActionCapabilitySchema).max(20),
+  cannot: z.array(assistantBlockedActionSchema).max(20),
+});
+export type AssistantCapabilities = z.infer<typeof assistantCapabilitiesSchema>;
+
+export const assistantDraftStatusSchema = z.enum(['draft', 'confirmed', 'cancelled', 'expired']);
+export type AssistantDraftStatus = z.infer<typeof assistantDraftStatusSchema>;
+
+export const assistantDraftResultSchema = z.object({
+  type: z.literal('care_reminder'),
+  id: idSchema,
+});
+export type AssistantDraftResult = z.infer<typeof assistantDraftResultSchema>;
+
+export const assistantDraftSchema = z.object({
+  id: idSchema,
+  subjectId: idSchema,
+  capability: assistantActionCapabilityIdSchema,
+  status: assistantDraftStatusSchema,
+  /** Nội dung đã chuẩn hoá; chỉ trả cho người tạo nháp. */
+  preview: createReminderSchema,
+  previewDigest: z.string().regex(/^[0-9a-f]{64}$/),
+  expiresAt: isoDateTimeSchema,
+  createdAt: isoDateTimeSchema,
+  confirmedAt: isoDateTimeSchema.nullable(),
+  result: assistantDraftResultSchema.nullable(),
+});
+export type AssistantDraft = z.infer<typeof assistantDraftSchema>;
+
+/** POST /subjects/:id/assistant/drafts — chỉ chủ hồ sơ, không ghi care_reminders. */
+export const createAssistantDraftSchema = z
+  .object({
+    capability: z.literal('care_reminder.create'),
+    input: createReminderSchema,
+  })
+  .strict();
+export type CreateAssistantDraftInput = z.infer<typeof createAssistantDraftSchema>;

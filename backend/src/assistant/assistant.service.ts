@@ -95,7 +95,7 @@ const SECTION_KIND_LABELS: Record<string, string> = {
 };
 
 export const OUT_OF_SCOPE_ANSWER =
-  'Trợ lý chỉ tổng hợp số liệu đo được từ thiết bị, không đưa ra chẩn đoán, kê đơn hay dự đoán nguy cơ y khoa. Bạn có thể hỏi về số liệu nhịp tim, số mẫu đo, pin, cảnh báo hoặc công việc bảo trì trong khoảng thời gian được chia sẻ.';
+  'Trợ lý chỉ tổng hợp số liệu đo được từ thiết bị, không tự tạo/sửa/xóa dữ liệu, không đưa ra chẩn đoán, kê đơn hay dự đoán nguy cơ y khoa. Bạn có thể hỏi về số liệu nhịp tim, số mẫu đo, pin, cảnh báo hoặc công việc bảo trì trong khoảng thời gian được chia sẻ.';
 
 export const AI_UNAVAILABLE_ANSWER =
   'Trợ lý AI hiện chưa sẵn sàng nên chưa thể trả lời câu hỏi. Bạn có thể xem tóm tắt số liệu đo trong mục Tóm tắt của hồ sơ, hoặc thử lại sau khi trợ lý được bật.';
@@ -131,6 +131,7 @@ const SUMMARY_SYSTEM_PROMPT = [
   '- Phải đọc khối dataQuality. Khi observedCount < expectedCount hoặc gaps.count > 0, nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình; không mô tả "bình thường"/"ổn định" khi dữ liệu thiếu.',
   '- Khi dataQuality.synthetic = true, phải ghi rõ "dữ liệu mô phỏng". Nêu dataQuality.lastSeenAt nếu có.',
   '- Không chẩn đoán bệnh, không kê đơn thuốc, không dự đoán nguy cơ y khoa, không tư vấn y tế.',
+  '- Chỉ trả lời hoặc tóm tắt; không tự tạo/sửa/xóa lịch nhắc, cảnh báo, công việc hay quyền. Khi người dùng nhờ thao tác, nói rõ cần dùng chức năng tương ứng và người có quyền xác nhận.',
   '- Trả lời bằng tiếng Việt.',
   '- Trả về đúng một JSON, không kèm văn bản nào khác, theo cấu trúc:',
   '{"headline": "<tối đa 1 câu>", "sections": [{"kind": "measurements" | "alerts" | "tasks" | "note", "title": "...", "body": "...", "facts": [{"label": "...", "value": "chuỗi hoặc số", "unit": "tùy chọn", "sourceRef": "measurements" | "incidents" | "maintenance_tasks" (tùy chọn)"}]}]}',
@@ -144,6 +145,7 @@ const ASK_SYSTEM_PROMPT = [
   '- Phải đọc khối dataQuality: khi observedCount < expectedCount hoặc gaps.count > 0, nêu rõ "chỉ từ X mẫu, độ phủ Y%, Z khoảng thiếu" trước khi nêu số trung bình; không mô tả "bình thường"/"ổn định" khi dữ liệu thiếu.',
   '- Khi dataQuality.synthetic = true, phải ghi rõ "dữ liệu mô phỏng". Nêu dataQuality.lastSeenAt nếu có.',
   '- Không chẩn đoán bệnh, không kê đơn thuốc, không dự đoán nguy cơ y khoa, không tư vấn y tế.',
+  '- Chỉ trả lời hoặc tóm tắt; không tự tạo/sửa/xóa lịch nhắc, cảnh báo, công việc hay quyền. Khi người dùng nhờ thao tác, nói rõ cần dùng chức năng tương ứng và người có quyền xác nhận.',
   '- Câu hỏi nằm ngoài dữ liệu được cung cấp thì từ chối lịch sự và gợi ý hỏi về số liệu (nhịp tim, số mẫu đo, pin, cảnh báo, công việc bảo trì).',
   '- Trả lời bằng tiếng Việt.',
   '- Trả về đúng một JSON, không kèm văn bản nào khác: {"answer": "..."}',

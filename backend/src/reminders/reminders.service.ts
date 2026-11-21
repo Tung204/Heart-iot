@@ -35,7 +35,7 @@ import { addDays, isoWeekday } from '../common/local-date';
 import { localDateKey } from '../measurements/insights';
 import { buildCareAdherence } from './care-adherence';
 
-type Tx = Parameters<Parameters<AppDb['transaction']>[0]>[0];
+export type RemindersTx = Parameters<Parameters<AppDb['transaction']>[0]>[0];
 
 /**
  * Lịch nhắc chăm sóc (FR-15 phần web).
@@ -83,48 +83,60 @@ export class RemindersService {
   ): Promise<ReminderSummary> {
     const access = await this.access.requireSubject(user.id, subjectId);
     this.assertOwner(access, 'tạo lịch nhắc cho hồ sơ này');
-    const row = await this.db.transaction(async (tx) => {
-      const rows = await tx
-        .insert(careReminders)
-        .values({
-          subjectId,
-          kind: input.kind,
-          title: input.title,
-          note: input.note ? input.note : null,
-          times: input.times,
-          weekdays: input.weekdays,
-          startsOn: input.startsOn,
-          endsOn: input.endsOn ?? null,
-          active: input.active,
-        })
-        .returning();
-      const created = rows[0];
-      if (!created) throw new Error('Không tạo được lịch nhắc.');
-      if (created.active) {
-        // Khoảng đầu tiên bắt đầu từ startsOn người dùng chọn; nếu họ chủ động
-        // backdate thì lịch sử trước hôm nay cũng thuộc lịch (có thể chưa có
-        // đánh dấu). Tắt/bật lại sau đó mới tạo khoảng mới theo ngày thao tác.
-        await tx.insert(careReminderPeriods).values({
-          reminderId: created.id,
-          activeFrom: created.startsOn,
-        });
-      }
-      await this.audit.record(
-        {
-          actorUserId: user.id,
-          actorKind: 'user',
-          action: 'care_reminder.create',
-          targetType: 'care_reminder',
-          targetId: created.id,
-          outcome: 'success',
-          // Chỉ metadata kỹ thuật: tiêu đề/ghi chú là nội dung người dùng tự nhập.
-          metadata: { subjectId, kind: created.kind, active: created.active },
-        },
-        tx,
-      );
-      return created;
-    });
-    return toReminder(row);
+    return this.db.transaction((tx) => this.createWithTx(tx, user, subjectId, input));
+  }
+
+  /**
+   * Phần ghi dùng chung cho API tạo lịch và xác nhận nháp trợ lý (FR-21).
+   * Người gọi đã kiểm quyền chủ hồ sơ; hàm này không tự kiểm lại quyền để có
+   * thể chạy trong transaction của nháp. Nếu tạo lịch lỗi, transaction cuộn lại
+   * cả trạng thái nháp.
+   */
+  async createWithTx(
+    tx: RemindersTx,
+    user: UserSummary,
+    subjectId: string,
+    input: CreateReminderInput,
+  ): Promise<ReminderSummary> {
+    const rows = await tx
+      .insert(careReminders)
+      .values({
+        subjectId,
+        kind: input.kind,
+        title: input.title,
+        note: input.note ? input.note : null,
+        times: input.times,
+        weekdays: input.weekdays,
+        startsOn: input.startsOn,
+        endsOn: input.endsOn ?? null,
+        active: input.active,
+      })
+      .returning();
+    const created = rows[0];
+    if (!created) throw new Error('Không tạo được lịch nhắc.');
+    if (created.active) {
+      // Khoảng đầu tiên bắt đầu từ startsOn người dùng chọn; nếu họ chủ động
+      // backdate thì lịch sử trước hôm nay cũng thuộc lịch (có thể chưa có
+      // đánh dấu). Tắt/bật lại sau đó mới tạo khoảng mới theo ngày thao tác.
+      await tx.insert(careReminderPeriods).values({
+        reminderId: created.id,
+        activeFrom: created.startsOn,
+      });
+    }
+    await this.audit.record(
+      {
+        actorUserId: user.id,
+        actorKind: 'user',
+        action: 'care_reminder.create',
+        targetType: 'care_reminder',
+        targetId: created.id,
+        outcome: 'success',
+        // Chỉ metadata kỹ thuật: tiêu đề/ghi chú là nội dung người dùng tự nhập.
+        metadata: { subjectId, kind: created.kind, active: created.active },
+      },
+      tx,
+    );
+    return toReminder(created);
   }
 
   async update(
@@ -489,7 +501,7 @@ export class RemindersService {
    * - khoảng bắt đầu sau hôm nay bị xoá (chưa từng có hiệu lực);
    * - khoảng đang mở bắt đầu ≤ hôm nay đóng tại hôm nay (ngày thao tác vẫn tính).
    */
-  private async closePeriods(tx: Tx, reminderId: string, today: string): Promise<void> {
+  private async closePeriods(tx: RemindersTx, reminderId: string, today: string): Promise<void> {
     await tx
       .delete(careReminderPeriods)
       .where(
@@ -511,7 +523,11 @@ export class RemindersService {
   }
 
   /** Bật lại: mở khoảng gần nhất nếu nó vừa đóng hôm nay, nếu không tạo khoảng mới. */
-  private async reopenPeriods(tx: Tx, reminder: CareReminderRow, today: string): Promise<void> {
+  private async reopenPeriods(
+    tx: RemindersTx,
+    reminder: CareReminderRow,
+    today: string,
+  ): Promise<void> {
     const open = await tx
       .select({ id: careReminderPeriods.id })
       .from(careReminderPeriods)

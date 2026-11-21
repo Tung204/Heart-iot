@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { PolicyModule } from '../policy/policy.module';
+import { RemindersModule } from '../reminders/reminders.module';
 import { OpenAiCompatibleAdapter, ASSISTANT_AI_ADAPTER } from './assistant-adapter';
 import { AssistantController } from './assistant.controller';
 import { AssistantService } from './assistant.service';
+import { AssistantActionsService } from './assistant-actions.service';
 
 /**
  * Module trợ lý AI: tóm tắt khoảng dữ liệu + hỏi đáp trên số liệu tổng hợp.
@@ -12,12 +14,13 @@ import { AssistantService } from './assistant.service';
  * (không gọi mạng thật).
  */
 @Module({
-  imports: [AuthModule, PolicyModule],
+  imports: [AuthModule, PolicyModule, RemindersModule],
   controllers: [AssistantController],
   providers: [
     AssistantService,
+    AssistantActionsService,
     { provide: ASSISTANT_AI_ADAPTER, useClass: OpenAiCompatibleAdapter },
   ],
-  exports: [AssistantService],
+  exports: [AssistantService, AssistantActionsService],
 })
 export class AssistantModule {}

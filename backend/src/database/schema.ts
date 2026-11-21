@@ -87,6 +87,12 @@ export const maintenanceTaskStatusEnum = pgEnum('maintenance_task_status', [
   'cancelled',
 ]);
 export const aiSummaryStatusEnum = pgEnum('ai_summary_status', ['ready', 'failed', 'superseded']);
+export const assistantDraftStatusEnum = pgEnum('assistant_draft_status', [
+  'draft',
+  'confirmed',
+  'cancelled',
+  'expired',
+]);
 export const viewScopeEnum = pgEnum('view_scope', ['user', 'subject', 'global']);
 export const viewStatusEnum = pgEnum('view_status', ['draft', 'published', 'archived']);
 export const publicationStatusEnum = pgEnum('publication_status', ['active', 'superseded', 'rolled_back']);
@@ -620,6 +626,41 @@ export const aiSummaries = pgTable(
   ],
 );
 
+/**
+ * Nháp hành động do trợ lý đề xuất (FR-21). Tạo nháp KHÔNG ghi nghiệp vụ;
+ * chỉ xác nhận mới gọi service tạo lịch nhắc trong cùng transaction. Payload
+ * chứa nội dung người dùng sẽ thấy trong preview; audit chỉ ghi metadata kỹ thuật.
+ */
+export const assistantDrafts = pgTable(
+  'assistant_drafts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorUserId: uuid('actor_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    capability: text('capability').notNull(),
+    payload: jsonb('payload').notNull(),
+    previewDigest: text('preview_digest').notNull(),
+    status: assistantDraftStatusEnum('status').notNull().default('draft'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    confirmedAt: happenedAt('confirmed_at'),
+    confirmedByUserId: uuid('confirmed_by_user_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    resultType: text('result_type'),
+    resultId: uuid('result_id'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    index('assistant_drafts_actor_idx').on(table.actorUserId, table.status, table.expiresAt),
+    index('assistant_drafts_subject_idx').on(table.subjectId, table.createdAt),
+  ],
+);
+
 export const maintenanceTasks = pgTable(
   'maintenance_tasks',
   {
@@ -905,6 +946,7 @@ export type IncidentRow = typeof incidents.$inferSelect;
 export type CareReminderRow = typeof careReminders.$inferSelect;
 export type SubjectRuleRow = typeof subjectRules.$inferSelect;
 export type JobRunRow = typeof jobRuns.$inferSelect;
+export type AssistantDraftRow = typeof assistantDrafts.$inferSelect;
 export type CareReminderPeriodRow = typeof careReminderPeriods.$inferSelect;
 export type CareReminderCompletionRow = typeof careReminderCompletions.$inferSelect;
 export type AgentRunRow = typeof agentRuns.$inferSelect;
