@@ -52,6 +52,8 @@ const envSchema = z.object({
   RETENTION_NOTIFICATION_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
   RETENTION_REALTIME_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
   RETENTION_AI_SUMMARY_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
+  /** Nháp trợ lý đã hết hạn; không xóa nháp còn hiệu lực. */
+  RETENTION_ASSISTANT_DRAFT_DAYS: z.coerce.number().int().min(1).max(3650).optional(),
 }).superRefine((value, ctx) => {
   if (value.RETENTION_ENABLED) {
     const configured = [
@@ -59,6 +61,7 @@ const envSchema = z.object({
       value.RETENTION_NOTIFICATION_DAYS,
       value.RETENTION_REALTIME_DAYS,
       value.RETENTION_AI_SUMMARY_DAYS,
+      value.RETENTION_ASSISTANT_DRAFT_DAYS,
     ].some((days) => days !== undefined);
     if (!configured) {
       ctx.addIssue({

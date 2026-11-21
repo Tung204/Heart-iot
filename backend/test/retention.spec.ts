@@ -3,6 +3,7 @@ import { AuditService } from '../src/access/audit.service';
 import { ENV, type AppEnv } from '../src/config/env';
 import {
   aiSummaries,
+  assistantDrafts,
   auditLogs,
   deviceAssignments,
   devices,
@@ -29,7 +30,13 @@ const NOW = new Date('2026-11-21T12:00:00.000Z');
 const OLD = new Date('2026-10-01T12:00:00.000Z');
 const NEW = new Date('2026-11-20T12:00:00.000Z');
 
-const ZERO: RetentionCounts = { telemetry: 0, notifications: 0, realtime: 0, aiSummaries: 0 };
+const ZERO: RetentionCounts = {
+  telemetry: 0,
+  notifications: 0,
+  realtime: 0,
+  aiSummaries: 0,
+  assistantDrafts: 0,
+};
 
 describe('Retention dữ liệu theo tuổi', () => {
   let ctx: TestContext;
@@ -75,6 +82,7 @@ describe('Retention dữ liệu theo tuổi', () => {
       RETENTION_NOTIFICATION_DAYS: 30,
       RETENTION_REALTIME_DAYS: 30,
       RETENTION_AI_SUMMARY_DAYS: 30,
+      RETENTION_ASSISTANT_DRAFT_DAYS: 30,
       ...overrides,
     };
   }
@@ -168,6 +176,44 @@ describe('Retention dữ liệu theo tuổi', () => {
         createdAt: NEW,
       },
     ]);
+
+    const digest = 'a'.repeat(64);
+    await ctx.db.insert(assistantDrafts).values([
+      {
+        actorUserId: owner.session.user.id,
+        subjectId,
+        capability: 'care_reminder.create',
+        payload: { title: 'Nháp cũ', kind: 'other', times: ['08:00'], weekdays: [1] },
+        previewDigest: digest,
+        status: 'confirmed',
+        expiresAt: OLD,
+        createdAt: OLD,
+        updatedAt: OLD,
+      },
+      {
+        actorUserId: owner.session.user.id,
+        subjectId,
+        capability: 'care_reminder.create',
+        payload: { title: 'Nháp mới', kind: 'other', times: ['09:00'], weekdays: [1] },
+        previewDigest: digest,
+        status: 'draft',
+        expiresAt: NEW,
+        createdAt: NEW,
+        updatedAt: NEW,
+      },
+      {
+        // Dữ liệu bất thường: createdAt cũ nhưng chưa hết hạn — không được xóa.
+        actorUserId: owner.session.user.id,
+        subjectId,
+        capability: 'care_reminder.create',
+        payload: { title: 'Nháp còn hiệu lực', kind: 'other', times: ['10:00'], weekdays: [1] },
+        previewDigest: digest,
+        status: 'draft',
+        expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+        createdAt: OLD,
+        updatedAt: OLD,
+      },
+    ]);
   }
 
   it('mặc định tắt: không xóa dù có ngày cấu hình', async () => {
@@ -182,6 +228,7 @@ describe('Retention dữ liệu theo tuổi', () => {
     expect(result.deleted).toEqual(ZERO);
     expect(await ctx.db.select().from(telemetry)).toHaveLength(2);
     expect(await ctx.db.select().from(notificationOutbox)).toHaveLength(3);
+    expect(await ctx.db.select().from(assistantDrafts)).toHaveLength(3);
   });
 
   it('bật: chỉ xóa lớp cấu hình theo cutoff, giữ pending và chạy lại cùng ngày bị skip', async () => {
@@ -197,6 +244,7 @@ describe('Retention dữ liệu theo tuổi', () => {
       notifications: 1,
       realtime: 1,
       aiSummaries: 1,
+      assistantDrafts: 1,
     });
 
     const telemetryRows = await ctx.db.select().from(telemetry);
@@ -208,6 +256,7 @@ describe('Retention dữ liệu theo tuổi', () => {
     ]);
     expect(await ctx.db.select().from(realtimeEvents)).toHaveLength(1);
     expect(await ctx.db.select().from(aiSummaries)).toHaveLength(1);
+    expect(await ctx.db.select().from(assistantDrafts)).toHaveLength(2);
 
     const audits = await ctx.db
       .select()
@@ -215,7 +264,13 @@ describe('Retention dữ liệu theo tuổi', () => {
       .where(eq(auditLogs.action, 'retention.purge'));
     expect(audits).toHaveLength(1);
     expect(audits[0]?.metadata).toMatchObject({
-      deleted: { telemetry: 1, notifications: 1, realtime: 1, aiSummaries: 1 },
+      deleted: {
+        telemetry: 1,
+        notifications: 1,
+        realtime: 1,
+        aiSummaries: 1,
+        assistantDrafts: 1,
+      },
     });
 
     const second = await service.runOnce(NOW);

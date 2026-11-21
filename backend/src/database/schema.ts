@@ -658,6 +658,7 @@ export const assistantDrafts = pgTable(
   (table) => [
     index('assistant_drafts_actor_idx').on(table.actorUserId, table.status, table.expiresAt),
     index('assistant_drafts_subject_idx').on(table.subjectId, table.createdAt),
+    index('assistant_drafts_retention_idx').on(table.expiresAt),
   ],
 );
 

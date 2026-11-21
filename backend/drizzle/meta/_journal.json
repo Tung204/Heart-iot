@@ -71,6 +71,13 @@
       "when": 1795277883865,
       "tag": "0009_dapper_gladiator",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795281277473,
+      "tag": "0010_confused_klaw",
+      "breakpoints": true
     }
   ]
 }

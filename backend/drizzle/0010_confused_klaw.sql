@@ -1,0 +1,1 @@
+CREATE INDEX "assistant_drafts_retention_idx" ON "assistant_drafts" USING btree ("expires_at");

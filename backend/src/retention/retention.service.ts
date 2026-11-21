@@ -9,6 +9,7 @@ import { and, eq, inArray, lt } from 'drizzle-orm';
 import { DB, type AppDb } from '../database/database';
 import {
   aiSummaries,
+  assistantDrafts,
   jobRuns,
   notificationOutbox,
   realtimeEvents,
@@ -28,6 +29,7 @@ export type RetentionCounts = {
   notifications: number;
   realtime: number;
   aiSummaries: number;
+  assistantDrafts: number;
 };
 
 export type RetentionRunResult = {
@@ -42,6 +44,7 @@ const EMPTY_COUNTS: RetentionCounts = {
   notifications: 0,
   realtime: 0,
   aiSummaries: 0,
+  assistantDrafts: 0,
 };
 
 /**
@@ -51,7 +54,8 @@ const EMPTY_COUNTS: RetentionCounts = {
  * - `telemetry`: mẫu đo cũ theo `received_at`;
  * - `notification_outbox`: bản ghi đã kết thúc (`sent`/`failed`/`superseded`);
  * - `realtime_events`: sự kiện SSE cũ;
- * - `ai_summaries`: tóm tắt AI cũ.
+ * - `ai_summaries`: tóm tắt AI cũ;
+ * - `assistant_drafts`: nháp trợ lý đã hết hạn (không xóa nháp còn hiệu lực).
  *
  * Không xóa hồ sơ, incident, audit, cấu hình, care link hay backup. Đây không
  * thay quy trình `deletion-requests`/xóa cứng toàn bộ dữ liệu (D5 chưa chốt).
@@ -139,6 +143,11 @@ export class RetentionService implements OnModuleInit, OnModuleDestroy {
           cutoffs.aiSummaries = cutoff.toISOString();
           counts.aiSummaries = await purgeAiSummaries(tx, cutoff);
         }
+        if (this.env.RETENTION_ASSISTANT_DRAFT_DAYS !== undefined) {
+          const cutoff = daysAgo(now, this.env.RETENTION_ASSISTANT_DRAFT_DAYS);
+          cutoffs.assistantDrafts = cutoff.toISOString();
+          counts.assistantDrafts = await purgeAssistantDrafts(tx, cutoff);
+        }
 
         await this.audit.record(
           {
@@ -165,6 +174,7 @@ export class RetentionService implements OnModuleInit, OnModuleDestroy {
             notifications: deleted.notifications,
             realtime: deleted.realtime,
             aiSummaries: deleted.aiSummaries,
+            assistantDrafts: deleted.assistantDrafts,
           },
         })
         .where(and(eq(jobRuns.jobKey, JOB_KEY), eq(jobRuns.runKey, runKey)));
@@ -184,6 +194,7 @@ export class RetentionService implements OnModuleInit, OnModuleDestroy {
       this.env.RETENTION_NOTIFICATION_DAYS,
       this.env.RETENTION_REALTIME_DAYS,
       this.env.RETENTION_AI_SUMMARY_DAYS,
+      this.env.RETENTION_ASSISTANT_DRAFT_DAYS,
     ].some((days) => days !== undefined);
   }
 }
@@ -264,6 +275,30 @@ async function purgeAiSummaries(tx: DbTx, cutoff: Date): Promise<number> {
       .delete(aiSummaries)
       .where(inArray(aiSummaries.id, rows.map((row) => row.id)))
       .returning({ id: aiSummaries.id });
+    total += deleted.length;
+    if (deleted.length < BATCH_SIZE) return total;
+  }
+}
+
+/**
+ * Nháp trợ lý: chỉ xóa khi **đã hết hạn** (`expires_at`) trước cutoff, nên
+ * không bao giờ xóa nháp còn hiệu lực dù cấu hình ngày rất ngắn. Xóa cả nháp
+ * đã confirm/cancel/expired; audit `assistant.draft.*` và lịch nhắc đã tạo
+ * không bị xóa.
+ */
+async function purgeAssistantDrafts(tx: DbTx, cutoff: Date): Promise<number> {
+  let total = 0;
+  for (;;) {
+    const rows = await tx
+      .select({ id: assistantDrafts.id })
+      .from(assistantDrafts)
+      .where(lt(assistantDrafts.expiresAt, cutoff))
+      .limit(BATCH_SIZE);
+    if (rows.length === 0) return total;
+    const deleted = await tx
+      .delete(assistantDrafts)
+      .where(inArray(assistantDrafts.id, rows.map((row) => row.id)))
+      .returning({ id: assistantDrafts.id });
     total += deleted.length;
     if (deleted.length < BATCH_SIZE) return total;
   }

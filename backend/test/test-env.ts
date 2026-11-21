@@ -52,6 +52,7 @@ export function prepareHermeticTestEnv(): void {
     'RETENTION_NOTIFICATION_DAYS',
     'RETENTION_REALTIME_DAYS',
     'RETENTION_AI_SUMMARY_DAYS',
+    'RETENTION_ASSISTANT_DRAFT_DAYS',
   ];
   for (const key of forbidden) delete process.env[key];
 }
