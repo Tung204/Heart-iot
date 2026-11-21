@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**; bổ sung đề xuất cải thiện v9–v12 ngày **20/11/2026**; cập nhật V10a/V10b backend và MQTT events/ACK ngày **21/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**; bổ sung đề xuất cải thiện v9–v12 ngày **20/11/2026**; cập nhật V10a/V10b backend, MQTT events/ACK và retention tùy chọn ngày **21/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -21,7 +21,7 @@ Dựng một lát cắt **chạy được, kiểm được, tái lập được*
 - Web Push khi đóng trình duyệt; gọi cấp cứu tự động; ứng dụng native.
 - Dữ liệu sức khỏe người thật, đo độ trễ trên mạng thật, độ khả dụng với người cao tuổi.
 - Backup/restore production, TLS/ACL broker production, xoay secret thật.
-- Xóa dữ liệu xuyên backup/AI cache như một quy trình đã kiểm. v2 có `POST /subjects/:id/deletion-requests` nhưng **chỉ ghi audit** `status=recorded`; chưa có job xóa/retention, chưa xóa bản export/AI cache/backup.
+- Xóa dữ liệu xuyên backup/AI cache như một quy trình đã kiểm. v2 có `POST /subjects/:id/deletion-requests` nhưng **chỉ ghi audit** `status=recorded`; V12 mới có **retention job tùy chọn, mặc định tắt** cho một số lớp (telemetry/outbox/realtime/AI summary), chưa xóa toàn bộ hồ sơ, bản export, AI cache hay backup.
 - Coding Agent sửa backend trong runtime sản phẩm (AI-17). AI vận hành chỉ dùng capability đã đăng ký.
 
 ## 3. Stack và version
@@ -159,8 +159,8 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 
 ## 10. Định nghĩa hoàn thành v1
 
-- Các cổng kỹ thuật mục 8 đã chạy lại với output thật: API 219 test, web 250 test, randomized 219/219, E2E 26/26, build web pass. **Chưa đạt đầy đủ** ở phần bằng chứng thực tế: MQTT broker/ACK, PostgreSQL thật, firmware/độ chính xác, retention/xóa thật và khả dụng người cao tuổi.
-- Reviewer độc lập không còn finding P0/P1 mở; P2 còn lại được ghi rõ. **Hiện chưa có vòng review độc lập cuối cho toàn bộ v2**; hai reviewer v2 đã chạy; các fix sau báo cáo mới có test cục bộ, chưa có vòng tái kiểm độc lập cuối. P1 privacy/retention vẫn mở; P0-2 đã có mã/test MQTT events/ACK nhưng chưa kiểm broker thật, P0-1 vẫn mở.
+- Các cổng kỹ thuật mục 8 đã chạy lại với output thật: API **298 test/32 suite** (21/11/2026), web 250 test, randomized 298/298, E2E 26/26, build web pass. **Chưa đạt đầy đủ** ở phần bằng chứng thực tế: MQTT broker/ACK, PostgreSQL thật, firmware/độ chính xác, retention production/xóa cứng và khả dụng người cao tuổi.
+- Reviewer độc lập không còn finding P0/P1 mở; P2 còn lại được ghi rõ. **Hiện chưa có vòng review độc lập cuối cho toàn bộ v2**; hai reviewer v2 đã chạy; các fix sau báo cáo mới có test cục bộ, chưa có vòng tái kiểm độc lập cuối. P1 privacy/retention còn mở (mới có retention tùy chọn, chưa xóa cứng/đồng thuận); P0-2 đã có mã/test MQTT events/ACK nhưng chưa kiểm broker thật, P0-1 vẫn mở.
 - README/API/UI dùng được theo hướng dẫn; demo script tái lập từ DB rỗng. **Chưa kiểm lại demo từ DB rỗng trong lượt tài liệu này.**
 - Docs nguồn được cập nhật; HTML build `--check` đạt.
 - Giới hạn (firmware, push, dữ liệu thật, PostgreSQL production) được nêu rõ ở README và báo cáo.
@@ -184,7 +184,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 | Xu hướng 7/14/30 ngày | `/insights` một query cho cả cửa sổ; ngày thiếu `hasData=false`, không nội suy; card dashboard | `insights.spec.ts`, `RecentInsightsCard.test.tsx` |
 | Liên hệ khẩn cấp | CRUD, tối đa 5, một primary; owner ghi, caregiver có `canReceiveAlerts` đọc; `tel:` trong cảnh báo | `emergency-contacts.spec.ts`, test component contacts |
 | Tạo việc bảo trì | `POST /maintenance-tasks`; thiết bị phải đang gắn; caregiver chỉ xem; hạn quá khứ bị từ chối | `task-create.spec.ts`, `TasksPage.test.tsx` |
-| Lưu trữ/yêu cầu xóa | Archive 204 + thu hồi care link, không xóa dữ liệu; deletion-request 202 `recorded`, chỉ audit | `subjects.spec.ts`, `SubjectsPage.test.tsx` |
+| Lưu trữ/yêu cầu xóa | Archive 204 + thu hồi care link, không xóa dữ liệu; deletion-request 202 `recorded`, chỉ audit; retention job tùy chọn cho telemetry/outbox/realtime/AI summary | `subjects.spec.ts`, `retention.spec.ts`, `SubjectsPage.test.tsx` |
 | Quyền xem số đo | `canViewMeasurements` tách khỏi cảnh báo; 403 nghiệp vụ; `/status` có `healthDataVisible`; AI cũng bị chặn | `care.spec.ts`, `devices.spec.ts`, `assistant.spec.ts` |
 | Badge/banner | Badge chưa đọc, banner thông báo mới toàn tài khoản, banner mất SSE; không dựa vào màu | `AppShell.test.tsx`, `useUnreadNotifications.test.tsx`, `useSubjectEvents.test.tsx` |
 | Quản trị thiết bị | Tab thiết bị: danh sách, cấp mã, xoay khóa; mã/khóa chỉ hiện một lần | `AdminPage.test.tsx`, `devices.spec.ts` |
@@ -264,13 +264,13 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 - **Web Push, email/SMS** — V10b backend đã có outbox `web_push`, preference/subscription và transport `web-push` sau cờ; **chưa có service worker/UI** và chưa kiểm gửi thật trên trình duyệt. Email/SMS chưa có.
 - **PostgreSQL thật, nhiều instance** — mới kiểm PGlite một tiến trình; rate limit, SSE, CAS chưa benchmark/kiểm đa kết nối thật.
 - **MQTT broker/ACL/ACK** — adapter đã subscribe telemetry/events, ingest fall/SOS dùng chung `IncidentsService` và publish ACK sau commit (P0-2 có mã/test cục bộ). **Chưa** có ingest `status`, chưa xác thực khóa thiết bị ở tầng ứng dụng (P0-1 mở), chưa kiểm broker/ACL/TLS thật. HTTP vẫn là đường ingest chính thức.
-- **Xóa/retention** — archive và deletion-request đã có nhưng chỉ ẩn/ghi audit; chưa có job retention, xóa cứng, xóa export/AI cache/backup.
+- **Xóa/retention** — archive và deletion-request đã có nhưng chỉ ẩn/ghi audit; retention job **mặc định tắt** đã có cho telemetry/outbox/realtime/AI summary; chưa có xóa cứng toàn bộ hồ sơ, xóa export/AI cache/backup hay API/UI cấu hình.
 - **Đặc tả AI dài hạn** — `agent_runs`, `run_steps`, `step_attempts` có bảng nhưng chưa có runtime/endpoint; planner/tool registry, scheduler, approval flow, RAG chưa triển khai. Hiện chỉ có summary/ask giới hạn trên số liệu tổng hợp.
 - **FR-13 ngưỡng sức khỏe/ngã** — chỉ có policy vận hành `device_runtime`; chưa có ngưỡng y khoa có nguồn/phiên bản.
 - **UI tạo thiết bị admin** — tab thiết bị có list/cấp mã/xoay khóa nhưng chưa có form tạo; phải gọi API admin.
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
 - **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
-- **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, retention/xóa cứng/backup; deletion-request mới ghi audit. Không tuyên bố tuân thủ pháp lý.
+- **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, xóa cứng/backup; deletion-request mới ghi audit; retention job mới ở mức tùy chọn, mặc định tắt. Không tuyên bố tuân thủ pháp lý.
 - **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Với v7, mới có review W1 foundation; các lane P/C/H/R/A chưa có review độc lập trên bản hợp nhất. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
 
 ### Giới hạn vận hành đã biết
@@ -295,7 +295,7 @@ Reviewer là phiên mới, chỉ đọc và tự chạy lại trên DB/API riên
 - **Chất lượng kiểm thử** (`reports/qa/v2-chat-luong-kiem-thu.md`): hermetic env và randomize đã được cải thiện; đã sửa phụ thuộc thứ tự còn lại. Tại v2 đạt randomized 214/214, E2E 7/7; sau v4 hiện là randomized 219/219, E2E 26/26, build pass. Không dùng “219 test pass” để nói toàn bộ hệ thống đã kiểm.
 - **Hiệu năng** (`reports/qa/v2-hieu-nang-va-on-dinh-tai-trang.md`): code-split/font/lịch sử đã tối ưu; số đo p95 trước đó là trên PGlite cục bộ, không đại diện mạng thật và chưa chạy lại sau v2.
 
-**Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: P0-2 đã có mã/test nhưng chưa kiểm broker thật và P0-1 còn mở, chưa có xóa/retention thật, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.
+**Kết luận:** lát cắt phần mềm có nhiều hành vi được bảo vệ bằng test và các cổng kỹ thuật đã xanh trên máy dev, nhưng **chưa release-ready**: P0-2 đã có mã/test nhưng chưa kiểm broker thật và P0-1 còn mở, retention mới ở mức tùy chọn/chưa chạy production và chưa xóa cứng/backup, chưa có firmware/accuracy, chưa kiểm PostgreSQL/MQTT thật và chưa tái kiểm độc lập từng finding sau fix.
 
 ## 13. Kế hoạch mở rộng tiếp theo (bổ sung 18/11/2026 — đang triển khai từng phần)
 
@@ -323,7 +323,7 @@ Các hạng mục dưới đây là **yêu cầu bổ sung của người dùng 
 
 ## 14. Đề xuất cải thiện hệ thống sau v8 (soạn 20/11/2026 — đang triển khai từng phần)
 
-Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 backend và web đã hợp nhất ngày 20/11/2026; V10a/V10b backend in-app + nền tảng push đã có trên nhánh riêng, chưa hợp nhất. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
+Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây là **đề xuất kỹ thuật để người dùng chốt**, không phải cam kết tiến độ, không phải nghiệm thu. V9.1 backend và web đã hợp nhất ngày 20/11/2026; V10a/V10b backend in-app + nền tảng push và MQTT events/ACK đã có trên nhánh riêng, chưa hợp nhất; retention tùy chọn mới ở mức backend, mặc định tắt. Thứ tự lát cắt, phạm vi Web Push, mức retention và hướng MQTT đều nằm trong mục 14.6 và cần quyết định trước khi mở nhánh. Nguồn: trạng thái mục 11–13, yêu cầu `FR-15`–`FR-23` ở [chương 02](02-yeu-cau-va-pham-vi.md), và các finding còn mở ở mục 12.
 
 ### 14.1 Khoảng trống có bằng chứng
 
@@ -333,7 +333,7 @@ Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây
 | K2 | Chưa có hạ tầng job theo lịch | **Đã có scheduler V9.2b** (`CareSchedulerService`, tick 60 giây, `job_runs`, dedupe outbox) bên cạnh hai `setInterval` cũ. Chưa có advisory lock cho nhiều tiến trình/CI | Đã gỡ chặn cơ bản cho `FR-17`/một phần `FR-20`; còn E2E, hợp nhất preview và vận hành nhiều instance |
 | K3 | Cảnh báo chỉ trong ứng dụng | `notification_outbox.channel` luôn `in_app`; **đã khái quát hóa mô hình** (V9.2a, 20/11/2026): `subject_id`, `incident_id` nullable, `kind`, `title`/`body` — nhưng chưa có escalation hay transport ngoài. Chi tiết cảnh báo có danh sách `recipients` nhưng chỉ suy từ outbox, chưa có kênh/thời điểm/trạng thái gửi đầy đủ | Người thân không mở web thì không biết cảnh báo; đây vẫn là rủi ro lớn nhất của sản phẩm cảnh báo té ngã |
 | K4 | Trợ lý chỉ đọc | Chỉ có `GET /subjects/:id/assistant/summary` và `POST /subjects/:id/assistant/ask`; không có draft/confirm (`FR-21`), không có nguồn (`FR-23`), không có bản tin (`FR-20`) | “Trợ lý là trung tâm” hiện mới là ô hỏi đáp; chưa có hành động có kiểm soát hoặc tri thức có nguồn |
-| K5 | Chưa sẵn sàng dữ liệu thật | Yêu cầu xóa chỉ ghi audit; không có retention; MQTT mới có mã/test nhưng chưa kiểm broker thật, P0-1 mở; chưa có OpenAPI/CI; chưa test PostgreSQL thật | Demo chạy nhưng chưa thể nói “dùng được với người thật”, chưa đóng được P1 privacy |
+| K5 | Chưa sẵn sàng dữ liệu thật | Yêu cầu xóa chỉ ghi audit; retention mới tùy chọn/mặc định tắt; MQTT mới có mã/test nhưng chưa kiểm broker thật, P0-1 mở; chưa có OpenAPI/CI; chưa test PostgreSQL thật | Demo chạy nhưng chưa thể nói “dùng được với người thật”, chưa đóng được P1 privacy |
 | K6 | Thiếu công cụ vận hành | Chưa có UI tạo thiết bị; chưa có API/UI đọc vùng cách ly (chỉ có ACK `QUARANTINED`); chưa có cấu hình kênh thông báo | Admin phải gọi API; lỗi ingest khó điều tra |
 
 ### 14.2 Nguyên tắc chọn lát cắt
@@ -389,7 +389,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 #### V10 — Cảnh báo không bị bỏ lỡ
 
-**Trạng thái 21/11/2026 — V10a + nền tảng V10b backend đã có (nhánh `v10-backend`, chưa hợp nhất):** API `GET/PUT /subjects/:id/alert-policy` + preview; lưu vào `subject_rules` kind `alert_escalation` với version; mặc định **tắt** và các mốc 10/20/30 phút chỉ là đề xuất. Scheduler 60 giây chỉ xử lý incident `open`, chọn bậc cao nhất đã tới hạn, ghi outbox `kind='escalation'` cho chủ hồ sơ + care link active có `canReceiveAlerts`, bỏ tài khoản khóa; dedupe theo incident/bậc/người nhận; audit `no_recipient` một lần/bậc. Worker bỏ qua escalation đang chờ nếu incident đã ack/đóng hoặc mất quyền. Preview chính sách trả người nhận hiện tại (chủ hồ sơ + care link `canReceiveAlerts`, bỏ tài khoản khóa) và cảnh báo khi không có người nhận; chi tiết cảnh báo trả thêm `deliveries` cho từng người nhận (loại/kênh/trạng thái/số lần/thời điểm gửi/đọc) để biết ai đã được thông báo và khi nào. **V10b backend**: preference (`GET/PUT /me/notification-preferences`, trả khóa công khai VAPID khi bật), subscription (`GET/POST/DELETE /me/push-subscriptions`, chặn endpoint IP/localhost), outbox `web_push` cho alert/escalation, worker xoá subscription khi 404/410 và backoff hữu hạn; mặc định tắt, cần `WEB_PUSH_ENABLED` + VAPID. **Chưa có service worker/UI cấu hình, chưa kiểm push thật trên trình duyệt, SMS/gọi tự động, hay E2E hai tài khoản.** Test mới: `alert-policy.spec.ts` (4), `alert-escalation.spec.ts` (10, fake clock), `notification-settings.spec.ts` (3), `push-delivery.spec.ts` (3) + 1 test chi tiết `deliveries`; thêm 1 test MQTT event/ACK trong `ingest.spec.ts`; API **296 test/31 suite**.
+**Trạng thái 21/11/2026 — V10a + nền tảng V10b backend đã có (nhánh `v10-backend`, chưa hợp nhất):** API `GET/PUT /subjects/:id/alert-policy` + preview; lưu vào `subject_rules` kind `alert_escalation` với version; mặc định **tắt** và các mốc 10/20/30 phút chỉ là đề xuất. Scheduler 60 giây chỉ xử lý incident `open`, chọn bậc cao nhất đã tới hạn, ghi outbox `kind='escalation'` cho chủ hồ sơ + care link active có `canReceiveAlerts`, bỏ tài khoản khóa; dedupe theo incident/bậc/người nhận; audit `no_recipient` một lần/bậc. Worker bỏ qua escalation đang chờ nếu incident đã ack/đóng hoặc mất quyền. Preview chính sách trả người nhận hiện tại (chủ hồ sơ + care link `canReceiveAlerts`, bỏ tài khoản khóa) và cảnh báo khi không có người nhận; chi tiết cảnh báo trả thêm `deliveries` cho từng người nhận (loại/kênh/trạng thái/số lần/thời điểm gửi/đọc) để biết ai đã được thông báo và khi nào. **V10b backend**: preference (`GET/PUT /me/notification-preferences`, trả khóa công khai VAPID khi bật), subscription (`GET/POST/DELETE /me/push-subscriptions`, chặn endpoint IP/localhost), outbox `web_push` cho alert/escalation, worker xoá subscription khi 404/410 và backoff hữu hạn; mặc định tắt, cần `WEB_PUSH_ENABLED` + VAPID. **Chưa có service worker/UI cấu hình, chưa kiểm push thật trên trình duyệt, SMS/gọi tự động, hay E2E hai tài khoản.** Test mới: `alert-policy.spec.ts` (4), `alert-escalation.spec.ts` (10, fake clock), `notification-settings.spec.ts` (3), `push-delivery.spec.ts` (3) + 1 test chi tiết `deliveries`; thêm 1 test MQTT event/ACK trong `ingest.spec.ts`; API **298 test/32 suite** (thêm 2 test retention).
 
 - Kết quả: khi cảnh báo `open` chưa được xác nhận, hệ thống thông báo lại theo bậc; chi tiết cảnh báo mở rộng danh sách người nhận hiện có thành ai/kênh/thời điểm/trạng thái gửi; người dùng bật/tắt kênh ngoài ứng dụng.
 - Cấu hình leo thang: `subject_rules` kind `alert_escalation`, version hoá, chủ hồ sơ sửa, mặc định an toàn (ví dụ 10/20/30 phút, tối đa 3 bậc — **giá trị đề xuất, cần chốt**); preview bắt buộc trước khi lưu. Không áp dụng “giờ yên tĩnh” cho cảnh báo khẩn; chỉ nhắc chăm sóc mới có giờ yên tĩnh.
@@ -421,7 +421,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 #### V12 — Sẵn sàng dữ liệu thật
 
-- **Retention/xóa:** chính sách theo lớp dữ liệu (telemetry, AI summary, notification, audit) có version + preview + publish CAS như policy hiện có; job xoá theo lô, ghi audit đếm; `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5); xoá kèm AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
+- **Retention/xóa:** **đã có bản tối thiểu** — job tùy chọn, mặc định tắt, cấu hình `RETENTION_*`; xóa theo lô 500 và ghi audit `retention.purge` cho telemetry/outbox đã kết thúc/realtime/AI summary. **Còn thiếu:** policy version + preview + publish CAS như policy hiện có, API/UI cấu hình, `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5), xóa toàn bộ hồ sơ và AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
 - **Đồng thuận/đại diện:** bảng `consents` (subject, phiên bản văn bản, phạm vi, người cấp, thời điểm, thu hồi); luồng người cao tuổi không có tài khoản do người đại diện quản lý; thu hồi → thu hồi care link và dừng thông báo; không tự cho người thân quyền sở hữu.
 - **MQTT (P0-2):** đã chọn hướng (a) ở mức **mã thử nghiệm**: event ingest dùng chung `IncidentsService` + ACK sau commit, broker vẫn sau profile `mqtt-experimental`. Còn thiếu xác thực thiết bị ở tầng ứng dụng (P0-1), kiểm broker/ACL/TLS thật và quyết định có dùng MQTT production hay chốt HTTP-only. Không đóng P0-1/P0-2 thành production chỉ vì test handler xanh.
 - **Cổng kỹ thuật:** OpenAPI sinh từ zod (một nguồn, không viết tay), CI chạy typecheck/test/build/docs, test tích hợp PostgreSQL thật, Playwright thêm Firefox/WebKit, axe cho màn hình chính.
@@ -454,7 +454,7 @@ Thay đổi notification là **luật dùng chung**, không chỉ một màn hì
 | D2 | Web Push có nằm trong đồ án? | Chỉ in-app + leo thang; hoặc thêm push sau cờ | Làm leo thang in-app trước; backend push sau cờ đã có, nhưng chỉ nhận “đã kiểm trên Chromium” khi có service worker/UI và kiểm thật |
 | D3 | Quyền xem chăm sóc | Dùng lại `canViewMeasurements`; hoặc thêm `canViewCare` | **Đã chốt cho V9: dùng lại `canViewMeasurements`**, không thêm quyền mới; lý do: v8 đã chia sẻ lịch nhắc dưới quyền này, giảm migration/UI và tránh mở rộng dữ liệu. Xem lại `canViewCare` nếu cần tách quyền xem lịch khỏi số đo sau này |
 | D4 | Mặc định quy tắc sinh hoạt | Khung giờ/ngưỡng bước/grace | Đề xuất 09:00–18:00, 50 bước, 30 phút; **tắt mặc định**, chủ hồ sơ sửa |
-| D5 | Retention/xóa | Chỉ ghi nhận; xóa mềm; xóa cứng + retention | Làm retention + xóa cứng trong V12 trước dữ liệu thật; nêu rõ backup chưa xử lý |
+| D5 | Retention/xóa | Chỉ ghi nhận; xóa mềm; xóa cứng + retention | Đã làm retention tùy chọn, mặc định tắt (một số lớp); **chưa chốt** xóa cứng/backup và luồng duyệt deletion-request trước dữ liệu thật |
 | D6 | MQTT | Hoàn thiện P0-2; hoặc HTTP-only | Đã có event/ACK thử nghiệm; **chưa chốt production** — cần xác thực thiết bị (P0-1), kiểm broker thật rồi chọn HTTP-only hoặc MQTT |
 | D7 | Nguồn cho `FR-23` | Bộ tài liệu nào, giấy phép, người duyệt | Chốt danh mục + giấy phép trước khi viết retrieval |
 | D8 | Leo thang cho `suspected`? | Chỉ `open`; hoặc cả `suspected` | Chỉ `open` để không biến nghi ngờ thành khẩn cấp |

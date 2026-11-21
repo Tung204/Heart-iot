@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ) và ingest MQTT sự kiện/ACK thử nghiệm; số API mới nhất **31 suite/296 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ), ingest MQTT sự kiện/ACK thử nghiệm và retention tùy chọn mặc định tắt; số API mới nhất **32 suite/298 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -11,28 +11,29 @@
 
 Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
 
-## Bằng chứng chạy ngày 21/11/2026 (backend V10a + V10b + MQTT events)
+## Bằng chứng chạy ngày 21/11/2026 (backend V10a + V10b + MQTT events + retention)
 
 Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy trên nhánh `v10-backend`. Chỉ chạy lại phần backend bị thay đổi; **không chạy lại web/E2E** vì không sửa UI.
 
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
-| API toàn bộ | `pnpm --filter @heart-iot/api test` | **31/31 suite, 296/296 test pass** |
+| API toàn bộ | `pnpm --filter @heart-iot/api test` | **32/32 suite, 298/298 test pass** |
 | Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview có người nhận/cảnh báo, version/validation |
 | Chi tiết cảnh báo | `incidents.spec.ts` | thêm 1 test `recipients[].deliveries` (kênh/trạng thái/thời điểm) |
 | Leo thang | `alert-escalation.spec.ts` | 10 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack, outbox push |
 | Tuỳ chọn nhận thông báo | `notification-settings.spec.ts` | 3 test: mặc định tắt, bật preference, subscription CRUD, chặn endpoint/khóa sai và endpoint IP/localhost |
 | Worker Web Push | `push-delivery.spec.ts` | 3 test: gửi thành công, 410 xoá subscription, lỗi tạm thời backoff, preference tắt |
 | MQTT events/ACK | `ingest.spec.ts` | 1 test: handler MQTT nhận `fall.candidate`, tạo incident `suspected`, publish ACK đúng topic/JSON; duplicate + payload/topic sai bị chặn. Chi tiết: [`reports/qa/v12-mqtt-events.md`](../reports/qa/v12-mqtt-events.md) |
-| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **31/31 suite, 296/296 test pass** |
+| Retention | `retention.spec.ts` | 2 test: mặc định tắt không xóa; bật chỉ xóa lớp cấu hình theo cutoff, giữ `pending`, audit đếm, chạy lại cùng ngày skip. Chi tiết: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md) |
+| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **32/32 suite, 298/298 test pass** |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
-| Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql` | 0006 mở `subject_rules.kind`; 0007 tạo `notification_preferences`/`push_subscriptions` + check channel; PGlite test migrate từ DB rỗng |
-| Docs HTML | `build.py --check` | khớp nguồn, **362 liên kết/294 ID/22 mục** |
+| Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; PGlite test migrate từ DB rỗng |
+| Docs HTML | `build.py --check` | khớp nguồn, **365 liên kết/295 ID/22 mục** |
 | MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **16/16 kiểm tra đạt** (cấu hình tĩnh; chưa chứng minh broker chạy) |
 | API thật | DB `.data/v10a`, API cổng 3023 | health/login 200; `POST /subjects/:id/alert-policy/previews` 200, chính sách bật 2 bậc, `recipientCount=2` (chủ hồ sơ + người thân), không cảnh báo |
 | API thật V10b | API cổng 3024, `WEB_PUSH_ENABLED=true` | health/login 200; `GET/PUT /me/notification-preferences` 200 (`webPushAvailable=true`); `POST /me/push-subscriptions` 201 trả id/host, không trả endpoint/khóa |
 
-**Giới hạn:** MQTT mới kiểm handler/ACK trong test, chưa mở broker/ACL/TLS thật và chưa xác thực thiết bị ở tầng ứng dụng (P0-1). Web Push mới kiểm bằng transport giả và API thật với subscription giả; khóa subscription lưu trong DB dạng thô (chưa mã hóa at-rest); **chưa có service worker/UI**, chưa gửi tới push service thật/Chromium, chưa kiểm iOS. Chưa có E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
+**Giới hạn:** Retention mặc định tắt, chưa có API/UI cấu hình, chưa xóa toàn bộ hồ sơ/export/backup và chưa chạy PostgreSQL thật. MQTT mới kiểm handler/ACK trong test, chưa mở broker/ACL/TLS thật và chưa xác thực thiết bị ở tầng ứng dụng (P0-1). Web Push mới kiểm bằng transport giả và API thật với subscription giả; khóa subscription lưu trong DB dạng thô (chưa mã hóa at-rest); **chưa có service worker/UI**, chưa gửi tới push service thật/Chromium, chưa kiểm iOS. Chưa có E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
 
 ## Bằng chứng chạy ngày 18/11/2026 (giao diện v7)
 
@@ -91,7 +92,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 | T-09 offline/clock/reboot | `devices.spec.ts`, `ingest.spec.ts`; UI offline/pin null | Chưa có thiết bị thật, buffer đầy hay mất nguồn |
 | T-10 SOS/hủy | `incidents.spec.ts` T11; simulator `sos` | Không có nút SOS/anti-mistap trên firmware |
 | T-11 AI thiếu dữ liệu/quyền | `assistant.spec.ts` (fallback, quyền, HR null, câu hỏi ngoài phạm vi), `dataQuality` test | Chưa test prompt injection; chưa provider thật; chưa RAG |
-| T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`; UI archive/deletion-request | Chưa có xóa cứng/retention/backup; chưa kiểm admin với dữ liệu thật |
+| T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`, `retention.spec.ts`; UI archive/deletion-request | **Một phần**: retention env cho telemetry/outbox/realtime/AI summary; chưa xóa toàn bộ hồ sơ/backup, chưa có UI, chưa kiểm PostgreSQL thật |
 | T-13 Web Push | Backend push sau cờ; chưa có service worker/kiểm trình duyệt thật | **Một phần**: test transport giả + API subscription; chưa kiểm push service thật |
 | T-10b MQTT sự kiện | `ingest.spec.ts` handler MQTT; chưa có broker thật | **Một phần**: `fall.candidate` → incident + ACK; chưa kiểm QoS/retry/ACL broker |
 | T-14 độ trễ p95 | Không có instrumentation p50/p95 | **Chưa đo**; NFR-07 vẫn là mục tiêu |

@@ -2,7 +2,7 @@
 
 > **Baseline v0.1:** kiến trúc gốc chưa bao gồm đầy đủ AI execution, capability registry và cấu hình động. [Chương 11](11-nen-tang-ai-va-cau-hinh-dong.md) ghi hướng bổ sung cần chốt; đường cảnh báo vẫn phải hoạt động độc lập với model.
 
-**Trạng thái 15/11/2026:** đã có web responsive + backend modular monolith + PGlite/PostgreSQL + simulator. **Chưa có firmware ESP32**, broker thật hay AI runtime dài hạn. HTTP `POST /api/v1/ingest/*` là đường ingest đang hỗ trợ; MQTT chỉ là thử nghiệm có kiểm soát. Các mục dưới đây phân biệt rõ thiết kế với phần đã chạy.
+**Trạng thái 21/11/2026:** đã có web responsive + backend modular monolith + PGlite/PostgreSQL + simulator, cùng retention tùy chọn mặc định tắt. **Chưa có firmware ESP32**, broker thật hay AI runtime dài hạn. HTTP `POST /api/v1/ingest/*` là đường ingest đang hỗ trợ; MQTT chỉ là thử nghiệm có kiểm soát. Các mục dưới đây phân biệt rõ thiết kế với phần đã chạy.
 
 **Đề xuất ban đầu:** web responsive + backend modular monolith + PostgreSQL + MQTT broker + firmware ESP32. Chưa khóa cloud hay nhà cung cấp AI.
 
@@ -96,6 +96,17 @@ Tiếp nhận sự kiện và tạo bản ghi cần gửi trong cùng transactio
 MQTT QoS 1 vẫn có thể giao trùng. ACK của broker không có nghĩa ứng dụng đã lưu. Thiết bị chỉ coi sự kiện quan trọng đã tới backend khi nhận **application ACK sau commit**; nếu chưa có thì gửi lại cùng định danh. Bộ nhớ bền của thiết bị, dung lượng và cách phục hồi sau mất nguồn phải được hiện thực riêng và kiểm chứng. Không coi outbox mặc định của thư viện là flash queue được bảo đảm.
 
 Kết nối realtime cũng có thể đứt. Web tải snapshot/cursor từ API khi reconnect; trạng thái server là nguồn chính. Gửi thành công tới kết nối không đồng nghĩa người dùng đã đọc; `acknowledged` phải là hành động rõ ràng.
+
+## Retention dữ liệu theo tuổi
+
+Job `retention` **mặc định tắt**, không có ngày mặc định. Khi bật bằng `RETENTION_ENABLED=true` và cấu hình ít nhất một `RETENTION_*_DAYS`, job chạy một lần/ngày theo UTC, xóa theo lô 500 và ghi audit `retention.purge` với cutoff + số dòng:
+
+- `telemetry` theo `received_at`;
+- `notification_outbox` chỉ ở trạng thái kết thúc (`sent`/`failed`/`superseded`), không xóa `pending`;
+- `realtime_events`;
+- `ai_summaries`.
+
+Job không xóa hồ sơ, incident, audit, care link, cấu hình hay backup; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md).
 
 ## Mạng, đồng hồ và dữ liệu cũ
 

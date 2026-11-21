@@ -4,7 +4,7 @@
 
 Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ, web responsive cho người dùng/người thân/quản trị, simulator thiết bị và bộ dữ liệu demo tổng hợp. Thiết kế gốc nằm trong `docs/`; kế hoạch và trạng thái triển khai ở [docs/14](docs/14-ke-hoach-trien-khai-phan-mem.md).
 
-> **Trạng thái 18/11/2026 — v7 phần mềm:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **v7 xây lại toàn bộ lớp trình bày** (token/primitive dùng chung, shell mới, CSS tách theo feature) mà không đổi nghiệp vụ hay API: **`/app` là Hôm nay** (một câu trạng thái, hành động chính, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính **4 mục Hôm nay/Cảnh báo/Sức khỏe/Người thân**, không còn menu “Thêm”. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, Web Push mới có backend sau cờ (chưa service worker/kiểm trình duyệt), chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm (đã có ingest sự kiện + ACK trong mã, chưa kiểm broker/ACL thật); HTTP là đường ingest chính thức. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
+> **Trạng thái 21/11/2026 — backend V10/V12, giao diện v7:** đã có mã chạy được trong phạm vi kỹ thuật, có test và luồng demo end-to-end trên máy cục bộ. **v7 xây lại toàn bộ lớp trình bày** (token/primitive dùng chung, shell mới, CSS tách theo feature) mà không đổi nghiệp vụ hay API: **`/app` là Hôm nay** (một câu trạng thái, hành động chính, ô hỏi), **`/app/overview` là Sức khỏe**; nav chính **4 mục Hôm nay/Cảnh báo/Sức khỏe/Người thân**, không còn menu “Thêm”. Trợ lý vẫn độc lập với cảnh báo; giao diện dùng ngôn ngữ sản phẩm, không còn nhãn “bản demo/đồ án”. **Chưa** có firmware ESP32, chưa đo độ chính xác phát hiện ngã, chưa benchmark PostgreSQL thật, Web Push mới có backend sau cờ (chưa service worker/kiểm trình duyệt), chưa xóa vĩnh viễn dữ liệu (chỉ ghi nhận yêu cầu) và chưa được giảng viên nghiệm thu. MQTT vẫn là thử nghiệm (đã có ingest sự kiện + ACK trong mã, chưa kiểm broker/ACL thật); HTTP là đường ingest chính thức. Retention dữ liệu theo tuổi mới có **bản backend tùy chọn, mặc định tắt** cho một số lớp; chưa xóa cứng toàn bộ hồ sơ/backup. Không dùng repo này để khẳng định sản phẩm đã hoàn chỉnh.
 
 ## Tính năng hiện có
 
@@ -16,7 +16,7 @@ Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ
 - **Cảnh báo:** vòng đời `suspected → unconfirmed/open → acknowledged → resolved/cancelled`, ack/resolve compare-and-set, outbox trong ứng dụng + SSE. **V10a backend** thêm chính sách leo thang trong ứng dụng (`subject_rules` kind `alert_escalation`, scheduler 60 giây, outbox `escalation`); mặc định tắt; backend Web Push đã có sau cờ `WEB_PUSH_ENABLED` (chưa UI/service worker). Nav Cảnh báo mang badge **số cảnh báo đang mở** của hồ sơ đang xem (tối đa 20, `20+` khi còn trang sau); hộp thông báo toàn tài khoản ở `/app/alerts?view=notifications` và banner “Có thông báo mới” dẫn đúng incident; stream bị thu hồi khi mất quyền, khóa tài khoản hoặc phiên hết hạn.
 - **Liên hệ khẩn cấp:** tối đa 5 liên hệ/hồ sơ, một liên hệ chính, số điện thoại có `tel:` trong chi tiết cảnh báo; chỉ chủ hồ sơ ghi, người thân có quyền nhận cảnh báo được đọc.
 - **Việc bảo trì:** xem/đóng việc theo quyền hồ sơ; chủ hồ sơ tạo việc cho thiết bị đang gắn (kiểm thiết bị, hạn xử lý, lý do đóng).
-- **Lưu trữ và yêu cầu xóa:** chủ hồ sơ lưu trữ hồ sơ (thu hồi liên kết chia sẻ, **không xóa** dữ liệu) hoặc ghi nhận yêu cầu xóa dữ liệu để xử lý thủ công. Chưa có quy trình xóa cứng, retention tự động hay xóa xuyên backup/AI cache.
+- **Lưu trữ và yêu cầu xóa:** chủ hồ sơ lưu trữ hồ sơ (thu hồi liên kết chia sẻ, **không xóa** dữ liệu) hoặc ghi nhận yêu cầu xóa dữ liệu để xử lý thủ công. Retention job **mặc định tắt** có thể xóa telemetry/outbox đã kết thúc/realtime/AI summary theo tuổi khi cấu hình `RETENTION_*`; chưa có xóa cứng toàn bộ hồ sơ hay xóa xuyên backup/AI cache.
 - **Quản trị:** người dùng, thiết bị, policy thiết bị có preview/publish CAS, audit, tổng quan. Tab thiết bị có danh sách, cấp mã gắn thiết bị và xoay khóa; tạo thiết bị mới hiện vẫn qua API admin.
 - **Studio:** draft → preview chỉ đọc → publish CAS `baseRevision + digest` → rollback tạo bản mới; dữ liệu preview/data tôn trọng mốc chia sẻ và quyền cảnh báo.
 - **Hôm nay + trợ lý:** `/app` chỉ còn câu trạng thái, hành động Gọi/Xem cảnh báo, ô hỏi + 3 gợi ý; hội thoại chỉ hiện sau khi hỏi. Câu trả lời dựa trên aggregate đã kiểm quyền, có `dataQuality` (độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn), fallback template xác định khi chưa cấu hình provider. Thiếu quyền số đo hiển thị 403 là trạng thái quyền, không retry vô ích; đổi hồ sơ xóa hội thoại cũ. AI không nằm trên đường cảnh báo và không tự xác nhận/đóng cảnh báo.
@@ -83,18 +83,18 @@ node tools/docs/check-examples.mjs        # mọi payload mẫu parse bằng sch
 node infra/check-mqtt-exposure.mjs        # broker không anonymous, 1883 không mở ra ngoài loopback
 ```
 
-Kết quả API chạy ngày **21/11/2026** (V10a + V10b backend); các số web/E2E bên dưới vẫn là lần chạy **18/11/2026**:
+Kết quả API chạy ngày **21/11/2026** (V10a + V10b backend + retention); các số web/E2E bên dưới vẫn là lần chạy **18/11/2026**:
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`pnpm --filter @heart-iot/api test`) | **31 suite / 296 test pass** (gồm 14 test V10a + 8 test V10b + 1 test MQTT events/ACK) |
+| API (`pnpm --filter @heart-iot/api test`) | **32 suite / 298 test pass** (gồm 14 test V10a + 8 test V10b + 1 test MQTT events/ACK + 2 test retention) |
 | Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
-| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **362 liên kết/294 ID** (21/11/2026) |
+| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **365 liên kết/295 ID** (21/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
-| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **31 suite / 296 test pass** ngày 21/11/2026 |
-| Typecheck, web production build, seed, MQTT exposure | **không chạy lại** trong lượt này |
+| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **32 suite / 298 test pass** ngày 21/11/2026 |
+| Typecheck, backend build, MQTT exposure | **pass** typecheck toàn monorepo + `nest build` + **16/16** MQTT exposure (21/11/2026); web production build/seed **không chạy lại** |
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; ảnh và số đo giao diện v7 ở `reports/qa/evidence/v7-*/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
 
@@ -134,10 +134,10 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **MQTT:** chỉ là profile thử nghiệm; adapter subscribe telemetry/events, ingest fall/SOS dùng chung state machine và publish ACK, nhưng chưa có ingest `status`, chưa xác thực khóa thiết bị ở tầng ứng dụng, chưa kiểm ACL/TLS với broker thật. HTTP là đường chính thức.
 - **Thông báo:** in-app là kênh chính; backend Web Push đã có sau cờ (preference, subscription, outbox `web_push`, xoá 410) nhưng **chưa có service worker/UI** và chưa kiểm gửi thật trên trình duyệt; email/SMS và thông báo khi đóng trình duyệt chưa có.
 - **Nhắc chăm sóc trên thiết bị:** FR-15 mới có phần web; chưa có hàng đợi lệnh xuống thiết bị, rung/nút xác nhận trên firmware hay sự kiện gửi ngược.
-- **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
+- **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit; retention **mặc định tắt** mới xóa một số lớp theo tuổi, chưa xóa cứng toàn bộ hồ sơ/export/backup/AI cache và chưa có API/UI cấu hình.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** API **296 test/31 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **296/296** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** API **298 test/32 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK + retention); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **298/298** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp

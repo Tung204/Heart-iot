@@ -1,6 +1,6 @@
 # Kiểm thử liên thành phần
 
-**Trạng thái:** các package đã có test executable chạy trên máy cục bộ — `backend` (Jest + PGlite in-memory, **31 suite/295 test** ngày 21/11/2026), `frontend` (Vitest + Testing Library, số cũ 20 file/73 test), `frontend/e2e` (Playwright, số cũ 4 test) và `tools/simulator` (node:test, 23 test); repo **chưa có CI tự động**. Chạy lại thay vì tin tài liệu. Thư mục này **chưa có test** — dành cho integration/E2E
+**Trạng thái:** các package đã có test executable chạy trên máy cục bộ — `backend` (Jest + PGlite in-memory, **32 suite/298 test** ngày 21/11/2026), `frontend` (Vitest + Testing Library, số cũ 20 file/73 test), `frontend/e2e` (Playwright, số cũ 4 test) và `tools/simulator` (node:test, 23 test); repo **chưa có CI tự động**. Chạy lại thay vì tin tài liệu. Thư mục này **chưa có test** — dành cho integration/E2E
 liên thành phần qua ranh giới thiết bị → ingest → lưu trữ → cảnh báo → người nhận khi thực sự cần.
 Ma trận yêu cầu/kịch bản và cách đo nằm tại [kiểm thử và đánh giá](../docs/08-kiem-thu-va-danh-gia.md).
 

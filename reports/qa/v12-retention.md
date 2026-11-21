@@ -1,0 +1,49 @@
+# Retention dữ liệu theo tuổi — bằng chứng lát cắt (21/11/2026)
+
+## Phạm vi
+
+Thêm job retention **mặc định tắt**, không có ngày mặc định. Chỉ bật khi cấu hình
+`RETENTION_ENABLED=true` và ít nhất một `RETENTION_*_DAYS`:
+
+- `RETENTION_TELEMETRY_DAYS` — xóa mẫu đo cũ theo `received_at`;
+- `RETENTION_NOTIFICATION_DAYS` — xóa outbox đã kết thúc (`sent`/`failed`/`superseded`);
+- `RETENTION_REALTIME_DAYS` — xóa sự kiện SSE cũ;
+- `RETENTION_AI_SUMMARY_DAYS` — xóa tóm tắt AI cũ.
+
+Job chạy một lần/ngày theo UTC (`job_runs` khóa `retention:<ngày>`), xóa theo lô
+500, ghi audit `retention.purge` với cutoff và số dòng đã xóa. Không xóa hồ sơ,
+incident, audit, care link, cấu hình hay backup. Đây **không** thay luồng
+`deletion-requests`/xóa cứng toàn bộ dữ liệu (D5 chưa chốt).
+
+## Kiểm chứng đã chạy
+
+| Lệnh/hạng mục | Kết quả |
+| --- | --- |
+| `pnpm --filter @heart-iot/api typecheck` | pass |
+| `node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/retention.spec.ts` | **2/2 test pass** |
+| Full API suite | **32 suite / 298 test pass** |
+| Randomized seed `20261121` | **298/298 pass** |
+| Migration | `drizzle/0008_smart_wrecker.sql` thêm index retention; test migrate từ DB rỗng |
+| `pnpm -r typecheck` | pass toàn monorepo |
+| `pnpm --filter @heart-iot/api build` (`nest build`) | pass |
+| Docs `build.py --check` | khớp nguồn, **365 liên kết/295 ID/22 mục** |
+| Payload mẫu / MQTT exposure | **5/5** payload; **16/16** kiểm tra tĩnh |
+
+Test kiểm: mặc định tắt không xóa; khi bật chỉ xóa bản cũ đúng lớp, giữ bản mới
+và outbox `pending`; audit có số đếm; chạy lại cùng ngày bị `job_runs` skip.
+
+## Giới hạn
+
+- Chưa có API/UI cấu hình retention; chỉ cấu hình qua env và job nền.
+- Chưa xóa toàn bộ hồ sơ, bản export, cache AI/trình duyệt hay backup.
+- Chưa kiểm PostgreSQL thật, nhiều instance/advisory lock, hay tải lớn.
+- Chưa chạy job trên dữ liệu thật; chỉ PGlite in-memory với dữ liệu kiểm thử.
+- Ngày retention là **quyết định của người triển khai**, không phải khuyến nghị y khoa/pháp lý.
+
+## File chính
+
+- `backend/src/retention/retention.service.ts`, `retention.module.ts`
+- `backend/test/retention.spec.ts`
+- `backend/drizzle/0008_smart_wrecker.sql`
+- `backend/src/config/env.ts`, `.env.example`
+- `docs/02`, `docs/04`, `docs/08`, `docs/14`, `README.md`
