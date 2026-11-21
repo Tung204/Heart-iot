@@ -104,9 +104,10 @@ Job `retention` **mặc định tắt**, không có ngày mặc định. Khi b�
 - `telemetry` theo `received_at`;
 - `notification_outbox` chỉ ở trạng thái kết thúc (`sent`/`failed`/`superseded`), không xóa `pending`;
 - `realtime_events`;
-- `ai_summaries`.
+- `ai_summaries`;
+- `assistant_drafts` đã hết hạn theo `expires_at` (không xóa nháp còn hiệu lực).
 
-Job không xóa hồ sơ, incident, audit, care link, cấu hình hay backup; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md).
+Job không xóa hồ sơ, incident, audit, care link, cấu hình, backup hay nháp còn hiệu lực; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md).
 
 ## Trợ lý có hành động có kiểm soát
 

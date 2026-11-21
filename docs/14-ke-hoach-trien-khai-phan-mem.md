@@ -21,7 +21,7 @@ Dựng một lát cắt **chạy được, kiểm được, tái lập được*
 - Web Push khi đóng trình duyệt; gọi cấp cứu tự động; ứng dụng native.
 - Dữ liệu sức khỏe người thật, đo độ trễ trên mạng thật, độ khả dụng với người cao tuổi.
 - Backup/restore production, TLS/ACL broker production, xoay secret thật.
-- Xóa dữ liệu xuyên backup/AI cache như một quy trình đã kiểm. v2 có `POST /subjects/:id/deletion-requests` nhưng **chỉ ghi audit** `status=recorded`; V12 mới có **retention job tùy chọn, mặc định tắt** cho một số lớp (telemetry/outbox/realtime/AI summary), chưa xóa toàn bộ hồ sơ, bản export, AI cache hay backup.
+- Xóa dữ liệu xuyên backup/AI cache như một quy trình đã kiểm. v2 có `POST /subjects/:id/deletion-requests` nhưng **chỉ ghi audit** `status=recorded`; V12 mới có **retention job tùy chọn, mặc định tắt** cho một số lớp (telemetry/outbox/realtime/AI summary/nháp trợ lý đã hết hạn), chưa xóa toàn bộ hồ sơ, bản export, AI cache hay backup.
 - Coding Agent sửa backend trong runtime sản phẩm (AI-17). AI vận hành chỉ dùng capability đã đăng ký.
 
 ## 3. Stack và version
@@ -184,7 +184,7 @@ Quyền ghi chi tiết và prompt nằm trong handoff/`reports/orchestration`.
 | Xu hướng 7/14/30 ngày | `/insights` một query cho cả cửa sổ; ngày thiếu `hasData=false`, không nội suy; card dashboard | `insights.spec.ts`, `RecentInsightsCard.test.tsx` |
 | Liên hệ khẩn cấp | CRUD, tối đa 5, một primary; owner ghi, caregiver có `canReceiveAlerts` đọc; `tel:` trong cảnh báo | `emergency-contacts.spec.ts`, test component contacts |
 | Tạo việc bảo trì | `POST /maintenance-tasks`; thiết bị phải đang gắn; caregiver chỉ xem; hạn quá khứ bị từ chối | `task-create.spec.ts`, `TasksPage.test.tsx` |
-| Lưu trữ/yêu cầu xóa | Archive 204 + thu hồi care link, không xóa dữ liệu; deletion-request 202 `recorded`, chỉ audit; retention job tùy chọn cho telemetry/outbox/realtime/AI summary | `subjects.spec.ts`, `retention.spec.ts`, `SubjectsPage.test.tsx` |
+| Lưu trữ/yêu cầu xóa | Archive 204 + thu hồi care link, không xóa dữ liệu; deletion-request 202 `recorded`, chỉ audit; retention job tùy chọn cho telemetry/outbox/realtime/AI summary/nháp trợ lý đã hết hạn | `subjects.spec.ts`, `retention.spec.ts`, `SubjectsPage.test.tsx` |
 | Quyền xem số đo | `canViewMeasurements` tách khỏi cảnh báo; 403 nghiệp vụ; `/status` có `healthDataVisible`; AI cũng bị chặn | `care.spec.ts`, `devices.spec.ts`, `assistant.spec.ts` |
 | Badge/banner | Badge chưa đọc, banner thông báo mới toàn tài khoản, banner mất SSE; không dựa vào màu | `AppShell.test.tsx`, `useUnreadNotifications.test.tsx`, `useSubjectEvents.test.tsx` |
 | Quản trị thiết bị | Tab thiết bị: danh sách, cấp mã, xoay khóa; mã/khóa chỉ hiện một lần | `AdminPage.test.tsx`, `devices.spec.ts` |
@@ -264,7 +264,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 - **Web Push, email/SMS** — V10b backend đã có outbox `web_push`, preference/subscription và transport `web-push` sau cờ; **chưa có service worker/UI** và chưa kiểm gửi thật trên trình duyệt. Email/SMS chưa có.
 - **PostgreSQL thật, nhiều instance** — mới kiểm PGlite một tiến trình; rate limit, SSE, CAS chưa benchmark/kiểm đa kết nối thật.
 - **MQTT broker/ACL/ACK** — adapter đã subscribe telemetry/events, ingest fall/SOS dùng chung `IncidentsService` và publish ACK sau commit (P0-2 có mã/test cục bộ). **Chưa** có ingest `status`, chưa xác thực khóa thiết bị ở tầng ứng dụng (P0-1 mở), chưa kiểm broker/ACL/TLS thật. HTTP vẫn là đường ingest chính thức.
-- **Xóa/retention** — archive và deletion-request đã có nhưng chỉ ẩn/ghi audit; retention job **mặc định tắt** đã có cho telemetry/outbox/realtime/AI summary; chưa có xóa cứng toàn bộ hồ sơ, xóa export/AI cache/backup hay API/UI cấu hình.
+- **Xóa/retention** — archive và deletion-request đã có nhưng chỉ ẩn/ghi audit; retention job **mặc định tắt** đã có cho telemetry/outbox/realtime/AI summary/nháp trợ lý đã hết hạn; chưa có xóa cứng toàn bộ hồ sơ, xóa export/AI cache/backup hay API/UI cấu hình.
 - **Đặc tả AI dài hạn** — `agent_runs`, `run_steps`, `step_attempts` có bảng nhưng chưa có runtime/endpoint; planner/tool registry, scheduler, luồng duyệt cấu hình chung, RAG chưa triển khai. Hiện có summary/ask giới hạn trên số liệu tổng hợp và backend nháp `care_reminder.create` (FR-21).
 - **FR-13 ngưỡng sức khỏe/ngã** — chỉ có policy vận hành `device_runtime`; chưa có ngưỡng y khoa có nguồn/phiên bản.
 - **UI tạo thiết bị admin** — tab thiết bị có list/cấp mã/xoay khóa nhưng chưa có form tạo; phải gọi API admin.
@@ -405,7 +405,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 **V11a — `FR-20` + `FR-21`.**
 
-- `FR-21` **(đã có một phần backend, 21/11/2026)**: bảng `assistant_drafts`, capability `care_reminder.create`; API `GET /subjects/:id/assistant/capabilities`, `POST /subjects/:id/assistant/drafts`, `GET /assistant/drafts/:id`, `POST /assistant/drafts/:id/confirm|cancel`. Tạo nháp không ghi `care_reminders`; confirm kiểm lại quyền, digest, hạn rồi tạo lịch trong cùng transaction; lặp lại không nhân đôi; audit cả bước tạo/xác nhận/hủy. **Còn thiếu:** hiểu câu lệnh tự nhiên, UI, `request_key` tổng quát, công việc bảo trì/phiếu.
+- `FR-21` **(đã có một phần backend, 21/11/2026)**: bảng `assistant_drafts`, capability `care_reminder.create`; API `GET /subjects/:id/assistant/capabilities`, `POST /subjects/:id/assistant/drafts`, `GET /assistant/drafts/:id`, `POST /assistant/drafts/:id/confirm|cancel`. Tạo nháp không ghi `care_reminders`; confirm kiểm lại quyền, digest, hạn rồi tạo lịch trong cùng transaction; lặp lại không nhân đôi; audit cả bước tạo/xác nhận/hủy. **Còn thiếu:** hiểu câu lệnh tự nhiên, UI, `request_key` tổng quát, công việc bảo trì/phiếu. Retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`, mặc định tắt.
 - Capability **đã mở**: `care_reminder.create`. Capability **đề xuất tiếp**: `maintenance_task.create`, mở phiếu đi khám; **không** đóng/xác nhận cảnh báo, không đổi quyền, không xoá dữ liệu. Không có bước xác nhận thì không có lệnh ghi.
 - **Chưa làm:** parser câu lệnh tự nhiên/provider để tự điền nháp; hiện API nhận input có cấu trúc. Khi làm phải không gợi ý liều/kê thuốc.
 - `FR-20`: job bản tin ngày/tuần dùng lại scheduler + notification đã làm ở V9.2; nội dung từ aggregate đã kiểm quyền, có `dataQuality`, `sourceRefs`, fallback template; chống trùng theo kỳ; người nhận cần `canViewMeasurements` + `canViewAi`.
@@ -421,7 +421,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 
 #### V12 — Sẵn sàng dữ liệu thật
 
-- **Retention/xóa:** **đã có bản tối thiểu** — job tùy chọn, mặc định tắt, cấu hình `RETENTION_*`; xóa theo lô 500 và ghi audit `retention.purge` cho telemetry/outbox đã kết thúc/realtime/AI summary. **Còn thiếu:** policy version + preview + publish CAS như policy hiện có, API/UI cấu hình, `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5), xóa toàn bộ hồ sơ và AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
+- **Retention/xóa:** **đã có bản tối thiểu** — job tùy chọn, mặc định tắt, cấu hình `RETENTION_*`; xóa theo lô 500 và ghi audit `retention.purge` cho telemetry/outbox đã kết thúc/realtime/AI summary/nháp trợ lý đã hết hạn. **Còn thiếu:** policy version + preview + publish CAS như policy hiện có, API/UI cấu hình, `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5), xóa toàn bộ hồ sơ và AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
 - **Đồng thuận/đại diện:** bảng `consents` (subject, phiên bản văn bản, phạm vi, người cấp, thời điểm, thu hồi); luồng người cao tuổi không có tài khoản do người đại diện quản lý; thu hồi → thu hồi care link và dừng thông báo; không tự cho người thân quyền sở hữu.
 - **MQTT (P0-2):** đã chọn hướng (a) ở mức **mã thử nghiệm**: event ingest dùng chung `IncidentsService` + ACK sau commit, broker vẫn sau profile `mqtt-experimental`. Còn thiếu xác thực thiết bị ở tầng ứng dụng (P0-1), kiểm broker/ACL/TLS thật và quyết định có dùng MQTT production hay chốt HTTP-only. Không đóng P0-1/P0-2 thành production chỉ vì test handler xanh.
 - **Cổng kỹ thuật:** OpenAPI sinh từ zod (một nguồn, không viết tay), CI chạy typecheck/test/build/docs, test tích hợp PostgreSQL thật, Playwright thêm Firefox/WebKit, axe cho màn hình chính.

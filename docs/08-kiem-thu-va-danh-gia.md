@@ -24,17 +24,17 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | Tuỳ chọn nhận thông báo | `notification-settings.spec.ts` | 3 test: mặc định tắt, bật preference, subscription CRUD, chặn endpoint/khóa sai và endpoint IP/localhost |
 | Worker Web Push | `push-delivery.spec.ts` | 3 test: gửi thành công, 410 xoá subscription, lỗi tạm thời backoff, preference tắt |
 | MQTT events/ACK | `ingest.spec.ts` | 1 test: handler MQTT nhận `fall.candidate`, tạo incident `suspected`, publish ACK đúng topic/JSON; duplicate + payload/topic sai bị chặn. Chi tiết: [`reports/qa/v12-mqtt-events.md`](../reports/qa/v12-mqtt-events.md) |
-| Retention | `retention.spec.ts` | 2 test: mặc định tắt không xóa; bật chỉ xóa lớp cấu hình theo cutoff, giữ `pending`, audit đếm, chạy lại cùng ngày skip. Chi tiết: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md) |
+| Retention | `retention.spec.ts` | 2 test: mặc định tắt không xóa; bật chỉ xóa lớp cấu hình theo cutoff, giữ `pending`, giữ nháp trợ lý còn hiệu lực, audit đếm, chạy lại cùng ngày skip. Chi tiết: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md) |
 | Trợ lý — hành động | `assistant-actions.spec.ts` | 5 test: catalog việc được/không được làm; nháp không ghi lịch; confirm tạo đúng một lịch và lặp không nhân đôi; caregiver 403/outsider 404; hết hạn/hủy/digest sai không ghi. Chi tiết: [`reports/qa/v11a-assistant-actions.md`](../reports/qa/v11a-assistant-actions.md) |
 | API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **33/33 suite, 303/303 test pass** |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
-| Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql`, `0009_dapper_gladiator.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; 0009 tạo `assistant_drafts`; PGlite test migrate từ DB rỗng |
+| Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql`, `0009_dapper_gladiator.sql`, `0010_confused_klaw.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; 0009 tạo `assistant_drafts`; 0010 thêm index `expires_at` cho retention nháp; PGlite test migrate từ DB rỗng |
 | Docs HTML | `build.py --check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
 | MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **16/16 kiểm tra đạt** (cấu hình tĩnh; chưa chứng minh broker chạy) |
 | API thật | DB `.data/v10a`, API cổng 3023 | health/login 200; `POST /subjects/:id/alert-policy/previews` 200, chính sách bật 2 bậc, `recipientCount=2` (chủ hồ sơ + người thân), không cảnh báo |
 | API thật V10b | API cổng 3024, `WEB_PUSH_ENABLED=true` | health/login 200; `GET/PUT /me/notification-preferences` 200 (`webPushAvailable=true`); `POST /me/push-subscriptions` 201 trả id/host, không trả endpoint/khóa |
 
-**Giới hạn:** FR-21 mới có backend nháp lịch nhắc, chưa hiểu câu lệnh tự nhiên, chưa có UI và chưa có retention riêng cho `assistant_drafts`. Retention mặc định tắt, chưa có API/UI cấu hình, chưa xóa toàn bộ hồ sơ/export/backup và chưa chạy PostgreSQL thật. MQTT mới kiểm handler/ACK trong test, chưa mở broker/ACL/TLS thật và chưa xác thực thiết bị ở tầng ứng dụng (P0-1). Web Push mới kiểm bằng transport giả và API thật với subscription giả; khóa subscription lưu trong DB dạng thô (chưa mã hóa at-rest); **chưa có service worker/UI**, chưa gửi tới push service thật/Chromium, chưa kiểm iOS. Chưa có E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
+**Giới hạn:** FR-21 mới có backend nháp lịch nhắc, chưa hiểu câu lệnh tự nhiên, chưa có UI; retention cho nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` nhưng mặc định tắt. Retention mặc định tắt, chưa có API/UI cấu hình, chưa xóa toàn bộ hồ sơ/export/backup và chưa chạy PostgreSQL thật. MQTT mới kiểm handler/ACK trong test, chưa mở broker/ACL/TLS thật và chưa xác thực thiết bị ở tầng ứng dụng (P0-1). Web Push mới kiểm bằng transport giả và API thật với subscription giả; khóa subscription lưu trong DB dạng thô (chưa mã hóa at-rest); **chưa có service worker/UI**, chưa gửi tới push service thật/Chromium, chưa kiểm iOS. Chưa có E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
 
 ## Bằng chứng chạy ngày 18/11/2026 (giao diện v7)
 
@@ -93,11 +93,11 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 | T-09 offline/clock/reboot | `devices.spec.ts`, `ingest.spec.ts`; UI offline/pin null | Chưa có thiết bị thật, buffer đầy hay mất nguồn |
 | T-10 SOS/hủy | `incidents.spec.ts` T11; simulator `sos` | Không có nút SOS/anti-mistap trên firmware |
 | T-11 AI thiếu dữ liệu/quyền | `assistant.spec.ts` (fallback, quyền, HR null, câu hỏi ngoài phạm vi), `dataQuality` test | Chưa test prompt injection; chưa provider thật; chưa RAG |
-| T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`, `retention.spec.ts`; UI archive/deletion-request | **Một phần**: retention env cho telemetry/outbox/realtime/AI summary; chưa xóa toàn bộ hồ sơ/backup, chưa có UI, chưa kiểm PostgreSQL thật |
+| T-12 admin/export/xóa | `admin.spec.ts`, `subjects.spec.ts`, `measurements.spec.ts`, `retention.spec.ts`; UI archive/deletion-request | **Một phần**: retention env cho telemetry/outbox/realtime/AI summary/nháp trợ lý đã hết hạn; chưa xóa toàn bộ hồ sơ/backup, chưa có UI, chưa kiểm PostgreSQL thật |
 | T-13 Web Push | Backend push sau cờ; chưa có service worker/kiểm trình duyệt thật | **Một phần**: test transport giả + API subscription; chưa kiểm push service thật |
 | T-10b MQTT sự kiện | `ingest.spec.ts` handler MQTT; chưa có broker thật | **Một phần**: `fall.candidate` → incident + ACK; chưa kiểm QoS/retry/ACL broker |
 | T-14 độ trễ p95 | Không có instrumentation p50/p95 | **Chưa đo**; NFR-07 vẫn là mục tiêu |
-| T-15 trợ lý hành động | `assistant-actions.spec.ts`: nháp không ghi, confirm một lần, lặp không nhân đôi, hết hạn/hủy/digest sai, quyền owner/caregiver/ngoài | **Một phần backend**: chưa có parser câu lệnh tự nhiên/UI/retention cho `assistant_drafts` |
+| T-15 trợ lý hành động | `assistant-actions.spec.ts`: nháp không ghi, confirm một lần, lặp không nhân đôi, hết hạn/hủy/digest sai, quyền owner/caregiver/ngoài; retention nháp đã hết hạn | **Một phần backend**: chưa có parser câu lệnh tự nhiên/UI; retention nháp có thể bật nhưng mặc định tắt |
 
 ## Ma trận yêu cầu và bằng chứng
 

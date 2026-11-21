@@ -61,7 +61,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
   care link làm SSE gửi `revoked` và đóng stream.
 - Cài đặt tài khoản: `PATCH /me`, đổi mật khẩu (thu hồi phiên khác), xem/thu hồi phiên.
 - Hồ sơ có lưu trữ (`POST /subjects/:id/archive`, 204, không xóa dữ liệu) và ghi nhận yêu cầu xóa
-  (`POST /subjects/:id/deletion-requests`, 202 `recorded`, chỉ audit). Retention job **mặc định tắt** cho telemetry/outbox/realtime/AI summary khi cấu hình `RETENTION_*`; **chưa có xóa cứng toàn bộ/backup.**
+  (`POST /subjects/:id/deletion-requests`, 202 `recorded`, chỉ audit). Retention job **mặc định tắt** cho telemetry/outbox/realtime/AI summary/nháp trợ lý đã hết hạn khi cấu hình `RETENTION_*`; **chưa có xóa cứng toàn bộ/backup.**
 - Liên hệ khẩn cấp tối đa 5/hồ sơ; chủ hồ sơ ghi, caregiver có `canReceiveAlerts` đọc.
 - Công việc bảo trì: xem/đóng theo quyền; chủ hồ sơ tạo cho thiết bị đang gắn.
 - Studio publish dùng CAS `baseRevision + digest`; rollback tạo bản công bố mới; dữ liệu tôn trọng mốc chia sẻ.
@@ -77,7 +77,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
   ở tầng ứng dụng (P0-1) và chưa kiểm broker/ACL/TLS thật. Không dùng MQTT cho demo cảnh báo.
 - Chưa có firmware/đo thật; dữ liệu demo là tổng hợp và có nhãn.
 - Retention mới ở mức tùy chọn, mặc định tắt, chưa có API/UI/backup; chưa có xóa cứng toàn bộ hồ sơ, backup/restore, TLS/secret rotation production.
-- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc qua API có cấu trúc, chưa hiểu câu lệnh tự nhiên, chưa có UI/retention cho `assistant_drafts`.
+- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc qua API có cấu trúc, chưa hiểu câu lệnh tự nhiên, chưa có UI; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`.
 - OpenAPI máy sinh chưa làm; hợp đồng nguồn nằm ở `packages/contracts`.
 
 Nguồn thiết kế: [kiến trúc](../docs/03-kien-truc-he-thong.md), [dữ liệu/API](../docs/04-du-lieu-va-giao-tiep.md),

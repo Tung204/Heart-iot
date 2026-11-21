@@ -45,7 +45,7 @@ Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; x�
 
 - Đây là backend của FR-21, **chưa phải trợ lý hội thoại tự hiểu yêu cầu**. Chưa nối LLM/rule parser để sinh `input` từ câu nói.
 - Chưa có UI preview/confirm; UI v10 vẫn đóng băng.
-- Chưa có capability tạo công việc bảo trì/xuất phiếu; chưa có retention riêng cho `assistant_drafts` (nháp chứa tiêu đề/ghi chú người dùng).
+- Chưa có capability tạo công việc bảo trì/xuất phiếu. Retention cho nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` (mặc định tắt, xem `v12-retention.md`).
 - Chưa kiểm PostgreSQL thật, tải đồng thời nhiều instance hay provider AI thật.
 - Không thay đổi đường cảnh báo; trợ lý không có quyền ack/resolve/cancel.
 

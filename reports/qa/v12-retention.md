@@ -8,7 +8,8 @@ Thêm job retention **mặc định tắt**, không có ngày mặc định. Ch�
 - `RETENTION_TELEMETRY_DAYS` — xóa mẫu đo cũ theo `received_at`;
 - `RETENTION_NOTIFICATION_DAYS` — xóa outbox đã kết thúc (`sent`/`failed`/`superseded`);
 - `RETENTION_REALTIME_DAYS` — xóa sự kiện SSE cũ;
-- `RETENTION_AI_SUMMARY_DAYS` — xóa tóm tắt AI cũ.
+- `RETENTION_AI_SUMMARY_DAYS` — xóa tóm tắt AI cũ;
+- `RETENTION_ASSISTANT_DRAFT_DAYS` — xóa nháp trợ lý **đã hết hạn** (`expires_at`), không xóa nháp còn hiệu lực.
 
 Job chạy một lần/ngày theo UTC (`job_runs` khóa `retention:<ngày>`), xóa theo lô
 500, ghi audit `retention.purge` với cutoff và số dòng đã xóa. Không xóa hồ sơ,
@@ -21,16 +22,16 @@ incident, audit, care link, cấu hình hay backup. Đây **không** thay luồn
 | --- | --- |
 | `pnpm --filter @heart-iot/api typecheck` | pass |
 | `node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/retention.spec.ts` | **2/2 test pass** |
-| Full API suite | **32 suite / 298 test pass** |
-| Randomized seed `20261121` | **298/298 pass** |
-| Migration | `drizzle/0008_smart_wrecker.sql` thêm index retention; test migrate từ DB rỗng |
+| Full API suite | **33 suite / 303 test pass** |
+| Randomized seed `20261121` | **303/303 pass** |
+| Migration | `0008_smart_wrecker.sql` thêm index retention; `0010_confused_klaw.sql` thêm index `assistant_drafts.expires_at`; test migrate từ DB rỗng |
 | `pnpm -r typecheck` | pass toàn monorepo |
 | `pnpm --filter @heart-iot/api build` (`nest build`) | pass |
-| Docs `build.py --check` | khớp nguồn, **365 liên kết/295 ID/22 mục** |
+| Docs `build.py --check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
 | Payload mẫu / MQTT exposure | **5/5** payload; **16/16** kiểm tra tĩnh |
 
-Test kiểm: mặc định tắt không xóa; khi bật chỉ xóa bản cũ đúng lớp, giữ bản mới
-và outbox `pending`; audit có số đếm; chạy lại cùng ngày bị `job_runs` skip.
+Test kiểm: mặc định tắt không xóa; khi bật chỉ xóa bản cũ đúng lớp, giữ bản mới,
+outbox `pending` và nháp trợ lý còn hiệu lực; audit có số đếm; chạy lại cùng ngày bị `job_runs` skip.
 
 ## Giới hạn
 
@@ -44,6 +45,6 @@ và outbox `pending`; audit có số đếm; chạy lại cùng ngày bị `job_
 
 - `backend/src/retention/retention.service.ts`, `retention.module.ts`
 - `backend/test/retention.spec.ts`
-- `backend/drizzle/0008_smart_wrecker.sql`
+- `backend/drizzle/0008_smart_wrecker.sql`, `0010_confused_klaw.sql`
 - `backend/src/config/env.ts`, `.env.example`
-- `docs/02`, `docs/04`, `docs/08`, `docs/14`, `README.md`
+- `docs/02`, `docs/03`, `docs/04`, `docs/08`, `docs/12`, `docs/14`, `README.md`
