@@ -108,6 +108,12 @@ Job `retention` **mặc định tắt**, không có ngày mặc định. Khi b�
 
 Job không xóa hồ sơ, incident, audit, care link, cấu hình hay backup; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md).
 
+## Trợ lý có hành động có kiểm soát
+
+FR-21 backend tách **nháp** khỏi **ghi nghiệp vụ**: `assistant_drafts` lưu payload đã chuẩn hoá, digest, hạn 15 phút và trạng thái `draft|confirmed|cancelled|expired`. Tạo nháp không ghi `care_reminders`; chỉ `confirm` của chủ hồ sơ mới gọi `RemindersService.createWithTx` trong cùng transaction với cập nhật nháp, nên lặp lại không tạo lịch thứ hai. Hết hạn, hủy, digest sai hoặc mất quyền bị chặn trước khi ghi.
+
+Trợ lý **không** có capability tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình thiết bị, cấp quyền, xóa dữ liệu, chẩn đoán/kê đơn, gửi tin khẩn hay điều khiển firmware. Catalog trả qua `GET /subjects/:id/assistant/capabilities`; đây là backend của FR-21, chưa có parser câu lệnh tự nhiên hoặc UI preview.
+
 ## Mạng, đồng hồ và dữ liệu cũ
 
 | Tình huống | Hành vi đề xuất |
