@@ -4,13 +4,16 @@
 # và mỗi device có mật khẩu riêng trong password_file (tạo cục bộ, không commit).
 # pattern %u thay bằng username, nên thiết bị chỉ chạm được topic của chính nó.
 #
-# Backend đọc telemetry của mọi thiết bị vì adapter hiện subscribe
-# v1/devices/+/telemetry. Backend KHÔNG được publish topic sự kiện/telemetry.
+# Backend đọc telemetry/sự kiện của mọi thiết bị và chỉ publish ACK.
+# Backend KHÔNG được publish telemetry/sự kiện.
 
 user heart-iot-ingest
 topic read v1/devices/+/telemetry
+topic read v1/devices/+/events
+topic write v1/devices/+/acks
 
-# Thiết bị: publish telemetry và đọc ACK của chính mình. Không publish topic
-# events/status (backend chưa ingest các topic đó) và không đọc telemetry thiết bị khác.
+# Thiết bị: publish telemetry/sự kiện của chính mình và đọc ACK của chính mình.
+# Không đọc telemetry/sự kiện của thiết bị khác.
 pattern write v1/devices/%u/telemetry
+pattern write v1/devices/%u/events
 pattern read v1/devices/%u/acks

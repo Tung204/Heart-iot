@@ -97,6 +97,19 @@ const aclPath = path.join(brokerDir, 'acl');
 if (existsSync(aclPath)) {
   const acl = readText(aclPath);
   check('infra/mosquitto/acl: có pattern theo %u (device_id)', /^\s*pattern\s+\w+\s+\S*%u/m.test(acl));
+  check(
+    'infra/mosquitto/acl: thiết bị được publish sự kiện của chính mình',
+    /^\s*pattern\s+write\s+\S*%u\/events/m.test(acl),
+  );
+  check(
+    'infra/mosquitto/acl: backend được đọc sự kiện',
+    /^\s*topic\s+read\s+\S*\+\/events/m.test(acl),
+  );
+  check(
+    'infra/mosquitto/acl: backend chỉ publish ACK',
+    /^\s*topic\s+write\s+\S*\+\/acks/m.test(acl) &&
+      !/^\s*topic\s+write\s+\S*\+\/(telemetry|events)/m.test(acl),
+  );
 } else {
   check('infra/mosquitto/acl tồn tại', false);
 }

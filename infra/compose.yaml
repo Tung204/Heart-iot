@@ -16,11 +16,12 @@ services:
       timeout: 3s
       retries: 10
 
-  # MQTT KHÔNG phải đường ingest được hỗ trợ (xem infra/README.md).
-  # - Adapter MQTT trong apps/api chỉ subscribe v1/devices/+/telemetry khi có MQTT_URL;
-  #   chưa có ingest fall/SOS và chưa publish ACK, nên publish sự kiện lên broker
-  #   KHÔNG tạo incident và không có ACK (finding P0-2 vẫn mở).
-  # - Vì vậy broker nằm sau profile mqtt-experimental: `docker compose up` mặc định
+  # MQTT vẫn là profile THỬ NGHIỆM, chưa phải đường ingest production.
+  # - Adapter MQTT subscribe telemetry + events khi có MQTT_URL; sự kiện fall/SOS
+  #   được ingest và trả ACK qua v1/devices/{id}/acks (P0-2 đã có mã/test).
+  # - P0-1 (xác thực thiết bị ở tầng ứng dụng) và kiểm broker/ACL/TLS thật vẫn mở,
+  #   nên không dùng MQTT cho demo cảnh báo.
+  # - Broker nằm sau profile mqtt-experimental: `docker compose up` mặc định
   #   không dựng và không mở cổng 1883.
   # - Khi bật: chỉ bind 127.0.0.1, bắt buộc password_file + ACL theo device_id.
   mosquitto:

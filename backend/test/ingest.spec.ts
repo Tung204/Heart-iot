@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { eq, and } from 'drizzle-orm';
 import { DEFAULT_POLICY_VALUE } from '@heart-iot/contracts/policies';
-import type { TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
+import type { IncidentEnvelope, TelemetryEnvelope } from '@heart-iot/contracts/telemetry';
 import { ApiExceptionFilter } from '../src/common/api-exception.filter';
 import { DevicesModule } from '../src/devices/devices.module';
 import { IngestModule } from '../src/ingest/ingest.module';
@@ -14,7 +14,14 @@ import { localDateKey } from '../src/measurements/insights';
 import { PolicyModule } from '../src/policy/policy.module';
 import { computePolicyDigest } from '../src/policy/policy.service';
 import { DB } from '../src/database/database';
-import { policyConfigs, subjects, telemetry, deviceAssignments, auditLogs } from '../src/database/schema';
+import {
+  auditLogs,
+  deviceAssignments,
+  incidents,
+  policyConfigs,
+  subjects,
+  telemetry,
+} from '../src/database/schema';
 import {
   createAdmin,
   createModuleTestApp,
@@ -26,8 +33,8 @@ import {
 
 /**
  * FR ingest telemetry: chống trùng (message_id / boot+sequence), conflict 409,
- * rejected khi chưa gán, isLate, rate limit trong bộ nhớ, MQTT parser (không mở
- * kết nối thật).
+ * rejected khi chưa gán, isLate, rate limit trong bộ nhớ, MQTT parser + sự kiện
+ * fall/SOS (không mở kết nối thật).
  */
 
 /** Test-only: AppModule (lead sở hữu) đăng ký APP_FILTER; module test cần filter riêng. */
@@ -115,6 +122,35 @@ function makeEnvelope(deviceId: string, overrides: Partial<TelemetryEnvelope> = 
     quality: { heart_rate: 'valid', motion: 'valid' },
     battery_percent: 60,
     firmware_version: '0.1.0-demo',
+    ...overrides,
+  };
+}
+
+function makeIncidentEnvelope(
+  deviceId: string,
+  overrides: Partial<IncidentEnvelope> = {},
+): IncidentEnvelope {
+  return {
+    schema_version: '1.0',
+    message_id: crypto.randomUUID(),
+    device_id: deviceId,
+    boot_id: 'boot-mqtt-events',
+    sequence: 1,
+    measured_at: new Date().toISOString(),
+    clock_status: 'synced',
+    uptime_ms: 30_000,
+    firmware_version: '0.1.0-demo',
+    incident_id: 'incident-mqtt-events-1',
+    event_revision: 1,
+    event_type: 'fall.candidate',
+    incident_type: 'fall',
+    evidence: {
+      algorithm_version: 'test-1',
+      wear_location: 'wrist',
+      motion_quality: 'valid',
+      heart_rate_quality: 'valid',
+      heart_rate_bpm: 80,
+    },
     ...overrides,
   };
 }
@@ -622,5 +658,61 @@ describe('Ingest telemetry', () => {
       status: 'ignored',
       reason: 'invalid_payload',
     });
+  });
+
+  it('MQTT events: ingest fall/SOS dùng chung state machine, trả ACK qua topic acks', async () => {
+    const { fixture } = await createClaimedDevice(ctx, admin, owner);
+    const mqtt = ctx.app.get(MqttIngestService);
+    const fakeClient = { publish: jest.fn() };
+    (mqtt as unknown as { client: typeof fakeClient }).client = fakeClient;
+
+    try {
+      const event = makeIncidentEnvelope(fixture.deviceId);
+      const topic = `v1/devices/${fixture.deviceId}/events`;
+      const first = await mqtt.handleMessage(topic, JSON.stringify(event));
+      expect(first.status).toBe('event');
+      if (first.status === 'event') {
+        expect(first.ack.status).toBe('accepted');
+        expect(first.ack.sourceMessageId).toBe(event.message_id);
+        expect(first.ack.incidentId).toMatch(/^[0-9a-f-]{36}$/);
+        expect(first.ack.acceptedRevision).toBe(1);
+      }
+
+      const rows = await ctx.db
+        .select()
+        .from(incidents)
+        .where(eq(incidents.deviceId, fixture.deviceId));
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.state).toBe('suspected');
+
+      expect(fakeClient.publish).toHaveBeenCalledTimes(1);
+      const call = fakeClient.publish.mock.calls[0] as [string, string, Record<string, unknown>];
+      expect(call[0]).toBe(`v1/devices/${fixture.deviceId}/acks`);
+      expect(JSON.parse(call[1])).toMatchObject({
+        status: 'accepted',
+        sourceMessageId: event.message_id,
+      });
+      expect(call[2]).toEqual({ qos: 1, retain: false });
+
+      const duplicate = await mqtt.handleMessage(topic, JSON.stringify(event));
+      expect(duplicate.status).toBe('event');
+      if (duplicate.status === 'event') expect(duplicate.ack.status).toBe('duplicate');
+      expect(fakeClient.publish).toHaveBeenCalledTimes(2);
+      expect(
+        await ctx.db.select().from(incidents).where(eq(incidents.deviceId, fixture.deviceId)),
+      ).toHaveLength(1);
+
+      const mismatch = await mqtt.handleMessage(
+        `v1/devices/${crypto.randomUUID()}/events`,
+        JSON.stringify(event),
+      );
+      expect(mismatch).toEqual({ status: 'ignored', reason: 'device_id_mismatch' });
+      expect(
+        await mqtt.handleMessage(topic, JSON.stringify({ ...event, event_type: 'khong-hop-le' })),
+      ).toEqual({ status: 'ignored', reason: 'invalid_payload' });
+      expect(fakeClient.publish).toHaveBeenCalledTimes(2);
+    } finally {
+      (mqtt as unknown as { client: unknown }).client = null;
+    }
   });
 });
