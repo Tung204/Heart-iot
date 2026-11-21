@@ -349,7 +349,7 @@ Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây
 | Lát cắt | Kết quả người dùng thấy | Yêu cầu | Phụ thuộc | Cỡ đề xuất |
 | --- | --- | --- | --- | --- |
 | **V9** — Vòng chăm sóc nhìn thấy được | Xem 7/30 ngày đã làm/bỏ qua/chưa ghi nhận; đặt quy tắc nhắc nhẹ khi chưa vận động; nhận bản tin chăm sóc cuối ngày trong hộp thông báo | `FR-15` (phần web), `FR-17`, một phần `FR-20` | v8 reminders; V9.2a notification (đã có); scheduler | V9.1 M, V9.2 M–L |
-| **V10** — Cảnh báo không bị bỏ lỡ | Cảnh báo leo thang theo thời gian, biết ai đã được thông báo và khi nào; tuỳ chọn nhận Web Push | `FR-07`, `FR-12` | V9.2 scheduler + escalation; quyền hồ sơ | L |
+| **V10** — Cảnh báo không bị bỏ lỡ | Cảnh báo leo thang theo thời gian, biết ai đã được thông báo và khi nào; tuỳ chọn nhận Web Push | `FR-07`, `FR-12` | **V10a backend in-app đã có** (chính sách version hoá, scheduler, outbox `escalation`); còn UI + Web Push | L |
 | **V11** — Trợ lý có hành động và nguồn | Gõ yêu cầu → phiếu nháp xem trước → xác nhận mới lưu; bản tin ngày/tuần; hỏi chăm sóc có trích nguồn | `FR-20`, `FR-21`, `FR-23` | V9–V10; contract AI; bộ tài liệu nguồn | L (tách V11a/V11b) |
 | **V12** — Sẵn sàng dữ liệu thật | Xóa/retention có trạng thái và bằng chứng; đồng thuận/đại diện; quyết định MQTT; OpenAPI/CI/PostgreSQL | `FR-14`, `FR-13`, `NFR-05/06`, P0-2 | D2, D5, D6 | L (chia nhiều PR) |
 
@@ -388,6 +388,8 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 - Ngoài phạm vi: rung/nút trên thiết bị (`FR-15` phần cứng), Web Push (V10), nội dung do AI sinh (V11).
 
 #### V10 — Cảnh báo không bị bỏ lỡ
+
+**Trạng thái 21/11/2026 — V10a backend đã có (nhánh `v10-backend`, chưa hợp nhất):** API `GET/PUT /subjects/:id/alert-policy` + preview; lưu vào `subject_rules` kind `alert_escalation` với version; mặc định **tắt** và các mốc 10/20/30 phút chỉ là đề xuất. Scheduler 60 giây chỉ xử lý incident `open`, chọn bậc cao nhất đã tới hạn, ghi outbox `kind='escalation'` cho chủ hồ sơ + care link active có `canReceiveAlerts`, bỏ tài khoản khóa; dedupe theo incident/bậc/người nhận; audit `no_recipient` một lần/bậc. Worker bỏ qua escalation đang chờ nếu incident đã ack/đóng hoặc mất quyền. **Chưa có UI cấu hình, Web Push, SMS/gọi tự động, hay E2E hai tài khoản.** Test mới: `alert-policy.spec.ts` (4) và `alert-escalation.spec.ts` (9, fake clock); API **286 test/29 suite**.
 
 - Kết quả: khi cảnh báo `open` chưa được xác nhận, hệ thống thông báo lại theo bậc; chi tiết cảnh báo mở rộng danh sách người nhận hiện có thành ai/kênh/thời điểm/trạng thái gửi; người dùng bật/tắt kênh ngoài ứng dụng.
 - Cấu hình leo thang: `subject_rules` kind `alert_escalation`, version hoá, chủ hồ sơ sửa, mặc định an toàn (ví dụ 10/20/30 phút, tối đa 3 bậc — **giá trị đề xuất, cần chốt**); preview bắt buộc trước khi lưu. Không áp dụng “giờ yên tĩnh” cho cảnh báo khẩn; chỉ nhắc chăm sóc mới có giờ yên tĩnh.

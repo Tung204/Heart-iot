@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 18/11/2026 (giao diện v7):** đã có test tự động và kết quả chạy thật cho lát cắt phần mềm v1–v7 trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng); số API mới nhất **29 suite/286 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-14 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -10,6 +10,22 @@
 4. Dùng E2E cho đường demo quan trọng; race test cho xác nhận đồng thời; load/stress chỉ khi đánh giá giới hạn cụ thể. Full suite dành cho gate phát hành hoặc bằng chứng hồi quy rộng cần thiết.
 
 Mặc định chạy tuần tự. Khi fail phải đọc bằng chứng và tìm nguyên nhân trước khi chạy lại. Không bỏ/skip/nới test hợp lệ để làm xanh.
+
+## Bằng chứng chạy ngày 21/11/2026 (backend V10a)
+
+Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy trên nhánh `v10-backend`. Chỉ chạy lại phần backend bị thay đổi; **không chạy lại web/E2E** vì không sửa UI.
+
+| Hạng mục | Lệnh | Kết quả thật |
+| --- | --- | --- |
+| API toàn bộ | `pnpm --filter @heart-iot/api test` | **29/29 suite, 286/286 test pass** |
+| Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview, version/validation |
+| Leo thang | `alert-escalation.spec.ts` | 8 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack |
+| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **29/29 suite, 286/286 test pass** |
+| Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
+| Migration | `drizzle/0006_yielding_gargoyle.sql` | đổi check constraint `subject_rules.kind`; PGlite test migrate từ DB rỗng |
+| Docs HTML | `build.py --check` | khớp nguồn, **363 liên kết/294 ID/22 mục** |
+
+**Giới hạn:** chưa có UI cấu hình, Web Push, E2E hai tài khoản, PostgreSQL thật hay đo p95. API web/E2E không được chạy lại trong lượt này.
 
 ## Bằng chứng chạy ngày 18/11/2026 (giao diện v7)
 
