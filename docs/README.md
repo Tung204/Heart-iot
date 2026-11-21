@@ -42,6 +42,6 @@ Ngày soạn thiết kế: **10/11/2026**; cập nhật trạng thái phần m�
 
 Một số con số được đặt làm **tham số demo/đích thử nghiệm đề xuất**. Chúng không phải ngưỡng y khoa, số liệu thực nghiệm hoặc cam kết vận hành.
 
-Số test, lệnh kiểm và lỗi còn lại: API **286 test** (29 suite) chạy **21/11/2026** khi thêm V10a backend; web **44 file/390 test** và E2E **26/26** chạy **20/11/2026** (V9.2 web preview); simulator **23 test** từ lần chạy trước. Chi tiết tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md). API randomized **286/286** (seed 20261121) đã qua; chưa chạy PostgreSQL/MQTT thật hay AI provider thật. Tài liệu không thay cho việc chạy lại; repo chưa có CI và chưa có bằng chứng firmware/độ chính xác.
+Số test, lệnh kiểm và lỗi còn lại: API **287 test** (29 suite) chạy **21/11/2026** khi thêm V10a backend; web **44 file/390 test** và E2E **26/26** chạy **20/11/2026** (V9.2 web preview); simulator **23 test** từ lần chạy trước. Chi tiết tại [chương 14](14-ke-hoach-trien-khai-phan-mem.md). API randomized **287/287** (seed 20261121) đã qua; chưa chạy PostgreSQL/MQTT thật hay AI provider thật. Tài liệu không thay cho việc chạy lại; repo chưa có CI và chưa có bằng chứng firmware/độ chính xác.
 
 [Quay lại trang dự án](../README.md).

@@ -87,13 +87,13 @@ Kết quả API chạy ngày **21/11/2026** (V10a backend); các số web/E2E b�
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`pnpm --filter @heart-iot/api test`) | **29 suite / 286 test pass** (gồm 13 test V10a) |
+| API (`pnpm --filter @heart-iot/api test`) | **29 suite / 287 test pass** (gồm 14 test V10a) |
 | Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
 | Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **363 liên kết/294 ID** (21/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
-| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **29 suite / 286 test pass** ngày 21/11/2026 |
+| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **29 suite / 287 test pass** ngày 21/11/2026 |
 | Typecheck, web production build, seed, MQTT exposure | **không chạy lại** trong lượt này |
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; ảnh và số đo giao diện v7 ở `reports/qa/evidence/v7-*/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
@@ -137,7 +137,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit, chưa xóa dữ liệu, chưa có retention tự động, chưa xử lý backup/AI cache.
 - **AI:** chỉ tóm tắt/hỏi đáp giới hạn với fallback template; chưa có RAG, planner/tool registry, scheduler, approval flow hay runtime `agent_runs`/`run_steps`. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** API **286 test/29 suite** đã qua ngày 21/11/2026 (V10a); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **286/286** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** API **287 test/29 suite** đã qua ngày 21/11/2026 (V10a); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **287/287** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp
