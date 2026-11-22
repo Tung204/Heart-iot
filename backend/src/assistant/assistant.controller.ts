@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   assistantAnswerSchema,
@@ -7,12 +7,14 @@ import {
   assistantDraftSchema,
   assistantCapabilitiesSchema,
   createAssistantDraftSchema,
+  updateAssistantDraftSchema,
   assistantSummaryQuerySchema,
   assistantSummarySchema,
   type AssistantAsk,
   type AssistantDraftFromTextInput,
   type AssistantSummaryQuery,
   type CreateAssistantDraftInput,
+  type UpdateAssistantDraftInput,
 } from '@heart-iot/contracts/assistant';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { SessionGuard } from '../auth/session.guard';
@@ -82,6 +84,17 @@ export class AssistantController {
     @Body(new ZodValidationPipe(assistantDraftFromTextSchema)) input: AssistantDraftFromTextInput,
   ) {
     const result = await this.actions.createDraftFromText(user, subjectId, input);
+    return assistantDraftSchema.parse(result);
+  }
+
+  /** Sửa nội dung nháp trước khi xác nhận — vẫn không ghi nghiệp vụ. */
+  @Patch('assistant/drafts/:id')
+  async updateDraft(
+    @CurrentUser() user: UserSummary,
+    @Param('id', idPipe) draftId: string,
+    @Body(new ZodValidationPipe(updateAssistantDraftSchema)) input: UpdateAssistantDraftInput,
+  ) {
+    const result = await this.actions.updateDraft(user, draftId, input);
     return assistantDraftSchema.parse(result);
   }
 

@@ -6,10 +6,12 @@ import {
   assistantDraftFromTextSchema,
   assistantDraftSchema,
   createAssistantDraftSchema,
+  updateAssistantDraftSchema,
   type AssistantCapabilities,
   type AssistantDraft,
   type AssistantDraftFromTextInput,
   type CreateAssistantDraftInput,
+  type UpdateAssistantDraftInput,
 } from '@heart-iot/contracts/assistant';
 import { type UserSummary } from '@heart-iot/contracts';
 import { createReminderSchema, type CreateReminderInput } from '@heart-iot/contracts/reminders';
@@ -214,6 +216,86 @@ export class AssistantActionsService {
       return created;
     });
     return toDraft(row);
+  }
+
+  /**
+   * Sửa nháp trước khi xác nhận. Chỉ chủ hồ sơ, chỉ trạng thái `draft`; cập nhật
+   * payload + digest trong transaction, không ghi `care_reminders`. Nếu đã hết
+   * hạn thì chuyển `expired` và trả 409. Confirm đồng thời sẽ thấy digest cũ và
+   * bị chặn, nên không thể xác nhận nội dung vừa bị sửa.
+   */
+  async updateDraft(
+    user: UserSummary,
+    draftId: string,
+    input: UpdateAssistantDraftInput,
+  ): Promise<AssistantDraft> {
+    const initial = await this.requireOwnedDraft(user, draftId);
+    const access = await this.access.requireSubject(user.id, initial.subjectId);
+    if (access.role !== 'owner') {
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được sửa nháp này.');
+    }
+    const parsed = updateAssistantDraftSchema.parse(input);
+    const payload = createReminderSchema.parse(parsed.input);
+    const previewDigest = computeDraftDigest(CAPABILITY_ID, initial.subjectId, payload);
+    const now = new Date();
+
+    const outcome = await this.db.transaction(async (tx): Promise<ConfirmOutcome> => {
+      const rows = await tx
+        .select()
+        .from(assistantDrafts)
+        .where(and(eq(assistantDrafts.id, draftId), eq(assistantDrafts.actorUserId, user.id)))
+        .for('update')
+        .limit(1);
+      const row = rows[0];
+      if (!row) return { kind: 'missing' };
+      if (row.status !== 'draft') {
+        return {
+          kind: 'conflict',
+          message: `Nháp đang ở trạng thái ${row.status}, không thể sửa.`,
+        };
+      }
+      if (row.expiresAt.getTime() <= now.getTime()) {
+        const updated = await tx
+          .update(assistantDrafts)
+          .set({ status: 'expired', updatedAt: now })
+          .where(eq(assistantDrafts.id, row.id))
+          .returning();
+        return { kind: 'expired', row: updated[0] ?? row };
+      }
+
+      const updated = await tx
+        .update(assistantDrafts)
+        .set({ payload, previewDigest, updatedAt: now })
+        .where(eq(assistantDrafts.id, row.id))
+        .returning();
+      const edited = updated[0];
+      if (!edited) throw new Error('Không cập nhật được nháp.');
+      await this.audit.record(
+        {
+          actorUserId: user.id,
+          actorKind: 'user',
+          action: 'assistant.draft.update',
+          targetType: 'assistant_draft',
+          targetId: edited.id,
+          outcome: 'success',
+          // Không ghi nội dung nháp vào audit.
+          metadata: {
+            capability: edited.capability,
+            subjectId: edited.subjectId,
+            previewDigest,
+          },
+        },
+        tx,
+      );
+      return { kind: 'ok', row: edited };
+    });
+
+    if (outcome.kind === 'missing') throw AppError.notFound('Không tìm thấy nháp.');
+    if (outcome.kind === 'expired') {
+      throw AppError.conflict('Nháp đã hết hạn; hãy tạo nháp mới và xem lại trước khi lưu.');
+    }
+    if (outcome.kind === 'conflict') throw AppError.conflict(outcome.message);
+    return toDraft(outcome.row);
   }
 
   async getDraft(user: UserSummary, draftId: string): Promise<AssistantDraft> {

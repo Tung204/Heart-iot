@@ -186,6 +186,14 @@ export const createAssistantDraftSchema = z
   .strict();
 export type CreateAssistantDraftInput = z.infer<typeof createAssistantDraftSchema>;
 
+/** PATCH /assistant/drafts/:id — sửa preview trước khi xác nhận; vẫn chỉ là nháp. */
+export const updateAssistantDraftSchema = z
+  .object({
+    input: createReminderSchema,
+  })
+  .strict();
+export type UpdateAssistantDraftInput = z.infer<typeof updateAssistantDraftSchema>;
+
 /**
  * Câu lệnh đơn giản do người dùng gõ. Server parse bằng rule-based parser,
  * **không gọi LLM**, rồi vẫn trả nháp để xem trước/xác nhận. Raw text không

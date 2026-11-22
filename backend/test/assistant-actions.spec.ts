@@ -235,6 +235,11 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
       .from(assistantDrafts)
       .where(eq(assistantDrafts.id, created.body.id));
     expect(draft[0]?.status).toBe('expired');
+    const editExpired = await owner.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ input: draftBody().input });
+    expect(editExpired.status).toBe(409);
     expect(
       await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
     ).toHaveLength(0);
@@ -337,5 +342,82 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
     expect(
       await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
     ).toHaveLength(1);
+  });
+
+  it('sửa nháp trước khi xác nhận dùng nội dung mới; caregiver/ngoài bị chặn', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    await linkCaregiver(subject.id);
+    const created = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(draftBody());
+    expect(created.status).toBe(201);
+
+    const base = draftBody();
+    const updated = await owner.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        input: {
+          ...base.input,
+          title: 'Uống thuốc huyết áp',
+          times: ['09:15'],
+          weekdays: [2, 3, 4, 5, 6],
+        },
+      });
+    expect(updated.status).toBe(200);
+    expect(updated.body).toMatchObject({
+      status: 'draft',
+      preview: {
+        title: 'Uống thuốc huyết áp',
+        times: ['09:15'],
+        weekdays: [2, 3, 4, 5, 6],
+      },
+    });
+    expect(updated.body.previewDigest).not.toBe(created.body.previewDigest);
+    expect(
+      await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
+    ).toHaveLength(0);
+
+    const editAudit = (
+      await ctx.db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.action, 'assistant.draft.update'))
+    ).find((row) => row.targetId === created.body.id);
+    expect(editAudit?.metadata).not.toHaveProperty('title');
+    expect(editAudit?.metadata).not.toHaveProperty('note');
+
+    const caregiverResponse = await caregiver.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ input: base.input });
+    expect(caregiverResponse.status).toBe(404);
+    const outsiderResponse = await outsider.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ input: base.input });
+    expect(outsiderResponse.status).toBe(404);
+
+    const confirmed = await owner.agent
+      .post(`/api/v1/assistant/drafts/${created.body.id}/confirm`)
+      .set('Origin', TEST_ORIGIN);
+    expect(confirmed.status).toBe(200);
+    const reminders = await ctx.db
+      .select()
+      .from(careReminders)
+      .where(eq(careReminders.subjectId, subject.id));
+    expect(reminders).toHaveLength(1);
+    expect(reminders[0]).toMatchObject({
+      title: 'Uống thuốc huyết áp',
+      times: ['09:15'],
+      weekdays: [2, 3, 4, 5, 6],
+    });
+
+    const afterConfirm = await owner.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ input: base.input });
+    expect(afterConfirm.status).toBe(409);
   });
 });
