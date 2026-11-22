@@ -194,6 +194,14 @@ export const updateAssistantDraftSchema = z
   .strict();
 export type UpdateAssistantDraftInput = z.infer<typeof updateAssistantDraftSchema>;
 
+/** GET /subjects/:id/assistant/drafts — danh sách nháp đang chờ của chủ hồ sơ. */
+export const assistantDraftListQuerySchema = z
+  .object({
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+  })
+  .strict();
+export type AssistantDraftListQuery = z.infer<typeof assistantDraftListQuerySchema>;
+
 /**
  * Câu lệnh đơn giản do người dùng gõ. Server parse bằng rule-based parser,
  * **không gọi LLM**, rồi vẫn trả nháp để xem trước/xác nhận. Raw text không

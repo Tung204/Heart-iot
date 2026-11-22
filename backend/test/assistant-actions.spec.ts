@@ -420,4 +420,58 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
       .send({ input: base.input });
     expect(afterConfirm.status).toBe(409);
   });
+
+  it('liệt kê nháp đang chờ của chủ hồ sơ; loại nháp đã xác nhận/hết hạn', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    await linkCaregiver(subject.id);
+
+    const active = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(draftBody({ title: 'Đo huyết áp buổi sáng' }));
+    expect(active.status).toBe(201);
+
+    const confirmed = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(draftBody({ title: 'Uống thuốc buổi tối' }));
+    expect(confirmed.status).toBe(201);
+    expect(
+      (
+        await owner.agent
+          .post(`/api/v1/assistant/drafts/${confirmed.body.id}/confirm`)
+          .set('Origin', TEST_ORIGIN)
+      ).status,
+    ).toBe(200);
+
+    const expired = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(draftBody({ title: 'Nháp đã hết hạn' }));
+    expect(expired.status).toBe(201);
+    await ctx.db
+      .update(assistantDrafts)
+      .set({ expiresAt: new Date(Date.now() - 60_000) })
+      .where(eq(assistantDrafts.id, expired.body.id));
+
+    const listed = await owner.agent
+      .get(`/api/v1/subjects/${subject.id}/assistant/drafts?limit=10`)
+      .set('Origin', TEST_ORIGIN);
+    expect(listed.status).toBe(200);
+    expect(listed.body).toHaveLength(1);
+    expect(listed.body[0]).toMatchObject({
+      id: active.body.id,
+      status: 'draft',
+      preview: { title: 'Đo huyết áp buổi sáng' },
+    });
+
+    const caregiverList = await caregiver.agent
+      .get(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN);
+    expect(caregiverList.status).toBe(403);
+    const outsiderList = await outsider.agent
+      .get(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN);
+    expect(outsiderList.status).toBe(404);
+  });
 });

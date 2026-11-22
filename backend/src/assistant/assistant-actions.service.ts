@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq, gt } from 'drizzle-orm';
 import {
   ASSISTANT_DRAFT_TTL_MINUTES,
   assistantCapabilitiesSchema,
@@ -296,6 +296,35 @@ export class AssistantActionsService {
     }
     if (outcome.kind === 'conflict') throw AppError.conflict(outcome.message);
     return toDraft(outcome.row);
+  }
+
+  /**
+   * Nháp đang chờ của chủ hồ sơ, sớm hết hạn trước. Chỉ trả `draft` còn hạn;
+   * nháp đã xác nhận/hủy/hết hạn không xuất hiện để UI không mời xác nhận lại.
+   */
+  async listActiveDrafts(
+    user: UserSummary,
+    subjectId: string,
+    limit: number,
+  ): Promise<AssistantDraft[]> {
+    const access = await this.access.requireSubject(user.id, subjectId);
+    if (access.role !== 'owner') {
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được xem nháp lịch nhắc.');
+    }
+    const rows = await this.db
+      .select()
+      .from(assistantDrafts)
+      .where(
+        and(
+          eq(assistantDrafts.actorUserId, user.id),
+          eq(assistantDrafts.subjectId, subjectId),
+          eq(assistantDrafts.status, 'draft'),
+          gt(assistantDrafts.expiresAt, new Date()),
+        ),
+      )
+      .orderBy(asc(assistantDrafts.expiresAt))
+      .limit(limit);
+    return rows.map(toDraft);
   }
 
   async getDraft(user: UserSummary, draftId: string): Promise<AssistantDraft> {

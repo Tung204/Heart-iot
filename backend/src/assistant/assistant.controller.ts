@@ -4,6 +4,7 @@ import {
   assistantAnswerSchema,
   assistantAskSchema,
   assistantDraftFromTextSchema,
+  assistantDraftListQuerySchema,
   assistantDraftSchema,
   assistantCapabilitiesSchema,
   createAssistantDraftSchema,
@@ -12,6 +13,7 @@ import {
   assistantSummarySchema,
   type AssistantAsk,
   type AssistantDraftFromTextInput,
+  type AssistantDraftListQuery,
   type AssistantSummaryQuery,
   type CreateAssistantDraftInput,
   type UpdateAssistantDraftInput,
@@ -85,6 +87,17 @@ export class AssistantController {
   ) {
     const result = await this.actions.createDraftFromText(user, subjectId, input);
     return assistantDraftSchema.parse(result);
+  }
+
+  /** Nháp đang chờ để UI khôi phục sau khi tải lại — chỉ chủ hồ sơ. */
+  @Get('subjects/:id/assistant/drafts')
+  async listDrafts(
+    @CurrentUser() user: UserSummary,
+    @Param('id', idPipe) subjectId: string,
+    @Query(new ZodValidationPipe(assistantDraftListQuerySchema)) query: AssistantDraftListQuery,
+  ) {
+    const result = await this.actions.listActiveDrafts(user, subjectId, query.limit);
+    return assistantDraftSchema.array().parse(result);
   }
 
   /** Sửa nội dung nháp trước khi xác nhận — vẫn không ghi nghiệp vụ. */
