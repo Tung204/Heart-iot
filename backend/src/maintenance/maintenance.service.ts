@@ -21,6 +21,7 @@ import { AppError } from '../common/app-error';
 import { decodeCursor, encodeCursor } from '../common/pagination';
 
 type TaskRow = typeof maintenanceTasks.$inferSelect;
+export type MaintenanceTx = Parameters<Parameters<AppDb['transaction']>[0]>[0];
 
 /**
  * MaintenanceService — xem/tạo/đóng công việc bảo trì.
@@ -178,7 +179,20 @@ export class MaintenanceService {
       throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo công việc bảo trì cho hồ sơ này.');
     }
 
-    const assignmentRows = await this.db
+    return this.db.transaction((tx) => this.createTaskWithTx(tx, user, input));
+  }
+
+  /**
+   * Phần ghi dùng chung cho API tạo task và xác nhận nháp trợ lý (FR-21).
+   * Người gọi phải kiểm quyền chủ hồ sơ trước; hàm này kiểm lại thiết bị đang
+   * gắn và hạn xử lý trong transaction để không tạo task mồ côi.
+   */
+  async createTaskWithTx(
+    tx: MaintenanceTx,
+    user: UserSummary,
+    input: CreateTaskInput,
+  ): Promise<MaintenanceTaskSummary> {
+    const assignmentRows = await tx
       .select({ id: deviceAssignments.id })
       .from(deviceAssignments)
       .where(
@@ -209,7 +223,7 @@ export class MaintenanceService {
       );
     }
 
-    const inserted = await this.db
+    const inserted = await tx
       .insert(maintenanceTasks)
       .values({
         deviceId: input.deviceId,
@@ -227,16 +241,19 @@ export class MaintenanceService {
     const row = inserted[0];
     if (!row) throw new Error('Không tạo được công việc bảo trì.');
 
-    await this.audit.record({
-      actorUserId: user.id,
-      actorKind: 'user',
-      action: 'maintenance_task.create',
-      targetType: 'maintenance_task',
-      targetId: row.id,
-      outcome: 'success',
-      // Chỉ metadata kỹ thuật — không chứa ghi chú sức khỏe của người dùng.
-      metadata: { kind: row.kind, priority: row.priority, deviceId: row.deviceId },
-    });
+    await this.audit.record(
+      {
+        actorUserId: user.id,
+        actorKind: 'user',
+        action: 'maintenance_task.create',
+        targetType: 'maintenance_task',
+        targetId: row.id,
+        outcome: 'success',
+        // Chỉ metadata kỹ thuật — không chứa ghi chú sức khỏe của người dùng.
+        metadata: { kind: row.kind, priority: row.priority, deviceId: row.deviceId },
+      },
+      tx,
+    );
 
     return toSummary(row);
   }

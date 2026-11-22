@@ -5,11 +5,15 @@ import {
   assistantCapabilitiesSchema,
   assistantDraftFromTextSchema,
   assistantDraftSchema,
+  assistantTaskDraftInputSchema,
   createAssistantDraftSchema,
   updateAssistantDraftSchema,
+  type AssistantActionCapabilityId,
   type AssistantCapabilities,
   type AssistantDraft,
   type AssistantDraftFromTextInput,
+  type AssistantDraftResult,
+  type AssistantTaskDraftInput,
   type CreateAssistantDraftInput,
   type UpdateAssistantDraftInput,
 } from '@heart-iot/contracts/assistant';
@@ -22,18 +26,31 @@ import { AuditService } from '../access/audit.service';
 import { sha256 } from '../auth/password';
 import { AppError } from '../common/app-error';
 import { isUniqueViolation } from '../database/errors';
+import { MaintenanceService, type MaintenanceTx } from '../maintenance/maintenance.service';
 import { RemindersService, type RemindersTx } from '../reminders/reminders.service';
 import { PARSER_VERSION, parseAssistantDraftText } from './assistant-draft-parser';
 
-const CAPABILITY_ID = 'care_reminder.create' as const;
-const RESULT_TYPE = 'care_reminder' as const;
+type DraftCapability = AssistantActionCapabilityId;
+type DraftPayload = CreateReminderInput | AssistantTaskDraftInput;
+
+const REMINDER_CAPABILITY = 'care_reminder.create' as const;
+const TASK_CAPABILITY = 'maintenance_task.create' as const;
 
 const CAN: AssistantCapabilities['can'] = [
   {
-    id: CAPABILITY_ID,
+    id: REMINDER_CAPABILITY,
     label: 'Tạo nháp lịch nhắc chăm sóc',
     description:
       'Soạn lịch nhắc uống thuốc/sinh hoạt để bạn xem trước. Chỉ khi bạn bấm xác nhận mới lưu lịch; trợ lý không tự đặt liều hoặc nội dung y khoa.',
+    requiresConfirmation: true,
+    available: true,
+    unavailableReason: null,
+  },
+  {
+    id: TASK_CAPABILITY,
+    label: 'Tạo nháp việc bảo trì thiết bị',
+    description:
+      'Soạn việc kiểm tra pin/tín hiệu/thiết bị để bạn xem trước. Chỉ khi bạn xác nhận mới lưu công việc; trợ lý không tự đổi cấu hình hay điều khiển thiết bị.',
     requiresConfirmation: true,
     available: true,
     unavailableReason: null,
@@ -119,6 +136,7 @@ export class AssistantActionsService {
     private readonly access: AccessService,
     private readonly audit: AuditService,
     private readonly reminders: RemindersService,
+    private readonly maintenance: MaintenanceService,
   ) {}
 
   async capabilities(user: UserSummary, subjectId: string): Promise<AssistantCapabilities> {
@@ -129,7 +147,7 @@ export class AssistantActionsService {
       can: CAN.map((capability) => ({
         ...capability,
         available: owner,
-        unavailableReason: owner ? null : 'Chỉ chủ hồ sơ mới được tạo lịch nhắc.',
+        unavailableReason: owner ? null : 'Chỉ chủ hồ sơ mới được tạo hành động này.',
       })),
       cannot: CANNOT,
     });
@@ -142,10 +160,10 @@ export class AssistantActionsService {
   ): Promise<AssistantDraft> {
     const access = await this.access.requireSubject(user.id, subjectId);
     if (access.role !== 'owner') {
-      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo nháp lịch nhắc.');
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo nháp hành động.');
     }
     const parsed = createAssistantDraftSchema.parse(input);
-    const payload = createReminderSchema.parse(parsed.input);
+    const payload = parseDraftPayload(parsed.capability, parsed.input);
     return this.persistDraft(
       user,
       subjectId,
@@ -167,7 +185,7 @@ export class AssistantActionsService {
   ): Promise<AssistantDraft> {
     const access = await this.access.requireSubject(user.id, subjectId);
     if (access.role !== 'owner') {
-      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo nháp lịch nhắc.');
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo nháp hành động.');
     }
     const parsed = assistantDraftFromTextSchema.parse(input);
     const payload = parseAssistantDraftText(parsed.text, {
@@ -177,7 +195,7 @@ export class AssistantActionsService {
     return this.persistDraft(
       user,
       subjectId,
-      CAPABILITY_ID,
+      REMINDER_CAPABILITY,
       payload,
       { source: 'text_parser', parserVersion: PARSER_VERSION },
       parsed.requestKey,
@@ -187,8 +205,8 @@ export class AssistantActionsService {
   private async persistDraft(
     user: UserSummary,
     subjectId: string,
-    capability: typeof CAPABILITY_ID,
-    payload: CreateReminderInput,
+    capability: DraftCapability,
+    payload: DraftPayload,
     auditMetadata: Record<string, unknown>,
     requestKey?: string,
   ): Promise<AssistantDraft> {
@@ -268,7 +286,7 @@ export class AssistantActionsService {
   private resolveRequestKeyReplay(
     existing: AssistantDraftRow,
     subjectId: string,
-    capability: typeof CAPABILITY_ID,
+    capability: DraftCapability,
     previewDigest: string,
   ): AssistantDraft {
     if (
@@ -300,8 +318,8 @@ export class AssistantActionsService {
       throw AppError.forbidden('Chỉ chủ hồ sơ mới được sửa nháp này.');
     }
     const parsed = updateAssistantDraftSchema.parse(input);
-    const payload = createReminderSchema.parse(parsed.input);
-    const previewDigest = computeDraftDigest(CAPABILITY_ID, initial.subjectId, payload);
+    const payload = parseDraftPayload(initial.capability, parsed.input);
+    const previewDigest = computeDraftDigest(initial.capability, initial.subjectId, payload);
     const now = new Date();
 
     const outcome = await this.db.transaction(async (tx): Promise<ConfirmOutcome> => {
@@ -374,7 +392,7 @@ export class AssistantActionsService {
   ): Promise<AssistantDraft[]> {
     const access = await this.access.requireSubject(user.id, subjectId);
     if (access.role !== 'owner') {
-      throw AppError.forbidden('Chỉ chủ hồ sơ mới được xem nháp lịch nhắc.');
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được xem nháp hành động.');
     }
     const rows = await this.db
       .select()
@@ -440,10 +458,11 @@ export class AssistantActionsService {
         return { kind: 'conflict', message: 'Nội dung nháp đã thay đổi hoặc không còn hợp lệ.' };
       }
 
-      const reminder = await this.reminders.createWithTx(
-        tx as RemindersTx,
+      const result = await this.createResultWithTx(
+        tx,
         user,
         row.subjectId,
+        row.capability,
         storedPayload,
       );
       const updated = await tx
@@ -452,8 +471,8 @@ export class AssistantActionsService {
           status: 'confirmed',
           confirmedAt: now,
           confirmedByUserId: user.id,
-          resultType: RESULT_TYPE,
-          resultId: reminder.id,
+          resultType: result.type,
+          resultId: result.id,
           updatedAt: now,
         })
         .where(eq(assistantDrafts.id, row.id))
@@ -471,8 +490,8 @@ export class AssistantActionsService {
           metadata: {
             capability: confirmed.capability,
             subjectId: confirmed.subjectId,
-            resultType: RESULT_TYPE,
-            resultId: reminder.id,
+            resultType: result.type,
+            resultId: result.id,
           },
         },
         tx,
@@ -543,6 +562,37 @@ export class AssistantActionsService {
     return toDraft(outcome.row);
   }
 
+  /**
+   * Ghi kết quả nghiệp vụ trong cùng transaction với nháp. Hai nhánh dùng
+   * service createWithTx để không mở transaction lồng và để lỗi cuộn cả nháp.
+   */
+  private async createResultWithTx(
+    tx: Parameters<Parameters<AppDb['transaction']>[0]>[0],
+    user: UserSummary,
+    subjectId: string,
+    capability: string,
+    payload: DraftPayload,
+  ): Promise<AssistantDraftResult> {
+    if (capability === REMINDER_CAPABILITY) {
+      const reminder = await this.reminders.createWithTx(
+        tx as RemindersTx,
+        user,
+        subjectId,
+        payload as CreateReminderInput,
+      );
+      return { type: 'care_reminder', id: reminder.id };
+    }
+    if (capability === TASK_CAPABILITY) {
+      const task = await this.maintenance.createTaskWithTx(
+        tx as MaintenanceTx,
+        user,
+        { ...(payload as AssistantTaskDraftInput), subjectId },
+      );
+      return { type: 'maintenance_task', id: task.id };
+    }
+    throw AppError.conflict('Loại nháp không còn được hỗ trợ; hãy tạo nháp mới.');
+  }
+
   private async requireOwnedDraft(user: UserSummary, draftId: string): Promise<AssistantDraftRow> {
     const rows = await this.db
       .select()
@@ -555,41 +605,85 @@ export class AssistantActionsService {
   }
 }
 
-function parseStoredPayload(row: AssistantDraftRow): CreateReminderInput {
-  const parsed = createReminderSchema.safeParse(row.payload);
-  if (!parsed.success) {
+function parseDraftPayload(capability: string, value: unknown): DraftPayload {
+  if (capability === REMINDER_CAPABILITY) {
+    const parsed = createReminderSchema.safeParse(value);
+    if (!parsed.success) {
+      throw AppError.validation('Nội dung nháp lịch nhắc không hợp lệ.');
+    }
+    return parsed.data;
+  }
+  if (capability === TASK_CAPABILITY) {
+    const parsed = assistantTaskDraftInputSchema.safeParse(value);
+    if (!parsed.success) {
+      throw AppError.validation('Nội dung nháp việc bảo trì không hợp lệ.');
+    }
+    return parsed.data;
+  }
+  throw AppError.conflict('Loại nháp không còn được hỗ trợ; hãy tạo nháp mới.');
+}
+
+function parseStoredPayload(row: AssistantDraftRow): DraftPayload {
+  try {
+    return parseDraftPayload(row.capability, row.payload);
+  } catch {
     // Dữ liệu DB hỏng không được biến thành hành động ghi.
     throw AppError.conflict('Nội dung nháp không còn hợp lệ; hãy tạo nháp mới.');
   }
-  return parsed.data;
 }
 
 function computeDraftDigest(
   capability: string,
   subjectId: string,
-  input: CreateReminderInput,
+  input: DraftPayload,
 ): string {
   // Thứ tự khóa cố định, không phụ thuộc thứ tự field client gửi.
   return sha256(
     JSON.stringify({
       capability,
       subjectId,
-      input: {
-        kind: input.kind,
-        title: input.title,
-        note: input.note ?? null,
-        times: input.times,
-        weekdays: input.weekdays,
-        startsOn: input.startsOn,
-        endsOn: input.endsOn ?? null,
-        active: input.active,
-      },
+      input: canonicalDraftPayload(capability, input),
     }),
   );
 }
 
+function canonicalDraftPayload(
+  capability: string,
+  input: DraftPayload,
+): Record<string, unknown> {
+  if (capability === REMINDER_CAPABILITY) {
+    const reminder = input as CreateReminderInput;
+    return {
+      kind: reminder.kind,
+      title: reminder.title,
+      note: reminder.note ?? null,
+      times: reminder.times,
+      weekdays: reminder.weekdays,
+      startsOn: reminder.startsOn,
+      endsOn: reminder.endsOn ?? null,
+      active: reminder.active,
+    };
+  }
+  if (capability === TASK_CAPABILITY) {
+    const task = input as AssistantTaskDraftInput;
+    return {
+      deviceId: task.deviceId,
+      kind: task.kind,
+      title: task.title,
+      priority: task.priority,
+      dueAt: task.dueAt ?? null,
+      notes: task.notes ? task.notes : null,
+    };
+  }
+  throw AppError.conflict('Loại nháp không còn được hỗ trợ; hãy tạo nháp mới.');
+}
+
 function toDraft(row: AssistantDraftRow): AssistantDraft {
   const preview = parseStoredPayload(row);
+  const result =
+    row.resultType && row.resultId
+      ? { type: row.resultType, id: row.resultId }
+      : null;
   return assistantDraftSchema.parse({
     id: row.id,
     subjectId: row.subjectId,
@@ -600,9 +694,6 @@ function toDraft(row: AssistantDraftRow): AssistantDraft {
     expiresAt: row.expiresAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
     confirmedAt: row.confirmedAt ? row.confirmedAt.toISOString() : null,
-    result:
-      row.resultType === RESULT_TYPE && row.resultId
-        ? { type: RESULT_TYPE, id: row.resultId }
-        : null,
+    result,
   });
 }

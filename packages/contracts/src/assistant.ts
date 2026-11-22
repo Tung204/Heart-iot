@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { idSchema, isoDateTimeSchema } from './core';
 import { measurementGapReasonSchema } from './measurements';
 import { createReminderSchema } from './reminders';
+import { createTaskSchema } from './tasks';
 
 /**
  * Hợp đồng trợ lý AI — wave 2 be-ai.
@@ -125,7 +126,10 @@ export const ASSISTANT_DRAFT_TTL_MINUTES = 15;
  * Capability trợ lý được phép đề xuất. Danh sách này cố ý hẹp: chỉ thao tác
  * nghiệp vụ có preview/confirm, không phải quyền tự đóng cảnh báo hay chẩn đoán.
  */
-export const assistantActionCapabilityIdSchema = z.enum(['care_reminder.create']);
+export const assistantActionCapabilityIdSchema = z.enum([
+  'care_reminder.create',
+  'maintenance_task.create',
+]);
 export type AssistantActionCapabilityId = z.infer<typeof assistantActionCapabilityIdSchema>;
 
 export const assistantActionCapabilitySchema = z.object({
@@ -156,44 +160,68 @@ export type AssistantCapabilities = z.infer<typeof assistantCapabilitiesSchema>;
 export const assistantDraftStatusSchema = z.enum(['draft', 'confirmed', 'cancelled', 'expired']);
 export type AssistantDraftStatus = z.infer<typeof assistantDraftStatusSchema>;
 
-export const assistantDraftResultSchema = z.object({
-  type: z.literal('care_reminder'),
-  id: idSchema,
-});
+export const assistantDraftResultSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('care_reminder'), id: idSchema }),
+  z.object({ type: z.literal('maintenance_task'), id: idSchema }),
+]);
 export type AssistantDraftResult = z.infer<typeof assistantDraftResultSchema>;
 
-export const assistantDraftSchema = z.object({
+/** Input task draft bỏ `subjectId` vì hồ sơ đã nằm trên path. */
+export const assistantTaskDraftInputSchema = createTaskSchema.omit({ subjectId: true }).strict();
+export type AssistantTaskDraftInput = z.infer<typeof assistantTaskDraftInputSchema>;
+
+const assistantDraftBaseSchema = z.object({
   id: idSchema,
   subjectId: idSchema,
-  capability: assistantActionCapabilityIdSchema,
   status: assistantDraftStatusSchema,
-  /** Nội dung đã chuẩn hoá; chỉ trả cho người tạo nháp. */
-  preview: createReminderSchema,
   previewDigest: z.string().regex(/^[0-9a-f]{64}$/),
   expiresAt: isoDateTimeSchema,
   createdAt: isoDateTimeSchema,
   confirmedAt: isoDateTimeSchema.nullable(),
   result: assistantDraftResultSchema.nullable(),
 });
+
+export const assistantDraftSchema = z.discriminatedUnion('capability', [
+  assistantDraftBaseSchema.extend({
+    capability: z.literal('care_reminder.create'),
+    /** Nội dung đã chuẩn hoá; chỉ trả cho người tạo nháp. */
+    preview: createReminderSchema,
+  }),
+  assistantDraftBaseSchema.extend({
+    capability: z.literal('maintenance_task.create'),
+    preview: assistantTaskDraftInputSchema,
+  }),
+]);
 export type AssistantDraft = z.infer<typeof assistantDraftSchema>;
 
-/** POST /subjects/:id/assistant/drafts — chỉ chủ hồ sơ, không ghi care_reminders. */
-export const createAssistantDraftSchema = z
-  .object({
-    capability: z.literal('care_reminder.create'),
-    input: createReminderSchema,
-    /** Khóa idempotency do client sinh; retry cùng khóa không tạo nháp trùng. */
-    requestKey: idSchema.optional(),
-  })
-  .strict();
+/**
+ * POST /subjects/:id/assistant/drafts — chỉ chủ hồ sơ.
+ * Cả hai loại đều chỉ ghi bảng nháp; xác nhận mới ghi nghiệp vụ.
+ */
+export const createAssistantDraftSchema = z.discriminatedUnion('capability', [
+  z
+    .object({
+      capability: z.literal('care_reminder.create'),
+      input: createReminderSchema,
+      /** Khóa idempotency do client sinh; retry cùng khóa không tạo nháp trùng. */
+      requestKey: idSchema.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      capability: z.literal('maintenance_task.create'),
+      input: assistantTaskDraftInputSchema,
+      requestKey: idSchema.optional(),
+    })
+    .strict(),
+]);
 export type CreateAssistantDraftInput = z.infer<typeof createAssistantDraftSchema>;
 
 /** PATCH /assistant/drafts/:id — sửa preview trước khi xác nhận; vẫn chỉ là nháp. */
-export const updateAssistantDraftSchema = z
-  .object({
-    input: createReminderSchema,
-  })
-  .strict();
+export const updateAssistantDraftSchema = z.union([
+  z.object({ input: createReminderSchema }).strict(),
+  z.object({ input: assistantTaskDraftInputSchema }).strict(),
+]);
 export type UpdateAssistantDraftInput = z.infer<typeof updateAssistantDraftSchema>;
 
 /** GET /subjects/:id/assistant/drafts — danh sách nháp đang chờ của chủ hồ sơ. */

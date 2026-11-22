@@ -6,6 +6,9 @@ import {
   auditLogs,
   careLinks,
   careReminders,
+  deviceAssignments,
+  devices,
+  maintenanceTasks,
   subjects,
 } from '../src/database/schema';
 import {
@@ -23,6 +26,7 @@ import {
  */
 
 let subjectCounter = 0;
+let deviceCounter = 0;
 
 async function createSubject(ctx: TestContext, ownerUserId: string) {
   const rows = await ctx.db
@@ -40,6 +44,44 @@ async function createSubject(ctx: TestContext, ownerUserId: string) {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+async function createAssignedDevice(
+  ctx: TestContext,
+  ownerUserId: string,
+  subjectId: string,
+): Promise<string> {
+  const deviceRows = await ctx.db
+    .insert(devices)
+    .values({
+      serial: `AD-${String(++deviceCounter).padStart(4, '0')}`,
+      label: 'Vòng tay trợ lý',
+      credentialHash: 'hash-demo',
+      status: 'active',
+    })
+    .returning();
+  const device = deviceRows[0];
+  if (!device) throw new Error('Không tạo được device.');
+  await ctx.db.insert(deviceAssignments).values({
+    deviceId: device.id,
+    subjectId,
+    assignedByUserId: ownerUserId,
+  });
+  return device.id;
+}
+
+function taskDraftBody(deviceId: string, overrides: Record<string, unknown> = {}) {
+  return {
+    capability: 'maintenance_task.create',
+    input: {
+      deviceId,
+      kind: 'battery_check',
+      title: 'Kiểm tra pin vòng tay',
+      priority: 60,
+      notes: 'Kiểm tra sau bữa sáng',
+      ...overrides,
+    },
+  };
 }
 
 function draftBody(overrides: Record<string, unknown> = {}) {
@@ -98,6 +140,9 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
     expect(ownerResponse.body.can).toContainEqual(
       expect.objectContaining({ id: 'care_reminder.create', available: true }),
     );
+    expect(ownerResponse.body.can).toContainEqual(
+      expect.objectContaining({ id: 'maintenance_task.create', available: true }),
+    );
     expect(ownerResponse.body.cannot.map((item: { id: string }) => item.id)).toEqual(
       expect.arrayContaining(['alert.acknowledge', 'medical.diagnose', 'hardware.control']),
     );
@@ -111,6 +156,10 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
       available: false,
     });
     expect(caregiverResponse.body.can[0].unavailableReason).toContain('Chỉ chủ hồ sơ');
+    expect(caregiverResponse.body.can).toHaveLength(2);
+    expect(caregiverResponse.body.can.every((item: { available: boolean }) => !item.available)).toBe(
+      true,
+    );
 
     const outsiderResponse = await outsider.agent
       .get(`/api/v1/subjects/${subject.id}/assistant/capabilities`)
@@ -529,5 +578,128 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
     expect(
       await ctx.db.select().from(assistantDrafts).where(eq(assistantDrafts.subjectId, subject.id)),
     ).toHaveLength(2);
+  });
+
+  it('nháp việc bảo trì: preview không ghi task; sửa rồi confirm mới tạo đúng một task', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const deviceId = await createAssignedDevice(ctx, owner.session.user.id, subject.id);
+    const dueAt = new Date(Date.now() + 7 * 24 * 3600_000).toISOString();
+
+    const created = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(taskDraftBody(deviceId, { dueAt }));
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      subjectId: subject.id,
+      capability: 'maintenance_task.create',
+      status: 'draft',
+      result: null,
+      preview: {
+        deviceId,
+        kind: 'battery_check',
+        title: 'Kiểm tra pin vòng tay',
+        priority: 60,
+        dueAt,
+      },
+    });
+    expect(
+      await ctx.db.select().from(maintenanceTasks).where(eq(maintenanceTasks.subjectId, subject.id)),
+    ).toHaveLength(0);
+
+    const updated = await owner.agent
+      .patch(`/api/v1/assistant/drafts/${created.body.id}`)
+      .set('Origin', TEST_ORIGIN)
+      .send({
+        input: taskDraftBody(deviceId, {
+          title: '  Kiểm tra pin và tín hiệu  ',
+          priority: 80,
+          notes: '',
+        }).input,
+      });
+    expect(updated.status).toBe(200);
+    expect(updated.body.preview).toMatchObject({
+      title: 'Kiểm tra pin và tín hiệu',
+      priority: 80,
+      notes: '',
+    });
+    expect(updated.body.previewDigest).not.toBe(created.body.previewDigest);
+    expect(
+      await ctx.db.select().from(maintenanceTasks).where(eq(maintenanceTasks.subjectId, subject.id)),
+    ).toHaveLength(0);
+
+    const confirmed = await owner.agent
+      .post(`/api/v1/assistant/drafts/${created.body.id}/confirm`)
+      .set('Origin', TEST_ORIGIN);
+    expect(confirmed.status).toBe(200);
+    expect(confirmed.body.status).toBe('confirmed');
+    expect(confirmed.body.result.type).toBe('maintenance_task');
+
+    const rows = await ctx.db
+      .select()
+      .from(maintenanceTasks)
+      .where(eq(maintenanceTasks.subjectId, subject.id));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: confirmed.body.result.id,
+      deviceId,
+      subjectId: subject.id,
+      kind: 'battery_check',
+      title: 'Kiểm tra pin và tín hiệu',
+      status: 'open',
+      priority: 80,
+      dueAt: null,
+      notes: null,
+    });
+    expect(rows[0]?.dedupeKey).toMatch(/^manual:[0-9a-f-]{36}$/);
+
+    const createAudits = await ctx.db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.action, 'maintenance_task.create'));
+    expect(createAudits.at(-1)?.targetId).toBe(confirmed.body.result.id);
+    expect(createAudits.at(-1)?.metadata).toEqual({
+      kind: 'battery_check',
+      priority: 80,
+      deviceId,
+    });
+
+    const repeated = await owner.agent
+      .post(`/api/v1/assistant/drafts/${created.body.id}/confirm`)
+      .set('Origin', TEST_ORIGIN);
+    expect(repeated.status).toBe(200);
+    expect(repeated.body.result.id).toBe(confirmed.body.result.id);
+    expect(
+      await ctx.db.select().from(maintenanceTasks).where(eq(maintenanceTasks.subjectId, subject.id)),
+    ).toHaveLength(1);
+  });
+
+  it('confirm nháp task khi thiết bị đã tháo trả 400, không tạo task và nháp vẫn draft', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const deviceId = await createAssignedDevice(ctx, owner.session.user.id, subject.id);
+    const created = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(taskDraftBody(deviceId));
+    expect(created.status).toBe(201);
+
+    await ctx.db
+      .update(deviceAssignments)
+      .set({ endedAt: new Date() })
+      .where(eq(deviceAssignments.deviceId, deviceId));
+
+    const confirmed = await owner.agent
+      .post(`/api/v1/assistant/drafts/${created.body.id}/confirm`)
+      .set('Origin', TEST_ORIGIN);
+    expect(confirmed.status).toBe(400);
+    expect(confirmed.body.code).toBe('VALIDATION_FAILED');
+    expect(
+      await ctx.db.select().from(maintenanceTasks).where(eq(maintenanceTasks.subjectId, subject.id)),
+    ).toHaveLength(0);
+    const draft = await ctx.db
+      .select()
+      .from(assistantDrafts)
+      .where(eq(assistantDrafts.id, created.body.id));
+    expect(draft[0]?.status).toBe('draft');
   });
 });
