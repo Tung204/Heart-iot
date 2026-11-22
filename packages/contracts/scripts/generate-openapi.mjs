@@ -1,5 +1,5 @@
 /**
- * Sinh OpenAPI 3.1 **một phần** cho nhóm quản trị và trợ lý từ schema Zod.
+ * Sinh OpenAPI 3.1 **một phần** cho quản trị, trợ lý, hồ sơ, số đo và phiếu đi khám từ schema Zod.
  *
  * Đây không phải toàn bộ API: chỉ các route được khai báo dưới đây. Mục đích là
  * giữ một artifact máy đọc được cho các hợp đồng mới, không thay đặc tả docs/04.
@@ -16,6 +16,10 @@ const { z } = require('zod');
 const core = require('../dist/core.js');
 const admin = require('../dist/admin.js');
 const assistant = require('../dist/assistant.js');
+const subjects = require('../dist/subjects.js');
+const measurements = require('../dist/measurements.js');
+const insights = require('../dist/insights.js');
+const reports = require('../dist/reports.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -370,6 +374,143 @@ paths['/assistant/drafts/{id}/cancel'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Hồ sơ, số đo và phiếu đi khám
+// ---------------------------------------------------------------------------
+
+paths['/subjects'] = {
+  get: {
+    tags: ['Subjects'],
+    operationId: 'listSubjects',
+    summary: 'Danh sách hồ sơ người dùng được xem',
+    responses: { 200: ok(ref('SubjectList')), ...auth() },
+  },
+  post: {
+    tags: ['Subjects'],
+    operationId: 'createSubject',
+    summary: 'Tạo hồ sơ người được theo dõi',
+    requestBody: body('CreateSubject'),
+    responses: { 201: ok(ref('SubjectDetail'), 'Đã tạo hồ sơ'), ...auth(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}'] = {
+  get: {
+    tags: ['Subjects'],
+    operationId: 'getSubject',
+    summary: 'Chi tiết hồ sơ theo quyền hiện tại',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('SubjectDetail')), ...auth(), 404: notFound() },
+  },
+  patch: {
+    tags: ['Subjects'],
+    operationId: 'updateSubject',
+    summary: 'Cập nhật tên hiển thị/múi giờ của hồ sơ',
+    parameters: [subjectParam],
+    requestBody: body('UpdateSubject'),
+    responses: { 200: ok(ref('SubjectDetail')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}/archive'] = {
+  post: {
+    tags: ['Subjects'],
+    operationId: 'archiveSubject',
+    summary: 'Lưu trữ hồ sơ, thu hồi care link đang active',
+    description: 'Không xóa telemetry/cảnh báo; trả 204 và không có body.',
+    parameters: [subjectParam],
+    requestBody: body('ArchiveSubject'),
+    responses: {
+      204: { description: 'Đã lưu trữ hồ sơ' },
+      ...auth(),
+      400: errorResponse('Tên xác nhận không khớp'),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/deletion-requests'] = {
+  post: {
+    tags: ['Subjects'],
+    operationId: 'requestSubjectDeletion',
+    summary: 'Ghi nhận yêu cầu xóa dữ liệu (chưa xóa)',
+    parameters: [subjectParam],
+    requestBody: body('DeletionRequest'),
+    responses: {
+      202: ok(ref('DeletionRequestRecorded'), 'Đã ghi nhận yêu cầu, dữ liệu chưa bị xóa'),
+      ...auth(),
+      400: errorResponse('Tên xác nhận không khớp'),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/measurements'] = {
+  get: {
+    tags: ['Measurements'],
+    operationId: 'listMeasurements',
+    summary: 'Timeline số đo trong khoảng đã kiểm quyền',
+    parameters: [subjectParam, ...queryParams(measurements.measurementsQuerySchema)],
+    responses: { 200: ok(ref('MeasurementsResponse')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}/daily-summary'] = {
+  get: {
+    tags: ['Measurements'],
+    operationId: 'getDailySummary',
+    summary: 'Tổng hợp một ngày theo múi giờ hồ sơ',
+    parameters: [subjectParam, ...queryParams(measurements.dailySummaryQuerySchema)],
+    responses: { 200: ok(ref('DailySummary')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}/insights'] = {
+  get: {
+    tags: ['Measurements'],
+    operationId: 'getInsights',
+    summary: 'Xu hướng nhiều ngày, ngày thiếu dữ liệu vẫn xuất hiện',
+    parameters: [subjectParam, ...queryParams(insights.insightsQuerySchema)],
+    responses: {
+      200: ok(ref('InsightsResponse')),
+      ...auth(),
+      400: errorResponse('Tham số truy vấn không hợp lệ'),
+      404: notFound(),
+    },
+  },
+};
+
+paths['/subjects/{id}/export.csv'] = {
+  get: {
+    tags: ['Measurements'],
+    operationId: 'exportMeasurementsCsv',
+    summary: 'Xuất CSV số đo đã kiểm quyền',
+    parameters: [subjectParam, ...queryParams(measurements.exportQuerySchema)],
+    responses: {
+      200: {
+        description: 'CSV UTF-8 có BOM',
+        content: { 'text/csv': { schema: { type: 'string' } } },
+      },
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/visit-report'] = {
+  get: {
+    tags: ['Reports'],
+    operationId: 'getVisitReport',
+    summary: 'Phiếu đi khám tổng hợp, không chẩn đoán',
+    parameters: [subjectParam, ...queryParams(reports.visitReportQuerySchema)],
+    responses: { 200: ok(ref('VisitReport')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -396,6 +537,18 @@ const componentSchemas = {
   CreateAssistantDraft: assistant.createAssistantDraftSchema,
   AssistantDraftFromText: assistant.assistantDraftFromTextSchema,
   UpdateAssistantDraft: assistant.updateAssistantDraftSchema,
+  SubjectSummary: subjects.subjectSummarySchema,
+  SubjectList: subjects.subjectListSchema,
+  SubjectDetail: subjects.subjectDetailSchema,
+  CreateSubject: subjects.createSubjectSchema,
+  UpdateSubject: subjects.updateSubjectSchema,
+  ArchiveSubject: subjects.archiveSubjectSchema,
+  DeletionRequest: subjects.deletionRequestSchema,
+  DeletionRequestRecorded: subjects.deletionRequestRecordedSchema,
+  MeasurementsResponse: measurements.measurementsResponseSchema,
+  DailySummary: measurements.dailySummarySchema,
+  InsightsResponse: insights.insightsResponseSchema,
+  VisitReport: reports.visitReportSchema,
 };
 
 const components = { schemas: {} };
@@ -408,6 +561,10 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'UpdateUserStatus',
     'PolicyPreviewRequest',
     'PolicyPublishRequest',
+    'CreateSubject',
+    'UpdateSubject',
+    'ArchiveSubject',
+    'DeletionRequest',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -420,15 +577,18 @@ for (const key of Object.keys(paths).sort()) sortedPaths[key] = paths[key];
 const document = {
   openapi: '3.1.0',
   info: {
-    title: 'Heart-IoT API — quản trị và trợ lý (một phần)',
+    title: 'Heart-IoT API — quản trị, trợ lý và dữ liệu sức khỏe (một phần)',
     version: '1.0.0',
     description:
-      'Artifact sinh từ schema Zod cho nhóm quản trị và FR-21. Không phải toàn bộ API; đặc tả nghiệp vụ đầy đủ ở docs/04. Cookie phiên dùng tên `an_session`.',
+      'Artifact sinh từ schema Zod cho nhóm quản trị, FR-21, hồ sơ, số đo và phiếu đi khám. Không phải toàn bộ API; đặc tả nghiệp vụ đầy đủ ở docs/04. Cookie phiên dùng tên `an_session`.',
   },
   servers: [{ url: '/api/v1' }],
   tags: [
     { name: 'Admin', description: 'Quản trị kỹ thuật; không tự mở dữ liệu sức khỏe.' },
     { name: 'Assistant', description: 'Trợ lý chỉ tạo nháp; xác nhận mới ghi nghiệp vụ.' },
+    { name: 'Subjects', description: 'Hồ sơ người được theo dõi và quyền theo vai trò.' },
+    { name: 'Measurements', description: 'Số đo, tổng hợp và CSV đã kiểm quyền; không nội suy.' },
+    { name: 'Reports', description: 'Phiếu đi khám tổng hợp, không thay thế chẩn đoán.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,

@@ -5,9 +5,12 @@ import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { AdminController } from '../src/admin/admin.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
+import { MeasurementsController } from '../src/measurements/measurements.controller';
+import { SubjectsController } from '../src/subjects/subjects.controller';
+import { VisitReportController } from '../src/visit-reports/visit-report.controller';
 
 /**
- * Hợp đồng OpenAPI một phần phải khớp route thật của hai controller đang phủ.
+ * Hợp đồng OpenAPI một phần phải khớp route thật của các controller đang phủ.
  * Test đọc metadata decorator, không mở app/DB; thêm route mới phải cập nhật
  * `packages/contracts/scripts/generate-openapi.mjs` và sinh lại artifact.
  */
@@ -64,10 +67,24 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng toàn bộ route Admin và Assistant, không thừa/thiếu', () => {
-    const documentedAdmin = documented.filter((route) => route.split(' ')[1]?.startsWith('/admin'));
-    const documentedAssistant = documented.filter((route) => !documentedAdmin.includes(route));
+  it('phủ đúng route Admin, Assistant, Subjects, Measurements và VisitReport', () => {
+    const pathOf = (route: string) => route.split(' ')[1] ?? '';
+    const documentedAdmin = documented.filter((route) => pathOf(route).startsWith('/admin'));
+    const documentedAssistant = documented.filter(
+      (route) =>
+        !documentedAdmin.includes(route) &&
+        (pathOf(route).startsWith('/assistant') || pathOf(route).includes('/assistant/')),
+    );
+    const documentedData = documented.filter(
+      (route) => !documentedAdmin.includes(route) && !documentedAssistant.includes(route),
+    );
+    const dataRoutes = [
+      ...routesOf(SubjectsController),
+      ...routesOf(MeasurementsController),
+      ...routesOf(VisitReportController),
+    ].sort();
     expect(routesOf(AdminController)).toEqual(documentedAdmin.sort());
     expect(routesOf(AssistantController)).toEqual(documentedAssistant.sort());
+    expect(documentedData.sort()).toEqual(dataRoutes);
   });
 });
