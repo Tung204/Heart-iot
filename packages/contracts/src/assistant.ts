@@ -185,3 +185,15 @@ export const createAssistantDraftSchema = z
   })
   .strict();
 export type CreateAssistantDraftInput = z.infer<typeof createAssistantDraftSchema>;
+
+/**
+ * Câu lệnh đơn giản do người dùng gõ. Server parse bằng rule-based parser,
+ * **không gọi LLM**, rồi vẫn trả nháp để xem trước/xác nhận. Raw text không
+ * được lưu vào audit; chỉ nội dung đã parse nằm trong draft.
+ */
+export const assistantDraftFromTextSchema = z
+  .object({
+    text: z.string().trim().min(3).max(500),
+  })
+  .strict();
+export type AssistantDraftFromTextInput = z.infer<typeof assistantDraftFromTextSchema>;

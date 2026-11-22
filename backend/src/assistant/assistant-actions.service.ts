@@ -3,10 +3,12 @@ import { and, eq } from 'drizzle-orm';
 import {
   ASSISTANT_DRAFT_TTL_MINUTES,
   assistantCapabilitiesSchema,
+  assistantDraftFromTextSchema,
   assistantDraftSchema,
   createAssistantDraftSchema,
   type AssistantCapabilities,
   type AssistantDraft,
+  type AssistantDraftFromTextInput,
   type CreateAssistantDraftInput,
 } from '@heart-iot/contracts/assistant';
 import { type UserSummary } from '@heart-iot/contracts';
@@ -18,6 +20,7 @@ import { AuditService } from '../access/audit.service';
 import { sha256 } from '../auth/password';
 import { AppError } from '../common/app-error';
 import { RemindersService, type RemindersTx } from '../reminders/reminders.service';
+import { PARSER_VERSION, parseAssistantDraftText } from './assistant-draft-parser';
 
 const CAPABILITY_ID = 'care_reminder.create' as const;
 const RESULT_TYPE = 'care_reminder' as const;
@@ -140,9 +143,45 @@ export class AssistantActionsService {
     }
     const parsed = createAssistantDraftSchema.parse(input);
     const payload = createReminderSchema.parse(parsed.input);
+    return this.persistDraft(user, subjectId, parsed.capability, payload, {
+      source: 'structured',
+    });
+  }
+
+  /**
+   * Nháp từ câu lệnh đơn giản. Parser thuần, không gọi LLM; raw text không
+   * được lưu, chỉ payload đã parse nằm trong `assistant_drafts`.
+   */
+  async createDraftFromText(
+    user: UserSummary,
+    subjectId: string,
+    input: AssistantDraftFromTextInput,
+  ): Promise<AssistantDraft> {
+    const access = await this.access.requireSubject(user.id, subjectId);
+    if (access.role !== 'owner') {
+      throw AppError.forbidden('Chỉ chủ hồ sơ mới được tạo nháp lịch nhắc.');
+    }
+    const parsed = assistantDraftFromTextSchema.parse(input);
+    const payload = parseAssistantDraftText(parsed.text, {
+      now: new Date(),
+      timezone: access.subject.timezone,
+    });
+    return this.persistDraft(user, subjectId, CAPABILITY_ID, payload, {
+      source: 'text_parser',
+      parserVersion: PARSER_VERSION,
+    });
+  }
+
+  private async persistDraft(
+    user: UserSummary,
+    subjectId: string,
+    capability: typeof CAPABILITY_ID,
+    payload: CreateReminderInput,
+    auditMetadata: Record<string, unknown>,
+  ): Promise<AssistantDraft> {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + ASSISTANT_DRAFT_TTL_MINUTES * 60_000);
-    const previewDigest = computeDraftDigest(parsed.capability, subjectId, payload);
+    const previewDigest = computeDraftDigest(capability, subjectId, payload);
 
     const row = await this.db.transaction(async (tx) => {
       const rows = await tx
@@ -150,7 +189,7 @@ export class AssistantActionsService {
         .values({
           actorUserId: user.id,
           subjectId,
-          capability: parsed.capability,
+          capability,
           payload,
           previewDigest,
           expiresAt,
@@ -167,8 +206,8 @@ export class AssistantActionsService {
           targetType: 'assistant_draft',
           targetId: created.id,
           outcome: 'success',
-          // Không ghi tiêu đề/ghi chú/liều thuốc vào audit.
-          metadata: { capability: parsed.capability, subjectId, previewDigest },
+          // Không ghi tiêu đề/ghi chú/liều thuốc/raw text vào audit.
+          metadata: { capability, subjectId, previewDigest, ...auditMetadata },
         },
         tx,
       );

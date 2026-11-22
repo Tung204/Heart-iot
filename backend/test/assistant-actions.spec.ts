@@ -279,4 +279,63 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
       await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
     ).toHaveLength(0);
   });
+
+  it('nháp từ câu lệnh đơn giản vẫn không ghi lịch; sai liều bị 422; quyền giữ nguyên', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    await linkCaregiver(subject.id);
+
+    const created = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ text: 'nhắc tôi uống thuốc lúc 8h sáng hằng ngày' });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject({
+      status: 'draft',
+      capability: 'care_reminder.create',
+      preview: {
+        kind: 'medication',
+        title: 'uống thuốc',
+        times: ['08:00'],
+        weekdays: [1, 2, 3, 4, 5, 6, 7],
+      },
+    });
+    expect(
+      await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
+    ).toHaveLength(0);
+
+    const audit = (
+      await ctx.db
+        .select()
+        .from(auditLogs)
+        .where(eq(auditLogs.action, 'assistant.draft.create'))
+    ).find((row) => row.targetId === created.body.id);
+    expect(audit?.metadata).toMatchObject({ source: 'text_parser', parserVersion: 1 });
+    expect(JSON.stringify(audit?.metadata)).not.toContain('uống thuốc');
+
+    const caregiverResponse = await caregiver.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ text: 'nhắc tôi đi bộ lúc 6h' });
+    expect(caregiverResponse.status).toBe(403);
+    const outsiderResponse = await outsider.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ text: 'nhắc tôi đi bộ lúc 6h' });
+    expect(outsiderResponse.status).toBe(404);
+
+    const rejected = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ text: 'nhắc tôi uống thuốc 2 viên lúc 8h' });
+    expect(rejected.status).toBe(422);
+    expect(rejected.body.code).toBe('VALIDATION_FAILED');
+
+    const confirmed = await owner.agent
+      .post(`/api/v1/assistant/drafts/${created.body.id}/confirm`)
+      .set('Origin', TEST_ORIGIN);
+    expect(confirmed.status).toBe(200);
+    expect(
+      await ctx.db.select().from(careReminders).where(eq(careReminders.subjectId, subject.id)),
+    ).toHaveLength(1);
+  });
 });

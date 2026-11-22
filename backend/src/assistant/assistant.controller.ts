@@ -3,12 +3,14 @@ import { idSchema, type UserSummary } from '@heart-iot/contracts';
 import {
   assistantAnswerSchema,
   assistantAskSchema,
+  assistantDraftFromTextSchema,
   assistantDraftSchema,
   assistantCapabilitiesSchema,
   createAssistantDraftSchema,
   assistantSummaryQuerySchema,
   assistantSummarySchema,
   type AssistantAsk,
+  type AssistantDraftFromTextInput,
   type AssistantSummaryQuery,
   type CreateAssistantDraftInput,
 } from '@heart-iot/contracts/assistant';
@@ -68,6 +70,18 @@ export class AssistantController {
     @Body(new ZodValidationPipe(createAssistantDraftSchema)) input: CreateAssistantDraftInput,
   ) {
     const result = await this.actions.createDraft(user, subjectId, input);
+    return assistantDraftSchema.parse(result);
+  }
+
+  /** Nháp từ câu lệnh đơn giản — parser rule-based, vẫn phải confirm mới ghi. */
+  @Post('subjects/:id/assistant/drafts/from-text')
+  @HttpCode(201)
+  async createDraftFromText(
+    @CurrentUser() user: UserSummary,
+    @Param('id', idPipe) subjectId: string,
+    @Body(new ZodValidationPipe(assistantDraftFromTextSchema)) input: AssistantDraftFromTextInput,
+  ) {
+    const result = await this.actions.createDraftFromText(user, subjectId, input);
     return assistantDraftSchema.parse(result);
   }
 
