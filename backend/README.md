@@ -66,7 +66,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 - Công việc bảo trì: xem/đóng theo quyền; chủ hồ sơ tạo cho thiết bị đang gắn.
 - Studio publish dùng CAS `baseRevision + digest`; rollback tạo bản công bố mới; dữ liệu tôn trọng mốc chia sẻ.
 - AI không nằm trên đường cảnh báo; không cấu hình provider vẫn có tóm tắt theo mẫu; response có `dataQuality`.
-- FR-21 backend: nháp `care_reminder.create` → preview → confirm, owner-only, hết hạn/hủy/digest sai bị chặn; tạo nháp không ghi `care_reminders`; `POST /subjects/:id/assistant/drafts/from-text` có parser rule-based cho câu đơn giản, gồm ngày kết thúc dạng ngày/tháng(/năm); `PATCH /assistant/drafts/:id` sửa nháp còn hạn trước confirm; `GET /subjects/:id/assistant/drafts` liệt kê nháp đang chờ; `requestKey` tùy chọn chống tạo trùng khi retry.
+- FR-21 backend: nháp `care_reminder.create` và `maintenance_task.create` → preview → confirm, owner-only, hết hạn/hủy/digest sai bị chặn; tạo nháp không ghi `care_reminders`/`maintenance_tasks`; `POST /subjects/:id/assistant/drafts/from-text` có parser rule-based cho câu đơn giản, gồm ngày kết thúc dạng ngày/tháng(/năm); `PATCH /assistant/drafts/:id` sửa nháp còn hạn trước confirm; `GET /subjects/:id/assistant/drafts` liệt kê nháp đang chờ; `requestKey` tùy chọn chống tạo trùng khi retry.
 - Outbox giao **trong ứng dụng**; Web Push có backend sau cờ `WEB_PUSH_ENABLED` (chưa có service worker/UI); chưa có email/SMS.
 
 ## Giới hạn đã biết
@@ -77,7 +77,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
   ở tầng ứng dụng (P0-1) và chưa kiểm broker/ACL/TLS thật. Không dùng MQTT cho demo cảnh báo.
 - Chưa có firmware/đo thật; dữ liệu demo là tổng hợp và có nhãn.
 - Retention mới ở mức tùy chọn, mặc định tắt, chưa có API/UI/backup; chưa có xóa cứng toàn bộ hồ sơ, backup/restore, TLS/secret rotation production.
-- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc qua API có cấu trúc, parser rule-based giới hạn, sửa nháp và danh sách nháp; chưa có UI/câu phức tạp; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`; admin có `GET /admin/retention/preview` chỉ đọc, chưa có API/UI đổi cấu hình; `GET /admin/jobs` chỉ đọc `job_runs` (3 job cố định, counter vận hành), không chạy lại job và không audit; `GET /admin/outbox/summary` chỉ đọc counter outbox theo trạng thái/kênh/kind, không trả nội dung/người nhận.
+- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc và nháp việc bảo trì qua API có cấu trúc, parser rule-based giới hạn cho lịch nhắc, sửa nháp và danh sách nháp; chưa có UI/câu phức tạp; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`; admin có `GET /admin/retention/preview` chỉ đọc, chưa có API/UI đổi cấu hình; `GET /admin/jobs` chỉ đọc `job_runs` (3 job cố định, counter vận hành), không chạy lại job và không audit; `GET /admin/outbox/summary` chỉ đọc counter outbox theo trạng thái/kênh/kind, không trả nội dung/người nhận.
 - OpenAPI **một phần** cho nhóm quản trị + trợ lý đã sinh từ Zod tại `docs/api/openapi.v1.json`; test `test/openapi.spec.ts` so route metadata hai controller với artifact; chưa có OpenAPI toàn bộ API. Hợp đồng nguồn vẫn nằm ở `packages/contracts`.
 
 Nguồn thiết kế: [kiến trúc](../docs/03-kien-truc-he-thong.md), [dữ liệu/API](../docs/04-du-lieu-va-giao-tiep.md),

@@ -25,8 +25,8 @@ incident, audit, care link, cấu hình hay backup. Đây **không** thay luồn
 | `pnpm --filter @heart-iot/api typecheck` | pass |
 | `node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/retention.spec.ts` | **3/3 test pass** |
 | `test/admin.spec.ts` (preview retention + job + outbox) | **12/12 test pass** |
-| Full API suite (22/11/2026) | **35 suite / 323 test pass** |
-| Randomized seed `20261121` | **323/323 pass** |
+| Full API suite (22/11/2026) | **35 suite / 325 test pass** |
+| Randomized seed `20261121` | **325/325 pass** |
 | Migration | `0008_smart_wrecker.sql` thêm index retention; `0010_confused_klaw.sql` thêm index `assistant_drafts.expires_at`; test migrate từ DB rỗng |
 | `pnpm -r typecheck` | pass toàn monorepo |
 | `pnpm --filter @heart-iot/api build` (`nest build`) | pass |

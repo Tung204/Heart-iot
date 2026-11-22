@@ -3,12 +3,13 @@
 **Ngày:** 21/11/2026; cập nhật 22/11/2026
 
 **Nhánh:** `v10-backend` (chưa merge/push)  
-**Phạm vi:** artifact hợp đồng cho nhóm quản trị + trợ lý; thêm test hợp đồng route, không đổi hành vi API/UI.
+**Phạm vi:** artifact hợp đồng cho nhóm quản trị + trợ lý; bổ sung route/schema trợ lý và test hợp đồng, không đổi route hiện hữu.
 
 ## Đã làm
 
 - Thêm `packages/contracts/scripts/generate-openapi.mjs` dùng `z.toJSONSchema` (Zod 4.6.7, không thêm dependency).
 - Bổ sung `GET /subjects/{id}/assistant/summary` và `POST /subjects/{id}/assistant/ask` để phủ đủ route `AssistantController`.
+- Sau khi thêm nháp `maintenance_task.create`, schema `AssistantDraft`/`CreateAssistantDraft`/`UpdateAssistantDraft` sinh dạng `oneOf` theo capability; artifact tăng lên 131 KB.
 - Thêm `backend/test/openapi.spec.ts`: đọc metadata decorator của `AdminController`/`AssistantController`, so chính xác tập route với artifact (không mở app/DB).
 - Sinh `docs/api/openapi.v1.json` (OpenAPI 3.1.0):
   - 17 path, 20 operation;
@@ -28,11 +29,11 @@
 
 | Kiểm | Kết quả |
 | --- | --- |
-| `openapi:generate` | 17 path; artifact 118 KB |
+| `openapi:generate` | 17 path; artifact 131 KB |
 | `openapi:check` | khớp schema Zod, ref/path param hợp lệ |
 | Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
-| API test | **35 suite / 323 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **323/323** |
+| API test | **35 suite / 325 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **325/325** |
 
 ## Giới hạn
 

@@ -1,50 +1,50 @@
 # Trợ lý web — hành động có kiểm soát (FR-21 backend)
 
-Ngày: **21/11/2026**. Phạm vi: backend, không sửa UI.
+Ngày: **21/11/2026**; cập nhật **22/11/2026**. Phạm vi: backend, không sửa UI.
 
 ## Đã làm
 
 - Contract `packages/contracts/src/assistant.ts`:
-  - capability `care_reminder.create`; schema câu lệnh `from-text` và `update`;
+  - capability `care_reminder.create` và `maintenance_task.create`; schema câu lệnh `from-text` và `update`;
   - catalog việc trợ lý **được/không được** làm;
   - trạng thái nháp `draft|confirmed|cancelled|expired`;
   - schema tạo/xem/xác nhận/hủy nháp.
 - Bảng `assistant_drafts` + migration `0009_dapper_gladiator.sql`; payload nháp được validate lại khi xác nhận.
 - API:
   - `GET /subjects/:id/assistant/capabilities`;
-  - `POST /subjects/:id/assistant/drafts` (chỉ chủ hồ sơ, **không ghi** `care_reminders`);
+  - `POST /subjects/:id/assistant/drafts` (chỉ chủ hồ sơ, **không ghi** `care_reminders`/`maintenance_tasks`);
   - `POST /subjects/:id/assistant/drafts/from-text` (parser rule-based cho câu đơn giản, không LLM);
   - `PATCH /assistant/drafts/:id` (sửa preview còn hạn trước confirm);
   - `GET /subjects/:id/assistant/drafts` (nháp còn hạn, owner-only);
   - `requestKey` tùy chọn trên hai endpoint tạo nháp, unique theo actor;
   - `GET /assistant/drafts/:id`;
-  - `POST /assistant/drafts/:id/confirm` (tạo lịch nhắc trong cùng transaction với cập nhật nháp);
+  - `POST /assistant/drafts/:id/confirm` (tạo lịch nhắc hoặc việc bảo trì trong cùng transaction với cập nhật nháp);
   - `POST /assistant/drafts/:id/cancel`.
 - Audit `assistant.draft.create|confirm|cancel`; metadata không chứa tiêu đề/ghi chú/liều thuốc.
-- `RemindersService.createWithTx` dùng chung phần ghi lịch giữa API thường và xác nhận nháp.
+- `RemindersService.createWithTx` và `MaintenanceService.createTaskWithTx` dùng chung phần ghi giữa API thường và xác nhận nháp.
 
 ## Ranh giới can thiệp
 
-**Được:** tạo nháp lịch nhắc chăm sóc, để người dùng xem trước và xác nhận.
+**Được:** tạo nháp lịch nhắc chăm sóc và nháp việc bảo trì thiết bị, để người dùng xem trước và xác nhận.
 
 **Không được:** tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình/ngưỡng thiết bị, cấp/thu quyền, xóa dữ liệu, chẩn đoán/kê đơn, tự gửi tin khẩn, điều khiển firmware. Catalog này được trả qua API để UI hiển thị; backend vẫn kiểm quyền ở từng endpoint.
 
 Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không tự tạo/sửa/xóa** lịch nhắc, cảnh báo, công việc hay quyền; câu trả lời chat không thay cho preview/confirm.
 
-**Đã có:** parser rule-based cho câu đơn giản (giờ, hằng ngày, thứ 2–6, “mai”), từ chối liều lượng/khoảng tương đối, hiểu ngày kết thúc dạng ngày/tháng(/năm); mặc định cả tuần, dời sang mai nếu mọi giờ hôm nay đã qua. **Chưa có:** hiểu câu phức tạp/LLM, UI preview/xác nhận, công việc bảo trì, xuất phiếu.
+**Đã có:** parser rule-based cho câu đơn giản (giờ, hằng ngày, thứ 2–6, “mai”), từ chối liều lượng/khoảng tương đối, hiểu ngày kết thúc dạng ngày/tháng(/năm); mặc định cả tuần, dời sang mai nếu mọi giờ hôm nay đã qua. **Chưa có:** hiểu câu phức tạp/LLM, UI preview/xác nhận, xuất phiếu; parser chỉ áp dụng cho lịch nhắc.
 
 ## Kiểm chứng thật
 
 | Lệnh/hạng mục | Kết quả |
 | --- | --- |
-| `backend/test/assistant-actions.spec.ts` | **9/9 test pass** |
+| `backend/test/assistant-actions.spec.ts` | **11/11 test pass** |
 | `backend/test/assistant-draft-parser.spec.ts` | **11/11 test pass** (thêm 4 test ngày kết thúc) |
-| Full API (22/11/2026) | **35 suite / 323 test pass** |
-| Randomized seed `20261121` | **323/323 test pass** |
+| Full API (22/11/2026) | **35 suite / 325 test pass** |
+| Randomized seed `20261121` | **325/325 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
 | Docs `--check` | khớp nguồn, **373 liên kết/296 ID/22 mục** |
 
-Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; `requestKey` lặp trả cùng nháp, khác nội dung → 409; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua, ngày kết thúc có/không năm; từ chối liều/thiếu giờ/ngày không hợp lệ/trước ngày bắt đầu/bị lặp.
+Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch/task; xác nhận tạo đúng một bản ghi; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; `requestKey` lặp trả cùng nháp, khác nội dung → 409; nháp task sửa rồi confirm tạo task đúng một lần; thiết bị đã tháo làm confirm 400 và transaction giữ nháp `draft`; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua, ngày kết thúc có/không năm; từ chối liều/thiếu giờ/ngày không hợp lệ/trước ngày bắt đầu/bị lặp.
 
 ## Cập nhật 21/11/2026 — ngày kết thúc cho nháp lịch nhắc
 
@@ -52,13 +52,21 @@ Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; x�
 - Hỗ trợ `đến/tới [hết] [ngày] dd/mm[/yyyy]`; không có năm dùng năm của `startsOn`.
 - Không tự đoán năm kế tiếp: ngày kết thúc trước `startsOn` trả 422 `end_before_start`; ngày không tồn tại trả `invalid_end_date`; nhiều cụm ngày trả `ambiguous_end_date`.
 - Khoảng tương đối như “trong 7 ngày” vẫn bị từ chối (`unsupported_end`); ngày bắt đầu khác “hôm nay/mai” vẫn bị từ chối.
-- Test parser tăng **7 → 11**; full API **323 test/35 suite** (22/11/2026), randomized **323/323**. Docs `--check` **373 liên kết/296 ID/22 mục**. OpenAPI không đổi vì schema `from-text` không đổi.
+- Test parser tăng **7 → 11**; full API **325 test/35 suite** (22/11/2026), randomized **325/325**. Docs `--check` **373 liên kết/296 ID/22 mục**. OpenAPI không đổi vì schema `from-text` không đổi.
+
+## Cập nhật 22/11/2026 — nháp việc bảo trì
+
+- Thêm capability `maintenance_task.create`; contract `assistantDraftSchema`/`createAssistantDraftSchema` dùng discriminated union, input task bỏ `subjectId` vì hồ sơ nằm trên path.
+- Nháp task lưu payload có cấu trúc (`deviceId`, `kind`, `title`, `priority`, `dueAt`, `notes`) trong `assistant_drafts`; **không cần migration** vì cột `capability`/`payload` đã tổng quát.
+- `confirm` nhánh task gọi `MaintenanceService.createTaskWithTx` trong cùng transaction, kiểm lại thiết bị còn gắn hồ sơ; lỗi làm cuộn cả trạng thái nháp. Kết quả trả `result.type = maintenance_task`.
+- `PATCH` chọn schema theo capability đã lưu; `requestKey` vẫn unique theo actor và so cả capability/nội dung.
+- Thêm 2 test trong `assistant-actions.spec.ts`: luồng tạo nháp → sửa → confirm task và rollback khi thiết bị đã tháo; tổng **11/11**.
 
 ## Giới hạn
 
 - Đây là backend của FR-21, **chưa phải trợ lý hội thoại tự hiểu yêu cầu**. Parser chỉ là rule-based cho câu đơn giản, không gọi LLM, hiểu ngày kết thúc dạng ngày/tháng/năm nhưng không hiểu câu phức tạp/khoảng tương đối.
 - Chưa có UI preview/confirm; UI v10 vẫn đóng băng.
-- Chưa có capability tạo công việc bảo trì/xuất phiếu. Retention cho nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` (mặc định tắt, xem `v12-retention.md`).
+- Chưa có nháp xuất phiếu; parser câu lệnh vẫn chỉ cho lịch nhắc. Retention cho nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` (mặc định tắt, xem `v12-retention.md`).
 - Chưa kiểm PostgreSQL thật, tải đồng thời nhiều instance hay provider AI thật.
 - Không thay đổi đường cảnh báo; trợ lý không có quyền ack/resolve/cancel.
 
@@ -67,5 +75,6 @@ Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; x�
 - `packages/contracts/src/assistant.ts`
 - `backend/src/assistant/{assistant-actions.service,assistant-draft-parser,assistant.controller,assistant.module}.ts`
 - `backend/src/reminders/reminders.service.ts`
+- `backend/src/maintenance/maintenance.service.ts`
 - `backend/src/database/schema.ts`, `backend/drizzle/0009_dapper_gladiator.sql`, `0011_absent_pete_wisdom.sql`
 - `backend/test/assistant-actions.spec.ts`, `backend/test/assistant-draft-parser.spec.ts`

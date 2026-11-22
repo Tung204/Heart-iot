@@ -111,11 +111,11 @@ Job không xóa hồ sơ, incident, audit, care link, cấu hình, backup hay nh
 
 ## Trợ lý có hành động có kiểm soát
 
-FR-21 backend tách **nháp** khỏi **ghi nghiệp vụ**: `assistant_drafts` lưu payload đã chuẩn hoá, digest, hạn 15 phút và trạng thái `draft|confirmed|cancelled|expired`. Tạo nháp không ghi `care_reminders`; chỉ `confirm` của chủ hồ sơ mới gọi `RemindersService.createWithTx` trong cùng transaction với cập nhật nháp, nên lặp lại không tạo lịch thứ hai. Hết hạn, hủy, digest sai hoặc mất quyền bị chặn trước khi ghi.
+FR-21 backend tách **nháp** khỏi **ghi nghiệp vụ**: `assistant_drafts` lưu capability, payload đã chuẩn hoá, digest, hạn 15 phút và trạng thái `draft|confirmed|cancelled|expired`. Có hai capability: `care_reminder.create` và `maintenance_task.create`; tạo nháp không ghi `care_reminders`/`maintenance_tasks`. Chỉ `confirm` của chủ hồ sơ mới gọi `RemindersService.createWithTx` hoặc `MaintenanceService.createTaskWithTx` trong cùng transaction với cập nhật nháp, nên lặp lại không tạo bản ghi thứ hai. Nháp task kiểm lại thiết bị còn gắn hồ sơ; hết hạn, hủy, digest sai hoặc mất quyền bị chặn trước khi ghi.
 
 Trợ lý **không** có capability tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình thiết bị, cấp quyền, xóa dữ liệu, chẩn đoán/kê đơn, gửi tin khẩn hay điều khiển firmware. Catalog trả qua `GET /subjects/:id/assistant/capabilities`.
 
-Câu lệnh đơn giản có thể đi qua parser rule-based (`POST /subjects/:id/assistant/drafts/from-text`): hiểu giờ, “hằng ngày”, khoảng thứ 2–6, “mai” và ngày kết thúc dạng ngày/tháng(/năm), nhưng **không gọi LLM**, không suy luận liều lượng hay khoảng thời gian tương đối; mặc định cả tuần nếu không nêu thứ, dời sang mai nếu mọi giờ hôm nay đã qua, và vẫn chỉ tạo nháp. `PATCH /assistant/drafts/:id` cho phép chủ hồ sơ sửa preview trước confirm; sửa nháp không ghi nghiệp vụ, cập nhật digest để confirm cũ bị chặn. `GET /subjects/:id/assistant/drafts` trả các nháp còn hạn để UI khôi phục sau khi tải lại. Đây là backend của FR-21; chưa có UI preview.
+Câu lệnh đơn giản có thể đi qua parser rule-based (`POST /subjects/:id/assistant/drafts/from-text`): hiểu giờ, “hằng ngày”, khoảng thứ 2–6, “mai” và ngày kết thúc dạng ngày/tháng(/năm), nhưng **không gọi LLM**, không suy luận liều lượng hay khoảng thời gian tương đối; mặc định cả tuần nếu không nêu thứ, dời sang mai nếu mọi giờ hôm nay đã qua, và vẫn chỉ tạo nháp. `PATCH /assistant/drafts/:id` cho phép chủ hồ sơ sửa preview trước confirm; sửa nháp không ghi nghiệp vụ, cập nhật digest để confirm cũ bị chặn. `GET /subjects/:id/assistant/drafts` trả các nháp còn hạn để UI khôi phục sau khi tải lại. Đây là backend của FR-21; chưa có UI preview. Nháp việc bảo trì dùng input có cấu trúc (không qua parser câu lệnh).
 
 ## Mạng, đồng hồ và dữ liệu cũ
 
