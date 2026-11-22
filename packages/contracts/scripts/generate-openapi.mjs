@@ -22,6 +22,7 @@ const insights = require('../dist/insights.js');
 const reports = require('../dist/reports.js');
 const incidents = require('../dist/incidents.js');
 const telemetry = require('../dist/telemetry.js');
+const devices = require('../dist/devices.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -601,6 +602,117 @@ paths['/alerts/{id}/resolve'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Thiết bị
+// ---------------------------------------------------------------------------
+
+paths['/admin/devices'] = {
+  post: {
+    tags: ['Devices'],
+    operationId: 'adminCreateDevice',
+    summary: 'Tạo thiết bị và trả khóa/mã nhận một lần',
+    description:
+      'Response chứa `deviceKey` và `claimCode` chỉ trả một lần; không lưu khóa thô ở client quá lâu.',
+    requestBody: body('CreateDevice'),
+    responses: {
+      201: ok(ref('DeviceCreated'), 'Đã tạo thiết bị'),
+      ...auth(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+  get: {
+    tags: ['Devices'],
+    operationId: 'adminListDevices',
+    summary: 'Danh sách thiết bị cho quản trị',
+    responses: { 200: ok(ref('DeviceList')), ...auth() },
+  },
+};
+
+paths['/admin/devices/{id}/claim-code'] = {
+  post: {
+    tags: ['Devices'],
+    operationId: 'adminIssueClaimCode',
+    summary: 'Cấp lại mã nhận thiết bị',
+    parameters: [pathId('id')],
+    responses: {
+      201: ok(ref('NewClaimCode'), 'Đã cấp mã mới'),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+    },
+  },
+};
+
+paths['/admin/devices/{id}/rotate-key'] = {
+  post: {
+    tags: ['Devices'],
+    operationId: 'adminRotateDeviceKey',
+    summary: 'Đổi khóa thiết bị, trả khóa mới một lần',
+    parameters: [pathId('id')],
+    responses: {
+      200: ok(ref('RotateDeviceKey')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+    },
+  },
+};
+
+paths['/subjects/{id}/devices/claim'] = {
+  post: {
+    tags: ['Devices'],
+    operationId: 'claimDevice',
+    summary: 'Nhận thiết bị vào hồ sơ bằng mã claim',
+    parameters: [subjectParam],
+    requestBody: body('ClaimDevice'),
+    responses: {
+      201: ok(ref('ClaimResult'), 'Đã gán thiết bị'),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/devices'] = {
+  get: {
+    tags: ['Devices'],
+    operationId: 'listSubjectDevices',
+    summary: 'Thiết bị đang gán cho hồ sơ kèm trạng thái',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('SubjectDevicesResponse')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/subjects/{id}/status'] = {
+  get: {
+    tags: ['Devices'],
+    operationId: 'getSubjectStatus',
+    summary: 'Trạng thái thiết bị và policy đang áp dụng',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('SubjectStatusResponse')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/devices/{id}/release'] = {
+  post: {
+    tags: ['Devices'],
+    operationId: 'releaseDevice',
+    summary: 'Kết thúc gán thiết bị, không xóa lịch sử',
+    parameters: [pathId('id')],
+    requestBody: body('ReleaseDevice'),
+    responses: {
+      200: ok(ref('ReleaseResult')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -646,6 +758,17 @@ const componentSchemas = {
   ResolveAlert: incidents.resolveAlertSchema,
   IngestEvent: telemetry.incidentEnvelopeSchema,
   IngestAck: telemetry.ingestAckSchema,
+  CreateDevice: devices.createDeviceSchema,
+  DeviceCreated: devices.deviceCreatedSchema,
+  DeviceList: devices.deviceListSchema,
+  NewClaimCode: devices.newClaimCodeResponseSchema,
+  RotateDeviceKey: devices.rotateDeviceKeySchema,
+  ClaimDevice: devices.claimDeviceSchema,
+  ClaimResult: devices.claimResultSchema,
+  SubjectDevicesResponse: measurements.subjectDevicesResponseSchema,
+  SubjectStatusResponse: measurements.subjectStatusResponseSchema,
+  ReleaseDevice: devices.releaseDeviceSchema,
+  ReleaseResult: devices.releaseResultSchema,
 };
 
 const components = { schemas: {} };
@@ -665,6 +788,9 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'AcknowledgeAlert',
     'ResolveAlert',
     'IngestEvent',
+    'CreateDevice',
+    'ClaimDevice',
+    'ReleaseDevice',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -690,6 +816,7 @@ const document = {
     { name: 'Measurements', description: 'Số đo, tổng hợp và CSV đã kiểm quyền; không nội suy.' },
     { name: 'Reports', description: 'Phiếu đi khám tổng hợp, không thay thế chẩn đoán.' },
     { name: 'Incidents', description: 'Cảnh báo, ACK/đóng theo version; không tự đóng hộ người dùng.' },
+    { name: 'Devices', description: 'Thiết bị, khóa/mã chỉ trả một lần; không xóa lịch sử khi thu hồi.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,

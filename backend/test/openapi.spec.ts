@@ -5,6 +5,7 @@ import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { AdminController } from '../src/admin/admin.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
+import { AdminDevicesController, SubjectDevicesController } from '../src/devices/devices.controller';
 import { IncidentsController } from '../src/incidents/incidents.controller';
 import { MeasurementsController } from '../src/measurements/measurements.controller';
 import { SubjectsController } from '../src/subjects/subjects.controller';
@@ -68,25 +69,17 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng route Admin, Assistant, Subjects, Measurements, VisitReport và Incidents', () => {
-    const pathOf = (route: string) => route.split(' ')[1] ?? '';
-    const documentedAdmin = documented.filter((route) => pathOf(route).startsWith('/admin'));
-    const documentedAssistant = documented.filter(
-      (route) =>
-        !documentedAdmin.includes(route) &&
-        (pathOf(route).startsWith('/assistant') || pathOf(route).includes('/assistant/')),
-    );
-    const documentedData = documented.filter(
-      (route) => !documentedAdmin.includes(route) && !documentedAssistant.includes(route),
-    );
-    const dataRoutes = [
+  it('phủ đúng toàn bộ route của tám controller đang phủ, không thừa/thiếu', () => {
+    const controllerRoutes = [
+      ...routesOf(AdminController),
+      ...routesOf(AdminDevicesController),
+      ...routesOf(AssistantController),
       ...routesOf(SubjectsController),
       ...routesOf(MeasurementsController),
       ...routesOf(VisitReportController),
       ...routesOf(IncidentsController),
+      ...routesOf(SubjectDevicesController),
     ].sort();
-    expect(routesOf(AdminController)).toEqual(documentedAdmin.sort());
-    expect(routesOf(AssistantController)).toEqual(documentedAssistant.sort());
-    expect(documentedData.sort()).toEqual(dataRoutes);
+    expect(documented.sort()).toEqual(controllerRoutes);
   });
 });
