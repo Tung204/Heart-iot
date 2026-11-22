@@ -1,0 +1,73 @@
+import 'reflect-metadata';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { RequestMethod } from '@nestjs/common';
+import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
+import { AdminController } from '../src/admin/admin.controller';
+import { AssistantController } from '../src/assistant/assistant.controller';
+
+/**
+ * Hợp đồng OpenAPI một phần phải khớp route thật của hai controller đang phủ.
+ * Test đọc metadata decorator, không mở app/DB; thêm route mới phải cập nhật
+ * `packages/contracts/scripts/generate-openapi.mjs` và sinh lại artifact.
+ */
+
+type ControllerClass = new (...args: any[]) => object;
+
+const METHOD_NAMES: Partial<Record<RequestMethod, string>> = {
+  [RequestMethod.GET]: 'get',
+  [RequestMethod.POST]: 'post',
+  [RequestMethod.PUT]: 'put',
+  [RequestMethod.PATCH]: 'patch',
+  [RequestMethod.DELETE]: 'delete',
+};
+
+function pathValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === 'string') return [value];
+  return [''];
+}
+
+function routesOf(controller: ControllerClass): string[] {
+  const bases = pathValues(Reflect.getMetadata(PATH_METADATA, controller));
+  const routes: string[] = [];
+  for (const name of Object.getOwnPropertyNames(controller.prototype)) {
+    if (name === 'constructor') continue;
+    const handler = controller.prototype[name] as object;
+    const method = METHOD_NAMES[Reflect.getMetadata(METHOD_METADATA, handler) as RequestMethod];
+    if (!method) continue;
+    for (const base of bases) {
+      for (const path of pathValues(Reflect.getMetadata(PATH_METADATA, handler))) {
+        const joined = [base, path]
+          .filter(Boolean)
+          .join('/')
+          .replace(/^\/+|\/+$/g, '')
+          .replace(/\/+/g, '/');
+        const route = `/${joined}`.replace(/\/+/g, '/').replace(/:([A-Za-z0-9_]+)/g, '{$1}');
+        routes.push(`${method} ${route}`);
+      }
+    }
+  }
+  return routes.sort();
+}
+
+const spec = JSON.parse(
+  readFileSync(resolve(__dirname, '../../docs/api/openapi.v1.json'), 'utf8'),
+) as { paths: Record<string, Record<string, unknown>> };
+
+const HTTP_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete']);
+const documented: string[] = [];
+for (const [path, item] of Object.entries(spec.paths)) {
+  for (const method of Object.keys(item)) {
+    if (HTTP_METHODS.has(method)) documented.push(`${method} ${path}`);
+  }
+}
+
+describe('OpenAPI một phần — khớp route controller', () => {
+  it('phủ đúng toàn bộ route Admin và Assistant, không thừa/thiếu', () => {
+    const documentedAdmin = documented.filter((route) => route.split(' ')[1]?.startsWith('/admin'));
+    const documentedAssistant = documented.filter((route) => !documentedAdmin.includes(route));
+    expect(routesOf(AdminController)).toEqual(documentedAdmin.sort());
+    expect(routesOf(AssistantController)).toEqual(documentedAssistant.sort());
+  });
+});

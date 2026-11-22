@@ -226,6 +226,39 @@ paths['/admin/policies/{key}/previews'] = {
 
 const subjectParam = pathId('id');
 
+paths['/subjects/{id}/assistant/summary'] = {
+  get: {
+    tags: ['Assistant'],
+    operationId: 'assistantSummary',
+    summary: 'Tóm tắt sức khỏe theo khoảng đã kiểm quyền',
+    description:
+      'Chỉ tổng hợp aggregate đã kiểm quyền; có dataQuality và fallback template, không phải chẩn đoán.',
+    parameters: [subjectParam, ...queryParams(assistant.assistantSummaryQuerySchema)],
+    responses: {
+      200: ok(ref('AssistantSummary')),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/assistant/ask'] = {
+  post: {
+    tags: ['Assistant'],
+    operationId: 'assistantAsk',
+    summary: 'Hỏi đáp trên dữ liệu đã kiểm quyền',
+    parameters: [subjectParam],
+    requestBody: body('AssistantAsk'),
+    responses: {
+      200: ok(ref('AssistantAnswer')),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
 paths['/subjects/{id}/assistant/capabilities'] = {
   get: {
     tags: ['Assistant'],
@@ -356,6 +389,9 @@ const componentSchemas = {
   PolicyPublishRequest: admin.policyPublishRequestSchema,
   PolicyPublish: admin.policyPublishSchema,
   AssistantCapabilities: assistant.assistantCapabilitiesSchema,
+  AssistantSummary: assistant.assistantSummarySchema,
+  AssistantAsk: assistant.assistantAskSchema,
+  AssistantAnswer: assistant.assistantAnswerSchema,
   AssistantDraft: assistant.assistantDraftSchema,
   CreateAssistantDraft: assistant.createAssistantDraftSchema,
   AssistantDraftFromText: assistant.assistantDraftFromTextSchema,
@@ -367,6 +403,7 @@ for (const name of Object.keys(componentSchemas).sort()) {
   const io = [
     'CreateAssistantDraft',
     'AssistantDraftFromText',
+    'AssistantAsk',
     'UpdateAssistantDraft',
     'UpdateUserStatus',
     'PolicyPreviewRequest',
