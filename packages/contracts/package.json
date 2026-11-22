@@ -2,7 +2,7 @@
   "name": "@heart-iot/contracts",
   "version": "1.0.0",
   "private": true,
-  "description": "Hợp đồng dữ liệu dùng chung cho API, web và simulator",
+  "description": "H\u1ee3p \u0111\u1ed3ng d\u1eef li\u1ec7u d\u00f9ng chung cho API, web v\u00e0 simulator",
   "main": "dist/core.js",
   "types": "dist/core.d.ts",
   "exports": {
@@ -94,7 +94,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "node --test",
+    "openapi:generate": "node scripts/generate-openapi.mjs",
+    "openapi:check": "node scripts/generate-openapi.mjs --check"
   },
   "dependencies": {
     "zod": "4.6.7"

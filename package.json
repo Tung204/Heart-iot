@@ -19,7 +19,9 @@
     "seed": "pnpm build:contracts && pnpm --filter @heart-iot/api seed",
     "demo": "pnpm --filter @heart-iot/simulator demo",
     "docs:build": "python tools/docs/build.py",
-    "docs:check": "python tools/docs/build.py --check"
+    "docs:check": "python tools/docs/build.py --check",
+    "openapi:generate": "pnpm build:contracts && pnpm --filter @heart-iot/contracts openapi:generate",
+    "openapi:check": "pnpm build:contracts && pnpm --filter @heart-iot/contracts openapi:check"
   },
   "devDependencies": {
     "typescript": "5.9.3"
