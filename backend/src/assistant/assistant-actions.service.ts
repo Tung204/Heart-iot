@@ -21,6 +21,7 @@ import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { sha256 } from '../auth/password';
 import { AppError } from '../common/app-error';
+import { isUniqueViolation } from '../database/errors';
 import { RemindersService, type RemindersTx } from '../reminders/reminders.service';
 import { PARSER_VERSION, parseAssistantDraftText } from './assistant-draft-parser';
 
@@ -145,9 +146,14 @@ export class AssistantActionsService {
     }
     const parsed = createAssistantDraftSchema.parse(input);
     const payload = createReminderSchema.parse(parsed.input);
-    return this.persistDraft(user, subjectId, parsed.capability, payload, {
-      source: 'structured',
-    });
+    return this.persistDraft(
+      user,
+      subjectId,
+      parsed.capability,
+      payload,
+      { source: 'structured' },
+      parsed.requestKey,
+    );
   }
 
   /**
@@ -168,10 +174,14 @@ export class AssistantActionsService {
       now: new Date(),
       timezone: access.subject.timezone,
     });
-    return this.persistDraft(user, subjectId, CAPABILITY_ID, payload, {
-      source: 'text_parser',
-      parserVersion: PARSER_VERSION,
-    });
+    return this.persistDraft(
+      user,
+      subjectId,
+      CAPABILITY_ID,
+      payload,
+      { source: 'text_parser', parserVersion: PARSER_VERSION },
+      parsed.requestKey,
+    );
   }
 
   private async persistDraft(
@@ -180,42 +190,97 @@ export class AssistantActionsService {
     capability: typeof CAPABILITY_ID,
     payload: CreateReminderInput,
     auditMetadata: Record<string, unknown>,
+    requestKey?: string,
   ): Promise<AssistantDraft> {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + ASSISTANT_DRAFT_TTL_MINUTES * 60_000);
     const previewDigest = computeDraftDigest(capability, subjectId, payload);
 
-    const row = await this.db.transaction(async (tx) => {
-      const rows = await tx
-        .insert(assistantDrafts)
-        .values({
-          actorUserId: user.id,
-          subjectId,
-          capability,
-          payload,
-          previewDigest,
-          expiresAt,
-          status: 'draft',
-        })
-        .returning();
-      const created = rows[0];
-      if (!created) throw new Error('Không tạo được nháp trợ lý.');
-      await this.audit.record(
-        {
-          actorUserId: user.id,
-          actorKind: 'user',
-          action: 'assistant.draft.create',
-          targetType: 'assistant_draft',
-          targetId: created.id,
-          outcome: 'success',
-          // Không ghi tiêu đề/ghi chú/liều thuốc/raw text vào audit.
-          metadata: { capability, subjectId, previewDigest, ...auditMetadata },
-        },
-        tx,
+    // Retry idempotent: cùng actor + requestKey + cùng digest trả lại nháp cũ,
+    // kể cả nháp đã confirm/hủy/hết hạn; khác nội dung/khác hồ sơ → 409.
+    if (requestKey) {
+      const existing = await this.findDraftByRequestKey(user.id, requestKey);
+      if (existing) {
+        return this.resolveRequestKeyReplay(existing, subjectId, capability, previewDigest);
+      }
+    }
+
+    try {
+      const row = await this.db.transaction(async (tx) => {
+        const rows = await tx
+          .insert(assistantDrafts)
+          .values({
+            actorUserId: user.id,
+            subjectId,
+            capability,
+            payload,
+            previewDigest,
+            requestKey: requestKey ?? null,
+            expiresAt,
+            status: 'draft',
+          })
+          .returning();
+        const created = rows[0];
+        if (!created) throw new Error('Không tạo được nháp trợ lý.');
+        await this.audit.record(
+          {
+            actorUserId: user.id,
+            actorKind: 'user',
+            action: 'assistant.draft.create',
+            targetType: 'assistant_draft',
+            targetId: created.id,
+            outcome: 'success',
+            // Không ghi tiêu đề/ghi chú/liều thuốc/raw text vào audit.
+            metadata: { capability, subjectId, previewDigest, ...auditMetadata },
+          },
+          tx,
+        );
+        return created;
+      });
+      return toDraft(row);
+    } catch (error) {
+      // Hai request cùng key chạy đồng thời: unique index chặn request thua;
+      // đọc lại bản đã commit để trả cùng nháp thay vì tạo trùng.
+      if (!requestKey || !isUniqueViolation(error)) throw error;
+      const existing = await this.findDraftByRequestKey(user.id, requestKey);
+      if (!existing) throw error;
+      return this.resolveRequestKeyReplay(existing, subjectId, capability, previewDigest);
+    }
+  }
+
+  private async findDraftByRequestKey(
+    actorUserId: string,
+    requestKey: string,
+  ): Promise<AssistantDraftRow | null> {
+    const rows = await this.db
+      .select()
+      .from(assistantDrafts)
+      .where(
+        and(
+          eq(assistantDrafts.actorUserId, actorUserId),
+          eq(assistantDrafts.requestKey, requestKey),
+        ),
+      )
+      .limit(1);
+    return rows[0] ?? null;
+  }
+
+  private resolveRequestKeyReplay(
+    existing: AssistantDraftRow,
+    subjectId: string,
+    capability: typeof CAPABILITY_ID,
+    previewDigest: string,
+  ): AssistantDraft {
+    if (
+      existing.subjectId !== subjectId ||
+      existing.capability !== capability ||
+      existing.previewDigest !== previewDigest
+    ) {
+      throw AppError.conflict(
+        'requestKey đã được dùng cho một yêu cầu khác; hãy dùng khóa mới.',
       );
-      return created;
-    });
-    return toDraft(row);
+    }
+    return toDraft(existing);
   }
 
   /**

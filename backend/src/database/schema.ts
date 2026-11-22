@@ -644,6 +644,8 @@ export const assistantDrafts = pgTable(
     capability: text('capability').notNull(),
     payload: jsonb('payload').notNull(),
     previewDigest: text('preview_digest').notNull(),
+    /** Khóa idempotency tùy chọn do client sinh; unique theo actor. */
+    requestKey: text('request_key'),
     status: assistantDraftStatusEnum('status').notNull().default('draft'),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     confirmedAt: happenedAt('confirmed_at'),
@@ -657,6 +659,9 @@ export const assistantDrafts = pgTable(
   },
   (table) => [
     index('assistant_drafts_actor_idx').on(table.actorUserId, table.status, table.expiresAt),
+    uniqueIndex('assistant_drafts_request_key_uq')
+      .on(table.actorUserId, table.requestKey)
+      .where(sql`${table.requestKey} is not null`),
     index('assistant_drafts_subject_idx').on(table.subjectId, table.createdAt),
     index('assistant_drafts_retention_idx').on(table.expiresAt),
   ],

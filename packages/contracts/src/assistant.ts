@@ -182,6 +182,8 @@ export const createAssistantDraftSchema = z
   .object({
     capability: z.literal('care_reminder.create'),
     input: createReminderSchema,
+    /** Khóa idempotency do client sinh; retry cùng khóa không tạo nháp trùng. */
+    requestKey: idSchema.optional(),
   })
   .strict();
 export type CreateAssistantDraftInput = z.infer<typeof createAssistantDraftSchema>;
@@ -210,6 +212,8 @@ export type AssistantDraftListQuery = z.infer<typeof assistantDraftListQuerySche
 export const assistantDraftFromTextSchema = z
   .object({
     text: z.string().trim().min(3).max(500),
+    /** Cùng requestKey + cùng nội dung parse → trả lại nháp đã tạo. */
+    requestKey: idSchema.optional(),
   })
   .strict();
 export type AssistantDraftFromTextInput = z.infer<typeof assistantDraftFromTextSchema>;

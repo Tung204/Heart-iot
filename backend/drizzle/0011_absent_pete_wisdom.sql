@@ -1,0 +1,2 @@
+ALTER TABLE "assistant_drafts" ADD COLUMN "request_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "assistant_drafts_request_key_uq" ON "assistant_drafts" USING btree ("actor_user_id","request_key") WHERE "assistant_drafts"."request_key" is not null;

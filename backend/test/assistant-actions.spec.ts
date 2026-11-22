@@ -474,4 +474,60 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
       .set('Origin', TEST_ORIGIN);
     expect(outsiderList.status).toBe(404);
   });
+
+  it('requestKey lặp trả cùng nháp, không tạo trùng; khác nội dung bị 409', async () => {
+    const subject = await createSubject(ctx, owner.session.user.id);
+    const requestKey = crypto.randomUUID();
+    const body = { ...draftBody(), requestKey };
+
+    const first = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(body);
+    expect(first.status).toBe(201);
+    const retry = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send(body);
+    expect(retry.status).toBe(201);
+    expect(retry.body.id).toBe(first.body.id);
+    expect(retry.body.previewDigest).toBe(first.body.previewDigest);
+
+    const drafts = await ctx.db
+      .select()
+      .from(assistantDrafts)
+      .where(eq(assistantDrafts.subjectId, subject.id));
+    expect(drafts).toHaveLength(1);
+    const createAudits = await ctx.db
+      .select()
+      .from(auditLogs)
+      .where(eq(auditLogs.action, 'assistant.draft.create'));
+    expect(createAudits.filter((row) => row.targetId === first.body.id)).toHaveLength(1);
+
+    const conflict = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts`)
+      .set('Origin', TEST_ORIGIN)
+      .send({ ...draftBody({ title: 'Nội dung khác' }), requestKey });
+    expect(conflict.status).toBe(409);
+    expect(
+      await ctx.db.select().from(assistantDrafts).where(eq(assistantDrafts.subjectId, subject.id)),
+    ).toHaveLength(1);
+
+    const textKey = crypto.randomUUID();
+    const textBody = { text: 'nhắc tôi uống nước lúc 9h', requestKey: textKey };
+    const textFirst = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send(textBody);
+    expect(textFirst.status).toBe(201);
+    const textRetry = await owner.agent
+      .post(`/api/v1/subjects/${subject.id}/assistant/drafts/from-text`)
+      .set('Origin', TEST_ORIGIN)
+      .send(textBody);
+    expect(textRetry.status).toBe(201);
+    expect(textRetry.body.id).toBe(textFirst.body.id);
+    expect(
+      await ctx.db.select().from(assistantDrafts).where(eq(assistantDrafts.subjectId, subject.id)),
+    ).toHaveLength(2);
+  });
 });
