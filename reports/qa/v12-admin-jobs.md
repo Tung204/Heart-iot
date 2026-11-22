@@ -39,7 +39,7 @@
 | Randomized `--seed=20261121` | **317/317 pass** |
 | Typecheck toàn monorepo | pass |
 | `nest build` | pass |
-| Docs `--check` | 369 liên kết / 296 ID / 22 mục |
+| Docs `--check` | 372 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
 | MQTT exposure | 16/16 (kiểm cấu hình tĩnh) |
 

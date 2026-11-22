@@ -91,8 +91,9 @@ Kết quả API chạy ngày **21/11/2026** (V10a + V10b backend + retention); c
 | Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
-| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **369 liên kết/296 ID** (21/11/2026) |
+| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **372 liên kết/296 ID** (21/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
+| OpenAPI một phần (`pnpm openapi:check`) | pass; 14 path/17 operation, 18 schema; **không phải toàn bộ API** |
 | API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **34 suite / 317 test pass** ngày 21/11/2026 |
 | Typecheck, backend build, MQTT exposure | **pass** typecheck toàn monorepo + `nest build` + **16/16** MQTT exposure (21/11/2026); web production build/seed **không chạy lại** |
 
@@ -137,7 +138,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit; retention **mặc định tắt** mới xóa một số lớp theo tuổi (gồm nháp trợ lý đã hết hạn), có `GET /admin/retention/preview` chỉ đọc; chưa xóa cứng toàn bộ hồ sơ/export/backup/AI cache và chưa có API/UI cấu hình.
 - **AI:** tóm tắt/hỏi đáp giới hạn + backend nháp lịch nhắc; **chưa** hiểu câu lệnh phức tạp/UI, chưa có RAG, planner/tool registry, scheduler hay runtime `agent_runs`/`run_steps`; mới có luồng preview/confirm cho một capability và parser rule-based giới hạn; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` nhưng chưa có UI. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** API **317 test/34 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK + retention + FR-21 backend/parser); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **317/317** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** API **317 test/34 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK + retention + FR-21 backend/parser); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **317/317** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật; mới có OpenAPI một phần cho quản trị + trợ lý tại `docs/api/openapi.v1.json`, chưa có OpenAPI toàn bộ API hay CI.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp

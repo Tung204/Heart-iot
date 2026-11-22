@@ -1,6 +1,6 @@
 # Kế hoạch triển khai phần mềm v1/v2
 
-Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**; bổ sung đề xuất cải thiện v9–v12 ngày **20/11/2026**; cập nhật V10a/V10b backend, MQTT events/ACK, retention tùy chọn, FR-21 backend (gồm parser câu lệnh đơn giản) và quan sát job nền admin ngày **21/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
+Ngày lập: **14/11/2026**; cập nhật trạng thái v2/v3/v4 ngày **15/11/2026**, bổ sung lát cắt v7 (giao diện xây lại) và kế hoạch mở rộng `FR-15`–`FR-23` ngày **18/11/2026**; bổ sung đề xuất cải thiện v9–v12 ngày **20/11/2026**; cập nhật V10a/V10b backend, MQTT events/ACK, retention tùy chọn, FR-21 backend (gồm parser câu lệnh đơn giản) và quan sát job nền admin, OpenAPI một phần cho quản trị + trợ lý ngày **21/11/2026**. Trạng thái: **kế hoạch triển khai trong phạm vi kỹ thuật của lead**, chưa phải phê duyệt của giảng viên hay nghiệm thu sản phẩm. Tài liệu gốc 01–13 vẫn là nguồn yêu cầu; kế hoạch này chỉ cụ thể hóa phần mã chạy được.
 
 ## 1. Mục tiêu v1
 
@@ -108,7 +108,7 @@ Prefix `/api/v1`. Lỗi: `{ code, message, requestId, details? }`. Phân trang c
 | Studio | `GET/POST /workspace-views`, `GET /workspace-views/:id`, `PUT /workspace-views/:id/draft`, `POST /workspace-views/:id/previews`, `POST /workspace-views/:id/publications`, `POST /workspace-views/:id/rollback`, `GET /workspace-views/:id/publications`, `GET /workspace-views/:id/data` |
 | Admin | `GET /admin/users`, `PATCH /admin/users/:id/status`, `GET /admin/audit`, `GET /admin/policies/:key`, `POST /admin/policies/:key/previews`, `PUT /admin/policies/:key`, `GET /admin/overview`, `GET /admin/retention/preview`, `GET /admin/jobs` |
 
-Chi tiết request/response nằm trong `packages/contracts` theo từng miền. Bảng này rút gọn để đọc; danh sách đầy đủ theo controller trong `apps/api/src/*/*.controller.ts`. OpenAPI máy sinh **chưa làm**; khi làm phải sinh từ đúng nguồn, không viết tay bản thứ hai.
+Chi tiết request/response nằm trong `packages/contracts` theo từng miền. Bảng này rút gọn để đọc; danh sách đầy đủ theo controller trong `apps/api/src/*/*.controller.ts`. OpenAPI **một phần** cho quản trị + trợ lý đã sinh từ Zod tại `docs/api/openapi.v1.json`; OpenAPI toàn bộ API **chưa làm**. Khi mở rộng phải sinh từ đúng nguồn, không viết tay bản schema thứ hai.
 
 ## 7. Phân chia wave và quyền ghi
 
@@ -239,7 +239,7 @@ Nghiệp vụ, API và contract giữ nguyên; thay toàn bộ nền tảng trì
 
 **Tự chạy lại ngày 18/11/2026 trên worktree tài liệu (sau khi hợp nhất các lane giao diện v7):** web **38 file/346 test**, E2E **26/26**, API **20 suite/219 test**, simulator **23 test**, `build.py --check` khớp nguồn và `check-examples` parse **5/5**. Lượt này **không** chạy lại typecheck, build production, randomized, seed hay MQTT exposure. Lệnh và mốc thời gian chi tiết ở [chương 8](08-kiem-thu-va-danh-gia.md).
 
-**Còn mở ở v7:** mới có **một** vòng review độc lập cho W1 foundation (`reports/qa/v7-foundation-review.md`), **chưa có review độc lập cho toàn bộ giao diện v7**; chưa kiểm Firefox/WebKit, thiết bị thật hay AI provider thật. Các khoảng hở nghiệp vụ/backend ở mục “Chưa làm hoặc chưa đủ bằng chứng” bên dưới vẫn nguyên (kiểm MQTT broker thật/P0-1, retention/xóa thật, ngưỡng y khoa, form tạo thiết bị, OpenAPI, CI).
+**Còn mở ở v7:** mới có **một** vòng review độc lập cho W1 foundation (`reports/qa/v7-foundation-review.md`), **chưa có review độc lập cho toàn bộ giao diện v7**; chưa kiểm Firefox/WebKit, thiết bị thật hay AI provider thật. Các khoảng hở nghiệp vụ/backend ở mục “Chưa làm hoặc chưa đủ bằng chứng” bên dưới vẫn nguyên (kiểm MQTT broker thật/P0-1, retention/xóa thật, ngưỡng y khoa, form tạo thiết bị, OpenAPI toàn bộ, CI).
 
 ### Lệnh kiểm đã dùng (v1–v4, 15/11/2026)
 
@@ -269,7 +269,7 @@ Kết quả chạy ngày **15/11/2026** (sau merge v4): API **20 suite/219 test 
 - **FR-13 ngưỡng sức khỏe/ngã** — chỉ có policy vận hành `device_runtime`; chưa có ngưỡng y khoa có nguồn/phiên bản.
 - **UI tạo thiết bị admin** — tab thiết bị có list/cấp mã/xoay khóa nhưng chưa có form tạo; phải gọi API admin.
 - **Studio approval độc lập** — người tạo view tự publish; chưa có bước người khác chấp nhận.
-- **OpenAPI máy sinh, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
+- **OpenAPI toàn bộ API, đo khả dụng người cao tuổi, p95/NFR-07, CI** — chưa làm; mới có OpenAPI một phần cho quản trị + trợ lý tại `docs/api/openapi.v1.json`. Code-split đã có; bundle chỉ đo cục bộ, chưa đo mạng thật.
 - **P1 privacy/retention còn mở** — chưa có luồng đồng ý/đại diện cho người được chăm sóc, xóa cứng/backup; deletion-request mới ghi audit; retention job mới ở mức tùy chọn, mặc định tắt. Không tuyên bố tuân thủ pháp lý.
 - **Tái kiểm độc lập sau fix v2/v3/v4** — đã có reviewer độc lập cho public/admin/app v4 và 2 vòng re-review; các P1 chính đã đóng bằng test/đo lại. **Chưa có reviewer độc lập cho các bản sửa vòng 2 (public/admin/app)**; các P2 còn lại trong `reports/qa/v4-rereview-*.md` chưa đóng hết. Với v7, mới có review W1 foundation; các lane P/C/H/R/A chưa có review độc lập trên bản hợp nhất. Không đóng finding chỉ vì có handoff; chưa kiểm Firefox/WebKit/AI thật.
 
@@ -333,7 +333,7 @@ Mục này trả lời câu hỏi “làm gì tiếp” sau lát cắt v8. Đây
 | K2 | Chưa có hạ tầng job theo lịch | **Đã có scheduler V9.2b** (`CareSchedulerService`, tick 60 giây, `job_runs`, dedupe outbox) bên cạnh hai `setInterval` cũ. Chưa có advisory lock cho nhiều tiến trình/CI | Đã gỡ chặn cơ bản cho `FR-17`/một phần `FR-20`; còn E2E, hợp nhất preview và vận hành nhiều instance |
 | K3 | Cảnh báo chỉ trong ứng dụng | `notification_outbox.channel` luôn `in_app`; **đã khái quát hóa mô hình** (V9.2a, 20/11/2026): `subject_id`, `incident_id` nullable, `kind`, `title`/`body` — nhưng chưa có escalation hay transport ngoài. Chi tiết cảnh báo có danh sách `recipients` nhưng chỉ suy từ outbox, chưa có kênh/thời điểm/trạng thái gửi đầy đủ | Người thân không mở web thì không biết cảnh báo; đây vẫn là rủi ro lớn nhất của sản phẩm cảnh báo té ngã |
 | K4 | Trợ lý đọc + một hành động có kiểm soát | Đã có summary/ask và **FR-21 backend**: nháp `care_reminder.create` → preview → confirm, parser giới hạn cho câu đơn giản; chưa có UI/câu phức tạp, chưa có nguồn (`FR-23`) hay bản tin (`FR-20`) | “Trợ lý là trung tâm” đã có một hành động có kiểm soát, nhưng vẫn chưa phải trợ lý hội thoại tự thực thi |
-| K5 | Chưa sẵn sàng dữ liệu thật | Yêu cầu xóa chỉ ghi audit; retention mới tùy chọn/mặc định tắt; MQTT mới có mã/test nhưng chưa kiểm broker thật, P0-1 mở; chưa có OpenAPI/CI; chưa test PostgreSQL thật | Demo chạy nhưng chưa thể nói “dùng được với người thật”, chưa đóng được P1 privacy |
+| K5 | Chưa sẵn sàng dữ liệu thật | Yêu cầu xóa chỉ ghi audit; retention mới tùy chọn/mặc định tắt; MQTT mới có mã/test nhưng chưa kiểm broker thật, P0-1 mở; chưa có OpenAPI toàn bộ/CI; chưa test PostgreSQL thật | Demo chạy nhưng chưa thể nói “dùng được với người thật”, chưa đóng được P1 privacy |
 | K6 | Thiếu công cụ vận hành | Chưa có UI tạo thiết bị; chưa có UI đọc vùng cách ly (chỉ có ACK `QUARANTINED`); API `GET /admin/jobs` mới chỉ đọc `job_runs`, chưa có UI/cảnh báo job quá hạn; chưa có cấu hình kênh thông báo | Admin phải gọi API; lỗi ingest/job khó điều tra |
 
 ### 14.2 Nguyên tắc chọn lát cắt
@@ -424,7 +424,7 @@ Thứ tự đề xuất: **V9 → V10 → V11 → V12**. Nếu mục tiêu trư�
 - **Retention/xóa:** **đã có bản tối thiểu** — job tùy chọn, mặc định tắt, cấu hình `RETENTION_*`; xóa theo lô 500 và ghi audit `retention.purge` cho telemetry/outbox đã kết thúc/realtime/AI summary/nháp trợ lý đã hết hạn; admin có `GET /admin/retention/preview` chỉ đọc, đếm theo env hiện tại và không xóa. **Còn thiếu:** policy version + publish CAS như policy hiện có, API/UI cấu hình, `deletion-requests` thành luồng `recorded → approved → executing → done/failed` (hoặc chốt chỉ ghi nhận — D5), xóa toàn bộ hồ sơ và AI summary/notification liên quan. CSV hiện **sinh trực tiếp** khi tải, không lưu file; nếu sau này lưu export thì phải đưa vào phạm vi xoá. **Không** tuyên bố xoá backup khi chưa có backup thật.
 - **Đồng thuận/đại diện:** bảng `consents` (subject, phiên bản văn bản, phạm vi, người cấp, thời điểm, thu hồi); luồng người cao tuổi không có tài khoản do người đại diện quản lý; thu hồi → thu hồi care link và dừng thông báo; không tự cho người thân quyền sở hữu.
 - **MQTT (P0-2):** đã chọn hướng (a) ở mức **mã thử nghiệm**: event ingest dùng chung `IncidentsService` + ACK sau commit, broker vẫn sau profile `mqtt-experimental`. Còn thiếu xác thực thiết bị ở tầng ứng dụng (P0-1), kiểm broker/ACL/TLS thật và quyết định có dùng MQTT production hay chốt HTTP-only. Không đóng P0-1/P0-2 thành production chỉ vì test handler xanh.
-- **Cổng kỹ thuật:** OpenAPI sinh từ zod (một nguồn, không viết tay), CI chạy typecheck/test/build/docs, test tích hợp PostgreSQL thật, Playwright thêm Firefox/WebKit, axe cho màn hình chính.
+- **Cổng kỹ thuật:** OpenAPI toàn bộ API sinh từ zod (một nguồn, không viết tay), CI chạy typecheck/test/build/docs/openapi:check, test tích hợp PostgreSQL thật, Playwright thêm Firefox/WebKit, axe cho màn hình chính.
 - **Vận hành nhỏ:** form tạo thiết bị admin, màn hình vùng cách ly, cấu hình kênh thông báo.
 - Kiểm: migration từ DB rỗng; job chạy hai lần không xoá quá; dữ liệu ngoài phạm vi còn; audit; E2E xoá; CI xanh có log.
 - Ngoài phạm vi: backup/restore production, tuân thủ pháp lý, đo p95 trên mạng thật.

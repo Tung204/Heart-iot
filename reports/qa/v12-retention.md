@@ -30,7 +30,7 @@ incident, audit, care link, cấu hình hay backup. Đây **không** thay luồn
 | Migration | `0008_smart_wrecker.sql` thêm index retention; `0010_confused_klaw.sql` thêm index `assistant_drafts.expires_at`; test migrate từ DB rỗng |
 | `pnpm -r typecheck` | pass toàn monorepo |
 | `pnpm --filter @heart-iot/api build` (`nest build`) | pass |
-| Docs `build.py --check` | khớp nguồn, **369 liên kết/296 ID/22 mục** |
+| Docs `build.py --check` | khớp nguồn, **372 liên kết/296 ID/22 mục** |
 | Payload mẫu / MQTT exposure | **5/5** payload; **16/16** kiểm tra tĩnh |
 
 Test kiểm: mặc định tắt không xóa; preview chỉ đọc đếm đúng từng lớp và không xóa; khi bật chỉ xóa bản cũ đúng lớp, giữ bản mới, outbox `pending` và nháp trợ lý còn hiệu lực; audit có số đếm; chạy lại cùng ngày bị `job_runs` skip. Admin preview từ chối user thường.
