@@ -671,6 +671,27 @@ describe('Admin (wave 3 be-admin)', () => {
     expect(res.body.outbox).toEqual({ pending: 1, failed: 1 });
   });
 
+  test('V12: preview retention chỉ admin, mặc định tắt và không xóa', async () => {
+    const forbidden = await regular1.agent
+      .get('/api/v1/admin/retention/preview')
+      .set('Origin', TEST_ORIGIN);
+    expect(forbidden.status).toBe(403);
+
+    const res = await admin.agent
+      .get('/api/v1/admin/retention/preview')
+      .set('Origin', TEST_ORIGIN);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      enabled: false,
+      configured: false,
+      totalWouldDelete: 0,
+    });
+    expect(res.body.layers).toHaveLength(5);
+    for (const layer of res.body.layers) {
+      expect(layer).toMatchObject({ days: null, cutoff: null, wouldDelete: 0 });
+    }
+  });
+
   // ---------------------------------------------------------------------------
   // Đồng thời
   // ---------------------------------------------------------------------------

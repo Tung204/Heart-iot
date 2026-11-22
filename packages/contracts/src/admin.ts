@@ -192,6 +192,48 @@ export const policyStateSchema = z.object({
 export type PolicyState = z.infer<typeof policyStateSchema>;
 
 // ---------------------------------------------------------------------------
+// Retention — xem trước phạm vi xóa (không xóa)
+// ---------------------------------------------------------------------------
+
+export const retentionLayerSchema = z.enum([
+  'telemetry',
+  'notifications',
+  'realtime',
+  'aiSummaries',
+  'assistantDrafts',
+]);
+export type RetentionLayer = z.infer<typeof retentionLayerSchema>;
+
+export const retentionPreviewLayerSchema = z
+  .object({
+    layer: retentionLayerSchema,
+    /** Số ngày cấu hình; null nếu lớp chưa cấu hình. */
+    days: z.number().int().positive().nullable(),
+    /** Cutoff UTC tương ứng; null nếu lớp chưa cấu hình. */
+    cutoff: isoDateTimeSchema.nullable(),
+    /** Số dòng sẽ bị xóa nếu job chạy tại thời điểm preview. */
+    wouldDelete: z.number().int().nonnegative(),
+  })
+  .strict();
+export type RetentionPreviewLayer = z.infer<typeof retentionPreviewLayerSchema>;
+
+/**
+ * GET /admin/retention/preview — chỉ đọc. Preview dùng đúng cấu hình env hiện tại
+ * và cùng điều kiện với job purge, nhưng **không xóa** và không ghi `job_runs`.
+ * `enabled=false` vẫn có thể có `wouldDelete > 0` để admin thấy nếu bật job.
+ */
+export const retentionPreviewSchema = z
+  .object({
+    enabled: z.boolean(),
+    configured: z.boolean(),
+    generatedAt: isoDateTimeSchema,
+    layers: z.array(retentionPreviewLayerSchema).length(5),
+    totalWouldDelete: z.number().int().nonnegative(),
+  })
+  .strict();
+export type RetentionPreview = z.infer<typeof retentionPreviewSchema>;
+
+// ---------------------------------------------------------------------------
 // Tổng quan
 // ---------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from '@nestjs/common';
-import { and, eq, inArray, lt } from 'drizzle-orm';
+import { and, count, eq, inArray, lt } from 'drizzle-orm';
 import { DB, type AppDb } from '../database/database';
 import {
   aiSummaries,
@@ -37,6 +37,21 @@ export type RetentionRunResult = {
   skipped: boolean;
   disabled: boolean;
   deleted: RetentionCounts;
+};
+
+export type RetentionPreviewLayer = {
+  layer: keyof RetentionCounts;
+  days: number | null;
+  cutoff: string | null;
+  wouldDelete: number;
+};
+
+export type RetentionPreview = {
+  enabled: boolean;
+  configured: boolean;
+  generatedAt: string;
+  layers: RetentionPreviewLayer[];
+  totalWouldDelete: number;
 };
 
 const EMPTY_COUNTS: RetentionCounts = {
@@ -94,6 +109,83 @@ export class RetentionService implements OnModuleInit, OnModuleDestroy {
   /** Quan sát/test: job nền có bật không (luôn false khi NODE_ENV=test). */
   isScheduled(): boolean {
     return this.timer !== null;
+  }
+
+  /**
+   * Đếm số dòng sẽ bị xóa theo đúng cấu hình/cutoff của `runOnce`, nhưng chỉ đọc:
+   * không xóa, không ghi `job_runs`, không audit. Dùng cho admin xem trước khi bật.
+   */
+  async preview(now: Date = new Date()): Promise<RetentionPreview> {
+    const telemetryDays = this.env.RETENTION_TELEMETRY_DAYS;
+    const notificationDays = this.env.RETENTION_NOTIFICATION_DAYS;
+    const realtimeDays = this.env.RETENTION_REALTIME_DAYS;
+    const aiSummaryDays = this.env.RETENTION_AI_SUMMARY_DAYS;
+    const draftDays = this.env.RETENTION_ASSISTANT_DRAFT_DAYS;
+
+    const layers: RetentionPreviewLayer[] = [];
+    if (telemetryDays === undefined) {
+      layers.push({ layer: 'telemetry', days: null, cutoff: null, wouldDelete: 0 });
+    } else {
+      const cutoff = daysAgo(now, telemetryDays);
+      layers.push({
+        layer: 'telemetry',
+        days: telemetryDays,
+        cutoff: cutoff.toISOString(),
+        wouldDelete: await countTelemetry(this.db, cutoff),
+      });
+    }
+    if (notificationDays === undefined) {
+      layers.push({ layer: 'notifications', days: null, cutoff: null, wouldDelete: 0 });
+    } else {
+      const cutoff = daysAgo(now, notificationDays);
+      layers.push({
+        layer: 'notifications',
+        days: notificationDays,
+        cutoff: cutoff.toISOString(),
+        wouldDelete: await countNotifications(this.db, cutoff),
+      });
+    }
+    if (realtimeDays === undefined) {
+      layers.push({ layer: 'realtime', days: null, cutoff: null, wouldDelete: 0 });
+    } else {
+      const cutoff = daysAgo(now, realtimeDays);
+      layers.push({
+        layer: 'realtime',
+        days: realtimeDays,
+        cutoff: cutoff.toISOString(),
+        wouldDelete: await countRealtime(this.db, cutoff),
+      });
+    }
+    if (aiSummaryDays === undefined) {
+      layers.push({ layer: 'aiSummaries', days: null, cutoff: null, wouldDelete: 0 });
+    } else {
+      const cutoff = daysAgo(now, aiSummaryDays);
+      layers.push({
+        layer: 'aiSummaries',
+        days: aiSummaryDays,
+        cutoff: cutoff.toISOString(),
+        wouldDelete: await countAiSummaries(this.db, cutoff),
+      });
+    }
+    if (draftDays === undefined) {
+      layers.push({ layer: 'assistantDrafts', days: null, cutoff: null, wouldDelete: 0 });
+    } else {
+      const cutoff = daysAgo(now, draftDays);
+      layers.push({
+        layer: 'assistantDrafts',
+        days: draftDays,
+        cutoff: cutoff.toISOString(),
+        wouldDelete: await countAssistantDrafts(this.db, cutoff),
+      });
+    }
+
+    return {
+      enabled: this.env.RETENTION_ENABLED,
+      configured: this.hasConfiguredDays(),
+      generatedAt: now.toISOString(),
+      layers,
+      totalWouldDelete: layers.reduce((sum, layer) => sum + layer.wouldDelete, 0),
+    };
   }
 
   async runOnce(now: Date = new Date()): Promise<RetentionRunResult> {
@@ -201,6 +293,51 @@ export class RetentionService implements OnModuleInit, OnModuleDestroy {
 
 function daysAgo(now: Date, days: number): Date {
   return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+async function countTelemetry(db: AppDb, cutoff: Date): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(telemetry)
+    .where(lt(telemetry.receivedAt, cutoff));
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countNotifications(db: AppDb, cutoff: Date): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(notificationOutbox)
+    .where(
+      and(
+        inArray(notificationOutbox.status, ['sent', 'failed', 'superseded']),
+        lt(notificationOutbox.createdAt, cutoff),
+      ),
+    );
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countRealtime(db: AppDb, cutoff: Date): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(realtimeEvents)
+    .where(lt(realtimeEvents.createdAt, cutoff));
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countAiSummaries(db: AppDb, cutoff: Date): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(aiSummaries)
+    .where(lt(aiSummaries.createdAt, cutoff));
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function countAssistantDrafts(db: AppDb, cutoff: Date): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(assistantDrafts)
+    .where(lt(assistantDrafts.expiresAt, cutoff));
+  return Number(rows[0]?.value ?? 0);
 }
 
 async function purgeTelemetry(tx: DbTx, cutoff: Date): Promise<number> {

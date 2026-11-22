@@ -74,6 +74,17 @@ describe('Retention dữ liệu theo tuổi', () => {
     await ctx.close();
   });
 
+  // Mỗi test tự có fixture riêng: randomize thứ tự test không được làm test
+  // preview/purge phụ thuộc vào test chạy trước.
+  beforeEach(async () => {
+    await ctx.db.delete(assistantDrafts);
+    await ctx.db.delete(aiSummaries);
+    await ctx.db.delete(realtimeEvents);
+    await ctx.db.delete(notificationOutbox);
+    await ctx.db.delete(telemetry);
+    await seedRows();
+  });
+
   function envWith(overrides: Partial<AppEnv>): AppEnv {
     return {
       ...ctx.app.get<AppEnv>(ENV),
@@ -217,7 +228,6 @@ describe('Retention dữ liệu theo tuổi', () => {
   }
 
   it('mặc định tắt: không xóa dù có ngày cấu hình', async () => {
-    await seedRows();
     const service = new RetentionService(
       ctx.db,
       envWith({ RETENTION_ENABLED: false }),
@@ -228,6 +238,37 @@ describe('Retention dữ liệu theo tuổi', () => {
     expect(result.deleted).toEqual(ZERO);
     expect(await ctx.db.select().from(telemetry)).toHaveLength(2);
     expect(await ctx.db.select().from(notificationOutbox)).toHaveLength(3);
+    expect(await ctx.db.select().from(assistantDrafts)).toHaveLength(3);
+  });
+
+  it('preview chỉ đọc: đếm đúng từng lớp và không xóa dữ liệu', async () => {
+    const service = new RetentionService(
+      ctx.db,
+      envWith({}),
+      ctx.app.get(AuditService),
+    );
+    const preview = await service.preview(NOW);
+    expect(preview).toMatchObject({
+      enabled: true,
+      configured: true,
+      generatedAt: NOW.toISOString(),
+      totalWouldDelete: 5,
+    });
+    expect(preview.layers.map((layer) => layer.layer)).toEqual([
+      'telemetry',
+      'notifications',
+      'realtime',
+      'aiSummaries',
+      'assistantDrafts',
+    ]);
+    expect(preview.layers.map((layer) => layer.days)).toEqual([30, 30, 30, 30, 30]);
+    expect(preview.layers.map((layer) => layer.wouldDelete)).toEqual([1, 1, 1, 1, 1]);
+    expect(preview.layers[0]?.cutoff).toBe('2026-10-22T12:00:00.000Z');
+
+    expect(await ctx.db.select().from(telemetry)).toHaveLength(2);
+    expect(await ctx.db.select().from(notificationOutbox)).toHaveLength(3);
+    expect(await ctx.db.select().from(realtimeEvents)).toHaveLength(2);
+    expect(await ctx.db.select().from(aiSummaries)).toHaveLength(2);
     expect(await ctx.db.select().from(assistantDrafts)).toHaveLength(3);
   });
 

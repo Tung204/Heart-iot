@@ -81,6 +81,12 @@ export class AdminController {
     return this.admin.publishPolicy(user, key, body);
   }
 
+  /** Preview retention chỉ đọc — admin xem số dòng sẽ xóa trước khi bật job. */
+  @Get('retention/preview')
+  getRetentionPreview(@CurrentUser() user: UserSummary) {
+    return this.admin.getRetentionPreview(user);
+  }
+
   @Get('overview')
   getOverview(@CurrentUser() user: UserSummary) {
     return this.admin.getOverview(user);

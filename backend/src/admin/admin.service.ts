@@ -8,6 +8,7 @@ import {
   auditListSchema,
   policyPreviewSchema,
   policyPublishSchema,
+  retentionPreviewSchema,
   policyStateSchema,
   type AdminOverview,
   type AdminUserList,
@@ -20,6 +21,7 @@ import {
   type PolicyPublish,
   type PolicyPublishRequest,
   type PolicyState,
+  type RetentionPreview,
   type UpdateUserStatus,
 } from '@heart-iot/contracts/admin';
 import {
@@ -47,6 +49,7 @@ import { AppError } from '../common/app-error';
 import { decodeCursor, encodeCursor } from '../common/pagination';
 import { isUniqueViolation } from '../database/errors';
 import { sha256 } from '../auth/password';
+import { RetentionService } from '../retention/retention.service';
 
 /**
  * AdminService — tài khoản, audit, policy động, tổng quan (wave 3 be-admin).
@@ -169,6 +172,7 @@ export class AdminService {
     private readonly access: AccessService,
     private readonly audit: AuditService,
     private readonly policy: PolicyService,
+    private readonly retention: RetentionService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -600,6 +604,16 @@ export class AdminService {
   // ---------------------------------------------------------------------------
   // Tổng quan
   // ---------------------------------------------------------------------------
+
+  /**
+   * Preview retention chỉ đọc: đếm số dòng theo env hiện tại, không xóa/không
+   * ghi `job_runs`. Chỉ admin; không trả nội dung dữ liệu, chỉ số đếm và cutoff.
+   */
+  async getRetentionPreview(user: UserSummary): Promise<RetentionPreview> {
+    this.access.requireAdmin(user);
+    const preview = await this.retention.preview();
+    return retentionPreviewSchema.parse(preview);
+  }
 
   async getOverview(user: UserSummary): Promise<AdminOverview> {
     this.access.requireAdmin(user);

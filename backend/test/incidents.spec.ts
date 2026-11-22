@@ -1684,7 +1684,18 @@ describe('Incidents: state machine, outbox và REST (FR-06/07/09, NFR-01/02, R-0
       expect(metadata['reason']).toEqual(expect.any(String));
       expect(metadata['heart_rate_bpm']).toBeUndefined();
       expect(metadata['evidence']).toBeUndefined();
-      expect(JSON.stringify(metadata)).not.toContain('188');
+      // Kiểm đúng tập khóa thay vì tìm chuỗi con: UUID ngẫu nhiên có thể chứa
+      // "188" dù không hề rò nhịp tim. Tập khóa cố định chứng minh không thêm
+      // trường sức khỏe/evidence nào.
+      expect(Object.keys(metadata).sort()).toEqual([
+        'bootId',
+        'clockSkewSeconds',
+        'incidentId',
+        'measuredAt',
+        'messageId',
+        'reason',
+        'sequence',
+      ]);
       expect(JSON.stringify(metadata)).not.toContain('0901234567');
     }
   });
