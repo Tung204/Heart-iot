@@ -24,6 +24,7 @@ const incidents = require('../dist/incidents.js');
 const telemetry = require('../dist/telemetry.js');
 const devices = require('../dist/devices.js');
 const care = require('../dist/care.js');
+const reminders = require('../dist/reminders.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -806,6 +807,108 @@ paths['/subjects/{id}/care-links/{linkId}'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Lịch nhắc và tuân thủ
+// ---------------------------------------------------------------------------
+
+paths['/subjects/{id}/care/adherence'] = {
+  get: {
+    tags: ['Reminders'],
+    operationId: 'getCareAdherence',
+    summary: 'Tổng hợp tuân thủ lịch nhắc theo khoảng ngày',
+    parameters: [subjectParam, ...queryParams(reminders.careAdherenceQuerySchema)],
+    responses: { 200: ok(ref('CareAdherence')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}/reminders'] = {
+  get: {
+    tags: ['Reminders'],
+    operationId: 'listReminders',
+    summary: 'Danh sách lịch nhắc của hồ sơ',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('ReminderList')), ...auth(), 404: notFound() },
+  },
+  post: {
+    tags: ['Reminders'],
+    operationId: 'createReminder',
+    summary: 'Tạo lịch nhắc, chỉ chủ hồ sơ',
+    parameters: [subjectParam],
+    requestBody: body('CreateReminder'),
+    responses: {
+      201: ok(ref('ReminderSummary'), 'Đã tạo lịch nhắc'),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/reminders/today'] = {
+  get: {
+    tags: ['Reminders'],
+    operationId: 'getReminderDay',
+    summary: 'Occurrence của một ngày theo timezone hồ sơ',
+    parameters: [subjectParam, ...queryParams(reminders.reminderTodayQuerySchema)],
+    responses: { 200: ok(ref('ReminderDay')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/subjects/{id}/reminders/{reminderId}'] = {
+  patch: {
+    tags: ['Reminders'],
+    operationId: 'updateReminder',
+    summary: 'Sửa lịch nhắc, chỉ chủ hồ sơ',
+    parameters: [subjectParam, pathId('reminderId')],
+    requestBody: body('UpdateReminder'),
+    responses: {
+      200: ok(ref('ReminderSummary')),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+  delete: {
+    tags: ['Reminders'],
+    operationId: 'archiveReminder',
+    summary: 'Lưu trữ mềm lịch nhắc, giữ lịch sử',
+    parameters: [subjectParam, pathId('reminderId')],
+    responses: { 204: { description: 'Đã lưu trữ lịch nhắc' }, ...auth(), 404: notFound() },
+  },
+};
+
+paths['/subjects/{id}/reminders/{reminderId}/completions'] = {
+  post: {
+    tags: ['Reminders'],
+    operationId: 'completeReminderOccurrence',
+    summary: 'Đánh dấu đã làm/bỏ qua occurrence',
+    parameters: [subjectParam, pathId('reminderId')],
+    requestBody: body('ReminderCompletionWrite'),
+    responses: {
+      200: ok(ref('ReminderCompletionResult')),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+  delete: {
+    tags: ['Reminders'],
+    operationId: 'uncompleteReminderOccurrence',
+    summary: 'Hoàn tác đánh dấu occurrence',
+    parameters: [
+      subjectParam,
+      pathId('reminderId'),
+      ...queryParams(reminders.reminderCompletionQuerySchema),
+    ],
+    responses: {
+      204: { description: 'Đã hoàn tác đánh dấu' },
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -868,6 +971,14 @@ const componentSchemas = {
   PublicInvitation: care.publicInvitationSchema,
   CareLinkSummary: care.careLinkSummarySchema,
   CareLinkList: care.careLinkListSchema,
+  ReminderSummary: reminders.reminderSchema,
+  ReminderList: reminders.reminderListSchema,
+  CreateReminder: reminders.createReminderSchema,
+  UpdateReminder: reminders.updateReminderSchema,
+  ReminderDay: reminders.reminderDaySchema,
+  ReminderCompletionWrite: reminders.reminderCompletionWriteSchema,
+  ReminderCompletionResult: reminders.reminderCompletionResultSchema,
+  CareAdherence: reminders.careAdherenceSchema,
 };
 
 const components = { schemas: {} };
@@ -891,6 +1002,9 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'ClaimDevice',
     'ReleaseDevice',
     'CreateInvitation',
+    'CreateReminder',
+    'UpdateReminder',
+    'ReminderCompletionWrite',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -918,6 +1032,7 @@ const document = {
     { name: 'Incidents', description: 'Cảnh báo, ACK/đóng theo version; không tự đóng hộ người dùng.' },
     { name: 'Devices', description: 'Thiết bị, khóa/mã chỉ trả một lần; không xóa lịch sử khi thu hồi.' },
     { name: 'Care', description: 'Chia sẻ quyền chăm sóc; token lời mời chỉ trả một lần.' },
+    { name: 'Reminders', description: 'Lịch nhắc, occurrence và tuân thủ; không gợi ý liều.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
