@@ -20,6 +20,7 @@ import {
   deviceAssignments,
   devices,
   incidents,
+  jobRuns,
   maintenanceTasks,
   notificationOutbox,
   policyConfigs,
@@ -104,6 +105,8 @@ describe('Admin (wave 3 be-admin)', () => {
   beforeEach(async () => {
     await ctx.db.delete(policyConfigs);
     await ctx.db.delete(auditLogs).where(eq(auditLogs.action, 'policy.publish'));
+    // Job runs là fixture riêng của test quan sát job; xóa để không phụ thuộc thứ tự.
+    await ctx.db.delete(jobRuns);
   });
 
   // ---------------------------------------------------------------------------
@@ -690,6 +693,128 @@ describe('Admin (wave 3 be-admin)', () => {
     for (const layer of res.body.layers) {
       expect(layer).toMatchObject({ days: null, cutoff: null, wouldDelete: 0 });
     }
+  });
+
+  test('V12b: admin xem trạng thái job nền; user thường 403; không lộ nội dung sức khỏe', async () => {
+    const now = Date.now();
+    await ctx.db.insert(jobRuns).values([
+      {
+        jobKey: 'alert_escalation',
+        runKey: 'alert-escalation:old-success',
+        startedAt: new Date(now - 120_000),
+        finishedAt: new Date(now - 119_000),
+        outcome: 'succeeded',
+        counters: { notifications: 2 },
+      },
+      {
+        jobKey: 'alert_escalation',
+        runKey: 'alert-escalation:latest-failed',
+        startedAt: new Date(now - 30_000),
+        finishedAt: new Date(now - 29_000),
+        outcome: 'failed',
+        counters: { failed: 1 },
+      },
+      {
+        jobKey: 'care_scheduler',
+        runKey: 'care-scheduler:latest-success',
+        startedAt: new Date(now - 30_000),
+        finishedAt: new Date(now - 29_000),
+        outcome: 'succeeded',
+        counters: { subjects: 3, digests: 1 },
+      },
+      {
+        jobKey: 'care_scheduler',
+        runKey: 'care-scheduler:old-failure',
+        startedAt: new Date(now - 300_000),
+        finishedAt: new Date(now - 299_000),
+        outcome: 'failed',
+        counters: { failed: 2 },
+      },
+    ]);
+
+    const forbidden = await regular1.agent.get('/api/v1/admin/jobs').set('Origin', TEST_ORIGIN);
+    expect(forbidden.status).toBe(403);
+
+    const res = await admin.agent.get('/api/v1/admin/jobs').set('Origin', TEST_ORIGIN);
+    expect(res.status).toBe(200);
+    expect(typeof res.body.generatedAt).toBe('string');
+    expect(res.body.jobs.map((job: { key: string }) => job.key)).toEqual([
+      'alert_escalation',
+      'care_scheduler',
+      'retention',
+    ]);
+
+    const byKey = Object.fromEntries(
+      (res.body.jobs as Array<Record<string, unknown>>).map((job) => [job.key, job]),
+    );
+    const alertJob = byKey.alert_escalation as Record<string, unknown> & {
+      lastRun: Record<string, unknown>;
+    };
+    expect(alertJob.status).toBe('failed');
+    expect(alertJob.lastRun.runKey).toBe('alert-escalation:latest-failed');
+    expect(alertJob.lastRun.counters).toEqual({ failed: 1 });
+    expect(alertJob.lastRunAgeSeconds).toBeGreaterThanOrEqual(0);
+    expect(alertJob.lastRunAgeSeconds).toBeLessThan(120);
+    expect(alertJob.lastFailureAt).not.toBeNull();
+    expect(alertJob.lastSuccessAt).not.toBeNull();
+
+    const careJob = byKey.care_scheduler as Record<string, unknown> & {
+      lastRun: Record<string, unknown>;
+    };
+    expect(careJob.status).toBe('ok');
+    expect(careJob.lastRun.runKey).toBe('care-scheduler:latest-success');
+    expect(careJob.lastRun.counters).toEqual({ subjects: 3, digests: 1 });
+    expect(careJob.lastFailureAt).not.toBeNull();
+
+    const retentionJob = byKey.retention as Record<string, unknown>;
+    expect(retentionJob).toMatchObject({
+      status: 'never',
+      lastRun: null,
+      lastSuccessAt: null,
+      lastFailureAt: null,
+      lastRunAgeSeconds: null,
+    });
+
+    // Chỉ counter vận hành, không có trường nội dung sức khỏe hay danh tính.
+    expect(Object.keys(alertJob).sort()).toEqual([
+      'expectedIntervalSeconds',
+      'key',
+      'label',
+      'lastFailureAt',
+      'lastRun',
+      'lastRunAgeSeconds',
+      'lastSuccessAt',
+      'staleAfterSeconds',
+      'status',
+    ]);
+    expect(Object.keys(alertJob.lastRun).sort()).toEqual([
+      'counters',
+      'finishedAt',
+      'outcome',
+      'runKey',
+      'startedAt',
+    ]);
+    expect(JSON.stringify(res.body)).not.toContain('@example.test');
+
+    // Bản ghi cũ hơn ngưỡng quan sát → stale, không phải failed.
+    await ctx.db.insert(jobRuns).values({
+      jobKey: 'retention',
+      runKey: 'retention:stale-success',
+      startedAt: new Date(now - 8_000_000),
+      finishedAt: new Date(now - 7_999_000),
+      outcome: 'succeeded',
+      counters: { telemetry: 4 },
+    });
+    const stale = await admin.agent.get('/api/v1/admin/jobs').set('Origin', TEST_ORIGIN);
+    expect(stale.status).toBe(200);
+    const staleRetention = (stale.body.jobs as Array<Record<string, unknown>>).find(
+      (job) => job.key === 'retention',
+    );
+    expect(staleRetention).toMatchObject({
+      status: 'stale',
+      lastRun: { runKey: 'retention:stale-success', counters: { telemetry: 4 } },
+    });
+    expect(staleRetention!.lastSuccessAt).not.toBeNull();
   });
 
   // ---------------------------------------------------------------------------

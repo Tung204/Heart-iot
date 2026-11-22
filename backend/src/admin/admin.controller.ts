@@ -87,6 +87,12 @@ export class AdminController {
     return this.admin.getRetentionPreview(user);
   }
 
+  /** Quan sát job nền từ `job_runs` — chỉ đọc, không chạy lại job. */
+  @Get('jobs')
+  getJobs(@CurrentUser() user: UserSummary) {
+    return this.admin.getJobs(user);
+  }
+
   @Get('overview')
   getOverview(@CurrentUser() user: UserSummary) {
     return this.admin.getOverview(user);

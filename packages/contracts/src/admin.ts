@@ -234,6 +234,65 @@ export const retentionPreviewSchema = z
 export type RetentionPreview = z.infer<typeof retentionPreviewSchema>;
 
 // ---------------------------------------------------------------------------
+// Job nền — quan sát vận hành (chỉ đọc)
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /admin/jobs — trạng thái các job nền đã đăng ký trong `job_runs`.
+ *
+ * Đây là **quan sát**, không phải bằng chứng job đang chạy: `lastRun` chỉ là bản ghi
+ * gần nhất; `never` có thể do job chưa từng chạy hoặc đang tắt (ví dụ retention).
+ * Không trả nội dung sức khỏe, chỉ counter vận hành.
+ */
+export const adminJobKeySchema = z.enum(['alert_escalation', 'care_scheduler', 'retention']);
+export type AdminJobKey = z.infer<typeof adminJobKeySchema>;
+
+export const adminJobRunOutcomeSchema = z.enum(['running', 'succeeded', 'failed', 'skipped']);
+export type AdminJobRunOutcome = z.infer<typeof adminJobRunOutcomeSchema>;
+
+export const adminJobRunSchema = z
+  .object({
+    runKey: z.string().min(1).max(200),
+    outcome: adminJobRunOutcomeSchema,
+    startedAt: isoDateTimeSchema,
+    finishedAt: isoDateTimeSchema.nullable(),
+    counters: z.record(z.string(), z.number().int().nonnegative()),
+  })
+  .strict();
+export type AdminJobRun = z.infer<typeof adminJobRunSchema>;
+
+/**
+ * `ok`: lần chạy gần nhất còn trong ngưỡng; `failed`: lần gần nhất thất bại;
+ * `stale`: lần gần nhất cũ hơn `staleAfterSeconds`; `never`: chưa có bản ghi.
+ */
+export const adminJobHealthStatusSchema = z.enum(['ok', 'failed', 'stale', 'never']);
+export type AdminJobHealthStatus = z.infer<typeof adminJobHealthStatusSchema>;
+
+export const adminJobHealthSchema = z
+  .object({
+    key: adminJobKeySchema,
+    label: z.string().min(1).max(120),
+    expectedIntervalSeconds: z.number().int().positive(),
+    staleAfterSeconds: z.number().int().positive(),
+    status: adminJobHealthStatusSchema,
+    /** Tuổi của lần chạy gần nhất; null khi chưa từng chạy. */
+    lastRunAgeSeconds: z.number().int().nonnegative().nullable(),
+    lastRun: adminJobRunSchema.nullable(),
+    lastSuccessAt: isoDateTimeSchema.nullable(),
+    lastFailureAt: isoDateTimeSchema.nullable(),
+  })
+  .strict();
+export type AdminJobHealth = z.infer<typeof adminJobHealthSchema>;
+
+export const adminJobsSchema = z
+  .object({
+    generatedAt: isoDateTimeSchema,
+    jobs: z.array(adminJobHealthSchema).length(3),
+  })
+  .strict();
+export type AdminJobs = z.infer<typeof adminJobsSchema>;
+
+// ---------------------------------------------------------------------------
 // Tổng quan
 // ---------------------------------------------------------------------------
 

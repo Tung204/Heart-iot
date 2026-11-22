@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, max, or, type SQL } from 'drizzle-orm';
 import { INCIDENT_OPEN_STATES, type UserSummary } from '@heart-iot/contracts';
 import {
+  adminJobsSchema,
   adminOverviewSchema,
   adminUserListSchema,
   adminUserSummarySchema,
@@ -10,6 +11,7 @@ import {
   policyPublishSchema,
   retentionPreviewSchema,
   policyStateSchema,
+  type AdminJobs,
   type AdminOverview,
   type AdminUserList,
   type AdminUserQuery,
@@ -37,12 +39,14 @@ import {
   devices,
   incidents,
   maintenanceTasks,
+  jobRuns,
   notificationOutbox,
   policyConfigs,
   sessions,
   subjects,
   users,
-} from '../database/schema';import { AccessService } from '../access/access.service';
+} from '../database/schema';
+import { AccessService } from '../access/access.service';
 import { AuditService } from '../access/audit.service';
 import { PolicyService, canonicalPolicyJson, computePolicyDigest } from '../policy/policy.service';
 import { AppError } from '../common/app-error';
@@ -66,6 +70,32 @@ import { RetentionService } from '../retention/retention.service';
  * - Audit `policy.publish` (success và conflict) không chứa value đầy đủ: chỉ
  *   key/version/digest/lý do (+note).
  */
+
+/**
+ * Danh sách job nền admin được xem. Đây là danh sách cố định, không tự nhận job
+ * mới từ DB để tránh lộ job nội bộ chưa được công bố; thêm job phải sửa code +
+ * contract + test. `staleAfterSeconds` là ngưỡng quan sát, không phải SLA.
+ */
+const ADMIN_JOB_DEFINITIONS = [
+  {
+    key: 'alert_escalation',
+    label: 'Leo thang cảnh báo',
+    expectedIntervalSeconds: 60,
+    staleAfterSeconds: 120,
+  },
+  {
+    key: 'care_scheduler',
+    label: 'Nhắc chăm sóc và bản tin',
+    expectedIntervalSeconds: 60,
+    staleAfterSeconds: 120,
+  },
+  {
+    key: 'retention',
+    label: 'Xóa dữ liệu theo thời hạn',
+    expectedIntervalSeconds: 3_600,
+    staleAfterSeconds: 7_200,
+  },
+] as const;
 
 // Ngưỡng hợp lý cho maxTelemetryPerMinute — cảnh báo khi preview vượt ngoài.
 export const REASONABLE_TELEMETRY_MIN = 10;
@@ -613,6 +643,78 @@ export class AdminService {
     this.access.requireAdmin(user);
     const preview = await this.retention.preview();
     return retentionPreviewSchema.parse(preview);
+  }
+
+  /**
+   * GET /admin/jobs — chỉ đọc `job_runs`. Không gọi scheduler, không tạo run,
+   * không audit và không trả nội dung sức khỏe. `never` không đồng nghĩa lỗi:
+   * job có thể đang tắt (retention mặc định tắt).
+   */
+  async getJobs(user: UserSummary): Promise<AdminJobs> {
+    this.access.requireAdmin(user);
+    const now = new Date();
+
+    const jobs = await Promise.all(
+      ADMIN_JOB_DEFINITIONS.map(async (definition) => {
+        const [lastRun, lastSuccess, lastFailure] = await Promise.all([
+          this.latestJobRun(definition.key),
+          this.latestJobRun(definition.key, 'succeeded'),
+          this.latestJobRun(definition.key, 'failed'),
+        ]);
+        const ageSeconds = lastRun
+          ? Math.max(0, Math.floor((now.getTime() - lastRun.startedAt.getTime()) / 1000))
+          : null;
+        const status = !lastRun
+          ? 'never'
+          : lastRun.outcome === 'failed'
+            ? 'failed'
+            : ageSeconds !== null && ageSeconds > definition.staleAfterSeconds
+              ? 'stale'
+              : 'ok';
+        return {
+          key: definition.key,
+          label: definition.label,
+          expectedIntervalSeconds: definition.expectedIntervalSeconds,
+          staleAfterSeconds: definition.staleAfterSeconds,
+          status,
+          lastRunAgeSeconds: ageSeconds,
+          lastRun: lastRun ? this.toJobRun(lastRun) : null,
+          lastSuccessAt: lastSuccess
+            ? (lastSuccess.finishedAt ?? lastSuccess.startedAt).toISOString()
+            : null,
+          lastFailureAt: lastFailure
+            ? (lastFailure.finishedAt ?? lastFailure.startedAt).toISOString()
+            : null,
+        };
+      }),
+    );
+
+    return adminJobsSchema.parse({
+      generatedAt: now.toISOString(),
+      jobs,
+    });
+  }
+
+  private async latestJobRun(jobKey: string, outcome?: 'succeeded' | 'failed') {
+    const filters = [eq(jobRuns.jobKey, jobKey)];
+    if (outcome) filters.push(eq(jobRuns.outcome, outcome));
+    const rows = await this.db
+      .select()
+      .from(jobRuns)
+      .where(and(...filters))
+      .orderBy(desc(jobRuns.startedAt))
+      .limit(1);
+    return rows[0] ?? null;
+  }
+
+  private toJobRun(row: typeof jobRuns.$inferSelect) {
+    return {
+      runKey: row.runKey,
+      outcome: row.outcome,
+      startedAt: row.startedAt.toISOString(),
+      finishedAt: row.finishedAt ? row.finishedAt.toISOString() : null,
+      counters: row.counters ?? {},
+    };
   }
 
   async getOverview(user: UserSummary): Promise<AdminOverview> {
