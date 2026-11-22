@@ -216,4 +216,4 @@ Các vòng v2 (thêm cài đặt tài khoản, xu hướng, liên hệ khẩn c�
 - Không có firmware ESP32, cảm biến, BOM hay số liệu độ chính xác té ngã; các màn hình cảnh báo chỉ phản ánh sự kiện do simulator gửi.
 - Không có Web Push/PWA/native hay thông báo khi đóng trình duyệt; cảnh báo chỉ cập nhật khi trang đang mở và còn kết nối.
 - Không có dịch vụ AI mặc định; khi chưa cấu hình provider, trợ lý trả tóm tắt theo mẫu và ghi rõ là fallback.
-- Không có xóa cứng; retention mới ở backend và chưa có màn hình cấu hình, không có màn hình xem vùng cách ly ingest, không có form tạo thiết bị trong quản trị, không có báo cáo PDF (đã đưa vào kế hoạch mở rộng `FR-16`, chưa triển khai) và chưa có kiểm khả dụng với người cao tuổi.
+- Không có xóa cứng; retention mới ở backend (có API preview chỉ đọc) và chưa có màn hình cấu hình, không có màn hình xem vùng cách ly ingest, không có form tạo thiết bị trong quản trị, không có báo cáo PDF (đã đưa vào kế hoạch mở rộng `FR-16`, chưa triển khai) và chưa có kiểm khả dụng với người cao tuổi.
