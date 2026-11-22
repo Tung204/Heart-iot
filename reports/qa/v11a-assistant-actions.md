@@ -15,6 +15,7 @@ Ngày: **21/11/2026**. Phạm vi: backend, không sửa UI.
   - `POST /subjects/:id/assistant/drafts` (chỉ chủ hồ sơ, **không ghi** `care_reminders`);
   - `POST /subjects/:id/assistant/drafts/from-text` (parser rule-based cho câu đơn giản, không LLM);
   - `PATCH /assistant/drafts/:id` (sửa preview còn hạn trước confirm);
+  - `GET /subjects/:id/assistant/drafts` (nháp còn hạn, owner-only);
   - `GET /assistant/drafts/:id`;
   - `POST /assistant/drafts/:id/confirm` (tạo lịch nhắc trong cùng transaction với cập nhật nháp);
   - `POST /assistant/drafts/:id/cancel`.
@@ -35,14 +36,14 @@ Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không t
 
 | Lệnh/hạng mục | Kết quả |
 | --- | --- |
-| `backend/test/assistant-actions.spec.ts` | **7/7 test pass** |
+| `backend/test/assistant-actions.spec.ts` | **8/8 test pass** |
 | `backend/test/assistant-draft-parser.spec.ts` | **7/7 test pass** |
-| Full API | **34 suite / 312 test pass** |
-| Randomized seed `20261121` | **312/312 test pass** |
+| Full API | **34 suite / 313 test pass** |
+| Randomized seed `20261121` | **313/313 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
 | Docs `--check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
 
-Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua; từ chối liều/thiếu giờ/ngày không hỗ trợ.
+Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua; từ chối liều/thiếu giờ/ngày không hỗ trợ.
 
 ## Giới hạn
 
