@@ -113,7 +113,9 @@ Job không xóa hồ sơ, incident, audit, care link, cấu hình, backup hay nh
 
 FR-21 backend tách **nháp** khỏi **ghi nghiệp vụ**: `assistant_drafts` lưu payload đã chuẩn hoá, digest, hạn 15 phút và trạng thái `draft|confirmed|cancelled|expired`. Tạo nháp không ghi `care_reminders`; chỉ `confirm` của chủ hồ sơ mới gọi `RemindersService.createWithTx` trong cùng transaction với cập nhật nháp, nên lặp lại không tạo lịch thứ hai. Hết hạn, hủy, digest sai hoặc mất quyền bị chặn trước khi ghi.
 
-Trợ lý **không** có capability tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình thiết bị, cấp quyền, xóa dữ liệu, chẩn đoán/kê đơn, gửi tin khẩn hay điều khiển firmware. Catalog trả qua `GET /subjects/:id/assistant/capabilities`; đây là backend của FR-21, chưa có parser câu lệnh tự nhiên hoặc UI preview.
+Trợ lý **không** có capability tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình thiết bị, cấp quyền, xóa dữ liệu, chẩn đoán/kê đơn, gửi tin khẩn hay điều khiển firmware. Catalog trả qua `GET /subjects/:id/assistant/capabilities`.
+
+Câu lệnh đơn giản có thể đi qua parser rule-based (`POST /subjects/:id/assistant/drafts/from-text`): hiểu giờ, “hằng ngày”, khoảng thứ 2–6 và “mai”, nhưng **không gọi LLM**, không suy luận liều lượng/ngày kết thúc; mặc định cả tuần nếu không nêu thứ, dời sang mai nếu mọi giờ hôm nay đã qua, và vẫn chỉ tạo nháp. Đây là backend của FR-21; chưa có UI preview.
 
 ## Mạng, đồng hồ và dữ liệu cũ
 
