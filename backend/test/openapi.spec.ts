@@ -5,6 +5,7 @@ import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { AdminController } from '../src/admin/admin.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
+import { IncidentsController } from '../src/incidents/incidents.controller';
 import { MeasurementsController } from '../src/measurements/measurements.controller';
 import { SubjectsController } from '../src/subjects/subjects.controller';
 import { VisitReportController } from '../src/visit-reports/visit-report.controller';
@@ -67,7 +68,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng route Admin, Assistant, Subjects, Measurements và VisitReport', () => {
+  it('phủ đúng route Admin, Assistant, Subjects, Measurements, VisitReport và Incidents', () => {
     const pathOf = (route: string) => route.split(' ')[1] ?? '';
     const documentedAdmin = documented.filter((route) => pathOf(route).startsWith('/admin'));
     const documentedAssistant = documented.filter(
@@ -82,6 +83,7 @@ describe('OpenAPI một phần — khớp route controller', () => {
       ...routesOf(SubjectsController),
       ...routesOf(MeasurementsController),
       ...routesOf(VisitReportController),
+      ...routesOf(IncidentsController),
     ].sort();
     expect(routesOf(AdminController)).toEqual(documentedAdmin.sort());
     expect(routesOf(AssistantController)).toEqual(documentedAssistant.sort());

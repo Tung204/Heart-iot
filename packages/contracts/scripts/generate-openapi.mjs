@@ -20,6 +20,8 @@ const subjects = require('../dist/subjects.js');
 const measurements = require('../dist/measurements.js');
 const insights = require('../dist/insights.js');
 const reports = require('../dist/reports.js');
+const incidents = require('../dist/incidents.js');
+const telemetry = require('../dist/telemetry.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -97,6 +99,18 @@ function body(schemaName) {
     required: true,
     content: { 'application/json': { schema: ref(schemaName) } },
   };
+}
+
+/** Header params lấy từ schema input, dùng cho ingest thiết bị. */
+function headerParams(schema) {
+  const json = toJsonSchema(schema, 'input');
+  const required = new Set(json.required ?? []);
+  return Object.entries(json.properties ?? {}).map(([name, property]) => ({
+    name,
+    in: 'header',
+    required: required.has(name),
+    schema: property,
+  }));
 }
 
 const paths = {};
@@ -511,6 +525,82 @@ paths['/subjects/{id}/visit-report'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Cảnh báo / sự cố
+// ---------------------------------------------------------------------------
+
+paths['/ingest/events'] = {
+  post: {
+    tags: ['Incidents'],
+    operationId: 'ingestIncidentEvent',
+    summary: 'Thiết bị gửi sự kiện cảnh báo',
+    description:
+      'Xác thực bằng header thiết bị, không dùng phiên người dùng; ACK sau khi ghi DB trong transaction.',
+    security: [],
+    parameters: headerParams(telemetry.ingestHeadersSchema),
+    requestBody: body('IngestEvent'),
+    responses: {
+      202: ok(ref('IngestAck'), 'Đã xử lý sự kiện (kể cả duplicate/rejected có ACK)'),
+      401: errorResponse('Thiếu hoặc sai x-device-id/x-device-key'),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/alerts'] = {
+  get: {
+    tags: ['Incidents'],
+    operationId: 'listAlerts',
+    summary: 'Danh sách cảnh báo đã kiểm quyền',
+    parameters: [subjectParam, ...queryParams(incidents.alertsQuerySchema)],
+    responses: { 200: ok(ref('IncidentList')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/alerts/{id}'] = {
+  get: {
+    tags: ['Incidents'],
+    operationId: 'getAlert',
+    summary: 'Chi tiết cảnh báo, sự kiện, hành động và người nhận',
+    parameters: [pathId('id')],
+    responses: { 200: ok(ref('IncidentDetail')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/alerts/{id}/acknowledge'] = {
+  post: {
+    tags: ['Incidents'],
+    operationId: 'acknowledgeAlert',
+    summary: 'Xác nhận cảnh báo theo version',
+    parameters: [pathId('id')],
+    requestBody: body('AcknowledgeAlert'),
+    responses: {
+      200: ok(ref('IncidentDetail')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/alerts/{id}/resolve'] = {
+  post: {
+    tags: ['Incidents'],
+    operationId: 'resolveAlert',
+    summary: 'Đóng cảnh báo kèm lý do và kết quả',
+    parameters: [pathId('id')],
+    requestBody: body('ResolveAlert'),
+    responses: {
+      200: ok(ref('IncidentDetail')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -549,6 +639,13 @@ const componentSchemas = {
   DailySummary: measurements.dailySummarySchema,
   InsightsResponse: insights.insightsResponseSchema,
   VisitReport: reports.visitReportSchema,
+  IncidentSummary: incidents.incidentSummarySchema,
+  IncidentList: incidents.incidentListSchema,
+  IncidentDetail: incidents.incidentDetailSchema,
+  AcknowledgeAlert: incidents.acknowledgeAlertSchema,
+  ResolveAlert: incidents.resolveAlertSchema,
+  IngestEvent: telemetry.incidentEnvelopeSchema,
+  IngestAck: telemetry.ingestAckSchema,
 };
 
 const components = { schemas: {} };
@@ -565,6 +662,9 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'UpdateSubject',
     'ArchiveSubject',
     'DeletionRequest',
+    'AcknowledgeAlert',
+    'ResolveAlert',
+    'IngestEvent',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -589,6 +689,7 @@ const document = {
     { name: 'Subjects', description: 'Hồ sơ người được theo dõi và quyền theo vai trò.' },
     { name: 'Measurements', description: 'Số đo, tổng hợp và CSV đã kiểm quyền; không nội suy.' },
     { name: 'Reports', description: 'Phiếu đi khám tổng hợp, không thay thế chẩn đoán.' },
+    { name: 'Incidents', description: 'Cảnh báo, ACK/đóng theo version; không tự đóng hộ người dùng.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
