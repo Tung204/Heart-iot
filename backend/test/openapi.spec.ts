@@ -7,7 +7,9 @@ import { AdminController } from '../src/admin/admin.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
 import { CareController } from '../src/care/care.controller';
 import { AdminDevicesController, SubjectDevicesController } from '../src/devices/devices.controller';
+import { EmergencyContactsController } from '../src/emergency-contacts/emergency-contacts.controller';
 import { IncidentsController } from '../src/incidents/incidents.controller';
+import { MaintenanceController } from '../src/maintenance/maintenance.controller';
 import { MeasurementsController } from '../src/measurements/measurements.controller';
 import { RemindersController } from '../src/reminders/reminders.controller';
 import { SubjectsController } from '../src/subjects/subjects.controller';
@@ -71,7 +73,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng toàn bộ route của mười controller đang phủ, không thừa/thiếu', () => {
+  it('phủ đúng toàn bộ route của mười hai controller đang phủ, không thừa/thiếu', () => {
     const controllerRoutes = [
       ...routesOf(AdminController),
       ...routesOf(AdminDevicesController),
@@ -83,6 +85,8 @@ describe('OpenAPI một phần — khớp route controller', () => {
       ...routesOf(SubjectDevicesController),
       ...routesOf(CareController),
       ...routesOf(RemindersController),
+      ...routesOf(EmergencyContactsController),
+      ...routesOf(MaintenanceController),
     ].sort();
     expect(documented.sort()).toEqual(controllerRoutes);
   });

@@ -25,6 +25,8 @@ const telemetry = require('../dist/telemetry.js');
 const devices = require('../dist/devices.js');
 const care = require('../dist/care.js');
 const reminders = require('../dist/reminders.js');
+const contacts = require('../dist/contacts.js');
+const tasks = require('../dist/tasks.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -909,6 +911,97 @@ paths['/subjects/{id}/reminders/{reminderId}/completions'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Liên hệ khẩn cấp và công việc bảo trì
+// ---------------------------------------------------------------------------
+
+paths['/subjects/{id}/emergency-contacts'] = {
+  get: {
+    tags: ['Contacts'],
+    operationId: 'listEmergencyContacts',
+    summary: 'Liên hệ khẩn cấp của hồ sơ',
+    description: 'Chủ hồ sơ hoặc caregiver có `canReceiveAlerts`; dữ liệu nhạy cảm.',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('EmergencyContactList')), ...auth(), 404: notFound() },
+  },
+  post: {
+    tags: ['Contacts'],
+    operationId: 'createEmergencyContact',
+    summary: 'Thêm liên hệ khẩn cấp, chỉ chủ hồ sơ',
+    parameters: [subjectParam],
+    requestBody: body('EmergencyContactUpdate'),
+    responses: {
+      201: ok(ref('EmergencyContact'), 'Đã thêm liên hệ'),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/emergency-contacts/{contactId}'] = {
+  patch: {
+    tags: ['Contacts'],
+    operationId: 'updateEmergencyContact',
+    summary: 'Sửa liên hệ khẩn cấp, chỉ chủ hồ sơ',
+    parameters: [subjectParam, pathId('contactId')],
+    requestBody: body('EmergencyContactUpdate'),
+    responses: {
+      200: ok(ref('EmergencyContact')),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+  delete: {
+    tags: ['Contacts'],
+    operationId: 'deleteEmergencyContact',
+    summary: 'Xóa liên hệ khẩn cấp, chỉ chủ hồ sơ',
+    parameters: [subjectParam, pathId('contactId')],
+    responses: { 204: { description: 'Đã xóa liên hệ' }, ...auth(), 404: notFound() },
+  },
+};
+
+paths['/maintenance-tasks'] = {
+  get: {
+    tags: ['Maintenance'],
+    operationId: 'listMaintenanceTasks',
+    summary: 'Danh sách công việc bảo trì theo quyền',
+    parameters: queryParams(tasks.maintenanceTaskQuerySchema),
+    responses: { 200: ok(ref('MaintenanceTaskList')), ...auth(), 404: notFound(), 422: validation() },
+  },
+  post: {
+    tags: ['Maintenance'],
+    operationId: 'createMaintenanceTask',
+    summary: 'Tạo việc bảo trì cho thiết bị đang gắn',
+    requestBody: body('CreateTask'),
+    responses: {
+      201: ok(ref('MaintenanceTaskSummary'), 'Đã tạo việc bảo trì'),
+      ...auth(),
+      404: notFound(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/maintenance-tasks/{id}/close'] = {
+  post: {
+    tags: ['Maintenance'],
+    operationId: 'closeMaintenanceTask',
+    summary: 'Đóng việc bảo trì kèm lý do',
+    parameters: [pathId('id')],
+    requestBody: body('CloseTask'),
+    responses: {
+      200: ok(ref('MaintenanceTaskSummary')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -979,6 +1072,13 @@ const componentSchemas = {
   ReminderCompletionWrite: reminders.reminderCompletionWriteSchema,
   ReminderCompletionResult: reminders.reminderCompletionResultSchema,
   CareAdherence: reminders.careAdherenceSchema,
+  EmergencyContact: contacts.emergencyContactSchema,
+  EmergencyContactList: contacts.emergencyContactListSchema,
+  EmergencyContactUpdate: contacts.emergencyContactUpdateSchema,
+  MaintenanceTaskSummary: tasks.maintenanceTaskSummarySchema,
+  MaintenanceTaskList: tasks.maintenanceTaskListSchema,
+  CreateTask: tasks.createTaskSchema,
+  CloseTask: tasks.closeTaskSchema,
 };
 
 const components = { schemas: {} };
@@ -1005,6 +1105,9 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'CreateReminder',
     'UpdateReminder',
     'ReminderCompletionWrite',
+    'EmergencyContactUpdate',
+    'CreateTask',
+    'CloseTask',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -1033,6 +1136,8 @@ const document = {
     { name: 'Devices', description: 'Thiết bị, khóa/mã chỉ trả một lần; không xóa lịch sử khi thu hồi.' },
     { name: 'Care', description: 'Chia sẻ quyền chăm sóc; token lời mời chỉ trả một lần.' },
     { name: 'Reminders', description: 'Lịch nhắc, occurrence và tuân thủ; không gợi ý liều.' },
+    { name: 'Contacts', description: 'Liên hệ khẩn cấp là dữ liệu nhạy cảm; chỉ chủ hồ sơ ghi.' },
+    { name: 'Maintenance', description: 'Công việc bảo trì; đóng việc theo version/lý do.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
