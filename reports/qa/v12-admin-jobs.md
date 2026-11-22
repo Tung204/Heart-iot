@@ -35,8 +35,8 @@
 | Kiểm | Kết quả |
 | --- | --- |
 | `backend/test/admin.spec.ts` | **12/12 test pass** (gồm 1 test job nền + 1 test outbox) |
-| Full API | **34 suite / 322 test pass** |
-| Randomized `--seed=20261121` | **322/322 pass** |
+| Full API (22/11/2026) | **35 suite / 323 test pass** |
+| Randomized `--seed=20261121` | **323/323 pass** |
 | Typecheck toàn monorepo | pass |
 | `nest build` | pass |
 | Docs `--check` | 373 liên kết / 296 ID / 22 mục |

@@ -39,8 +39,8 @@ Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không t
 | --- | --- |
 | `backend/test/assistant-actions.spec.ts` | **9/9 test pass** |
 | `backend/test/assistant-draft-parser.spec.ts` | **11/11 test pass** (thêm 4 test ngày kết thúc) |
-| Full API | **34 suite / 322 test pass** |
-| Randomized seed `20261121` | **322/322 test pass** |
+| Full API (22/11/2026) | **35 suite / 323 test pass** |
+| Randomized seed `20261121` | **323/323 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
 | Docs `--check` | khớp nguồn, **373 liên kết/296 ID/22 mục** |
 
@@ -52,7 +52,7 @@ Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; x�
 - Hỗ trợ `đến/tới [hết] [ngày] dd/mm[/yyyy]`; không có năm dùng năm của `startsOn`.
 - Không tự đoán năm kế tiếp: ngày kết thúc trước `startsOn` trả 422 `end_before_start`; ngày không tồn tại trả `invalid_end_date`; nhiều cụm ngày trả `ambiguous_end_date`.
 - Khoảng tương đối như “trong 7 ngày” vẫn bị từ chối (`unsupported_end`); ngày bắt đầu khác “hôm nay/mai” vẫn bị từ chối.
-- Test parser tăng **7 → 11**; full API **322 test/34 suite**, randomized **322/322**. Docs `--check` **373 liên kết/296 ID/22 mục**. OpenAPI không đổi vì schema `from-text` không đổi.
+- Test parser tăng **7 → 11**; full API **323 test/35 suite** (22/11/2026), randomized **323/323**. Docs `--check` **373 liên kết/296 ID/22 mục**. OpenAPI không đổi vì schema `from-text` không đổi.
 
 ## Giới hạn
 

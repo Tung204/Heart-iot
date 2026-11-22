@@ -33,10 +33,10 @@ Mảng `byChannel` luôn đủ 2 kênh, `byKind` đủ 5 kind để dashboard kh
 | Kiểm | Kết quả |
 | --- | --- |
 | `backend/test/admin.spec.ts` | **12/12 test pass** (thêm 1 test outbox) |
-| Full API | **34 suite / 322 test pass** |
-| Randomized `--seed=20261121` | **322/322 pass** |
+| Full API (22/11/2026) | **35 suite / 323 test pass** |
+| Randomized `--seed=20261121` | **323/323 pass** |
 | Typecheck toàn monorepo | pass |
-| OpenAPI `pnpm openapi:check` | pass; 15 path/18 operation/19 schema |
+| OpenAPI `pnpm openapi:check` | pass; 17 path/20 operation/22 schema |
 | Docs `--check` | 373 liên kết / 296 ID / 22 mục (trước khi thêm link report) |
 
 Test mới kiểm:
