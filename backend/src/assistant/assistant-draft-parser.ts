@@ -11,12 +11,12 @@ import { isValidTimezone } from '../measurements/time-utils';
  * Kết quả vẫn chỉ là **nháp**; người dùng phải xem preview và xác nhận qua
  * AssistantActionsService.confirm mới ghi `care_reminders`.
  *
- * Không suy luận liều lượng, chẩn đoán hay ngày kết thúc. Câu có số viên/mg/ml
- * bị từ chối để tránh biến câu nói thành chỉ định y khoa; người dùng dùng biểu
- * mẫu có cấu trúc nếu cần.
+ * Không suy luận liều lượng hoặc chẩn đoán. Câu có số viên/mg/ml bị từ chối để
+ * tránh biến câu nói thành chỉ định y khoa. Ngày kết thúc chỉ nhận khi người
+ * dùng nêu rõ ngày/tháng(/năm); khoảng thời gian tương đối vẫn bị từ chối.
  */
 
-export const PARSER_VERSION = 1;
+export const PARSER_VERSION = 2;
 
 const PREFIX_RE =
   /^\s*(?:hãy\s+)?(?:nhắc(?:\s+(?:tôi|mình|em|cháu|bạn|anh|chị))?|tạo\s+lịch|đặt\s+lịch|lên\s+lịch)\s*/iu;
@@ -26,6 +26,12 @@ const TIME_PATTERN =
 
 const RECURRENCE_RE =
   /(?:hằng|hàng|mỗi|hang|moi)\s+ngày|\bthứ\s*(?:[2-7]|hai|ba|tư|tu|năm|nam|sáu|sau|bảy|bay)\b|\bthu\s*(?:[2-7]|hai|ba|tu|nam|sau|bay)\b|\bchủ\s+nhật\b|\bchu\s+nhat\b|\bt[2-7]\b/iu;
+
+const END_DATE_FOLDED_RE =
+  /\b(?:den|toi)\s+(?:het\s+)?(?:ngay\s+)?(\d{1,2})\s*[/-]\s*(\d{1,2})(?:\s*[/-]\s*(\d{4}))?\b/g;
+
+const END_DATE_DISPLAY_RE =
+  /(?:đến|tới|den|toi)\s+(?:hết\s+)?(?:ngày\s+)?\d{1,2}\s*[/-]\s*\d{1,2}(?:\s*[/-]\s*\d{4})?/giu;
 
 const WEEKDAY_WORDS: Record<string, number> = {
   '2': 2,
@@ -95,6 +101,49 @@ function weekdayFromToken(token: string | undefined): number | null {
   return WEEKDAY_WORDS[token] ?? null;
 }
 
+/** Bỏ cụm ngày kết thúc khỏi phần tiêu đề; giữ lại câu gốc để báo lỗi. */
+function stripEndDate(source: string): string {
+  const matches = [...source.matchAll(new RegExp(END_DATE_DISPLAY_RE.source, 'giu'))];
+  if (matches.length > 1) {
+    validation('ambiguous_end_date', 'Câu có nhiều ngày kết thúc; hãy chọn một ngày.');
+  }
+  return source.replace(new RegExp(END_DATE_DISPLAY_RE.source, 'giu'), ' ');
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * Ngày kết thúc dạng `đến/tới [hết] [ngày] dd/mm[/yyyy]`.
+ * Không có năm thì dùng năm của ngày bắt đầu; không tự đoán năm kế tiếp.
+ */
+function parseEndDate(folded: string, startsOn: string): string | null {
+  const matches = [...folded.matchAll(new RegExp(END_DATE_FOLDED_RE.source, 'g'))];
+  if (matches.length === 0) return null;
+  if (matches.length > 1) {
+    validation('ambiguous_end_date', 'Câu có nhiều ngày kết thúc; hãy chọn một ngày.');
+  }
+  const match = matches[0]!;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = match[3] ? Number(match[3]) : Number(startsOn.slice(0, 4));
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
+    validation(
+      'invalid_end_date',
+      'Ngày kết thúc không hợp lệ; hãy dùng dạng ngày/tháng hoặc ngày/tháng/năm.',
+    );
+  }
+  const endsOn = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  if (endsOn < startsOn) {
+    validation(
+      'end_before_start',
+      'Ngày kết thúc phải bằng hoặc sau ngày bắt đầu; nếu qua năm mới hãy ghi rõ năm.',
+    );
+  }
+  return endsOn;
+}
+
 /** Ngày bắt đầu: hôm nay, mai, hoặc ngày mai nếu mọi giờ đã qua. */
 function resolveStartDate(
   folded: string,
@@ -113,7 +162,7 @@ function resolveStartDate(
   ) {
     validation(
       'unsupported_end',
-      'Trợ lý chưa hỗ trợ ngày kết thúc trong câu lệnh; hãy tạo lịch bằng biểu mẫu.',
+      'Trợ lý chưa hỗ trợ khoảng thời gian như “trong 7 ngày”; hãy nêu ngày kết thúc cụ thể hoặc dùng biểu mẫu.',
     );
   }
   if (
@@ -249,7 +298,9 @@ export function parseAssistantDraftText(
   }
 
   const source = raw.replace(PREFIX_RE, '');
-  const matches = [...source.matchAll(timeRegex())];
+  const dateSource = stripEndDate(source);
+  const dateFolded = fold(dateSource);
+  const matches = [...dateSource.matchAll(timeRegex())];
   if (matches.length === 0) {
     validation(
       'missing_time',
@@ -262,9 +313,10 @@ export function parseAssistantDraftText(
 
   const times = [...new Set(matches.map(parseTime))].sort();
   const firstTimeIndex = matches[0]?.index ?? source.length;
-  const title = parseTitle(source, firstTimeIndex);
-  const weekdays = parseWeekdays(folded);
-  const startsOn = resolveStartDate(folded, times, options.now, options.timezone);
+  const title = parseTitle(dateSource, firstTimeIndex);
+  const weekdays = parseWeekdays(dateFolded);
+  const startsOn = resolveStartDate(dateFolded, times, options.now, options.timezone);
+  const endsOn = parseEndDate(folded, startsOn);
 
   const parsed = createReminderSchema.safeParse({
     kind: inferKind(title),
@@ -273,7 +325,7 @@ export function parseAssistantDraftText(
     times,
     weekdays,
     startsOn,
-    endsOn: null,
+    endsOn,
     active: true,
   });
   if (!parsed.success) {

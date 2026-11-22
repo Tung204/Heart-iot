@@ -314,7 +314,7 @@ describe('Trợ lý — hành động có kiểm soát (FR-21)', () => {
         .from(auditLogs)
         .where(eq(auditLogs.action, 'assistant.draft.create'))
     ).find((row) => row.targetId === created.body.id);
-    expect(audit?.metadata).toMatchObject({ source: 'text_parser', parserVersion: 1 });
+    expect(audit?.metadata).toMatchObject({ source: 'text_parser', parserVersion: 2 });
     expect(JSON.stringify(audit?.metadata)).not.toContain('uống thuốc');
 
     const caregiverResponse = await caregiver.agent

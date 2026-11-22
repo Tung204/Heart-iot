@@ -87,6 +87,37 @@ describe('Parser câu lệnh nháp lịch nhắc', () => {
     expectError('nhắc tôi uống thuốc lúc 25h', 'invalid_time');
   });
 
+  it('hiểu ngày kết thúc dạng ngày/tháng và bỏ cụm ngày khỏi tiêu đề', () => {
+    const input = parse('nhắc tôi uống thuốc lúc 8h đến 30/11');
+    expect(input).toMatchObject({
+      title: 'uống thuốc',
+      times: ['08:00'],
+      startsOn: '2026-11-21',
+      endsOn: '2026-11-30',
+    });
+  });
+
+  it('hiểu ngày kết thúc có năm và “đến hết ngày”', () => {
+    const input = parse('nhắc tôi đo huyết áp 7h sáng đến hết ngày 31/12/2026');
+    expect(input).toMatchObject({
+      kind: 'measurement',
+      title: 'đo huyết áp',
+      startsOn: '2026-11-21',
+      endsOn: '2026-12-31',
+    });
+  });
+
+  it('cho phép ngày kết thúc qua năm mới khi ghi rõ năm', () => {
+    const input = parse('nhắc tôi uống nước 8h đến 05/01/2027');
+    expect(input.endsOn).toBe('2027-01-05');
+  });
+
+  it('từ chối ngày kết thúc không hợp lệ, trước ngày bắt đầu hoặc bị lặp', () => {
+    expectError('nhắc tôi uống thuốc lúc 8h đến 31/02', 'invalid_end_date');
+    expectError('nhắc tôi uống thuốc lúc 8h đến 20/11', 'end_before_start');
+    expectError('nhắc tôi uống thuốc lúc 8h đến 30/11 và đến 31/12', 'ambiguous_end_date');
+  });
+
   it('từ chối câu không có tiêu đề sau khi bỏ phần nhắc giờ', () => {
     expectError('nhắc tôi lúc 8h', 'missing_title');
   });
