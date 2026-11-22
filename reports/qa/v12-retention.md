@@ -24,13 +24,13 @@ incident, audit, care link, cấu hình hay backup. Đây **không** thay luồn
 | --- | --- |
 | `pnpm --filter @heart-iot/api typecheck` | pass |
 | `node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand test/retention.spec.ts` | **3/3 test pass** |
-| `test/admin.spec.ts` (preview chỉ admin) | **10/10 test pass** |
-| Full API suite | **34 suite / 316 test pass** |
-| Randomized seed `20261121` | **316/316 pass** |
+| `test/admin.spec.ts` (preview retention + job nền) | **11/11 test pass** |
+| Full API suite | **34 suite / 317 test pass** |
+| Randomized seed `20261121` | **317/317 pass** |
 | Migration | `0008_smart_wrecker.sql` thêm index retention; `0010_confused_klaw.sql` thêm index `assistant_drafts.expires_at`; test migrate từ DB rỗng |
 | `pnpm -r typecheck` | pass toàn monorepo |
 | `pnpm --filter @heart-iot/api build` (`nest build`) | pass |
-| Docs `build.py --check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
+| Docs `build.py --check` | khớp nguồn, **369 liên kết/296 ID/22 mục** |
 | Payload mẫu / MQTT exposure | **5/5** payload; **16/16** kiểm tra tĩnh |
 
 Test kiểm: mặc định tắt không xóa; preview chỉ đọc đếm đúng từng lớp và không xóa; khi bật chỉ xóa bản cũ đúng lớp, giữ bản mới, outbox `pending` và nháp trợ lý còn hiệu lực; audit có số đếm; chạy lại cùng ngày bị `job_runs` skip. Admin preview từ chối user thường.

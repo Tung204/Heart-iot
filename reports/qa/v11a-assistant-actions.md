@@ -39,10 +39,10 @@ Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không t
 | --- | --- |
 | `backend/test/assistant-actions.spec.ts` | **9/9 test pass** |
 | `backend/test/assistant-draft-parser.spec.ts` | **7/7 test pass** |
-| Full API | **34 suite / 316 test pass** |
-| Randomized seed `20261121` | **316/316 test pass** |
+| Full API | **34 suite / 317 test pass** |
+| Randomized seed `20261121` | **317/317 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
-| Docs `--check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
+| Docs `--check` | khớp nguồn, **369 liên kết/296 ID/22 mục** |
 
 Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; `requestKey` lặp trả cùng nháp, khác nội dung → 409; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua; từ chối liều/thiếu giờ/ngày không hỗ trợ.
 

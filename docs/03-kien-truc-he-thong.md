@@ -107,7 +107,7 @@ Job `retention` **mặc định tắt**, không có ngày mặc định. Khi b�
 - `ai_summaries`;
 - `assistant_drafts` đã hết hạn theo `expires_at` (không xóa nháp còn hiệu lực).
 
-Job không xóa hồ sơ, incident, audit, care link, cấu hình, backup hay nháp còn hiệu lực; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Admin có `GET /admin/retention/preview` chỉ đọc, đếm theo env hiện tại nhưng không xóa/không ghi `job_runs`. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md).
+Job không xóa hồ sơ, incident, audit, care link, cấu hình, backup hay nháp còn hiệu lực; không thay endpoint `deletion-requests` (vẫn chỉ ghi audit). `job_runs` chỉ chống chạy lặp trong ngày trên **một tiến trình**; chưa có advisory lock, chưa kiểm PostgreSQL thật và chưa có API/UI cấu hình. Admin có `GET /admin/retention/preview` chỉ đọc, đếm theo env hiện tại nhưng không xóa/không ghi `job_runs`. Admin cũng có `GET /admin/jobs` chỉ đọc `job_runs` để xem lần chạy gần nhất, lần thành công/thất bại và tuổi lần chạy của 3 job cố định; `never` không đồng nghĩa job lỗi vì job có thể đang tắt, và API này không chứng minh scheduler còn sống. Chi tiết/bằng chứng: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md), [`reports/qa/v12-admin-jobs.md`](../reports/qa/v12-admin-jobs.md).
 
 ## Trợ lý có hành động có kiểm soát
 
