@@ -29,6 +29,8 @@ const contacts = require('../dist/contacts.js');
 const tasks = require('../dist/tasks.js');
 const alertPolicy = require('../dist/alert-policy.js');
 const careRules = require('../dist/care-rules.js');
+const notifications = require('../dist/notifications.js');
+const notificationPreferences = require('../dist/notification-preferences.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -1081,6 +1083,76 @@ paths['/subjects/{id}/care-rules/{kind}/previews'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Thông báo và Web Push
+// ---------------------------------------------------------------------------
+
+paths['/notifications'] = {
+  get: {
+    tags: ['Notifications'],
+    operationId: 'listNotifications',
+    summary: 'Hộp thư trong ứng dụng của tài khoản',
+    responses: { 200: ok(ref('NotificationList')), ...auth() },
+  },
+};
+
+paths['/notifications/{id}/read'] = {
+  post: {
+    tags: ['Notifications'],
+    operationId: 'markNotificationRead',
+    summary: 'Đánh dấu một thông báo đã đọc',
+    parameters: [pathId('id')],
+    responses: { 204: { description: 'Đã đánh dấu đã đọc' }, ...auth(), 404: notFound() },
+  },
+};
+
+paths['/me/notification-preferences'] = {
+  get: {
+    tags: ['Notifications'],
+    operationId: 'getNotificationPreferences',
+    summary: 'Tuỳ chọn kênh thông báo và khóa VAPID công khai',
+    responses: { 200: ok(ref('NotificationPreferences')), ...auth() },
+  },
+  put: {
+    tags: ['Notifications'],
+    operationId: 'updateNotificationPreferences',
+    summary: 'Bật/tắt Web Push; in-app luôn bật',
+    requestBody: body('NotificationPreferencesUpdate'),
+    responses: { 200: ok(ref('NotificationPreferences')), ...auth(), 422: validation() },
+  },
+};
+
+paths['/me/push-subscriptions'] = {
+  get: {
+    tags: ['Notifications'],
+    operationId: 'listPushSubscriptions',
+    summary: 'Danh sách subscription chỉ trả id và host',
+    responses: { 200: ok(ref('PushSubscriptionList')), ...auth() },
+  },
+  post: {
+    tags: ['Notifications'],
+    operationId: 'addPushSubscription',
+    summary: 'Đăng ký Web Push; endpoint phải HTTPS',
+    requestBody: body('PushSubscriptionInput'),
+    responses: {
+      201: ok(ref('PushSubscriptionView'), 'Đã đăng ký subscription'),
+      ...auth(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/me/push-subscriptions/{id}'] = {
+  delete: {
+    tags: ['Notifications'],
+    operationId: 'removePushSubscription',
+    summary: 'Xóa subscription của chính tài khoản',
+    parameters: [pathId('id')],
+    responses: { 204: { description: 'Đã xóa subscription' }, ...auth(), 404: notFound() },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -1164,6 +1236,12 @@ const componentSchemas = {
   CareRuleView: careRules.careRuleViewSchema,
   CareRulePreview: careRules.careRulePreviewSchema,
   CareRuleConfig: careRules.careRuleConfigSchema,
+  NotificationList: notifications.notificationListSchema,
+  NotificationPreferences: notificationPreferences.notificationPreferencesSchema,
+  NotificationPreferencesUpdate: notificationPreferences.notificationPreferencesUpdateSchema,
+  PushSubscriptionInput: notificationPreferences.pushSubscriptionInputSchema,
+  PushSubscriptionView: notificationPreferences.pushSubscriptionViewSchema,
+  PushSubscriptionList: notificationPreferences.pushSubscriptionListSchema,
 };
 
 const components = { schemas: {} };
@@ -1195,6 +1273,8 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'CloseTask',
     'AlertEscalationConfig',
     'CareRuleConfig',
+    'NotificationPreferencesUpdate',
+    'PushSubscriptionInput',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -1226,6 +1306,7 @@ const document = {
     { name: 'Contacts', description: 'Liên hệ khẩn cấp là dữ liệu nhạy cảm; chỉ chủ hồ sơ ghi.' },
     { name: 'Maintenance', description: 'Công việc bảo trì; đóng việc theo version/lý do.' },
     { name: 'Policies', description: 'Cấu hình cảnh báo/quy tắc chăm sóc; preview không ghi DB.' },
+    { name: 'Notifications', description: 'Hộp thư trong ứng dụng và Web Push; subscription chỉ trả id/host.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
