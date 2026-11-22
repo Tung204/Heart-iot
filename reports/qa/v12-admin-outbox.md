@@ -36,7 +36,7 @@ Mảng `byChannel` luôn đủ 2 kênh, `byKind` đủ 5 kind để dashboard kh
 | Full API (22/11/2026) | **35 suite / 325 test pass** |
 | Randomized `--seed=20261121` | **325/325 pass** |
 | Typecheck toàn monorepo | pass |
-| OpenAPI `pnpm openapi:check` | pass; 56 path/71 operation/79 schema |
+| OpenAPI `pnpm openapi:check` | pass; 61 path/78 operation/85 schema |
 | Docs `--check` | 373 liên kết / 296 ID / 22 mục (trước khi thêm link report) |
 
 Test mới kiểm:
