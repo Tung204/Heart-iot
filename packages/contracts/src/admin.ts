@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { idSchema, isoDateTimeSchema, pageSchema, userRoleSchema, userStatusSchema } from './core';
 import { DEFAULT_POLICY_VALUE, policyValueSchema, type PolicyValue } from './policies';
+import { notificationChannelSchema, notificationKindSchema } from './notifications';
 
 /**
  * Hợp đồng quản trị — wave 3 be-admin.
@@ -232,6 +233,61 @@ export const retentionPreviewSchema = z
   })
   .strict();
 export type RetentionPreview = z.infer<typeof retentionPreviewSchema>;
+
+// ---------------------------------------------------------------------------
+// Outbox thông báo — tổng hợp vận hành (chỉ đọc)
+// ---------------------------------------------------------------------------
+
+/** Trạng thái outbox; `sending` là đang được worker xử lý, không phải đã gửi. */
+export const outboxStatusSchema = z.enum(['pending', 'sending', 'sent', 'failed', 'superseded']);
+export type OutboxStatus = z.infer<typeof outboxStatusSchema>;
+
+export const adminOutboxCountsSchema = z
+  .object({
+    pending: z.number().int().nonnegative(),
+    sending: z.number().int().nonnegative(),
+    sent: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+    superseded: z.number().int().nonnegative(),
+  })
+  .strict();
+export type AdminOutboxCounts = z.infer<typeof adminOutboxCountsSchema>;
+
+export const adminOutboxChannelCountsSchema = z
+  .object({
+    channel: notificationChannelSchema,
+    counts: adminOutboxCountsSchema,
+  })
+  .strict();
+export type AdminOutboxChannelCounts = z.infer<typeof adminOutboxChannelCountsSchema>;
+
+export const adminOutboxKindCountsSchema = z
+  .object({
+    kind: notificationKindSchema,
+    counts: adminOutboxCountsSchema,
+  })
+  .strict();
+export type AdminOutboxKindCounts = z.infer<typeof adminOutboxKindCountsSchema>;
+
+/**
+ * GET /admin/outbox/summary — chỉ đọc, không trả title/body/người nhận/endpoint.
+ * `dueNow` là pending có `nextAttemptAt <= now`; `inFlight` gồm pending + sending.
+ * `oldestOpenAt` lấy mốc tạo cũ nhất trong pending/sending để phát hiện kẹt.
+ */
+export const adminOutboxSummarySchema = z
+  .object({
+    generatedAt: isoDateTimeSchema,
+    total: z.number().int().nonnegative(),
+    inFlight: z.number().int().nonnegative(),
+    dueNow: z.number().int().nonnegative(),
+    oldestOpenAt: isoDateTimeSchema.nullable(),
+    oldestOpenAgeSeconds: z.number().int().nonnegative().nullable(),
+    byStatus: adminOutboxCountsSchema,
+    byChannel: z.array(adminOutboxChannelCountsSchema).length(2),
+    byKind: z.array(adminOutboxKindCountsSchema).length(5),
+  })
+  .strict();
+export type AdminOutboxSummary = z.infer<typeof adminOutboxSummarySchema>;
 
 // ---------------------------------------------------------------------------
 // Job nền — quan sát vận hành (chỉ đọc)

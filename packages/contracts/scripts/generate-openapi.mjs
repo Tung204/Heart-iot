@@ -101,6 +101,17 @@ const paths = {};
 // Admin
 // ---------------------------------------------------------------------------
 
+paths['/admin/outbox/summary'] = {
+  get: {
+    tags: ['Admin'],
+    operationId: 'adminOutboxSummary',
+    summary: 'Tổng hợp outbox thông báo',
+    description:
+      'Chỉ đọc số đếm theo trạng thái/kênh/kind; không trả title/body/người nhận/endpoint hay lỗi gửi.',
+    responses: { 200: ok(ref('AdminOutboxSummary')), ...auth() },
+  },
+};
+
 paths['/admin/jobs'] = {
   get: {
     tags: ['Admin'],
@@ -336,6 +347,7 @@ const componentSchemas = {
   UpdateUserStatus: admin.updateUserStatusSchema,
   AuditList: admin.auditListSchema,
   AdminJobs: admin.adminJobsSchema,
+  AdminOutboxSummary: admin.adminOutboxSummarySchema,
   RetentionPreview: admin.retentionPreviewSchema,
   AdminOverview: admin.adminOverviewSchema,
   PolicyState: admin.policyStateSchema,

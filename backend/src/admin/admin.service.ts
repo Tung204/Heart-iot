@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, max, or, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, lt, lte, max, min, or, type SQL } from 'drizzle-orm';
 import { INCIDENT_OPEN_STATES, type UserSummary } from '@heart-iot/contracts';
 import {
   adminJobsSchema,
+  adminOutboxSummarySchema,
   adminOverviewSchema,
   adminUserListSchema,
   adminUserSummarySchema,
@@ -12,6 +13,8 @@ import {
   retentionPreviewSchema,
   policyStateSchema,
   type AdminJobs,
+  type AdminOutboxCounts,
+  type AdminOutboxSummary,
   type AdminOverview,
   type AdminUserList,
   type AdminUserQuery,
@@ -26,6 +29,7 @@ import {
   type RetentionPreview,
   type UpdateUserStatus,
 } from '@heart-iot/contracts/admin';
+import { notificationChannelSchema, notificationKindSchema } from '@heart-iot/contracts/notifications';
 import {
   DEFAULT_POLICY_VALUE,
   policyKeys,
@@ -96,6 +100,10 @@ const ADMIN_JOB_DEFINITIONS = [
     staleAfterSeconds: 7_200,
   },
 ] as const;
+
+/** Thứ tự cố định trong response tổng hợp outbox (khớp CHECK của DB). */
+const OUTBOX_CHANNEL_ORDER = notificationChannelSchema.options;
+const OUTBOX_KIND_ORDER = notificationKindSchema.options;
 
 // Ngưỡng hợp lý cho maxTelemetryPerMinute — cảnh báo khi preview vượt ngoài.
 export const REASONABLE_TELEMETRY_MIN = 10;
@@ -715,6 +723,92 @@ export class AdminService {
       finishedAt: row.finishedAt ? row.finishedAt.toISOString() : null,
       counters: row.counters ?? {},
     };
+  }
+
+  /**
+   * GET /admin/outbox/summary — chỉ đọc, admin-only.
+   *
+   * Không trả title/body/người nhận/endpoint hay lỗi gửi; chỉ đếm theo trạng thái,
+   * kênh, kind và tuổi bản ghi đang mở để phát hiện outbox kẹt. `dueNow` chỉ tính
+   * pending đã tới `nextAttemptAt`; `sending` không được coi là đã gửi.
+   */
+  async getOutboxSummary(user: UserSummary): Promise<AdminOutboxSummary> {
+    this.access.requireAdmin(user);
+    const now = new Date();
+
+    const [groups, dueRows] = await Promise.all([
+      this.db
+        .select({
+          status: notificationOutbox.status,
+          channel: notificationOutbox.channel,
+          kind: notificationOutbox.kind,
+          total: count(),
+          oldest: min(notificationOutbox.createdAt),
+        })
+        .from(notificationOutbox)
+        .groupBy(notificationOutbox.status, notificationOutbox.channel, notificationOutbox.kind),
+      this.db
+        .select({ total: count() })
+        .from(notificationOutbox)
+        .where(
+          and(
+            eq(notificationOutbox.status, 'pending'),
+            lte(notificationOutbox.nextAttemptAt, now),
+          ),
+        ),
+    ]);
+
+    const emptyCounts = (): AdminOutboxCounts => ({
+      pending: 0,
+      sending: 0,
+      sent: 0,
+      failed: 0,
+      superseded: 0,
+    });
+    const byStatus = emptyCounts();
+    const byChannel = new Map<string, AdminOutboxCounts>(
+      OUTBOX_CHANNEL_ORDER.map((channel) => [channel, emptyCounts()]),
+    );
+    const byKind = new Map<string, AdminOutboxCounts>(
+      OUTBOX_KIND_ORDER.map((kind) => [kind, emptyCounts()]),
+    );
+    let oldestOpen: Date | null = null;
+
+    for (const row of groups) {
+      const total = Number(row.total);
+      byStatus[row.status] += total;
+      const channelCounts = byChannel.get(row.channel);
+      if (channelCounts) channelCounts[row.status] += total;
+      const kindCounts = byKind.get(row.kind);
+      if (kindCounts) kindCounts[row.status] += total;
+      if ((row.status === 'pending' || row.status === 'sending') && row.oldest) {
+        if (!oldestOpen || row.oldest < oldestOpen) oldestOpen = row.oldest;
+      }
+    }
+
+    const total = Object.values(byStatus).reduce((sum, value) => sum + value, 0);
+    const inFlight = byStatus.pending + byStatus.sending;
+    const oldestOpenAgeSeconds = oldestOpen
+      ? Math.max(0, Math.floor((now.getTime() - oldestOpen.getTime()) / 1000))
+      : null;
+
+    return adminOutboxSummarySchema.parse({
+      generatedAt: now.toISOString(),
+      total,
+      inFlight,
+      dueNow: Number(dueRows[0]?.total ?? 0),
+      oldestOpenAt: oldestOpen ? oldestOpen.toISOString() : null,
+      oldestOpenAgeSeconds,
+      byStatus,
+      byChannel: OUTBOX_CHANNEL_ORDER.map((channel) => ({
+        channel,
+        counts: byChannel.get(channel) ?? emptyCounts(),
+      })),
+      byKind: OUTBOX_KIND_ORDER.map((kind) => ({
+        kind,
+        counts: byKind.get(kind) ?? emptyCounts(),
+      })),
+    });
   }
 
   async getOverview(user: UserSummary): Promise<AdminOverview> {

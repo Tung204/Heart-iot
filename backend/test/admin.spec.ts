@@ -105,8 +105,9 @@ describe('Admin (wave 3 be-admin)', () => {
   beforeEach(async () => {
     await ctx.db.delete(policyConfigs);
     await ctx.db.delete(auditLogs).where(eq(auditLogs.action, 'policy.publish'));
-    // Job runs là fixture riêng của test quan sát job; xóa để không phụ thuộc thứ tự.
+    // Job runs/outbox là fixture riêng của test quan sát vận hành; xóa để không phụ thuộc thứ tự.
     await ctx.db.delete(jobRuns);
+    await ctx.db.delete(notificationOutbox);
   });
 
   // ---------------------------------------------------------------------------
@@ -815,6 +816,142 @@ describe('Admin (wave 3 be-admin)', () => {
       lastRun: { runKey: 'retention:stale-success', counters: { telemetry: 4 } },
     });
     expect(staleRetention!.lastSuccessAt).not.toBeNull();
+  });
+
+  test('V12c: admin xem tổng hợp outbox; user thường 403; không lộ nội dung/người nhận', async () => {
+    const now = Date.now();
+    const recipient = regular1.session.user.id;
+    await ctx.db.insert(notificationOutbox).values([
+      {
+        recipientUserId: recipient,
+        kind: 'alert',
+        title: 'secret-title-1',
+        body: 'secret-body-1',
+        channel: 'in_app',
+        status: 'pending',
+        nextAttemptAt: new Date(now - 60_000),
+        createdAt: new Date(now - 600_000),
+        updatedAt: new Date(now - 600_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+      {
+        recipientUserId: recipient,
+        kind: 'escalation',
+        title: 'secret-title-2',
+        channel: 'web_push',
+        status: 'pending',
+        nextAttemptAt: new Date(now + 600_000),
+        createdAt: new Date(now - 300_000),
+        updatedAt: new Date(now - 300_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+      {
+        recipientUserId: recipient,
+        kind: 'care_digest',
+        title: 'secret-title-3',
+        channel: 'in_app',
+        status: 'sending',
+        createdAt: new Date(now - 7_200_000),
+        updatedAt: new Date(now - 7_200_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+      {
+        recipientUserId: recipient,
+        kind: 'update',
+        channel: 'web_push',
+        status: 'sent',
+        sentAt: new Date(now - 10_800_000),
+        createdAt: new Date(now - 10_800_000),
+        updatedAt: new Date(now - 10_800_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+      {
+        recipientUserId: recipient,
+        kind: 'alert',
+        channel: 'in_app',
+        status: 'failed',
+        lastError: 'endpoint-secret',
+        createdAt: new Date(now - 14_400_000),
+        updatedAt: new Date(now - 14_400_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+      {
+        recipientUserId: recipient,
+        kind: 'care_rule',
+        channel: 'in_app',
+        status: 'superseded',
+        createdAt: new Date(now - 18_000_000),
+        updatedAt: new Date(now - 18_000_000),
+        dedupeKey: `outbox-${crypto.randomUUID()}`,
+      },
+    ]);
+
+    const forbidden = await regular1.agent
+      .get('/api/v1/admin/outbox/summary')
+      .set('Origin', TEST_ORIGIN);
+    expect(forbidden.status).toBe(403);
+
+    const res = await admin.agent
+      .get('/api/v1/admin/outbox/summary')
+      .set('Origin', TEST_ORIGIN);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      total: 6,
+      inFlight: 3,
+      dueNow: 1,
+      byStatus: { pending: 2, sending: 1, sent: 1, failed: 1, superseded: 1 },
+    });
+    expect(res.body.oldestOpenAt).not.toBeNull();
+    expect(res.body.oldestOpenAgeSeconds).toBeGreaterThanOrEqual(7_100);
+    expect(res.body.oldestOpenAgeSeconds).toBeLessThan(7_400);
+
+    expect(res.body.byChannel).toHaveLength(2);
+    expect(res.body.byChannel.map((item: { channel: string }) => item.channel)).toEqual([
+      'in_app',
+      'web_push',
+    ]);
+    expect(res.body.byChannel[0].counts).toEqual({
+      pending: 1,
+      sending: 1,
+      sent: 0,
+      failed: 1,
+      superseded: 1,
+    });
+    expect(res.body.byChannel[1].counts).toEqual({
+      pending: 1,
+      sending: 0,
+      sent: 1,
+      failed: 0,
+      superseded: 0,
+    });
+
+    expect(res.body.byKind).toHaveLength(5);
+    expect(res.body.byKind.map((item: { kind: string }) => item.kind)).toEqual([
+      'alert',
+      'update',
+      'escalation',
+      'care_digest',
+      'care_rule',
+    ]);
+    expect(res.body.byKind[0].counts).toMatchObject({ pending: 1, failed: 1 });
+
+    // Không trả title/body/người nhận/lỗi gửi; chỉ số đếm vận hành.
+    const raw = JSON.stringify(res.body);
+    expect(raw).not.toContain('secret-title');
+    expect(raw).not.toContain('secret-body');
+    expect(raw).not.toContain('endpoint-secret');
+    expect(raw).not.toContain(recipient);
+    expect(Object.keys(res.body).sort()).toEqual([
+      'byChannel',
+      'byKind',
+      'byStatus',
+      'dueNow',
+      'generatedAt',
+      'inFlight',
+      'oldestOpenAgeSeconds',
+      'oldestOpenAt',
+      'total',
+    ]);
   });
 
   // ---------------------------------------------------------------------------

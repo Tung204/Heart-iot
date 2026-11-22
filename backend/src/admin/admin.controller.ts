@@ -87,6 +87,12 @@ export class AdminController {
     return this.admin.getRetentionPreview(user);
   }
 
+  /** Tổng hợp outbox thông báo — chỉ đọc, không trả nội dung/người nhận. */
+  @Get('outbox/summary')
+  getOutboxSummary(@CurrentUser() user: UserSummary) {
+    return this.admin.getOutboxSummary(user);
+  }
+
   /** Quan sát job nền từ `job_runs` — chỉ đọc, không chạy lại job. */
   @Get('jobs')
   getJobs(@CurrentUser() user: UserSummary) {
