@@ -31,24 +31,32 @@ Ngày: **21/11/2026**. Phạm vi: backend, không sửa UI.
 
 Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không tự tạo/sửa/xóa** lịch nhắc, cảnh báo, công việc hay quyền; câu trả lời chat không thay cho preview/confirm.
 
-**Đã có:** parser rule-based cho câu đơn giản (giờ, hằng ngày, thứ 2–6, “mai”), từ chối liều lượng/ngày kết thúc chưa hỗ trợ; mặc định cả tuần, dời sang mai nếu mọi giờ hôm nay đã qua. **Chưa có:** hiểu câu phức tạp/LLM, UI preview/xác nhận, công việc bảo trì, xuất phiếu.
+**Đã có:** parser rule-based cho câu đơn giản (giờ, hằng ngày, thứ 2–6, “mai”), từ chối liều lượng/khoảng tương đối, hiểu ngày kết thúc dạng ngày/tháng(/năm); mặc định cả tuần, dời sang mai nếu mọi giờ hôm nay đã qua. **Chưa có:** hiểu câu phức tạp/LLM, UI preview/xác nhận, công việc bảo trì, xuất phiếu.
 
 ## Kiểm chứng thật
 
 | Lệnh/hạng mục | Kết quả |
 | --- | --- |
 | `backend/test/assistant-actions.spec.ts` | **9/9 test pass** |
-| `backend/test/assistant-draft-parser.spec.ts` | **7/7 test pass** |
-| Full API | **34 suite / 318 test pass** |
-| Randomized seed `20261121` | **318/318 test pass** |
+| `backend/test/assistant-draft-parser.spec.ts` | **11/11 test pass** (thêm 4 test ngày kết thúc) |
+| Full API | **34 suite / 322 test pass** |
+| Randomized seed `20261121` | **322/322 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
-| Docs `--check` | khớp nguồn, **372 liên kết/296 ID/22 mục** |
+| Docs `--check` | khớp nguồn, **373 liên kết/296 ID/22 mục** |
 
-Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; `requestKey` lặp trả cùng nháp, khác nội dung → 409; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua; từ chối liều/thiếu giờ/ngày không hỗ trợ.
+Test kiểm: catalog owner/caregiver/outsider; tạo nháp không ghi lịch; xác nhận tạo đúng một lịch; xác nhận lặp không nhân đôi; caregiver 403/outsider 404; nháp hết hạn → 409 + `expired`; hủy/digest sai không tạo lịch; sửa nháp trước confirm dùng nội dung mới; danh sách chỉ trả nháp còn hạn; `requestKey` lặp trả cùng nháp, khác nội dung → 409; audit không chứa nội dung nháp. Parser kiểm giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua, ngày kết thúc có/không năm; từ chối liều/thiếu giờ/ngày không hợp lệ/trước ngày bắt đầu/bị lặp.
+
+## Cập nhật 21/11/2026 — ngày kết thúc cho nháp lịch nhắc
+
+- `PARSER_VERSION` tăng từ **1 lên 2**; audit `assistant.draft.create` từ `from-text` ghi `parserVersion: 2`.
+- Hỗ trợ `đến/tới [hết] [ngày] dd/mm[/yyyy]`; không có năm dùng năm của `startsOn`.
+- Không tự đoán năm kế tiếp: ngày kết thúc trước `startsOn` trả 422 `end_before_start`; ngày không tồn tại trả `invalid_end_date`; nhiều cụm ngày trả `ambiguous_end_date`.
+- Khoảng tương đối như “trong 7 ngày” vẫn bị từ chối (`unsupported_end`); ngày bắt đầu khác “hôm nay/mai” vẫn bị từ chối.
+- Test parser tăng **7 → 11**; full API **322 test/34 suite**, randomized **322/322**. Docs `--check` **373 liên kết/296 ID/22 mục**. OpenAPI không đổi vì schema `from-text` không đổi.
 
 ## Giới hạn
 
-- Đây là backend của FR-21, **chưa phải trợ lý hội thoại tự hiểu yêu cầu**. Parser chỉ là rule-based cho câu đơn giản, không gọi LLM và không hiểu câu phức tạp/ngày kết thúc.
+- Đây là backend của FR-21, **chưa phải trợ lý hội thoại tự hiểu yêu cầu**. Parser chỉ là rule-based cho câu đơn giản, không gọi LLM, hiểu ngày kết thúc dạng ngày/tháng/năm nhưng không hiểu câu phức tạp/khoảng tương đối.
 - Chưa có UI preview/confirm; UI v10 vẫn đóng băng.
 - Chưa có capability tạo công việc bảo trì/xuất phiếu. Retention cho nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` (mặc định tắt, xem `v12-retention.md`).
 - Chưa kiểm PostgreSQL thật, tải đồng thời nhiều instance hay provider AI thật.

@@ -115,7 +115,7 @@ FR-21 backend tách **nháp** khỏi **ghi nghiệp vụ**: `assistant_drafts` l
 
 Trợ lý **không** có capability tự xác nhận/đóng/hủy cảnh báo, đổi cấu hình thiết bị, cấp quyền, xóa dữ liệu, chẩn đoán/kê đơn, gửi tin khẩn hay điều khiển firmware. Catalog trả qua `GET /subjects/:id/assistant/capabilities`.
 
-Câu lệnh đơn giản có thể đi qua parser rule-based (`POST /subjects/:id/assistant/drafts/from-text`): hiểu giờ, “hằng ngày”, khoảng thứ 2–6 và “mai”, nhưng **không gọi LLM**, không suy luận liều lượng/ngày kết thúc; mặc định cả tuần nếu không nêu thứ, dời sang mai nếu mọi giờ hôm nay đã qua, và vẫn chỉ tạo nháp. `PATCH /assistant/drafts/:id` cho phép chủ hồ sơ sửa preview trước confirm; sửa nháp không ghi nghiệp vụ, cập nhật digest để confirm cũ bị chặn. `GET /subjects/:id/assistant/drafts` trả các nháp còn hạn để UI khôi phục sau khi tải lại. Đây là backend của FR-21; chưa có UI preview.
+Câu lệnh đơn giản có thể đi qua parser rule-based (`POST /subjects/:id/assistant/drafts/from-text`): hiểu giờ, “hằng ngày”, khoảng thứ 2–6, “mai” và ngày kết thúc dạng ngày/tháng(/năm), nhưng **không gọi LLM**, không suy luận liều lượng hay khoảng thời gian tương đối; mặc định cả tuần nếu không nêu thứ, dời sang mai nếu mọi giờ hôm nay đã qua, và vẫn chỉ tạo nháp. `PATCH /assistant/drafts/:id` cho phép chủ hồ sơ sửa preview trước confirm; sửa nháp không ghi nghiệp vụ, cập nhật digest để confirm cũ bị chặn. `GET /subjects/:id/assistant/drafts` trả các nháp còn hạn để UI khôi phục sau khi tải lại. Đây là backend của FR-21; chưa có UI preview.
 
 ## Mạng, đồng hồ và dữ liệu cũ
 

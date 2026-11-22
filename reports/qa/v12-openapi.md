@@ -29,7 +29,7 @@
 | `openapi:check` | khớp schema Zod, ref/path param hợp lệ |
 | Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
-| API test | OpenAPI không thêm test API; full hiện **34 suite / 318 test** |
+| API test | OpenAPI không thêm test API; full hiện **34 suite / 322 test** |
 
 ## Giới hạn
 

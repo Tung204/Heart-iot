@@ -66,7 +66,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
 - Công việc bảo trì: xem/đóng theo quyền; chủ hồ sơ tạo cho thiết bị đang gắn.
 - Studio publish dùng CAS `baseRevision + digest`; rollback tạo bản công bố mới; dữ liệu tôn trọng mốc chia sẻ.
 - AI không nằm trên đường cảnh báo; không cấu hình provider vẫn có tóm tắt theo mẫu; response có `dataQuality`.
-- FR-21 backend: nháp `care_reminder.create` → preview → confirm, owner-only, hết hạn/hủy/digest sai bị chặn; tạo nháp không ghi `care_reminders`; `POST /subjects/:id/assistant/drafts/from-text` có parser rule-based cho câu đơn giản; `PATCH /assistant/drafts/:id` sửa nháp còn hạn trước confirm; `GET /subjects/:id/assistant/drafts` liệt kê nháp đang chờ; `requestKey` tùy chọn chống tạo trùng khi retry.
+- FR-21 backend: nháp `care_reminder.create` → preview → confirm, owner-only, hết hạn/hủy/digest sai bị chặn; tạo nháp không ghi `care_reminders`; `POST /subjects/:id/assistant/drafts/from-text` có parser rule-based cho câu đơn giản, gồm ngày kết thúc dạng ngày/tháng(/năm); `PATCH /assistant/drafts/:id` sửa nháp còn hạn trước confirm; `GET /subjects/:id/assistant/drafts` liệt kê nháp đang chờ; `requestKey` tùy chọn chống tạo trùng khi retry.
 - Outbox giao **trong ứng dụng**; Web Push có backend sau cờ `WEB_PUSH_ENABLED` (chưa có service worker/UI); chưa có email/SMS.
 
 ## Giới hạn đã biết
