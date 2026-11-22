@@ -27,6 +27,8 @@ const care = require('../dist/care.js');
 const reminders = require('../dist/reminders.js');
 const contacts = require('../dist/contacts.js');
 const tasks = require('../dist/tasks.js');
+const alertPolicy = require('../dist/alert-policy.js');
+const careRules = require('../dist/care-rules.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -95,6 +97,11 @@ function pathToken(name = 'token') {
     required: true,
     schema: { type: 'string', minLength: 20, maxLength: 256 },
   };
+}
+
+/** Path enum cho kind cấu hình. */
+function pathEnum(name, values) {
+  return { name, in: 'path', required: true, schema: { type: 'string', enum: values } };
 }
 
 /** Query params lấy từ schema input; default/optional giữ nguyên. */
@@ -1002,6 +1009,78 @@ paths['/maintenance-tasks/{id}/close'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Cấu hình chính sách chăm sóc
+// ---------------------------------------------------------------------------
+
+paths['/subjects/{id}/alert-policy'] = {
+  get: {
+    tags: ['Policies'],
+    operationId: 'getAlertPolicy',
+    summary: 'Chính sách leo thang cảnh báo của hồ sơ',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('AlertPolicyView')), ...auth(), 404: notFound() },
+  },
+  put: {
+    tags: ['Policies'],
+    operationId: 'updateAlertPolicy',
+    summary: 'Cập nhật chính sách leo thang, chỉ chủ hồ sơ',
+    parameters: [subjectParam],
+    requestBody: body('AlertEscalationConfig'),
+    responses: {
+      200: ok(ref('AlertPolicyView')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/alert-policy/previews'] = {
+  post: {
+    tags: ['Policies'],
+    operationId: 'previewAlertPolicy',
+    summary: 'Xem trước mốc/người nhận, không ghi DB',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('AlertPolicyPreview')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/subjects/{id}/care-rules/{kind}'] = {
+  get: {
+    tags: ['Policies'],
+    operationId: 'getCareRule',
+    summary: 'Quy tắc chăm sóc chủ động theo loại',
+    parameters: [subjectParam, pathEnum('kind', ['inactivity', 'care_digest'])],
+    responses: { 200: ok(ref('CareRuleView')), ...auth(), 404: notFound(), 422: validation() },
+  },
+  put: {
+    tags: ['Policies'],
+    operationId: 'updateCareRule',
+    summary: 'Cập nhật quy tắc chăm sóc, chỉ chủ hồ sơ',
+    parameters: [subjectParam, pathEnum('kind', ['inactivity', 'care_digest'])],
+    requestBody: body('CareRuleConfig'),
+    responses: {
+      200: ok(ref('CareRuleView')),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/care-rules/{kind}/previews'] = {
+  post: {
+    tags: ['Policies'],
+    operationId: 'previewCareRule',
+    summary: 'Xem trước 7 ngày áp dụng, không ghi DB',
+    parameters: [subjectParam, pathEnum('kind', ['inactivity', 'care_digest'])],
+    responses: { 200: ok(ref('CareRulePreview')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -1079,6 +1158,12 @@ const componentSchemas = {
   MaintenanceTaskList: tasks.maintenanceTaskListSchema,
   CreateTask: tasks.createTaskSchema,
   CloseTask: tasks.closeTaskSchema,
+  AlertPolicyView: alertPolicy.alertPolicyViewSchema,
+  AlertPolicyPreview: alertPolicy.alertPolicyPreviewSchema,
+  AlertEscalationConfig: alertPolicy.alertEscalationConfigSchema,
+  CareRuleView: careRules.careRuleViewSchema,
+  CareRulePreview: careRules.careRulePreviewSchema,
+  CareRuleConfig: careRules.careRuleConfigSchema,
 };
 
 const components = { schemas: {} };
@@ -1108,6 +1193,8 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'EmergencyContactUpdate',
     'CreateTask',
     'CloseTask',
+    'AlertEscalationConfig',
+    'CareRuleConfig',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -1138,6 +1225,7 @@ const document = {
     { name: 'Reminders', description: 'Lịch nhắc, occurrence và tuân thủ; không gợi ý liều.' },
     { name: 'Contacts', description: 'Liên hệ khẩn cấp là dữ liệu nhạy cảm; chỉ chủ hồ sơ ghi.' },
     { name: 'Maintenance', description: 'Công việc bảo trì; đóng việc theo version/lý do.' },
+    { name: 'Policies', description: 'Cấu hình cảnh báo/quy tắc chăm sóc; preview không ghi DB.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,

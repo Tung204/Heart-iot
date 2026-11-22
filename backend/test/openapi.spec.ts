@@ -4,8 +4,10 @@ import { resolve } from 'node:path';
 import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { AdminController } from '../src/admin/admin.controller';
+import { AlertPolicyController } from '../src/alert-policy/alert-policy.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
 import { CareController } from '../src/care/care.controller';
+import { CareRulesController } from '../src/care-rules/care-rules.controller';
 import { AdminDevicesController, SubjectDevicesController } from '../src/devices/devices.controller';
 import { EmergencyContactsController } from '../src/emergency-contacts/emergency-contacts.controller';
 import { IncidentsController } from '../src/incidents/incidents.controller';
@@ -73,7 +75,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng toàn bộ route của mười hai controller đang phủ, không thừa/thiếu', () => {
+  it('phủ đúng toàn bộ route của mười bốn controller đang phủ, không thừa/thiếu', () => {
     const controllerRoutes = [
       ...routesOf(AdminController),
       ...routesOf(AdminDevicesController),
@@ -87,6 +89,8 @@ describe('OpenAPI một phần — khớp route controller', () => {
       ...routesOf(RemindersController),
       ...routesOf(EmergencyContactsController),
       ...routesOf(MaintenanceController),
+      ...routesOf(AlertPolicyController),
+      ...routesOf(CareRulesController),
     ].sort();
     expect(documented.sort()).toEqual(controllerRoutes);
   });

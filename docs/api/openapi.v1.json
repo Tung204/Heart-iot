@@ -54,6 +54,10 @@
     {
       "name": "Maintenance",
       "description": "Công việc bảo trì; đóng việc theo version/lý do."
+    },
+    {
+      "name": "Policies",
+      "description": "Cấu hình cảnh báo/quy tắc chăm sóc; preview không ghi DB."
     }
   ],
   "security": [
@@ -2417,6 +2421,220 @@
         }
       }
     },
+    "/subjects/{id}/alert-policy": {
+      "get": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "getAlertPolicy",
+        "summary": "Chính sách leo thang cảnh báo của hồ sơ",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPolicyView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "updateAlertPolicy",
+        "summary": "Cập nhật chính sách leo thang, chỉ chủ hồ sơ",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertEscalationConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPolicyView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột trạng thái/phiên bản hoặc nội dung đã thay đổi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload/query không hợp lệ theo hợp đồng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{id}/alert-policy/previews": {
+      "post": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "previewAlertPolicy",
+        "summary": "Xem trước mốc/người nhận, không ghi DB",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertPolicyPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/subjects/{id}/alerts": {
       "get": {
         "tags": [
@@ -3248,6 +3466,276 @@
           },
           "409": {
             "description": "Xung đột trạng thái/phiên bản hoặc nội dung đã thay đổi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{id}/care-rules/{kind}": {
+      "get": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "getCareRule",
+        "summary": "Quy tắc chăm sóc chủ động theo loại",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inactivity",
+                "care_digest"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareRuleView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload/query không hợp lệ theo hợp đồng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "updateCareRule",
+        "summary": "Cập nhật quy tắc chăm sóc, chỉ chủ hồ sơ",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inactivity",
+                "care_digest"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CareRuleConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareRuleView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột trạng thái/phiên bản hoặc nội dung đã thay đổi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload/query không hợp lệ theo hợp đồng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{id}/care-rules/{kind}/previews": {
+      "post": {
+        "tags": [
+          "Policies"
+        ],
+        "operationId": "previewCareRule",
+        "summary": "Xem trước 7 ngày áp dụng, không ghi DB",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inactivity",
+                "care_digest"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CareRulePreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload/query không hợp lệ theo hợp đồng",
             "content": {
               "application/json": {
                 "schema": {
@@ -5766,6 +6254,213 @@
         ],
         "additionalProperties": false
       },
+      "AlertEscalationConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "steps": {
+            "minItems": 1,
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "afterMinutes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1440
+                }
+              },
+              "required": [
+                "afterMinutes"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "enabled",
+          "steps"
+        ],
+        "additionalProperties": false
+      },
+      "AlertPolicyPreview": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "steps": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3
+                },
+                "afterMinutes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1440
+                },
+                "channel": {
+                  "type": "string",
+                  "const": "in_app"
+                },
+                "note": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                }
+              },
+              "required": [
+                "level",
+                "afterMinutes",
+                "channel",
+                "note"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "recipients": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "displayName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "userId",
+                "displayName"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "recipientCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "warnings": {
+            "maxItems": 3,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "disclaimer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "generatedAt",
+          "enabled",
+          "steps",
+          "recipients",
+          "recipientCount",
+          "warnings",
+          "disclaimer"
+        ],
+        "additionalProperties": false
+      },
+      "AlertPolicyView": {
+        "type": "object",
+        "properties": {
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "default",
+              "database"
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "steps": {
+                "minItems": 1,
+                "maxItems": 3,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "afterMinutes": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1440
+                    }
+                  },
+                  "required": [
+                    "afterMinutes"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "enabled",
+              "steps"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "subjectId",
+          "version",
+          "source",
+          "updatedAt",
+          "config"
+        ],
+        "additionalProperties": false
+      },
       "ApiError": {
         "type": "object",
         "properties": {
@@ -7415,6 +8110,294 @@
           "revokedAt"
         ],
         "additionalProperties": false
+      },
+      "CareRuleConfig": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "weekdays": {
+                "minItems": 1,
+                "maxItems": 7,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 7
+                }
+              },
+              "windowStart": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "windowEnd": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              },
+              "minSteps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              "graceMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 240
+              }
+            },
+            "required": [
+              "enabled",
+              "weekdays",
+              "windowStart",
+              "windowEnd",
+              "minSteps",
+              "graceMinutes"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "time": {
+                "type": "string",
+                "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+              }
+            },
+            "required": [
+              "enabled",
+              "time"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "CareRulePreview": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "inactivity",
+              "care_digest"
+            ]
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "days": {
+            "minItems": 7,
+            "maxItems": 7,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                },
+                "time": {
+                  "type": "string",
+                  "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                },
+                "applies": {
+                  "type": "boolean"
+                },
+                "note": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                }
+              },
+              "required": [
+                "date",
+                "time",
+                "applies",
+                "note"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "disclaimer": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "kind",
+          "generatedAt",
+          "days",
+          "disclaimer"
+        ],
+        "additionalProperties": false
+      },
+      "CareRuleView": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "inactivity"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "weekdays": {
+                    "minItems": 1,
+                    "maxItems": 7,
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 7
+                    }
+                  },
+                  "windowStart": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  },
+                  "windowEnd": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  },
+                  "minSteps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "graceMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 240
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "weekdays",
+                  "windowStart",
+                  "windowEnd",
+                  "minSteps",
+                  "graceMinutes"
+                ],
+                "additionalProperties": false
+              },
+              "subjectId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "database"
+                ]
+              },
+              "updatedAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "config",
+              "subjectId",
+              "version",
+              "source",
+              "updatedAt"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "const": "care_digest"
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "time": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "time"
+                ],
+                "additionalProperties": false
+              },
+              "subjectId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "default",
+                  "database"
+                ]
+              },
+              "updatedAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "config",
+              "subjectId",
+              "version",
+              "source",
+              "updatedAt"
+            ],
+            "additionalProperties": false
+          }
+        ]
       },
       "ClaimDevice": {
         "type": "object",
