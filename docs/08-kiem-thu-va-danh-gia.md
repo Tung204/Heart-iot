@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ), ingest MQTT sự kiện/ACK thử nghiệm, retention tùy chọn mặc định tắt và FR-21 backend cho nháp lịch nhắc (gồm parser câu lệnh đơn giản); số API mới nhất **34 suite/311 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-15 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 21/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ), ingest MQTT sự kiện/ACK thử nghiệm, retention tùy chọn mặc định tắt và FR-21 backend cho nháp lịch nhắc (gồm parser câu lệnh đơn giản); số API mới nhất **34 suite/312 test** ngày 21/11/2026, các số web/E2E vẫn từ 18/11/2026. Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, PostgreSQL/MQTT thật, khả dụng người cao tuổi hoặc p95. Ma trận T-01…T-15 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -17,7 +17,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
-| API toàn bộ | `pnpm --filter @heart-iot/api test` | **34/34 suite, 311/311 test pass** |
+| API toàn bộ | `pnpm --filter @heart-iot/api test` | **34/34 suite, 312/312 test pass** |
 | Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview có người nhận/cảnh báo, version/validation |
 | Chi tiết cảnh báo | `incidents.spec.ts` | thêm 1 test `recipients[].deliveries` (kênh/trạng thái/thời điểm) |
 | Leo thang | `alert-escalation.spec.ts` | 10 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack, outbox push |
@@ -25,9 +25,9 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | Worker Web Push | `push-delivery.spec.ts` | 3 test: gửi thành công, 410 xoá subscription, lỗi tạm thời backoff, preference tắt |
 | MQTT events/ACK | `ingest.spec.ts` | 1 test: handler MQTT nhận `fall.candidate`, tạo incident `suspected`, publish ACK đúng topic/JSON; duplicate + payload/topic sai bị chặn. Chi tiết: [`reports/qa/v12-mqtt-events.md`](../reports/qa/v12-mqtt-events.md) |
 | Retention | `retention.spec.ts` | 2 test: mặc định tắt không xóa; bật chỉ xóa lớp cấu hình theo cutoff, giữ `pending`, giữ nháp trợ lý còn hiệu lực, audit đếm, chạy lại cùng ngày skip. Chi tiết: [`reports/qa/v12-retention.md`](../reports/qa/v12-retention.md) |
-| Trợ lý — hành động | `assistant-actions.spec.ts` | 6 test: catalog việc được/không được làm; nháp không ghi lịch; confirm tạo đúng một lịch và lặp không nhân đôi; caregiver 403/outsider 404; hết hạn/hủy/digest sai không ghi; nháp từ câu lệnh và từ chối liều. Chi tiết: [`reports/qa/v11a-assistant-actions.md`](../reports/qa/v11a-assistant-actions.md) |
+| Trợ lý — hành động | `assistant-actions.spec.ts` | 7 test: catalog việc được/không được làm; nháp không ghi lịch; confirm tạo đúng một lịch và lặp không nhân đôi; caregiver 403/outsider 404; hết hạn/hủy/digest sai không ghi; nháp từ câu lệnh, từ chối liều và sửa nháp trước confirm. Chi tiết: [`reports/qa/v11a-assistant-actions.md`](../reports/qa/v11a-assistant-actions.md) |
 | Trợ lý — parser | `assistant-draft-parser.spec.ts` | 7 test: giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua, lỗi liều/thiếu giờ/ngày không hỗ trợ |
-| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **34/34 suite, 311/311 test pass** |
+| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **34/34 suite, 312/312 test pass** |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
 | Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql`, `0009_dapper_gladiator.sql`, `0010_confused_klaw.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; 0009 tạo `assistant_drafts`; 0010 thêm index `expires_at` cho retention nháp; PGlite test migrate từ DB rỗng |
 | Docs HTML | `build.py --check` | khớp nguồn, **367 liên kết/296 ID/22 mục** |
@@ -98,7 +98,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory cho API, V
 | T-13 Web Push | Backend push sau cờ; chưa có service worker/kiểm trình duyệt thật | **Một phần**: test transport giả + API subscription; chưa kiểm push service thật |
 | T-10b MQTT sự kiện | `ingest.spec.ts` handler MQTT; chưa có broker thật | **Một phần**: `fall.candidate` → incident + ACK; chưa kiểm QoS/retry/ACL broker |
 | T-14 độ trễ p95 | Không có instrumentation p50/p95 | **Chưa đo**; NFR-07 vẫn là mục tiêu |
-| T-15 trợ lý hành động | `assistant-actions.spec.ts`, `assistant-draft-parser.spec.ts`: nháp không ghi, confirm một lần, lặp không nhân đôi, hết hạn/hủy/digest sai, quyền owner/caregiver/ngoài; parser câu đơn giản; retention nháp đã hết hạn | **Một phần backend**: chưa hiểu câu phức tạp/ngày kết thúc, chưa có UI; retention nháp có thể bật nhưng mặc định tắt |
+| T-15 trợ lý hành động | `assistant-actions.spec.ts`, `assistant-draft-parser.spec.ts`: nháp không ghi, confirm một lần, lặp không nhân đôi, hết hạn/hủy/digest sai, quyền owner/caregiver/ngoài; parser câu đơn giản; sửa nháp trước confirm; retention nháp đã hết hạn | **Một phần backend**: chưa hiểu câu phức tạp/ngày kết thúc, chưa có UI; retention nháp có thể bật nhưng mặc định tắt |
 
 ## Ma trận yêu cầu và bằng chứng
 

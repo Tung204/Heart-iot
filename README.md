@@ -19,7 +19,7 @@ Repo này là bản triển khai phần mềm của đồ án: API nghiệp vụ
 - **Lưu trữ và yêu cầu xóa:** chủ hồ sơ lưu trữ hồ sơ (thu hồi liên kết chia sẻ, **không xóa** dữ liệu) hoặc ghi nhận yêu cầu xóa dữ liệu để xử lý thủ công. Retention job **mặc định tắt** có thể xóa telemetry/outbox đã kết thúc/realtime/AI summary/nháp trợ lý đã hết hạn theo tuổi khi cấu hình `RETENTION_*`; chưa có xóa cứng toàn bộ hồ sơ hay xóa xuyên backup/AI cache.
 - **Quản trị:** người dùng, thiết bị, policy thiết bị có preview/publish CAS, audit, tổng quan. Tab thiết bị có danh sách, cấp mã gắn thiết bị và xoay khóa; tạo thiết bị mới hiện vẫn qua API admin.
 - **Studio:** draft → preview chỉ đọc → publish CAS `baseRevision + digest` → rollback tạo bản mới; dữ liệu preview/data tôn trọng mốc chia sẻ và quyền cảnh báo.
-- **Hôm nay + trợ lý:** `/app` chỉ còn câu trạng thái, hành động Gọi/Xem cảnh báo, ô hỏi + 3 gợi ý; hội thoại chỉ hiện sau khi hỏi. Câu trả lời dựa trên aggregate đã kiểm quyền, có `dataQuality` (độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn), fallback template xác định khi chưa cấu hình provider. Thiếu quyền số đo hiển thị 403 là trạng thái quyền, không retry vô ích; đổi hồ sơ xóa hội thoại cũ. AI không nằm trên đường cảnh báo và không tự xác nhận/đóng cảnh báo. **FR-21 backend (21/11/2026):** trợ lý tạo **nháp** lịch nhắc (`care_reminder.create`), người dùng xem preview rồi xác nhận mới ghi; nháp hết hạn 15 phút, owner-only, audit; API trả cả danh sách việc trợ lý **không được** làm (ack/đóng cảnh báo, chẩn đoán/kê đơn, đổi quyền/thiết bị, xóa dữ liệu). Có parser rule-based cho câu đơn giản (“nhắc tôi … lúc 8h”, “hằng ngày”, “thứ 2–6”, “mai”); chưa có UI, câu phức tạp và ngày kết thúc.
+- **Hôm nay + trợ lý:** `/app` chỉ còn câu trạng thái, hành động Gọi/Xem cảnh báo, ô hỏi + 3 gợi ý; hội thoại chỉ hiện sau khi hỏi. Câu trả lời dựa trên aggregate đã kiểm quyền, có `dataQuality` (độ phủ, khoảng thiếu, nguồn mô phỏng, giới hạn), fallback template xác định khi chưa cấu hình provider. Thiếu quyền số đo hiển thị 403 là trạng thái quyền, không retry vô ích; đổi hồ sơ xóa hội thoại cũ. AI không nằm trên đường cảnh báo và không tự xác nhận/đóng cảnh báo. **FR-21 backend (21/11/2026):** trợ lý tạo **nháp** lịch nhắc (`care_reminder.create`), người dùng xem preview rồi xác nhận mới ghi; nháp hết hạn 15 phút, owner-only, audit; API trả cả danh sách việc trợ lý **không được** làm (ack/đóng cảnh báo, chẩn đoán/kê đơn, đổi quyền/thiết bị, xóa dữ liệu). Có parser rule-based cho câu đơn giản (“nhắc tôi … lúc 8h”, “hằng ngày”, “thứ 2–6”, “mai”) và `PATCH` sửa nháp trước confirm; chưa có UI, câu phức tạp và ngày kết thúc.
 
 ## Chạy nhanh
 
@@ -87,13 +87,13 @@ Kết quả API chạy ngày **21/11/2026** (V10a + V10b backend + retention); c
 
 | Hạng mục | Kết quả |
 | --- | --- |
-| API (`pnpm --filter @heart-iot/api test`) | **34 suite / 311 test pass** (gồm 14 test V10a + 8 test V10b + 1 test MQTT events/ACK + 2 test retention + 6 test trợ lý hành động + 7 test parser) |
+| API (`pnpm --filter @heart-iot/api test`) | **34 suite / 312 test pass** (gồm 14 test V10a + 8 test V10b + 1 test MQTT events/ACK + 2 test retention + 7 test trợ lý hành động + 7 test parser) |
 | Web unit (`pnpm --filter @heart-iot/web exec vitest run --no-file-parallelism --maxWorkers=1`) | **43 file / 377 test pass** |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
 | Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **367 liên kết/296 ID** (21/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
-| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **34 suite / 311 test pass** ngày 21/11/2026 |
+| API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **34 suite / 312 test pass** ngày 21/11/2026 |
 | Typecheck, backend build, MQTT exposure | **pass** typecheck toàn monorepo + `nest build` + **16/16** MQTT exposure (21/11/2026); web production build/seed **không chạy lại** |
 
 Bằng chứng test/handoff/review nằm ở `reports/handoffs/`, `reports/qa/`, `reports/worklog/`; ảnh và số đo giao diện v7 ở `reports/qa/evidence/v7-*/`. Không dùng kết quả trong tài liệu thay cho việc chạy lại. Repo **chưa có CI**; các cổng trên là chạy tay.
@@ -137,7 +137,7 @@ ADR: [docs/decisions/0002-nen-tang-trien-khai.md](docs/decisions/0002-nen-tang-t
 - **Xóa/retention:** lưu trữ hồ sơ chỉ ẩn khỏi danh sách và thu hồi chia sẻ; yêu cầu xóa chỉ được ghi audit; retention **mặc định tắt** mới xóa một số lớp theo tuổi (gồm nháp trợ lý đã hết hạn), chưa xóa cứng toàn bộ hồ sơ/export/backup/AI cache và chưa có API/UI cấu hình.
 - **AI:** tóm tắt/hỏi đáp giới hạn + backend nháp lịch nhắc; **chưa** hiểu câu lệnh phức tạp/UI, chưa có RAG, planner/tool registry, scheduler hay runtime `agent_runs`/`run_steps`; mới có luồng preview/confirm cho một capability và parser rule-based giới hạn; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS` nhưng chưa có UI. Chưa kiểm provider thật/chi phí/độ trễ.
 - **Hạ tầng:** chưa benchmark PostgreSQL thật, nhiều instance, backup/restore, TLS, xoay secret production; PGlite mở file DB độc quyền theo process nên phải dừng API trước khi `pnpm seed`/migration.
-- **Kiểm thử:** API **311 test/34 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK + retention + FR-21 backend/parser); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **311/311** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
+- **Kiểm thử:** API **312 test/34 suite** đã qua ngày 21/11/2026 (V10a + nền tảng V10b + MQTT events/ACK + retention + FR-21 backend/parser); web 377 test/E2E 26/26 và simulator 23 test là số của lượt 18/11/2026; randomized **312/312** (seed 20261121) đã qua, chưa có CI, chưa đo p95/NFR-07 trên mạng thật, chưa kiểm khả dụng với người cao tuổi/người chăm sóc thật, chưa có OpenAPI máy sinh.
 - **Giao diện:** code-split theo route đã có; v7 chưa đo lại kích thước bundle hay hiệu năng trên mạng thật. Mới có một vòng review độc lập cho phần nền tảng giao diện v7 (`reports/qa/v7-foundation-review.md`); chưa kiểm Firefox/WebKit.
 
 ## Đọc tiếp
