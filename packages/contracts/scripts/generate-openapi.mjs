@@ -23,6 +23,7 @@ const reports = require('../dist/reports.js');
 const incidents = require('../dist/incidents.js');
 const telemetry = require('../dist/telemetry.js');
 const devices = require('../dist/devices.js');
+const care = require('../dist/care.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -80,6 +81,16 @@ function pathKey(name) {
     in: 'path',
     required: true,
     schema: { type: 'string', minLength: 1, maxLength: 80 },
+  };
+}
+
+/** Token lời mời base64url; không phải UUID. */
+function pathToken(name = 'token') {
+  return {
+    name,
+    in: 'path',
+    required: true,
+    schema: { type: 'string', minLength: 20, maxLength: 256 },
   };
 }
 
@@ -713,6 +724,88 @@ paths['/devices/{id}/release'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Chia sẻ chăm sóc
+// ---------------------------------------------------------------------------
+
+paths['/subjects/{id}/invitations'] = {
+  post: {
+    tags: ['Care'],
+    operationId: 'createCareInvitation',
+    summary: 'Tạo lời mời chia sẻ quyền chăm sóc',
+    description: 'Token chỉ trả một lần trong `InvitationCreated`; email đầy đủ chỉ chủ hồ sơ thấy.',
+    parameters: [subjectParam],
+    requestBody: body('CreateInvitation'),
+    responses: {
+      201: ok(ref('InvitationCreated'), 'Đã tạo lời mời'),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+  get: {
+    tags: ['Care'],
+    operationId: 'listCareInvitations',
+    summary: 'Danh sách lời mời của hồ sơ',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('InvitationList')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/invitations/{token}'] = {
+  get: {
+    tags: ['Care'],
+    operationId: 'getPublicInvitation',
+    summary: 'Xem trước lời mời công khai',
+    description: 'Không cần đăng nhập; không trả email người được mời hay dữ liệu sức khỏe.',
+    security: [],
+    parameters: [pathToken()],
+    responses: { 200: ok(ref('PublicInvitation')), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/invitations/{token}/accept'] = {
+  post: {
+    tags: ['Care'],
+    operationId: 'acceptCareInvitation',
+    summary: 'Chấp nhận lời mời, tạo care link',
+    parameters: [pathToken()],
+    responses: {
+      201: ok(ref('CareLinkSummary'), 'Đã chấp nhận lời mời'),
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/subjects/{id}/care-links'] = {
+  get: {
+    tags: ['Care'],
+    operationId: 'listCareLinks',
+    summary: 'Danh sách care link active/revoked',
+    parameters: [subjectParam],
+    responses: { 200: ok(ref('CareLinkList')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/subjects/{id}/care-links/{linkId}'] = {
+  delete: {
+    tags: ['Care'],
+    operationId: 'revokeCareLink',
+    summary: 'Thu hồi care link, đóng quyền ngay',
+    parameters: [subjectParam, pathId('linkId')],
+    responses: {
+      204: { description: 'Đã thu hồi care link' },
+      ...auth(),
+      404: notFound(),
+      409: conflict(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -769,6 +862,12 @@ const componentSchemas = {
   SubjectStatusResponse: measurements.subjectStatusResponseSchema,
   ReleaseDevice: devices.releaseDeviceSchema,
   ReleaseResult: devices.releaseResultSchema,
+  CreateInvitation: care.createInvitationSchema,
+  InvitationCreated: care.invitationCreatedSchema,
+  InvitationList: care.invitationListSchema,
+  PublicInvitation: care.publicInvitationSchema,
+  CareLinkSummary: care.careLinkSummarySchema,
+  CareLinkList: care.careLinkListSchema,
 };
 
 const components = { schemas: {} };
@@ -791,6 +890,7 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'CreateDevice',
     'ClaimDevice',
     'ReleaseDevice',
+    'CreateInvitation',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -817,6 +917,7 @@ const document = {
     { name: 'Reports', description: 'Phiếu đi khám tổng hợp, không thay thế chẩn đoán.' },
     { name: 'Incidents', description: 'Cảnh báo, ACK/đóng theo version; không tự đóng hộ người dùng.' },
     { name: 'Devices', description: 'Thiết bị, khóa/mã chỉ trả một lần; không xóa lịch sử khi thu hồi.' },
+    { name: 'Care', description: 'Chia sẻ quyền chăm sóc; token lời mời chỉ trả một lần.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
