@@ -43,7 +43,7 @@ Không ép các nghiệp vụ khác nhau dùng chung một abstraction vì tên 
 
 Đề xuất khi bắt đầu có source: mỗi capability có tên, mục đích, nơi triển khai chính thức, contract, quyền, module dùng, test/tài liệu liên quan và trạng thái `planned`/`active`/`deprecated`. Phần có thể suy ra từ source/manifest nên sinh hoặc kiểm tự động; không duy trì danh sách endpoint/package thủ công thứ hai.
 
-Hiện repository đã có `packages/contracts` với zod schema cho các miền nghiệp vụ (được API, web và simulator import), các module NestJS trong `backend/src` và web React trong `frontend/src`; ngày 15/11/2026 API chạy 20 suite/219 test và web chạy 35 file/250 test; randomized 219/219, E2E 26/26, build web pass. **Chưa có** runtime tool registry/capability `active`, OpenAPI toàn bộ API (mới có một phần cho quản trị, trợ lý, hồ sơ/số đo/phiếu đi khám/cảnh báo/thiết bị/chia sẻ chăm sóc/lịch nhắc) hoặc quality gate tự động trong CI. Dùng manifest và README hiện có; không tạo index giả chứa đường dẫn code chưa tồn tại.
+Hiện repository đã có `packages/contracts` với zod schema cho các miền nghiệp vụ (được API, web và simulator import), các module NestJS trong `backend/src` và web React trong `frontend/src`; ngày 15/11/2026 API chạy 20 suite/219 test và web chạy 35 file/250 test; randomized 219/219, E2E 26/26, build web pass. **Chưa có** runtime tool registry/capability `active`, OpenAPI toàn bộ API (mới có một phần cho quản trị, trợ lý, hồ sơ/số đo/phiếu đi khám/cảnh báo/thiết bị/chia sẻ chăm sóc/lịch nhắc/liên hệ khẩn cấp/bảo trì) hoặc quality gate tự động trong CI. Dùng manifest và README hiện có; không tạo index giả chứa đường dẫn code chưa tồn tại.
 
 Với thay đổi xuyên module, thực hiện:
 

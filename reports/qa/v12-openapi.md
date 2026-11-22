@@ -1,26 +1,27 @@
 # OpenAPI một phần từ Zod — bằng chứng
 
-**Ngày:** 21/11/2026; cập nhật 22/11/2026 (mở rộng hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc, lịch nhắc)
+**Ngày:** 21/11/2026; cập nhật 22/11/2026 (mở rộng hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc, lịch nhắc, liên hệ khẩn cấp, bảo trì)
 
 **Nhánh:** `v10-backend` (chưa merge/push)  
-**Phạm vi:** artifact hợp đồng cho quản trị, trợ lý, hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc và lịch nhắc; bổ sung route/schema và test hợp đồng, không đổi hành vi API/UI.
+**Phạm vi:** artifact hợp đồng cho quản trị, trợ lý, hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc, lịch nhắc, liên hệ khẩn cấp và bảo trì; bổ sung route/schema và test hợp đồng, không đổi hành vi API/UI.
 
 ## Đã làm
 
 - Thêm `packages/contracts/scripts/generate-openapi.mjs` dùng `z.toJSONSchema` (Zod 4.6.7, không thêm dependency).
 - Bổ sung `GET /subjects/{id}/assistant/summary` và `POST /subjects/{id}/assistant/ask` để phủ đủ route `AssistantController`.
 - Sau khi thêm nháp `maintenance_task.create`, schema `AssistantDraft`/`CreateAssistantDraft`/`UpdateAssistantDraft` sinh dạng `oneOf` theo capability; artifact tăng lên 131 KB; sau khi phủ hồ sơ/số đo/phiếu đi khám là 205 KB.
-- Thêm `backend/test/openapi.spec.ts`: đọc metadata decorator của `AdminController`, `AdminDevicesController`, `AssistantController`, `SubjectsController`, `MeasurementsController`, `VisitReportController`, `IncidentsController`, `SubjectDevicesController`, `CareController`, `RemindersController`, so chính xác tập route với artifact (không mở app/DB).
+- Thêm `backend/test/openapi.spec.ts`: đọc metadata decorator của `AdminController`, `AdminDevicesController`, `AssistantController`, `SubjectsController`, `MeasurementsController`, `VisitReportController`, `IncidentsController`, `SubjectDevicesController`, `CareController`, `RemindersController`, `EmergencyContactsController`, `MaintenanceController`, so chính xác tập route với artifact (không mở app/DB).
 - Phủ thêm 11 operation của hồ sơ/số đo/phiếu đi khám: `GET/POST /subjects`, `GET/PATCH /subjects/{id}`, archive, deletion-requests, measurements, daily-summary, insights, export.csv và visit-report.
 - Phủ thêm 5 operation cảnh báo: ingest sự kiện thiết bị (header `x-device-id`/`x-device-key`, `security: []`), danh sách/chi tiết cảnh báo, ACK và đóng cảnh báo theo version; artifact tăng lên **256 KB**.
 - Phủ thêm 8 operation thiết bị: tạo/list admin, cấp lại claim code, xoay khóa, claim/list thiết bị theo hồ sơ, trạng thái hồ sơ và thu hồi thiết bị; artifact tăng lên **298 KB**.
 - Phủ thêm 6 operation chia sẻ chăm sóc: tạo/list lời mời, xem trước công khai, chấp nhận lời mời, list/thu hồi care link; token lời mời chỉ trả một lần; artifact tăng lên **336 KB**.
 - Phủ thêm 8 operation lịch nhắc: tuân thủ, list/tạo/sửa/lưu trữ, occurrence hôm nay, đánh dấu và hoàn tác; artifact tăng lên **385 KB**.
+- Phủ thêm 7 operation liên hệ khẩn cấp và bảo trì: list/tạo/sửa/xóa liên hệ, list/tạo/đóng công việc bảo trì; artifact tăng lên **418 KB**.
 - Sinh `docs/api/openapi.v1.json` (OpenAPI 3.1.0):
-  - 48 path, 58 operation;
-  - 66 component schema;
+  - 52 path, 65 operation;
+  - 73 component schema;
   - cookie session `an_session`;
-  - nhóm `/admin/*` (gồm `/admin/devices`), `/assistant/*`, `/subjects/*` (hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, lịch nhắc), `/alerts/*`, `/devices/*`, `/invitations/*`, `/ingest/events` và `/subjects/{id}/assistant/*`.
+  - nhóm `/admin/*` (gồm `/admin/devices`), `/assistant/*`, `/subjects/*` (hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, lịch nhắc, liên hệ khẩn cấp), `/maintenance-tasks/*`, `/alerts/*`, `/devices/*`, `/invitations/*`, `/ingest/events` và `/subjects/{id}/assistant/*`.
 - Script kiểm:
   - `$ref` trỏ đúng component;
   - path param khớp placeholder;
@@ -34,7 +35,7 @@
 
 | Kiểm | Kết quả |
 | --- | --- |
-| `openapi:generate` | 48 path/58 operation/66 schema; artifact 385 KB |
+| `openapi:generate` | 52 path/65 operation/73 schema; artifact 418 KB |
 | `openapi:check` | khớp schema Zod, ref/path param hợp lệ |
 | Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
@@ -42,7 +43,7 @@
 
 ## Giới hạn
 
-- **Không phải toàn bộ API**: path khai báo thủ công trong script; mới phủ quản trị, trợ lý, hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc và lịch nhắc, chưa phủ contacts/reports khác. Test hợp đồng chỉ so **route**, không so request/response schema với runtime.
+- **Không phải toàn bộ API**: path khai báo thủ công trong script; mới phủ quản trị, trợ lý, hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, chia sẻ chăm sóc, lịch nhắc, liên hệ khẩn cấp và bảo trì, chưa phủ reports/auth/notifications/studio. Test hợp đồng chỉ so **route**, không so request/response schema với runtime.
 - Chưa kiểm bằng validator OpenAPI độc lập (Redocly/Swagger); script chỉ kiểm cấu trúc tối thiểu và ref.
 - Test route đọc metadata decorator, không chứng minh guard/quyền/response thật; enforcement vẫn nằm ở service/controller.
 - Chưa dùng artifact để sinh client; chưa có CI.
@@ -55,4 +56,4 @@
 - `docs/api/openapi.v1.json`
 - `docs/04-du-lieu-va-giao-tiep.md`
 - `packages/contracts/README.md`
-- `backend/src/subjects/subjects.controller.ts`, `backend/src/measurements/measurements.controller.ts`, `backend/src/visit-reports/visit-report.controller.ts`, `backend/src/incidents/incidents.controller.ts`, `backend/src/devices/devices.controller.ts`, `backend/src/care/care.controller.ts`, `backend/src/reminders/reminders.controller.ts`
+- `backend/src/subjects/subjects.controller.ts`, `backend/src/measurements/measurements.controller.ts`, `backend/src/visit-reports/visit-report.controller.ts`, `backend/src/incidents/incidents.controller.ts`, `backend/src/devices/devices.controller.ts`, `backend/src/care/care.controller.ts`, `backend/src/reminders/reminders.controller.ts`, `backend/src/emergency-contacts/emergency-contacts.controller.ts`, `backend/src/maintenance/maintenance.controller.ts`
