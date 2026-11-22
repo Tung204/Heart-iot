@@ -77,7 +77,7 @@ Con số có thể thay đổi; luôn chạy lại thay vì tin README.
   ở tầng ứng dụng (P0-1) và chưa kiểm broker/ACL/TLS thật. Không dùng MQTT cho demo cảnh báo.
 - Chưa có firmware/đo thật; dữ liệu demo là tổng hợp và có nhãn.
 - Retention mới ở mức tùy chọn, mặc định tắt, chưa có API/UI/backup; chưa có xóa cứng toàn bộ hồ sơ, backup/restore, TLS/secret rotation production.
-- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc qua API có cấu trúc, parser rule-based giới hạn, sửa nháp và danh sách nháp; chưa có UI/câu phức tạp; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`; admin có `GET /admin/retention/preview` chỉ đọc, chưa có API/UI đổi cấu hình; `GET /admin/jobs` chỉ đọc `job_runs` (3 job cố định, counter vận hành), không chạy lại job và không audit.
+- AI runtime dài hạn (`agent_runs`/`run_steps`), planner/tool registry, scheduler, RAG chưa triển khai. FR-21 mới có nháp lịch nhắc qua API có cấu trúc, parser rule-based giới hạn, sửa nháp và danh sách nháp; chưa có UI/câu phức tạp; retention nháp đã hết hạn có thể bật qua `RETENTION_ASSISTANT_DRAFT_DAYS`; admin có `GET /admin/retention/preview` chỉ đọc, chưa có API/UI đổi cấu hình; `GET /admin/jobs` chỉ đọc `job_runs` (3 job cố định, counter vận hành), không chạy lại job và không audit; `GET /admin/outbox/summary` chỉ đọc counter outbox theo trạng thái/kênh/kind, không trả nội dung/người nhận.
 - OpenAPI **một phần** cho nhóm quản trị + trợ lý đã sinh từ Zod tại `docs/api/openapi.v1.json`; chưa có OpenAPI toàn bộ API. Hợp đồng nguồn vẫn nằm ở `packages/contracts`.
 
 Nguồn thiết kế: [kiến trúc](../docs/03-kien-truc-he-thong.md), [dữ liệu/API](../docs/04-du-lieu-va-giao-tiep.md),

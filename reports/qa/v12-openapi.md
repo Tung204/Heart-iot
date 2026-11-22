@@ -8,8 +8,8 @@
 
 - Thêm `packages/contracts/scripts/generate-openapi.mjs` dùng `z.toJSONSchema` (Zod 4.6.7, không thêm dependency).
 - Sinh `docs/api/openapi.v1.json` (OpenAPI 3.1.0):
-  - 14 path, 17 operation;
-  - 18 component schema;
+  - 15 path, 18 operation;
+  - 19 component schema;
   - cookie session `an_session`;
   - nhóm `/admin/*` và `/assistant/*` + `/subjects/{id}/assistant/*`.
 - Script kiểm:
@@ -25,11 +25,11 @@
 
 | Kiểm | Kết quả |
 | --- | --- |
-| `openapi:generate` | 14 path; artifact 89 KB |
+| `openapi:generate` | 15 path; artifact 97 KB |
 | `openapi:check` | khớp schema Zod, ref/path param hợp lệ |
-| Docs `build.py --check` | 372 liên kết / 296 ID / 22 mục |
+| Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
-| API test | không đổi: 34 suite / 317 test (không thêm test API) |
+| API test | OpenAPI không thêm test API; full hiện **34 suite / 318 test** |
 
 ## Giới hạn
 

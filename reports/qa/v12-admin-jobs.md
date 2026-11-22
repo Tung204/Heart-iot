@@ -34,12 +34,12 @@
 
 | Kiểm | Kết quả |
 | --- | --- |
-| `backend/test/admin.spec.ts` | **11/11 test pass** (thêm 1 test job nền) |
-| Full API | **34 suite / 317 test pass** |
-| Randomized `--seed=20261121` | **317/317 pass** |
+| `backend/test/admin.spec.ts` | **12/12 test pass** (gồm 1 test job nền + 1 test outbox) |
+| Full API | **34 suite / 318 test pass** |
+| Randomized `--seed=20261121` | **318/318 pass** |
 | Typecheck toàn monorepo | pass |
 | `nest build` | pass |
-| Docs `--check` | 372 liên kết / 296 ID / 22 mục |
+| Docs `--check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
 | MQTT exposure | 16/16 (kiểm cấu hình tĩnh) |
 

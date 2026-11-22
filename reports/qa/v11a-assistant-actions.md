@@ -39,8 +39,8 @@ Prompt summary/ask của trợ lý cũng được bổ sung quy tắc **không t
 | --- | --- |
 | `backend/test/assistant-actions.spec.ts` | **9/9 test pass** |
 | `backend/test/assistant-draft-parser.spec.ts` | **7/7 test pass** |
-| Full API | **34 suite / 317 test pass** |
-| Randomized seed `20261121` | **317/317 test pass** |
+| Full API | **34 suite / 318 test pass** |
+| Randomized seed `20261121` | **318/318 test pass** |
 | `pnpm -r typecheck`, `nest build` | pass |
 | Docs `--check` | khớp nguồn, **372 liên kết/296 ID/22 mục** |
 
