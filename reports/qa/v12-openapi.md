@@ -48,14 +48,14 @@
 | Payload mẫu | 5/5 |
 | API test | **35 suite / 325 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **325/325** |
 | Validator nội bộ | **10/10 test pass** (`pnpm --filter @heart-iot/contracts test`) |
-| CI | `.github/workflows/ci.yml` đã thêm; **chưa chạy trên GitHub** |
+| CI | **pass** run 45201826671 (23/11/2026): `check` + `PostgreSQL smoke` |
 
 ## Giới hạn
 
 - **Phủ đủ route, chưa phải hợp đồng runtime đầy đủ**: path khai báo thủ công; test so **route** của toàn bộ 21 controller nhưng không so request/response schema với runtime. Một số response được mô tả inline (health, SSE) thay vì schema Zod đầy đủ.
 - Validator nội bộ chỉ kiểm cấu trúc; **chưa kiểm bằng validator OpenAPI độc lập** (Redocly/Swagger).
 - Test route đọc metadata decorator, không chứng minh guard/quyền/response thật; enforcement vẫn nằm ở service/controller.
-- Chưa dùng artifact để sinh client; đã có workflow CI nhưng chưa chạy trên GitHub.
+- Chưa dùng artifact để sinh client; CI đã chạy thật, chưa có kiểm schema/response runtime.
 - Schema JSON do Zod sinh có thể mất một số ràng buộc `.refine/.superRefine`; không thay kiểm nghiệp vụ ở backend.
 
 ## Nguồn

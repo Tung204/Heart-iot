@@ -1,8 +1,10 @@
 # Dry run CI cục bộ — bằng chứng
 
-**Ngày:** 22/11/2026  
-**Nhánh:** `v10-backend` (chưa merge/push)  
-**Phạm vi:** chạy lại các lệnh trong `.github/workflows/ci.yml` trên Windows; **không phải** lần chạy GitHub Actions.
+**Ngày:** 22/11/2026; cập nhật 23/11/2026  
+**Nhánh:** `v10-backend` (lúc dry run chưa push)  
+**Phạm vi:** chạy lại các lệnh trong `.github/workflows/ci.yml` trên Windows; đây là dry run cục bộ, không phải lần chạy GitHub Actions.
+
+> **Cập nhật 23/11/2026:** nhánh đã push và CI GitHub đã chạy thật, pass run [45201826671](https://github.com/Tung204/Heart-iot/actions/runs/45201826671) với hai job `check` và `PostgreSQL smoke`. Các giới hạn dưới đây là của lần dry run cục bộ, không phải trạng thái hiện tại.
 
 ## Kết quả
 
@@ -29,10 +31,10 @@
 
 ## Giới hạn
 
-- Đây là **dry run cục bộ trên Windows**, không chứng minh GitHub Actions đã chạy hoặc xanh.
-- CI chưa chạy `pnpm install --frozen-lockfile` trong lần này; lockfile không đổi.
+- Đây là **dry run cục bộ trên Windows**; bằng chứng GitHub Actions thật nằm ở run 45201826671.
+- Lần dry run này không chạy `pnpm install --frozen-lockfile`; lockfile không đổi.
 - CI không chạy Playwright E2E; E2E 26/26 vẫn là số của lượt 18/11/2026.
-- Không chạy PostgreSQL/MQTT thật, Web Push thật hay AI provider thật.
+- Lần dry run này không chạy PostgreSQL/MQTT thật, Web Push thật hay AI provider thật. CI sau đó đã thêm job PostgreSQL smoke; MQTT/Web Push/AI thật vẫn chưa kiểm.
 
 ## Nguồn
 
