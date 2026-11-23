@@ -28,6 +28,7 @@
   - 105 component schema;
   - cookie session `an_session`;
   - nhóm `/admin/*` (gồm `/admin/devices`), `/assistant/*`, `/subjects/*` (hồ sơ, số đo, phiếu đi khám, cảnh báo, thiết bị, lịch nhắc, liên hệ khẩn cấp), `/maintenance-tasks/*`, cấu hình `/alert-policy`, `/care-rules/{kind}`, `/notifications` và `/me/notification-preferences`/`/me/push-subscriptions`, `/auth/*`, `/me/sessions*`, `/workspace-views/*`, `/ingest/telemetry`, `/alerts/*`, `/devices/*`, `/invitations/*`, `/ingest/events`, `/subjects/{id}/assistant/*`, `/health` và `/subjects/{id}/events`.
+- Validator nội bộ `scripts/openapi-validate.mjs` + **10 test** (`test/openapi-validate.test.mjs`): operationId duy nhất, tag khai báo, path param đủ/required, response 2xx có content (204 không content), security scheme/scope hợp lệ, parameter không trùng, ref tồn tại.
 - Script kiểm:
   - `$ref` trỏ đúng component;
   - path param khớp placeholder;
@@ -46,13 +47,15 @@
 | Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
 | API test | **35 suite / 325 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **325/325** |
+| Validator nội bộ | **10/10 test pass** (`pnpm --filter @heart-iot/contracts test`) |
+| CI | `.github/workflows/ci.yml` đã thêm; **chưa chạy trên GitHub** |
 
 ## Giới hạn
 
 - **Phủ đủ route, chưa phải hợp đồng runtime đầy đủ**: path khai báo thủ công; test so **route** của toàn bộ 21 controller nhưng không so request/response schema với runtime. Một số response được mô tả inline (health, SSE) thay vì schema Zod đầy đủ.
-- Chưa kiểm bằng validator OpenAPI độc lập (Redocly/Swagger); script chỉ kiểm cấu trúc tối thiểu và ref.
+- Validator nội bộ chỉ kiểm cấu trúc; **chưa kiểm bằng validator OpenAPI độc lập** (Redocly/Swagger).
 - Test route đọc metadata decorator, không chứng minh guard/quyền/response thật; enforcement vẫn nằm ở service/controller.
-- Chưa dùng artifact để sinh client; chưa có CI.
+- Chưa dùng artifact để sinh client; đã có workflow CI nhưng chưa chạy trên GitHub.
 - Schema JSON do Zod sinh có thể mất một số ràng buộc `.refine/.superRefine`; không thay kiểm nghiệp vụ ở backend.
 
 ## Nguồn
