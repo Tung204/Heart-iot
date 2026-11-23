@@ -11,6 +11,8 @@ import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { assertValidOpenApi } from './openapi-validate.mjs';
+
 const require = createRequire(import.meta.url);
 const { z } = require('zod');
 const core = require('../dist/core.js');
@@ -1620,45 +1622,7 @@ const document = {
   },
 };
 
-function collectRefs(value, refs) {
-  if (Array.isArray(value)) {
-    for (const item of value) collectRefs(item, refs);
-  } else if (value && typeof value === 'object') {
-    for (const [key, child] of Object.entries(value)) {
-      if (key === '$ref' && typeof child === 'string') refs.push(child);
-      else collectRefs(child, refs);
-    }
-  }
-}
-
-/** Kiểm cấu trúc tối thiểu: ref tồn tại, path param khớp placeholder, operation có response. */
-function validateDocument(doc) {
-  const refs = [];
-  collectRefs(doc, refs);
-  const prefix = '#/components/schemas/';
-  const missing = [...new Set(refs)].filter(
-    (value) => !value.startsWith(prefix) || !doc.components.schemas[value.slice(prefix.length)],
-  );
-  if (missing.length > 0) throw new Error(`Ref không tồn tại: ${missing.join(', ')}`);
-
-  for (const [path, item] of Object.entries(doc.paths)) {
-    for (const [method, operation] of Object.entries(item)) {
-      if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue;
-      if (!operation.operationId || !operation.responses) {
-        throw new Error(`Operation thiếu operationId/responses: ${method} ${path}`);
-      }
-      const declared = new Set(
-        (operation.parameters ?? []).filter((param) => param.in === 'path').map((param) => param.name),
-      );
-      const placeholders = [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
-      if (placeholders.some((name) => !declared.has(name)) || declared.size !== placeholders.length) {
-        throw new Error(`Path param không khớp placeholder: ${method} ${path}`);
-      }
-    }
-  }
-}
-
-validateDocument(document);
+assertValidOpenApi(document);
 
 const output = `${JSON.stringify(document, null, 2)}\n`;
 const check = process.argv.includes('--check');
