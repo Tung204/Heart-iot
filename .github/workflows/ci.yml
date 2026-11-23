@@ -59,3 +59,56 @@ jobs:
 
       - name: MQTT static exposure check
         run: node infra/check-mqtt-exposure.mjs
+  postgres:
+    name: PostgreSQL smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: heartiot
+          POSTGRES_PASSWORD: heartiot-smoke
+          POSTGRES_DB: heartiot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U heartiot -d heartiot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://heartiot:heartiot-smoke@localhost:5432/heartiot
+      NODE_ENV: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm build:contracts
+
+      - name: Build API
+        run: pnpm --filter @heart-iot/api build
+
+      - name: Migrate PostgreSQL
+        run: pnpm --filter @heart-iot/api db:migrate
+
+      - name: Seed PostgreSQL
+        run: pnpm --filter @heart-iot/api seed
+
+      - name: Smoke API on PostgreSQL
+        run: pnpm --filter @heart-iot/api smoke:postgres

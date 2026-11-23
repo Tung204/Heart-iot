@@ -13,7 +13,8 @@
     "test:watch": "jest --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/database/migrate-cli.ts",
-    "seed": "tsx src/database/seed-cli.ts"
+    "seed": "tsx src/database/seed-cli.ts",
+    "smoke:postgres": "node scripts/postgres-smoke.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.16",
