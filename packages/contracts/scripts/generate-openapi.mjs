@@ -31,6 +31,7 @@ const alertPolicy = require('../dist/alert-policy.js');
 const careRules = require('../dist/care-rules.js');
 const notifications = require('../dist/notifications.js');
 const notificationPreferences = require('../dist/notification-preferences.js');
+const authContract = require('../dist/auth.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -1153,6 +1154,111 @@ paths['/me/push-subscriptions/{id}'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Xác thực và phiên
+// ---------------------------------------------------------------------------
+
+paths['/auth/register'] = {
+  post: {
+    tags: ['Auth'],
+    operationId: 'register',
+    summary: 'Đăng ký tài khoản và tạo phiên đăng nhập',
+    security: [],
+    requestBody: body('RegisterInput'),
+    responses: {
+      201: ok(ref('AuthSession'), 'Đã tạo tài khoản và đặt cookie phiên'),
+      409: conflict(),
+      422: validation(),
+    },
+  },
+};
+
+paths['/auth/login'] = {
+  post: {
+    tags: ['Auth'],
+    operationId: 'login',
+    summary: 'Đăng nhập bằng email/mật khẩu',
+    security: [],
+    requestBody: body('LoginInput'),
+    responses: {
+      200: ok(ref('AuthSession'), 'Đã tạo phiên và đặt cookie phiên'),
+      ...auth(),
+      422: validation(),
+      429: errorResponse('Quá nhiều lần đăng nhập sai'),
+    },
+  },
+};
+
+paths['/auth/logout'] = {
+  post: {
+    tags: ['Auth'],
+    operationId: 'logout',
+    summary: 'Thu hồi phiên hiện tại và xóa cookie',
+    security: [],
+    responses: { 204: { description: 'Đã đăng xuất' } },
+  },
+};
+
+paths['/me'] = {
+  get: {
+    tags: ['Auth'],
+    operationId: 'getMe',
+    summary: 'Tài khoản đang đăng nhập',
+    responses: { 200: ok(ref('Me')), ...auth() },
+  },
+  patch: {
+    tags: ['Auth'],
+    operationId: 'updateMe',
+    summary: 'Đổi tên hiển thị của chính tài khoản',
+    requestBody: body('UpdateProfileInput'),
+    responses: { 200: ok(ref('Me')), ...auth(), 422: validation() },
+  },
+};
+
+paths['/me/password'] = {
+  post: {
+    tags: ['Auth'],
+    operationId: 'changePassword',
+    summary: 'Đổi mật khẩu, giữ phiên hiện tại và thu hồi phiên khác',
+    requestBody: body('ChangePasswordInput'),
+    responses: {
+      204: { description: 'Đã đổi mật khẩu và thu hồi phiên khác' },
+      ...auth(),
+      400: errorResponse('Mật khẩu hiện tại không đúng hoặc trùng mật khẩu mới'),
+      422: validation(),
+      429: errorResponse('Quá nhiều lần thử đổi mật khẩu'),
+    },
+  },
+};
+
+paths['/me/sessions'] = {
+  get: {
+    tags: ['Auth'],
+    operationId: 'listMySessions',
+    summary: 'Phiên còn hiệu lực của chính tài khoản, không trả token',
+    responses: { 200: ok(ref('SessionList')), ...auth() },
+  },
+};
+
+paths['/me/sessions/revoke-others'] = {
+  post: {
+    tags: ['Auth'],
+    operationId: 'revokeOtherSessions',
+    summary: 'Thu hồi mọi phiên khác, giữ phiên hiện tại',
+    responses: { 204: { description: 'Đã thu hồi các phiên khác' }, ...auth() },
+  },
+};
+
+paths['/me/sessions/{id}'] = {
+  delete: {
+    tags: ['Auth'],
+    operationId: 'revokeMySession',
+    summary: 'Thu hồi một phiên khác của chính tài khoản',
+    parameters: [pathId('id')],
+    responses: { 204: { description: 'Đã thu hồi phiên' }, ...auth(), 404: notFound() },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -1242,6 +1348,13 @@ const componentSchemas = {
   PushSubscriptionInput: notificationPreferences.pushSubscriptionInputSchema,
   PushSubscriptionView: notificationPreferences.pushSubscriptionViewSchema,
   PushSubscriptionList: notificationPreferences.pushSubscriptionListSchema,
+  RegisterInput: authContract.registerSchema,
+  LoginInput: authContract.loginSchema,
+  AuthSession: authContract.authSessionSchema,
+  Me: authContract.meSchema,
+  UpdateProfileInput: authContract.updateProfileSchema,
+  ChangePasswordInput: authContract.changePasswordSchema,
+  SessionList: authContract.sessionListSchema,
 };
 
 const components = { schemas: {} };
@@ -1275,6 +1388,10 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'CareRuleConfig',
     'NotificationPreferencesUpdate',
     'PushSubscriptionInput',
+    'RegisterInput',
+    'LoginInput',
+    'UpdateProfileInput',
+    'ChangePasswordInput',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -1307,6 +1424,7 @@ const document = {
     { name: 'Maintenance', description: 'Công việc bảo trì; đóng việc theo version/lý do.' },
     { name: 'Policies', description: 'Cấu hình cảnh báo/quy tắc chăm sóc; preview không ghi DB.' },
     { name: 'Notifications', description: 'Hộp thư trong ứng dụng và Web Push; subscription chỉ trả id/host.' },
+    { name: 'Auth', description: 'Đăng ký/đăng nhập, hồ sơ và quản lý phiên; không trả token qua JSON.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,

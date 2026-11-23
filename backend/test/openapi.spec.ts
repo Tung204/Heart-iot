@@ -5,6 +5,7 @@ import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { AdminController } from '../src/admin/admin.controller';
 import { AlertPolicyController } from '../src/alert-policy/alert-policy.controller';
+import { AuthController } from '../src/auth/auth.controller';
 import { AssistantController } from '../src/assistant/assistant.controller';
 import { CareController } from '../src/care/care.controller';
 import { CareRulesController } from '../src/care-rules/care-rules.controller';
@@ -77,7 +78,7 @@ for (const [path, item] of Object.entries(spec.paths)) {
 }
 
 describe('OpenAPI một phần — khớp route controller', () => {
-  it('phủ đúng toàn bộ route của mười sáu controller đang phủ, không thừa/thiếu', () => {
+  it('phủ đúng toàn bộ route của mười bảy controller đang phủ, không thừa/thiếu', () => {
     const controllerRoutes = [
       ...routesOf(AdminController),
       ...routesOf(AdminDevicesController),
@@ -95,6 +96,7 @@ describe('OpenAPI một phần — khớp route controller', () => {
       ...routesOf(CareRulesController),
       ...routesOf(NotificationsController),
       ...routesOf(NotificationSettingsController),
+      ...routesOf(AuthController),
     ].sort();
     expect(documented.sort()).toEqual(controllerRoutes);
   });
