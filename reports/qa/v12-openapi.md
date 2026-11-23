@@ -48,7 +48,7 @@
 | Payload mẫu | 5/5 |
 | API test | **35 suite / 325 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **325/325** |
 | Validator nội bộ | **10/10 test pass** (`pnpm --filter @heart-iot/contracts test`) |
-| CI | **pass** run 45201826671 (23/11/2026): `check` + `PostgreSQL smoke` |
+| CI | **pass** run 45204842736 (23/11/2026): `check` + `PostgreSQL smoke` + `Browser E2E` |
 
 ## Giới hạn
 

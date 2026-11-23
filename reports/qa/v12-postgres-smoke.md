@@ -37,11 +37,12 @@ Workflow `.github/workflows/ci.yml` có thêm job `PostgreSQL smoke`:
 - chạy `pnpm --filter @heart-iot/api smoke:postgres` (script `backend/scripts/postgres-smoke.mjs`);
 - script tự khởi động API, kiểm health/login/quyền/read endpoints/nháp → confirm → đúng một lịch/logout, rồi dừng process.
 
-**Run `45201826671` ngày 23/11/2026: cả hai job pass.**
+**Run `45201826671` ngày 23/11/2026: cả hai job pass.** Run `45204842736` sau đó cũng pass cả ba job, gồm `Browser E2E`.
 
-- URL: https://github.com/Tung204/Heart-iot/actions/runs/45201826671
-- `check`: 3m55s
-- `PostgreSQL smoke`: 42s
+- URL: https://github.com/Tung204/Heart-iot/actions/runs/45204842736
+- `check`: 3m7s
+- `PostgreSQL smoke`: 40s
+- `Browser E2E`: 1m2s
 
 ## Giới hạn
 
@@ -56,4 +57,4 @@ Workflow `.github/workflows/ci.yml` có thêm job `PostgreSQL smoke`:
 - `backend/scripts/postgres-smoke.mjs`
 - `.github/workflows/ci.yml`
 - `backend/package.json` (`smoke:postgres`)
-- Run GitHub Actions `45201826671`
+- Run GitHub Actions `45204842736` (và run trước `45201826671`)

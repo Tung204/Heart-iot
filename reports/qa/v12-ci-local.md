@@ -4,7 +4,7 @@
 **Nhánh:** `v10-backend` (lúc dry run chưa push)  
 **Phạm vi:** chạy lại các lệnh trong `.github/workflows/ci.yml` trên Windows; đây là dry run cục bộ, không phải lần chạy GitHub Actions.
 
-> **Cập nhật 23/11/2026:** nhánh đã push và CI GitHub đã chạy thật, pass run [45201826671](https://github.com/Tung204/Heart-iot/actions/runs/45201826671) với hai job `check` và `PostgreSQL smoke`. Các giới hạn dưới đây là của lần dry run cục bộ, không phải trạng thái hiện tại.
+> **Cập nhật 23/11/2026:** nhánh đã push và CI GitHub đã chạy thật, pass run [45204842736](https://github.com/Tung204/Heart-iot/actions/runs/45204842736) với ba job `check`, `PostgreSQL smoke` và `Browser E2E`. E2E 26/26 cũng đã chạy lại trên Chromium cục bộ. Các giới hạn dưới đây là của lần dry run cục bộ, không phải trạng thái hiện tại.
 
 ## Kết quả
 
@@ -31,9 +31,9 @@
 
 ## Giới hạn
 
-- Đây là **dry run cục bộ trên Windows**; bằng chứng GitHub Actions thật nằm ở run 45201826671.
+- Đây là **dry run cục bộ trên Windows**; bằng chứng GitHub Actions thật nằm ở run 45204842736.
 - Lần dry run này không chạy `pnpm install --frozen-lockfile`; lockfile không đổi.
-- CI không chạy Playwright E2E; E2E 26/26 vẫn là số của lượt 18/11/2026.
+- Lần dry run này không chạy Playwright E2E. Sau đó đã chạy E2E **26/26** ngày 23/11/2026 trên Chromium local và thêm job CI `Browser E2E` (pass run 45204842736).
 - Lần dry run này không chạy PostgreSQL/MQTT thật, Web Push thật hay AI provider thật. CI sau đó đã thêm job PostgreSQL smoke; MQTT/Web Push/AI thật vẫn chưa kiểm.
 
 ## Nguồn
