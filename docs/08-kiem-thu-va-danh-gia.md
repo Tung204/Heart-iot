@@ -32,7 +32,8 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **35/35 suite, 325/325 test pass** |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
 | Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql`, `0009_dapper_gladiator.sql`, `0010_confused_klaw.sql`, `0011_absent_pete_wisdom.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; 0009 tạo `assistant_drafts`; 0010 thêm index `expires_at` cho retention nháp; 0011 thêm `request_key` + unique index theo actor; PGlite test migrate từ DB rỗng |
-| Docs HTML | `build.py --check` | khớp nguồn, **373 liên kết/296 ID/22 mục** |
+| Docs HTML | `build.py --check` | khớp nguồn, **374 liên kết/296 ID/22 mục** |
+| CI dry run | `pnpm test` + `pnpm build` | pass cục bộ: contracts 10, API 325, web 390, simulator 23, build 4 package; GitHub Actions **chưa chạy**. Chi tiết: [`reports/qa/v12-ci-local.md`](../reports/qa/v12-ci-local.md) |
 | OpenAPI route | `pnpm openapi:check` | pass; 79 path/99 operation, 105 schema, kiểm `$ref` và path param; test hợp đồng so route metadata 21 controller (toàn bộ controller backend) với artifact. **Chưa kiểm schema/response runtime**. Chi tiết: [`reports/qa/v12-openapi.md`](../reports/qa/v12-openapi.md) |
 | MQTT exposure | `node infra/check-mqtt-exposure.mjs` | **16/16 kiểm tra đạt** (cấu hình tĩnh; chưa chứng minh broker chạy) |
 | API thật | DB `.data/v10a`, API cổng 3023 | health/login 200; `POST /subjects/:id/alert-policy/previews` 200, chính sách bật 2 bậc, `recipientCount=2` (chủ hồ sơ + người thân), không cảnh báo |
