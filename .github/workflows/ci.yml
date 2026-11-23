@@ -151,7 +151,7 @@ jobs:
       - name: Seed PGlite
         run: pnpm --filter @heart-iot/api seed
 
-      - name: Install Chromium
+      - name: Install browsers
         run: pnpm --filter @heart-iot/web exec playwright install --with-deps chromium firefox webkit
 
       - name: Start API

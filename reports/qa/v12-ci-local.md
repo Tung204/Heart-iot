@@ -4,7 +4,7 @@
 **Nhánh:** `v10-backend` (lúc dry run chưa push)  
 **Phạm vi:** chạy lại các lệnh trong `.github/workflows/ci.yml` trên Windows; đây là dry run cục bộ, không phải lần chạy GitHub Actions.
 
-> **Cập nhật 23/11/2026:** nhánh đã push và CI GitHub đã chạy thật, pass run [45204842736](https://github.com/Tung204/Heart-iot/actions/runs/45204842736) với ba job `check`, `PostgreSQL smoke` và `Browser E2E`. E2E 26/26 cũng đã chạy lại trên Chromium cục bộ. Các giới hạn dưới đây là của lần dry run cục bộ, không phải trạng thái hiện tại.
+> **Cập nhật 23/11/2026:** nhánh đã push và CI GitHub đã chạy thật, pass run [45207319254](https://github.com/Tung204/Heart-iot/actions/runs/45207319254) với ba job `check`, `PostgreSQL smoke` và `Browser E2E`. E2E **78/78** (26 test × Chromium/Firefox/WebKit) cũng đã chạy cục bộ. Các giới hạn dưới đây là của lần dry run cục bộ, không phải trạng thái hiện tại.
 
 ## Kết quả
 
@@ -33,7 +33,7 @@
 
 - Đây là **dry run cục bộ trên Windows**; bằng chứng GitHub Actions thật nằm ở run 45204842736.
 - Lần dry run này không chạy `pnpm install --frozen-lockfile`; lockfile không đổi.
-- Lần dry run này không chạy Playwright E2E. Sau đó đã chạy E2E **26/26** ngày 23/11/2026 trên Chromium local và thêm job CI `Browser E2E` (pass run 45204842736).
+- Lần dry run này không chạy Playwright E2E. Sau đó đã chạy E2E **78/78** ngày 23/11/2026 (Chromium/Firefox/WebKit) và thêm job CI `Browser E2E` (pass run 45207319254).
 - Lần dry run này không chạy PostgreSQL/MQTT thật, Web Push thật hay AI provider thật. CI sau đó đã thêm job PostgreSQL smoke; MQTT/Web Push/AI thật vẫn chưa kiểm.
 
 ## Nguồn
@@ -41,3 +41,20 @@
 - `.github/workflows/ci.yml`
 - `frontend/package.json`
 - Log cục bộ: `pnpm test`, `pnpm build`, `pnpm typecheck`, `openapi:check`, docs `--check`
+
+## Browser E2E đa trình duyệt (23/11/2026)
+
+Cùng 26 test, chạy trên ba project Playwright:
+
+| Trình duyệt | Kết quả cục bộ | Kết quả CI |
+| --- | --- | --- |
+| Chromium | 26/26 | 26/26 |
+| Firefox | 26/26 | 26/26 |
+| WebKit | 26/26 | 26/26 |
+| **Tổng** | **78/78**, 35,6 s | **78/78**, 52,9 s |
+
+- CI run `45207319254`: job `Browser E2E` pass; `check` 4m54s, `PostgreSQL smoke` 41s.
+- Cấu hình: `frontend/playwright.config.ts` có ba project; CI cài cả ba browser.
+- **Cảnh báo chưa sửa:** Firefox/dev server ghi `Cannot update a component (AppShell) while rendering a different component (NavIcon)` — lỗi React trong mã UI hiện có, không làm fail test; cần sửa khi mở lại lane UI và thêm kiểm console sạch.
+- Không chạy mobile Safari/Android thật, không kiểm accessibility tree hay axe.
+
