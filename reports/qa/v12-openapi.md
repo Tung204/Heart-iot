@@ -46,7 +46,7 @@
 | `openapi:check` | khớp schema Zod, ref/path param hợp lệ |
 | Docs `build.py --check` | 373 liên kết / 296 ID / 22 mục |
 | Payload mẫu | 5/5 |
-| API test | **35 suite / 325 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **325/325** |
+| API test | **36 suite / 326 test pass**, gồm 1 test hợp đồng route OpenAPI; randomized **326/326** |
 | Validator nội bộ | **10/10 test pass** (`pnpm --filter @heart-iot/contracts test`) |
 | CI | **pass** run 45207319254 (23/11/2026): `check` + `PostgreSQL smoke` + `Browser E2E` (78/78, 3 trình duyệt) |
 

@@ -136,6 +136,8 @@ Một confirmed đến trễ hơn 5 phút hoặc không xác định được gi
 
 Broker, **khi được bật ở profile thử nghiệm**, chỉ cho thiết bị đăng nhập bằng user riêng và publish/subscribe topic của chính `device_id`; API vẫn phải xác minh payload khớp định danh kết nối vì ACL chưa được kiểm với broker thật. Adapter MQTT subscribe `v1/devices/+/telemetry` và `v1/devices/+/events`, publish ACK sự kiện; chỉ là profile thử nghiệm, chưa kiểm broker/ACL/TLS thật và chưa xác thực khóa thiết bị ở tầng ứng dụng. HTTP là đường ingest chính thức.
 
+API gắn header bảo vệ cho mọi response JSON/SSE: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy` tắt camera/micro/geolocation và CSP `default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`. API không trả HTML nên CSP không ảnh hưởng web; chưa đặt HSTS vì repo chưa cấu hình TLS, chưa đặt CORP để không chặn origin hợp lệ đã qua CORS. Test: `backend/test/security-headers.spec.ts` kiểm cả response 200 và 401.
+
 API kiểm quyền theo hồ sơ trước truy vấn dữ liệu, đăng ký realtime, xuất báo cáo và gọi AI. Từ v2, quyền xem số đo (`canViewMeasurements`) là cổng riêng, không dùng chung với quyền nhận cảnh báo; trợ lý AI cần cả quyền xem số đo và `canViewAi`. Thu hồi quyền phải ngắt stream và hủy quyền của tác vụ gửi chưa thực hiện. Admin kỹ thuật không mặc định là người xem sức khỏe.
 
 Backup, restore, secret rotation, giới hạn retention và quan sát lỗi được mô tả ở [lộ trình/bàn giao](09-lo-trinh-va-ho-so.md); cần bằng chứng trước khi dùng dữ liệu thật.

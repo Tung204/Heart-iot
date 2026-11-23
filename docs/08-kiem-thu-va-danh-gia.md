@@ -1,6 +1,6 @@
 # Kiểm thử và đánh giá
 
-**Trạng thái 23/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ), ingest MQTT sự kiện/ACK thử nghiệm, retention tùy chọn mặc định tắt, FR-21 backend cho nháp lịch nhắc và nháp việc bảo trì (parser chỉ cho lịch nhắc), quan sát job nền admin, tổng hợp outbox admin và OpenAPI cho quản trị, trợ lý, hồ sơ/số đo/phiếu đi khám/cảnh báo/thiết bị/chia sẻ chăm sóc/lịch nhắc/liên hệ khẩn cấp/bảo trì/cấu hình chính sách/thông báo/xác thực/studio/ingest telemetry/health/realtime; số API mới nhất **35 suite/325 test** ngày 22/11/2026, web **390 test** ngày 22/11/2026 và E2E **78/78** ngày 23/11/2026 (26 × Chromium/Firefox/WebKit, local + CI). Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, MQTT thật/benchmark PostgreSQL, khả dụng người cao tuổi hoặc p95. Đã có smoke PostgreSQL 17 thật (local + CI) và CI GitHub pass ngày 23/11/2026. Ma trận T-01…T-15 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
+**Trạng thái 23/11/2026:** có thêm backend V10a (leo thang cảnh báo trong ứng dụng), nền tảng V10b (Web Push sau cờ), ingest MQTT sự kiện/ACK thử nghiệm, retention tùy chọn mặc định tắt, FR-21 backend cho nháp lịch nhắc và nháp việc bảo trì (parser chỉ cho lịch nhắc), quan sát job nền admin, tổng hợp outbox admin và OpenAPI cho quản trị, trợ lý, hồ sơ/số đo/phiếu đi khám/cảnh báo/thiết bị/chia sẻ chăm sóc/lịch nhắc/liên hệ khẩn cấp/bảo trì/cấu hình chính sách/thông báo/xác thực/studio/ingest telemetry/health/realtime; số API mới nhất **36 suite/326 test** ngày 23/11/2026, web **390 test** ngày 22/11/2026 và E2E **78/78** ngày 23/11/2026 (26 × Chromium/Firefox/WebKit, local + CI). Các lát cắt phần mềm v1–v7 đã có test tự động và kết quả chạy thật trên dữ liệu tổng hợp; **chưa** có kết quả cho firmware, độ chính xác té ngã, Web Push thật trên trình duyệt, MQTT thật/benchmark PostgreSQL, khả dụng người cao tuổi hoặc p95. Đã có smoke PostgreSQL 17 thật (local + CI) và CI GitHub pass ngày 23/11/2026. Ma trận T-01…T-15 dưới đây là thiết kế phép kiểm; chỉ dòng có bằng chứng trong bảng “Bằng chứng chạy” mới được coi là đã chạy một phần.
 
 ## Chiến lược chạy
 
@@ -17,7 +17,7 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 
 | Hạng mục | Lệnh | Kết quả thật |
 | --- | --- | --- |
-| API toàn bộ | `pnpm --filter @heart-iot/api test` | **35/35 suite, 325/325 test pass** |
+| API toàn bộ | `pnpm --filter @heart-iot/api test` | **36/36 suite, 326/326 test pass** |
 | Chính sách cảnh báo | `alert-policy.spec.ts` | 4 test: mặc định tắt, owner-only, preview có người nhận/cảnh báo, version/validation |
 | Chi tiết cảnh báo | `incidents.spec.ts` | thêm 1 test `recipients[].deliveries` (kênh/trạng thái/thời điểm) |
 | Leo thang | `alert-escalation.spec.ts` | 10 test: mốc thời gian, dedupe, open-only, no_recipient, quyền, worker dừng sau ack, outbox push |
@@ -29,7 +29,8 @@ Môi trường: Windows, Node v24.22.2, pnpm 12.5.1, PGlite in-memory; chạy tr
 | Outbox admin | `admin.spec.ts` | 1 test: user thường 403; đếm theo trạng thái/kênh/kind; `dueNow`/`inFlight`/tuổi bản ghi mở cũ nhất; không lộ title/body/người nhận/lỗi gửi. Chi tiết: [`reports/qa/v12-admin-outbox.md`](../reports/qa/v12-admin-outbox.md) |
 | Trợ lý — hành động | `assistant-actions.spec.ts` | 11 test: catalog việc được/không được làm; nháp không ghi lịch/task; confirm tạo đúng một bản ghi và lặp không nhân đôi; caregiver 403/outsider 404; hết hạn/hủy/digest sai không ghi; nháp từ câu lệnh, từ chối liều, sửa nháp trước confirm, danh sách nháp còn hạn, `requestKey`, nháp việc bảo trì và rollback khi thiết bị đã tháo. Chi tiết: [`reports/qa/v11a-assistant-actions.md`](../reports/qa/v11a-assistant-actions.md) |
 | Trợ lý — parser | `assistant-draft-parser.spec.ts` | 11 test: giờ/ngày, hằng ngày, thứ 2–6, nhiều giờ, “mai”, giờ đã qua, ngày kết thúc có/không năm, lỗi liều/thiếu giờ/ngày không hợp lệ/trước ngày bắt đầu/bị lặp |
-| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **35/35 suite, 325/325 test pass** |
+| API randomized | `pnpm --filter @heart-iot/api test:random --seed=20261121` | **36/36 suite, 326/326 test pass** |
+| Security headers | `security-headers.spec.ts` | 1 test: response 200 và 401 đều có `nosniff`, `DENY`, `no-referrer`, `Permissions-Policy`, CSP chặt |
 | Typecheck API | `pnpm --filter @heart-iot/api typecheck` | pass |
 | Migration | `drizzle/0006_yielding_gargoyle.sql`, `0007_fine_gambit.sql`, `0008_smart_wrecker.sql`, `0009_dapper_gladiator.sql`, `0010_confused_klaw.sql`, `0011_absent_pete_wisdom.sql` | 0006 mở `subject_rules.kind`; 0007 tạo preference/subscription + check channel; 0008 thêm index retention; 0009 tạo `assistant_drafts`; 0010 thêm index `expires_at` cho retention nháp; 0011 thêm `request_key` + unique index theo actor; PGlite test migrate từ DB rỗng; migration cũng đã chạy trên PostgreSQL 17 thật (local + CI) |
 | Docs HTML | `build.py --check` | khớp nguồn, **379 liên kết/296 ID/22 mục** |
