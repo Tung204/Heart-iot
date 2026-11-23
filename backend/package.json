@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/database/migrate-cli.ts",
     "seed": "tsx src/database/seed-cli.ts",
-    "smoke:postgres": "node scripts/postgres-smoke.mjs"
+    "smoke:postgres": "node scripts/postgres-smoke.mjs",
+    "smoke:postgres-load": "node scripts/postgres-load.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.5.16",
