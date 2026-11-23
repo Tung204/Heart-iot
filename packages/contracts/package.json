@@ -89,6 +89,10 @@
     "./notification-preferences": {
       "types": "./dist/notification-preferences.d.ts",
       "default": "./dist/notification-preferences.js"
+    },
+    "./health": {
+      "types": "./dist/health.d.ts",
+      "default": "./dist/health.js"
     }
   },
   "scripts": {

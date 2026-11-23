@@ -33,6 +33,7 @@ const notifications = require('../dist/notifications.js');
 const notificationPreferences = require('../dist/notification-preferences.js');
 const authContract = require('../dist/auth.js');
 const studio = require('../dist/studio.js');
+const health = require('../dist/health.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -1371,6 +1372,55 @@ paths['/workspace-views/{id}/data'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Vận hành
+// ---------------------------------------------------------------------------
+
+paths['/health'] = {
+  get: {
+    tags: ['Health'],
+    operationId: 'getHealth',
+    summary: 'Trạng thái vận hành công khai',
+    description:
+      'Trả 200 kể cả khi database=down (status=degraded); không chứa dữ liệu sức khỏe hay cấu hình bí mật.',
+    security: [],
+    responses: { 200: ok(ref('HealthStatus')) },
+  },
+};
+
+paths['/subjects/{id}/events'] = {
+  get: {
+    tags: ['Realtime'],
+    operationId: 'streamSubjectEvents',
+    summary: 'Luồng SSE cảnh báo/sự kiện của hồ sơ',
+    description:
+      'Stream tối đa 5 phút, heartbeat 15 giây; kiểm lại phiên và quyền mỗi vòng, phát event revoked khi mất quyền. Reconnect bằng Last-Event-ID hoặc cursor.',
+    parameters: [
+      pathId('id'),
+      {
+        name: 'Last-Event-ID',
+        in: 'header',
+        required: false,
+        schema: { type: 'string', pattern: '^\\d{1,18}$' },
+      },
+      {
+        name: 'cursor',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', pattern: '^\\d{1,18}$' },
+      },
+    ],
+    responses: {
+      200: {
+        description: 'Luồng text/event-stream; có thể kết thúc sau tối đa 5 phút',
+        content: { 'text/event-stream': { schema: { type: 'string' } } },
+      },
+      ...auth(),
+      404: notFound(),
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -1479,6 +1529,7 @@ const componentSchemas = {
   PublicationList: studio.publicationListSchema,
   ViewData: studio.viewDataSchema,
   TelemetryEnvelope: telemetry.telemetryEnvelopeSchema,
+  HealthStatus: health.healthStatusSchema,
 };
 
 const components = { schemas: {} };
@@ -1556,6 +1607,8 @@ const document = {
     { name: 'Auth', description: 'Đăng ký/đăng nhập, hồ sơ và quản lý phiên; không trả token qua JSON.' },
     { name: 'Studio', description: 'Workspace view: nháp → preview → publish/rollback; preview không công bố.' },
     { name: 'Ingest', description: 'Thiết bị gửi telemetry/sự kiện bằng header; không dùng cookie người dùng.' },
+    { name: 'Health', description: 'Trạng thái vận hành công khai, không chứa dữ liệu sức khỏe.' },
+    { name: 'Realtime', description: 'SSE cảnh báo/sự kiện; kiểm lại phiên và quyền mỗi vòng.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,

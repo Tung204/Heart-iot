@@ -74,6 +74,14 @@
     {
       "name": "Ingest",
       "description": "Thiết bị gửi telemetry/sự kiện bằng header; không dùng cookie người dùng."
+    },
+    {
+      "name": "Health",
+      "description": "Trạng thái vận hành công khai, không chứa dữ liệu sức khỏe."
+    },
+    {
+      "name": "Realtime",
+      "description": "SSE cảnh báo/sự kiện; kiểm lại phiên và quyền mỗi vòng."
     }
   ],
   "security": [
@@ -1836,6 +1844,29 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "operationId": "getHealth",
+        "summary": "Trạng thái vận hành công khai",
+        "description": "Trả 200 kể cả khi database=down (status=degraded); không chứa dữ liệu sức khỏe hay cấu hình bí mật.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
                 }
               }
             }
@@ -5345,6 +5376,87 @@
         "responses": {
           "204": {
             "description": "Đã xóa liên hệ"
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc phiên hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền theo chính sách hồ sơ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên hoặc không có quyền xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/subjects/{id}/events": {
+      "get": {
+        "tags": [
+          "Realtime"
+        ],
+        "operationId": "streamSubjectEvents",
+        "summary": "Luồng SSE cảnh báo/sự kiện của hồ sơ",
+        "description": "Stream tối đa 5 phút, heartbeat 15 giây; kiểm lại phiên và quyền mỗi vòng, phát event revoked khi mất quyền. Reconnect bằng Last-Event-ID hoặc cursor.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,18}$"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{1,18}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Luồng text/event-stream; có thể kết thúc sau tối đa 5 phút",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "401": {
             "description": "Chưa đăng nhập hoặc phiên hết hạn",
@@ -11291,6 +11403,44 @@
           "name",
           "relationship",
           "phone"
+        ],
+        "additionalProperties": false
+      },
+      "HealthStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ]
+          },
+          "ai": {
+            "type": "string",
+            "enum": [
+              "provider_configured",
+              "template_fallback"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "ai",
+          "version"
         ],
         "additionalProperties": false
       },
