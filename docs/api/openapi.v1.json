@@ -70,6 +70,10 @@
     {
       "name": "Studio",
       "description": "Workspace view: nháp → preview → publish/rollback; preview không công bố."
+    },
+    {
+      "name": "Ingest",
+      "description": "Thiết bị gửi telemetry/sự kiện bằng header; không dùng cookie người dùng."
     }
   ],
   "security": [
@@ -1903,6 +1907,101 @@
           },
           "422": {
             "description": "Payload/query không hợp lệ theo hợp đồng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ingest/telemetry": {
+      "post": {
+        "tags": [
+          "Ingest"
+        ],
+        "operationId": "ingestTelemetry",
+        "summary": "Thiết bị gửi mẫu telemetry",
+        "description": "Xác thực bằng header thiết bị, không dùng phiên người dùng; mẫu cách ly vẫn trả 202 kèm code QUARANTINED và không dùng cho thống kê.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "x-device-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "x-device-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 256
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelemetryEnvelope"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Đã xử lý mẫu (accepted/duplicate; có thể QUARANTINED)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestAck"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai x-device-id/x-device-key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột trạng thái/phiên bản hoặc nội dung đã thay đổi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Payload/query không hợp lệ theo hợp đồng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Vượt giới hạn tần suất ingest",
             "content": {
               "application/json": {
                 "schema": {
@@ -16831,6 +16930,144 @@
           "permissions",
           "sharedFrom",
           "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "TelemetryEnvelope": {
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "1.0"
+          },
+          "message_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "device_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "boot_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "measured_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clock_status": {
+            "type": "string",
+            "enum": [
+              "synced",
+              "unsynced"
+            ]
+          },
+          "uptime_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "heart_rate_bpm": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 300
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "steps_since_boot": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "heart_rate_bpm",
+              "steps_since_boot"
+            ],
+            "additionalProperties": false
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "heart_rate": {
+                "type": "string",
+                "enum": [
+                  "valid",
+                  "poor_signal",
+                  "not_worn",
+                  "sensor_error"
+                ]
+              },
+              "motion": {
+                "type": "string",
+                "enum": [
+                  "valid",
+                  "sensor_error"
+                ]
+              }
+            },
+            "required": [
+              "heart_rate",
+              "motion"
+            ],
+            "additionalProperties": false
+          },
+          "battery_percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firmware_version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "schema_version",
+          "message_id",
+          "device_id",
+          "boot_id",
+          "sequence",
+          "measured_at",
+          "clock_status",
+          "uptime_ms",
+          "metrics",
+          "quality",
+          "battery_percent",
+          "firmware_version"
         ],
         "additionalProperties": false
       },

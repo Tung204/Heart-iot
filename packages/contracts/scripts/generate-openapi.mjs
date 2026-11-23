@@ -572,6 +572,26 @@ paths['/ingest/events'] = {
   },
 };
 
+paths['/ingest/telemetry'] = {
+  post: {
+    tags: ['Ingest'],
+    operationId: 'ingestTelemetry',
+    summary: 'Thiết bị gửi mẫu telemetry',
+    description:
+      'Xác thực bằng header thiết bị, không dùng phiên người dùng; mẫu cách ly vẫn trả 202 kèm code QUARANTINED và không dùng cho thống kê.',
+    security: [],
+    parameters: headerParams(telemetry.ingestHeadersSchema),
+    requestBody: body('TelemetryEnvelope'),
+    responses: {
+      202: ok(ref('IngestAck'), 'Đã xử lý mẫu (accepted/duplicate; có thể QUARANTINED)'),
+      401: errorResponse('Thiếu hoặc sai x-device-id/x-device-key'),
+      409: conflict(),
+      422: validation(),
+      429: errorResponse('Vượt giới hạn tần suất ingest'),
+    },
+  },
+};
+
 paths['/subjects/{id}/alerts'] = {
   get: {
     tags: ['Incidents'],
@@ -1458,6 +1478,7 @@ const componentSchemas = {
   RollbackView: studio.rollbackViewSchema,
   PublicationList: studio.publicationListSchema,
   ViewData: studio.viewDataSchema,
+  TelemetryEnvelope: telemetry.telemetryEnvelopeSchema,
 };
 
 const components = { schemas: {} };
@@ -1534,6 +1555,7 @@ const document = {
     { name: 'Notifications', description: 'Hộp thư trong ứng dụng và Web Push; subscription chỉ trả id/host.' },
     { name: 'Auth', description: 'Đăng ký/đăng nhập, hồ sơ và quản lý phiên; không trả token qua JSON.' },
     { name: 'Studio', description: 'Workspace view: nháp → preview → publish/rollback; preview không công bố.' },
+    { name: 'Ingest', description: 'Thiết bị gửi telemetry/sự kiện bằng header; không dùng cookie người dùng.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
