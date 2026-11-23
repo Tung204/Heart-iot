@@ -112,3 +112,59 @@ jobs:
 
       - name: Smoke API on PostgreSQL
         run: pnpm --filter @heart-iot/api smoke:postgres
+  e2e:
+    name: Browser E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PGLITE_DATA_DIR: .data/e2e-ci
+      NODE_ENV: development
+      PORT: "3000"
+      WEB_ORIGIN: http://localhost:5173
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm build:contracts
+
+      - name: Build API
+        run: pnpm --filter @heart-iot/api build
+
+      - name: Migrate PGlite
+        run: pnpm --filter @heart-iot/api db:migrate
+
+      - name: Seed PGlite
+        run: pnpm --filter @heart-iot/api seed
+
+      - name: Install Chromium
+        run: pnpm --filter @heart-iot/web exec playwright install --with-deps chromium
+
+      - name: Start API
+        run: |
+          nohup node backend/dist/src/main.js > /tmp/e2e-api.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:3000/api/v1/health; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/e2e-api.log
+          exit 1
+
+      - name: Run Playwright
+        run: pnpm --filter @heart-iot/web test:e2e
