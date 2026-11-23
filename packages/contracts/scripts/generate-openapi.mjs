@@ -32,6 +32,7 @@ const careRules = require('../dist/care-rules.js');
 const notifications = require('../dist/notifications.js');
 const notificationPreferences = require('../dist/notification-preferences.js');
 const authContract = require('../dist/auth.js');
+const studio = require('../dist/studio.js');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(here, '../../../docs/api/openapi.v1.json');
@@ -1259,6 +1260,97 @@ paths['/me/sessions/{id}'] = {
 };
 
 // ---------------------------------------------------------------------------
+// Studio workspace views
+// ---------------------------------------------------------------------------
+
+paths['/workspace-views'] = {
+  get: {
+    tags: ['Studio'],
+    operationId: 'listWorkspaceViews',
+    summary: 'Các view workspace người dùng được xem',
+    responses: { 200: ok(ref('ViewList')), ...auth() },
+  },
+  post: {
+    tags: ['Studio'],
+    operationId: 'createWorkspaceView',
+    summary: 'Tạo view nháp',
+    requestBody: body('CreateView'),
+    responses: { 201: ok(ref('ViewSummary'), 'Đã tạo view nháp'), ...auth(), 409: conflict(), 422: validation() },
+  },
+};
+
+paths['/workspace-views/{id}'] = {
+  get: {
+    tags: ['Studio'],
+    operationId: 'getWorkspaceView',
+    summary: 'Chi tiết một view workspace',
+    parameters: [pathId('id')],
+    responses: { 200: ok(ref('ViewSummary')), ...auth(), 404: notFound() },
+  },
+};
+
+paths['/workspace-views/{id}/draft'] = {
+  put: {
+    tags: ['Studio'],
+    operationId: 'updateWorkspaceViewDraft',
+    summary: 'Sửa bản nháp, không đổi bản đã công bố',
+    parameters: [pathId('id')],
+    requestBody: body('UpdateDraft'),
+    responses: { 200: ok(ref('ViewSummary')), ...auth(), 404: notFound(), 409: conflict(), 422: validation() },
+  },
+};
+
+paths['/workspace-views/{id}/previews'] = {
+  post: {
+    tags: ['Studio'],
+    operationId: 'previewWorkspaceView',
+    summary: 'Xem trước dữ liệu, không công bố',
+    parameters: [pathId('id')],
+    requestBody: body('PreviewRequest'),
+    responses: { 200: ok(ref('PreviewResult')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+paths['/workspace-views/{id}/publications'] = {
+  get: {
+    tags: ['Studio'],
+    operationId: 'listWorkspaceViewPublications',
+    summary: 'Lịch sử công bố của view',
+    parameters: [pathId('id')],
+    responses: { 200: ok(ref('PublicationList')), ...auth(), 404: notFound() },
+  },
+  post: {
+    tags: ['Studio'],
+    operationId: 'publishWorkspaceView',
+    summary: 'Công bố bản nháp theo version',
+    parameters: [pathId('id')],
+    requestBody: body('PublishView'),
+    responses: { 201: ok(ref('PublishResult'), 'Đã công bố'), ...auth(), 404: notFound(), 409: conflict(), 422: validation() },
+  },
+};
+
+paths['/workspace-views/{id}/rollback'] = {
+  post: {
+    tags: ['Studio'],
+    operationId: 'rollbackWorkspaceView',
+    summary: 'Quay lại một bản đã công bố trước đó',
+    parameters: [pathId('id')],
+    requestBody: body('RollbackView'),
+    responses: { 201: ok(ref('PublishResult'), 'Đã rollback'), ...auth(), 404: notFound(), 409: conflict(), 422: validation() },
+  },
+};
+
+paths['/workspace-views/{id}/data'] = {
+  get: {
+    tags: ['Studio'],
+    operationId: 'getWorkspaceViewData',
+    summary: 'Dữ liệu đã công bố cho view; subjectId là tùy chọn',
+    parameters: [pathId('id'), ...queryParams(studio.viewDataQuerySchema)],
+    responses: { 200: ok(ref('ViewData')), ...auth(), 404: notFound(), 422: validation() },
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Components
 // ---------------------------------------------------------------------------
 
@@ -1355,6 +1447,17 @@ const componentSchemas = {
   UpdateProfileInput: authContract.updateProfileSchema,
   ChangePasswordInput: authContract.changePasswordSchema,
   SessionList: authContract.sessionListSchema,
+  ViewList: studio.viewListSchema,
+  ViewSummary: studio.viewSummarySchema,
+  CreateView: studio.createViewSchema,
+  UpdateDraft: studio.updateDraftSchema,
+  PreviewRequest: studio.previewRequestSchema,
+  PreviewResult: studio.previewResultSchema,
+  PublishView: studio.publishViewSchema,
+  PublishResult: studio.publishResultSchema,
+  RollbackView: studio.rollbackViewSchema,
+  PublicationList: studio.publicationListSchema,
+  ViewData: studio.viewDataSchema,
 };
 
 const components = { schemas: {} };
@@ -1392,6 +1495,11 @@ for (const name of Object.keys(componentSchemas).sort()) {
     'LoginInput',
     'UpdateProfileInput',
     'ChangePasswordInput',
+    'CreateView',
+    'UpdateDraft',
+    'PreviewRequest',
+    'PublishView',
+    'RollbackView',
   ].includes(name)
     ? 'input'
     : 'output';
@@ -1425,6 +1533,7 @@ const document = {
     { name: 'Policies', description: 'Cấu hình cảnh báo/quy tắc chăm sóc; preview không ghi DB.' },
     { name: 'Notifications', description: 'Hộp thư trong ứng dụng và Web Push; subscription chỉ trả id/host.' },
     { name: 'Auth', description: 'Đăng ký/đăng nhập, hồ sơ và quản lý phiên; không trả token qua JSON.' },
+    { name: 'Studio', description: 'Workspace view: nháp → preview → publish/rollback; preview không công bố.' },
   ],
   security: [{ sessionCookie: [] }],
   paths: sortedPaths,
