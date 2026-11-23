@@ -91,11 +91,12 @@ Kết quả API chạy ngày **22/11/2026** (V10a + V10b backend + retention + O
 | Web unit (`pnpm test` trong `frontend`) | **44 file / 390 test pass** (22/11/2026, chạy tuần tự) |
 | Simulator (`cd tools/simulator && npm test`) | **23 test pass** |
 | E2E (`pnpm --filter @heart-iot/web test:e2e`) | **26/26 pass**; gồm landing/login/404/lời mời, Hôm nay, cảnh báo, lịch sử và test 60 giây không refetch |
-| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **374 liên kết/296 ID** (22/11/2026) |
+| Docs HTML (`tools/docs/.venv/Scripts/python.exe tools/docs/build.py --check`) | pass sau khi sinh lại; **375 liên kết/296 ID** (22/11/2026) |
 | Payload mẫu (`node tools/docs/check-examples.mjs`) | parse đủ 5/5 payload bằng schema tương ứng |
 | OpenAPI (`pnpm openapi:check`) | pass; 79 path/99 operation, 105 schema; 1 test hợp đồng so route 21 controller (toàn bộ controller backend); **chưa kiểm schema/response runtime** |
 | Validator nội bộ (`pnpm --filter @heart-iot/contracts test`) | **10/10 test pass** cho operationId/tag/path param/2xx/security/ref; không thay validator độc lập |
 | CI (`.github/workflows/ci.yml`) | workflow đã thêm; dry run cục bộ `pnpm test`/`build` pass; **chưa chạy trên GitHub** |
+| Live smoke API (process thật, DB PGlite mới, `curl`) | pass 23/11/2026: health, 3 tài khoản, quyền caregiver/admin, nháp → confirm → đúng một lịch nhắc; chi tiết `reports/qa/v12-live-smoke.md` |
 | API randomized (`pnpm --filter @heart-iot/api test:random --seed=20261121`) | **35 suite / 325 test pass** ngày 22/11/2026 |
 | Typecheck, backend build, MQTT exposure | **pass** typecheck toàn monorepo + `nest build` + **16/16** MQTT exposure (22/11/2026); web production build/seed **không chạy lại** |
 
