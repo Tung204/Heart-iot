@@ -26,7 +26,11 @@ export type AuthenticatedSession = {
 };
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-const LOGIN_MAX_ATTEMPTS = 10;
+/** Khóa theo cặp IP + email: IP khác không thể khóa tài khoản của nạn nhân. */
+const LOGIN_PAIR_MAX_ATTEMPTS = 10;
+/** Chặn spray nhiều email từ cùng một IP; đây là ngưỡng demo, chưa hiệu chuẩn. */
+const LOGIN_IP_MAX_ATTEMPTS = 30;
+const LOGIN_MAX_TRACKED_KEYS = 20_000;
 
 /**
  * Đổi mật khẩu dùng cùng ngưỡng/cửa sổ với login nhưng bucket riêng theo user id:
@@ -35,12 +39,18 @@ const LOGIN_MAX_ATTEMPTS = 10;
  * Bucket tách khỏi login để không khóa đăng nhập của chính user hay user khác.
  */
 const PASSWORD_CHANGE_WINDOW_MS = LOGIN_WINDOW_MS;
-const PASSWORD_CHANGE_MAX_ATTEMPTS = LOGIN_MAX_ATTEMPTS;
+const PASSWORD_CHANGE_MAX_ATTEMPTS = 10;
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly loginAttempts = new Map<string, { count: number; firstAt: number }>();
+  /**
+   * Hai bucket trong bộ nhớ: cặp IP+email và IP. Không còn bucket toàn tài khoản
+   * theo email, nên kẻ tấn công từ IP khác không thể khóa mật khẩu đúng của nạn nhân.
+   * Chỉ đúng trong một tiến trình API; nhiều instance cần store chia sẻ.
+   */
+  private readonly loginPairAttempts = new Map<string, { count: number; firstAt: number }>();
+  private readonly loginIpAttempts = new Map<string, { count: number; firstAt: number }>();
   /**
    * Bộ đếm trong bộ nhớ, chỉ đúng trong một tiến trình API. Demo một process
    * chấp nhận; khi chạy nhiều instance phải chuyển sang store chia sẻ (Redis/DB).
@@ -96,18 +106,31 @@ export class AuthService {
     return { token: session.token, expiresAt: session.expiresAt, user: toUserSummary(created) };
   }
 
-  async login(input: LoginInput): Promise<{ token: string; expiresAt: Date; user: UserSummary }> {
+  async login(
+    input: LoginInput,
+    clientIp: string,
+  ): Promise<{ token: string; expiresAt: Date; user: UserSummary }> {
     const emailNormalized = normalizeEmail(input.email);
-    this.assertLoginRate(emailNormalized);
-    const rows = await this.db
-      .select()
-      .from(users)
-      .where(eq(users.emailNormalized, emailNormalized))
-      .limit(1);
-    const user = rows[0];
-    const valid = user ? await verifyPassword(input.password, user.passwordHash) : false;
+    const ip = normalizeClientIp(clientIp);
+    this.assertLoginIpRate(ip);
+    // Giữ chỗ trước khi await DB/verify để burst song song không vượt ngưỡng.
+    this.reserveLoginPair(ip, emailNormalized);
+    let user: typeof users.$inferSelect | undefined;
+    let valid: boolean;
+    try {
+      const rows = await this.db
+        .select()
+        .from(users)
+        .where(eq(users.emailNormalized, emailNormalized))
+        .limit(1);
+      user = rows[0];
+      valid = user ? await verifyPassword(input.password, user.passwordHash) : false;
+    } catch (error) {
+      this.releaseLoginPair(ip, emailNormalized);
+      throw error;
+    }
     if (!user || !valid) {
-      this.recordFailedLogin(emailNormalized);
+      this.recordFailedLogin(ip, emailNormalized);
       await this.audit.record({
         actorKind: 'user',
         action: 'auth.login',
@@ -119,9 +142,10 @@ export class AuthService {
       throw AppError.unauthenticated('Email hoặc mật khẩu không đúng.');
     }
     if (user.status !== 'active') {
+      this.releaseLoginPair(ip, emailNormalized);
       throw AppError.forbidden('Tài khoản đang bị khóa.');
     }
-    this.loginAttempts.delete(emailNormalized);
+    this.releaseLoginPair(ip, emailNormalized);
     const session = await this.createSession(user.id);
     await this.db.update(users).set({ updatedAt: new Date() }).where(eq(users.id, user.id));
     await this.audit.record({
@@ -403,26 +427,85 @@ export class AuthService {
     return { token, expiresAt };
   }
 
-  private assertLoginRate(emailNormalized: string): void {
-    const entry = this.loginAttempts.get(emailNormalized);
-    if (!entry) return;
-    if (Date.now() - entry.firstAt > LOGIN_WINDOW_MS) {
-      this.loginAttempts.delete(emailNormalized);
+  private assertLoginIpRate(ip: string): void {
+    const now = Date.now();
+    this.pruneLoginAttempts(this.loginIpAttempts, now);
+    this.assertAttemptBucket(this.loginIpAttempts, ip, LOGIN_IP_MAX_ATTEMPTS, now);
+  }
+
+  /** Đếm trước khi verify: 10 request song song cũng chỉ có 10 lần được kiểm. */
+  private reserveLoginPair(ip: string, emailNormalized: string): void {
+    const now = Date.now();
+    this.pruneLoginAttempts(this.loginPairAttempts, now);
+    const key = loginPairKey(ip, emailNormalized);
+    const entry = this.loginPairAttempts.get(key);
+    if (!entry || now - entry.firstAt > LOGIN_WINDOW_MS) {
+      this.loginPairAttempts.set(key, { count: 1, firstAt: now });
       return;
     }
-    if (entry.count >= LOGIN_MAX_ATTEMPTS) {
+    if (entry.count >= LOGIN_PAIR_MAX_ATTEMPTS) {
+      throw AppError.rateLimited('Quá nhiều lần đăng nhập sai. Thử lại sau 15 phút.');
+    }
+    entry.count += 1;
+  }
+
+  private releaseLoginPair(ip: string, emailNormalized: string): void {
+    this.loginPairAttempts.delete(loginPairKey(ip, emailNormalized));
+  }
+
+  /** Chỉ ghi IP sau khi verify thất bại; đăng nhập đúng không bị tính vào IP. */
+  private recordFailedLogin(ip: string, emailNormalized: string): void {
+    const count = this.recordAttempt(this.loginIpAttempts, ip, Date.now());
+    this.logger.warn(
+      `Đăng nhập sai cho ${emailNormalized} từ ${ip}: ${count} lần/IP trong cửa sổ 15 phút`,
+    );
+  }
+
+  /** Xóa bucket hết hạn và chặn map phình vô hạn khi bị gửi email/IP rác. */
+  private pruneLoginAttempts(
+    bucket: Map<string, { count: number; firstAt: number }>,
+    now: number,
+  ): void {
+    if (bucket.size < 1_000) return;
+    for (const [key, entry] of bucket) {
+      if (now - entry.firstAt > LOGIN_WINDOW_MS) bucket.delete(key);
+    }
+    while (bucket.size > LOGIN_MAX_TRACKED_KEYS) {
+      const oldest = bucket.keys().next().value;
+      if (oldest === undefined) break;
+      bucket.delete(oldest);
+    }
+  }
+
+  private assertAttemptBucket(
+    bucket: Map<string, { count: number; firstAt: number }>,
+    key: string,
+    max: number,
+    now: number,
+  ): void {
+    const entry = bucket.get(key);
+    if (!entry) return;
+    if (now - entry.firstAt > LOGIN_WINDOW_MS) {
+      bucket.delete(key);
+      return;
+    }
+    if (entry.count >= max) {
       throw AppError.rateLimited('Quá nhiều lần đăng nhập sai. Thử lại sau 15 phút.');
     }
   }
 
-  private recordFailedLogin(emailNormalized: string): void {
-    const entry = this.loginAttempts.get(emailNormalized);
-    if (!entry || Date.now() - entry.firstAt > LOGIN_WINDOW_MS) {
-      this.loginAttempts.set(emailNormalized, { count: 1, firstAt: Date.now() });
-      return;
+  private recordAttempt(
+    bucket: Map<string, { count: number; firstAt: number }>,
+    key: string,
+    now: number,
+  ): number {
+    const entry = bucket.get(key);
+    if (!entry || now - entry.firstAt > LOGIN_WINDOW_MS) {
+      bucket.set(key, { count: 1, firstAt: now });
+      return 1;
     }
     entry.count += 1;
-    this.logger.warn(`Đăng nhập sai cho ${emailNormalized}: ${entry.count} lần trong cửa sổ 15 phút`);
+    return entry.count;
   }
 
   /**
@@ -446,6 +529,16 @@ export class AuthService {
     }
     entry.count += 1;
   }
+}
+
+function normalizeClientIp(raw: string): string {
+  const ip = raw.trim().toLowerCase();
+  if (ip.startsWith('::ffff:')) return ip.slice('::ffff:'.length);
+  return ip || 'unknown';
+}
+
+function loginPairKey(ip: string, emailNormalized: string): string {
+  return `${ip}\n${emailNormalized}`;
 }
 
 export function toUserSummary(row: {

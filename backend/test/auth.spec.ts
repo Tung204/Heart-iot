@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import request from 'supertest';
 import { auditLogs } from '../src/database/schema';
+import { AuthService } from '../src/auth/auth.service';
 import { createTestApp, registerUser, TEST_ORIGIN, type TestContext, type TestUser } from './test-app';
 
 const CHANGE_PASSWORD_PATH = '/api/v1/me/password';
@@ -82,6 +83,80 @@ describe('Auth, health và bảo vệ cookie', () => {
       .send({ email: user.email, password: user.password });
     expect(ok.status).toBe(200);
     expect(ok.body.user.id).toBe(user.session.user.id);
+  });
+
+  it('sai mật khẩu 10 lần từ cùng IP: lần 11 trả 429, kể cả mật khẩu đúng', async () => {
+    const user = await registerUser(ctx.app, { displayName: 'Bà Phúc' });
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const response = await loginRequest(ctx, user.email, 'sai-mat-khau');
+      expect(response.status).toBe(401);
+      expect(response.body.code).toBe('UNAUTHENTICATED');
+    }
+    const blocked = await loginRequest(ctx, user.email, user.password);
+    expect(blocked.status).toBe(429);
+    expect(blocked.body.code).toBe('RATE_LIMITED');
+    expect(JSON.stringify(blocked.body)).not.toContain(user.password);
+  });
+
+  it('IP khác không bị khóa bởi 10 lần sai của kẻ tấn công', async () => {
+    const user = await registerUser(ctx.app, { displayName: 'Bà Quỳnh' });
+    const auth = ctx.app.get(AuthService);
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await expect(
+        auth.login({ email: user.email, password: 'sai-mat-khau' }, '198.51.100.10'),
+      ).rejects.toMatchObject({ status: 401 });
+    }
+    await expect(
+      auth.login({ email: user.email, password: user.password }, '198.51.100.10'),
+    ).rejects.toMatchObject({ status: 429 });
+
+    const fromOtherIp = await auth.login(
+      { email: user.email, password: user.password },
+      '198.51.100.11',
+    );
+    expect(fromOtherIp.user.id).toBe(user.session.user.id);
+  });
+
+  it('đăng nhập thành công xóa bộ đếm sai của cặp IP+email', async () => {
+    const user = await registerUser(ctx.app, { displayName: 'Bà Rạng' });
+    const auth = ctx.app.get(AuthService);
+    const ip = '198.51.100.12';
+    for (let attempt = 0; attempt < 9; attempt += 1) {
+      await expect(
+        auth.login({ email: user.email, password: 'sai-mat-khau' }, ip),
+      ).rejects.toMatchObject({ status: 401 });
+    }
+    await expect(
+      auth.login({ email: user.email, password: user.password }, ip),
+    ).resolves.toMatchObject({ user: { id: user.session.user.id } });
+    for (let attempt = 0; attempt < 9; attempt += 1) {
+      await expect(
+        auth.login({ email: user.email, password: 'sai-mat-khau' }, ip),
+      ).rejects.toMatchObject({ status: 401 });
+    }
+  });
+
+  it('burst song song không vượt ngưỡng 10 lần của cặp IP+email', async () => {
+    const user = await registerUser(ctx.app, { displayName: 'Bà Sen' });
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, () => loginRequest(ctx, user.email, 'sai-mat-khau')),
+    );
+    const statuses = responses.map((response) => response.status);
+    expect(statuses.filter((status) => status === 401)).toHaveLength(10);
+    expect(statuses.filter((status) => status === 429)).toHaveLength(10);
+  });
+
+  it('chặn spray nhiều email từ cùng một IP sau 30 lần sai', async () => {
+    const auth = ctx.app.get(AuthService);
+    const ip = '203.0.113.44';
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      await expect(
+        auth.login({ email: `spray-${attempt}@example.test`, password: 'sai-mat-khau' }, ip),
+      ).rejects.toMatchObject({ status: 401 });
+    }
+    await expect(
+      auth.login({ email: 'spray-final@example.test', password: 'sai-mat-khau' }, ip),
+    ).rejects.toMatchObject({ status: 429 });
   });
 
   it('email trùng bị từ chối với 409', async () => {
@@ -208,7 +283,7 @@ describe('Auth, health và bảo vệ cookie', () => {
       const otherChanged = await changePasswordRequest(otherUser.agent, otherUser.password);
       expect(otherChanged.status).toBe(204);
 
-      // Bucket login (email) tách khỏi bucket đổi mật khẩu (user id).
+      // Bucket đăng nhập (IP+email) tách khỏi bucket đổi mật khẩu (user id).
       expect((await loginRequest(ctx, lockedUser.email, lockedUser.password)).status).toBe(200);
     });
 

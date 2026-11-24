@@ -59,9 +59,10 @@ export class AuthController {
   @HttpCode(200)
   async login(
     @Body(new ZodValidationPipe(loginSchema)) body: LoginInput,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.auth.login(body);
+    const result = await this.auth.login(body, req.ip ?? req.socket.remoteAddress ?? 'unknown');
     setSessionCookie(res, result.token, result.expiresAt, this.env);
     return authSessionSchema.parse({
       user: result.user,

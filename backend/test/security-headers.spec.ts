@@ -7,6 +7,7 @@ const EXPECTED_HEADERS: Record<string, string> = {
   'x-frame-options': 'DENY',
   'referrer-policy': 'no-referrer',
   'permissions-policy': 'camera=(), microphone=(), geolocation=()',
+  'cache-control': 'no-store',
   'content-security-policy':
     "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
 };
